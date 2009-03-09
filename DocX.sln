@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocX", "DocX\DocX.csproj", "{E863D072-AA8B-4108-B5F1-785241B37F67}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{6E4A2A95-9A9A-4F8C-A68D-4950E3455700}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E863D072-AA8B-4108-B5F1-785241B37F67} = {E863D072-AA8B-4108-B5F1-785241B37F67}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DF41F5CE-8BCB-40CC-835F-54A3DB7D802F}"
+	ProjectSection(SolutionItems) = preProject
+		DocX.vsmdi = DocX.vsmdi
+		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
+		..\..\..\..\..\Desktop\DocX zipped\ReadMe.docx = ..\..\..\..\..\Desktop\DocX zipped\ReadMe.docx
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StringReplaceTestApp", "StringReplaceTestApp\StringReplaceTestApp.csproj", "{EA960F96-7CA4-4AA1-BB43-0478E3407C5C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomPropertyTestApp", "CustomPropertyTestApp\CustomPropertyTestApp.csproj", "{9EABCAA8-175C-4FA2-9829-59E9D9E275D3}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 5
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs08.codeplex.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = CustomPropertyTestApp\\CustomPropertyTestApp.csproj
+		SccProjectName1 = CustomPropertyTestApp
+		SccLocalPath1 = CustomPropertyTestApp
+		SccProjectUniqueName2 = DocX\\DocX.csproj
+		SccProjectName2 = DocX
+		SccLocalPath2 = DocX
+		SccProjectUniqueName3 = StringReplaceTestApp\\StringReplaceTestApp.csproj
+		SccProjectName3 = StringReplaceTestApp
+		SccLocalPath3 = StringReplaceTestApp
+		SccProjectUniqueName4 = UnitTests\\UnitTests.csproj
+		SccProjectName4 = UnitTests
+		SccLocalPath4 = UnitTests
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = DocX.vsmdi
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E863D072-AA8B-4108-B5F1-785241B37F67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E863D072-AA8B-4108-B5F1-785241B37F67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E863D072-AA8B-4108-B5F1-785241B37F67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E863D072-AA8B-4108-B5F1-785241B37F67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E4A2A95-9A9A-4F8C-A68D-4950E3455700}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E4A2A95-9A9A-4F8C-A68D-4950E3455700}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E4A2A95-9A9A-4F8C-A68D-4950E3455700}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E4A2A95-9A9A-4F8C-A68D-4950E3455700}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA960F96-7CA4-4AA1-BB43-0478E3407C5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA960F96-7CA4-4AA1-BB43-0478E3407C5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA960F96-7CA4-4AA1-BB43-0478E3407C5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA960F96-7CA4-4AA1-BB43-0478E3407C5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EABCAA8-175C-4FA2-9829-59E9D9E275D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EABCAA8-175C-4FA2-9829-59E9D9E275D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EABCAA8-175C-4FA2-9829-59E9D9E275D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EABCAA8-175C-4FA2-9829-59E9D9E275D3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
