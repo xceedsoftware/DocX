@@ -42,9 +42,13 @@ namespace Novacode
             // Loop through each run in this paragraph
             foreach (XElement run in runs)
             {
-                Run r = new Run(startIndex, run);
-                runLookup.Add(r.EndIndex, r);
-                startIndex = r.EndIndex;
+                // Only add runs which contain text
+                if (GetElementTextLength(run) > 0)
+                {
+                    Run r = new Run(startIndex, run);
+                    runLookup.Add(r.EndIndex, r);
+                    startIndex = r.EndIndex;
+                }
             }
         }
 
@@ -149,6 +153,10 @@ namespace Novacode
         /// <returns>The first Run that will be effected</returns>
         public Run GetFirstRunEffectedByInsert(int index)
         {
+            // This paragraph contains no Runs and insertion is at index 0
+            if (runLookup.Keys.Count() == 0 && index == 0)
+                return null;
+
             foreach (int runEndIndex in runLookup.Keys)
             {
                 if (runEndIndex >= index)
@@ -267,6 +275,11 @@ namespace Novacode
             );
         }
 
+        public void Insert(int index, string value, bool trackChanges)
+        {
+            Insert(index, value, null, trackChanges);
+        }
+
         /// <summary>
         /// Inserts a specified instance of System.String into a Novacode.DocX.Paragraph at a specified index position.
         /// </summary>
@@ -311,7 +324,7 @@ namespace Novacode
         /// <param name="index">The index position of the insertion.</param>
         /// <param name="value">The System.String to insert.</param>
         /// <param name="trackChanges">Flag this insert as a change</param>
-        public void Insert(int index, string value, bool trackChanges)
+        public void Insert(int index, string value, Formatting formatting, bool trackChanges)
         {
             // Timestamp to mark the start of insert
             DateTime now = DateTime.Now;
@@ -320,82 +333,102 @@ namespace Novacode
             // Get the first run effected by this Insert
             Run run = GetFirstRunEffectedByInsert(index);
 
-            // Convert value into a List of XElement's
-            List<XElement> newRuns = formatInput(value, run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)));
-
-            // The parent of this Run
-            XElement parentElement = run.Xml.Parent;
-            switch (parentElement.Name.LocalName)
+            if (run == null)
             {
-                case "ins":
-                    {
-                        // The datetime that this ins was created
-                        DateTime parent_ins_date = DateTime.Parse(parentElement.Attribute(XName.Get("date", DocX.w.NamespaceName)).Value);
+                object insert;
+                if (formatting != null)
+                    insert = formatInput(value, formatting.Xml);
+                else
+                    insert = formatInput(value, null);
+                
+                if (trackChanges)
+                    insert = CreateEdit(EditType.ins, insert_datetime, insert);
+                p.Add(insert);
+            }
 
-                        /* 
-                         * Special case: You want to track changes,
-                         * and the first Run effected by this insert
-                         * has a datetime stamp equal to now.
-                        */
-                        if (trackChanges && parent_ins_date.CompareTo(insert_datetime) == 0)
+            else
+            {
+                object newRuns;
+                if (formatting != null)
+                    newRuns = formatInput(value, formatting.Xml);
+                else
+                    newRuns = formatInput(value, run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)));
+
+                // The parent of this Run
+                XElement parentElement = run.Xml.Parent;
+                switch (parentElement.Name.LocalName)
+                {
+                    case "ins":
                         {
-                            /*
-                             * Inserting into a non edit and this special case, is the same procedure.
+                            // The datetime that this ins was created
+                            DateTime parent_ins_date = DateTime.Parse(parentElement.Attribute(XName.Get("date", DocX.w.NamespaceName)).Value);
+
+                            /* 
+                             * Special case: You want to track changes,
+                             * and the first Run effected by this insert
+                             * has a datetime stamp equal to now.
                             */
-                            goto default;
+                            if (trackChanges && parent_ins_date.CompareTo(insert_datetime) == 0)
+                            {
+                                /*
+                                 * Inserting into a non edit and this special case, is the same procedure.
+                                */
+                                goto default;
+                            }
+
+                            /*
+                             * If not the special case above, 
+                             * then inserting into an ins or a del, is the same procedure.
+                            */
+                            goto case "del";
                         }
 
-                        /*
-                         * If not the special case above, 
-                         * then inserting into an ins or a del, is the same procedure.
-                        */
-                        goto case "del";
-                    }
+                    case "del":
+                        {
+                            object insert = newRuns;
+                            if (trackChanges)
+                                insert = CreateEdit(EditType.ins, insert_datetime, newRuns);
 
-                case "del":
-                    {
-                        object insert = newRuns;
-                        if (trackChanges)
-                            insert = CreateEdit(EditType.ins, insert_datetime, newRuns);
+                            // Split this Edit at the point you want to insert
+                            XElement[] splitEdit = SplitEdit(parentElement, index, EditType.ins);
 
-                        // Split this Edit at the point you want to insert
-                        XElement[] splitEdit = SplitEdit(parentElement, index, EditType.ins);
+                            // Replace the origional run
+                            parentElement.ReplaceWith
+                            (
+                                splitEdit[0],
+                                insert,
+                                splitEdit[1]
+                            );
 
-                        // Replace the origional run
-                        parentElement.ReplaceWith
-                        (
-                            splitEdit[0],
-                            insert,
-                            splitEdit[1]
-                        );
+                            break;
+                        }
 
-                        break;
-                    }
+                    default:
+                        {
+                            object insert = newRuns;
+                            if (trackChanges && !parentElement.Name.LocalName.Equals("ins"))
+                                insert = CreateEdit(EditType.ins, insert_datetime, newRuns);
 
-                default:
-                    {
-                        object insert = newRuns;
-                        if (trackChanges && !parentElement.Name.LocalName.Equals("ins"))
-                            insert = CreateEdit(EditType.ins, insert_datetime, newRuns);
+                            // Split this run at the point you want to insert
+                            XElement[] splitRun = Run.SplitRun(run, index);
 
-                        // Split this run at the point you want to insert
-                        XElement[] splitRun = Run.SplitRun(run, index);
+                            // Replace the origional run
+                            run.Xml.ReplaceWith
+                            (
+                                splitRun[0],
+                                insert,
+                                splitRun[1]
+                            );
 
-                        // Replace the origional run
-                        run.Xml.ReplaceWith
-                        (
-                            splitRun[0],
-                            insert,
-                            splitRun[1]
-                        );
-
-                        break;
-                    }
+                            break;
+                        }
+                }
             }
 
             // Rebuild the run lookup for this paragraph
             runLookup.Clear();
             BuildRunLookup(p);
+            DocX.RenumberIDs();
         }
 
         /// <summary>
@@ -446,7 +479,8 @@ namespace Novacode
                             int min = Math.Min(count - processed, run.Xml.ElementsAfterSelf().Sum(e => GetElementTextLength(e)));
                             XElement[] splitEditAfter = SplitEdit(parentElement, index + processed + min, EditType.del);
 
-                            object middle = CreateEdit(EditType.del, remove_datetime, SplitEdit(splitEditBefore[1], min, EditType.del)[0].Descendants());
+                            XElement temp = SplitEdit(splitEditBefore[1], index + processed + min, EditType.del)[0];
+                            object middle = CreateEdit(EditType.del, remove_datetime, temp.Elements().ToArray());
                             processed += GetElementTextLength(middle as XElement);
                             
                             if (!trackChanges)
@@ -509,6 +543,7 @@ namespace Novacode
             // Rebuild the run lookup
             runLookup.Clear();
             BuildRunLookup(p);
+            DocX.RenumberIDs();
         }
 
         /// <summary>

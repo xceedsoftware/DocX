@@ -43,6 +43,7 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Drawing" />
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -51,10 +52,15 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="WindowsBase">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CustomProperty.cs" />
     <Compile Include="Enumerations.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="Formatting.cs" />
     <Compile Include="Paragraph.cs" />
     <Compile Include="DocX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

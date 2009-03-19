@@ -5,6 +5,7 @@ using System.Text;
 using Novacode;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Xml.Linq;
 
 namespace StringReplaceTestApp
 {

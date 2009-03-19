@@ -97,6 +97,84 @@ namespace Novacode
             get { return customProperties; }
         }
 
+        public Paragraph AddParagraph()
+        {
+            XElement newParagraph = new XElement(w + "p");
+            mainDoc.Descendants(XName.Get("body", "http://schemas.openxmlformats.org/wordprocessingml/2006/main")).Single().Add(newParagraph);
+
+            // Get all of the paragraphs in this document
+            DocX.paragraphs = from p in mainDoc.Descendants(XName.Get("p", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"))
+                              select new Paragraph(p);
+
+            return new Paragraph(newParagraph);
+        }
+
+        public static DocX Create(string uri)
+        {
+            FileInfo fi = new FileInfo(uri);
+
+            if (fi.Extension != ".docx")
+                throw new Exception(string.Format("The input file {0} is not a .docx file", fi.FullName));
+
+            DocX.uri = uri;
+
+            // Create the docx package
+            wdDoc = WordprocessingDocument.Create(uri, DocumentFormat.OpenXml.WordprocessingDocumentType.Document);
+
+            #region MainDocumentPart
+            // Create the main document part for this package
+            mainDocumentPart = wdDoc.AddMainDocumentPart();  
+                       
+            // Load the document part into a XDocument object
+            using (TextReader tr = new StreamReader(mainDocumentPart.GetStream(FileMode.Create, FileAccess.ReadWrite)))
+            {
+                mainDoc = XDocument.Parse
+                (@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+                   <w:document xmlns:ve=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:wne=""http://schemas.microsoft.com/office/word/2006/wordml"">
+                   <w:body>
+                    <w:sectPr w:rsidR=""003E25F4"" w:rsidSect=""00FC3028"">
+                        <w:pgSz w:w=""11906"" w:h=""16838""/>
+                        <w:pgMar w:top=""1440"" w:right=""1440"" w:bottom=""1440"" w:left=""1440"" w:header=""708"" w:footer=""708"" w:gutter=""0""/>
+                        <w:cols w:space=""708""/>
+                        <w:docGrid w:linePitch=""360""/>
+                    </w:sectPr>
+                   </w:body>
+                   </w:document>"
+                );
+            }
+
+            // Get all of the paragraphs in this document
+            DocX.paragraphs = from p in mainDoc.Descendants(XName.Get("p", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"))
+                              select new Paragraph(p);
+            #endregion
+
+            #region CustomFilePropertiesPart
+
+            // Get the custom file properties part from the package
+            customPropertiesPart = wdDoc.CustomFilePropertiesPart;
+
+            // This docx contains a customFilePropertyPart
+            if (customPropertiesPart != null)
+            {
+                // Load the customFilePropertyPart
+                using (TextReader tr = new StreamReader(customPropertiesPart.GetStream(FileMode.Open, FileAccess.Read)))
+                {
+                    customPropDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
+                }
+
+                // Get all of the custom properties in this document
+                DocX.customProperties = from cp in customPropDoc.Descendants(XName.Get("property", customPropertiesSchema.NamespaceName))
+                                        select new CustomProperty(cp);
+            }
+
+            #endregion
+            
+            // Save the new docx file to disk and return
+            DocX created = new DocX();
+            created.Save();
+            return created;
+        }
+
         /// <summary>
         /// Loads a .docx file into a DocX object.
         /// </summary>
@@ -390,7 +468,7 @@ namespace Novacode
         /// <summary>
         /// Renumber all ins and del ids in this .docx file.
         /// </summary>
-        private static void RenumberIDs()
+        internal static void RenumberIDs()
         {
             IEnumerable<XAttribute> trackerIDs =
                             (from d in mainDoc.Descendants()

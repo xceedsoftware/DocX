@@ -75,9 +75,13 @@ namespace Novacode
                     case "t": goto case "delText";
                     case "delText":
                         {
-                            textLookup.Add(start + text.Value.Length, new Text(start, text));
-                            Value += text.Value;
-                            start += text.Value.Length;
+                            // Only add strings which are not empty
+                            if (text.Value.Length > 0)
+                            {
+                                textLookup.Add(start + text.Value.Length, new Text(start, text));
+                                Value += text.Value;
+                                start += text.Value.Length;
+                            }
                             break;
                         }
                     default: break;
