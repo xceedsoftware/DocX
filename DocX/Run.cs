@@ -43,7 +43,7 @@ namespace Novacode
         /// <param name="endIndex">The end index of this run (text length before this run, plus this runs text length)</param>
         /// <param name="runText">The text value of this run</param>
         /// <param name="e">The underlying XElement of this run</param>
-        public Run(int startIndex, XElement e)
+        internal Run(int startIndex, XElement e)
         {
             this.startIndex = startIndex;
             this.e = e;
@@ -97,7 +97,7 @@ namespace Novacode
         /// <param name="r">The run element to split</param>
         /// <param name="index">The index to split at</param>
         /// <returns>A two element array which contains both sides of the split</returns>
-        public static XElement[] SplitRun(Run r, int index)
+        static internal XElement[] SplitRun(Run r, int index)
         {
             Text t = r.GetFirstTextEffectedByEdit(index);
             XElement[] splitText = Text.SplitText(t, index);

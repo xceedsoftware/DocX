@@ -15,21 +15,117 @@ namespace Novacode
     /// </summary>
     public class Paragraph
     {
+        // This paragraphs text alignment
+        private Alignment alignment;
+
         // A lookup for the runs in this paragraph
         Dictionary<int, Run> runLookup = new Dictionary<int, Run>();
 
         // The underlying XElement which this Paragraph wraps
         private XElement p;
 
+        // A collection of images in this paragraph
+        private IEnumerable<Picture> pictures;
+        public IEnumerable<Picture> Pictures { get { return pictures; } }
         /// <summary>
         /// Wraps a XElement as a Paragraph.
         /// </summary>
         /// <param name="p">The XElement to wrap.</param>
-        public Paragraph(XElement p)
+        internal Paragraph(XElement p)
         {
             this.p = p;
 
             BuildRunLookup(p);
+
+            // Get all of the images in this document
+            pictures = from i in p.Descendants(XName.Get("drawing", DocX.w.NamespaceName))
+                     select new Picture(i);
+        }
+
+        /// <summary>
+        /// Gets or set this paragraphs text alignment
+        /// </summary>
+        public Alignment Alignment 
+        { 
+            get { return alignment; }
+
+            set 
+            {
+                alignment = value;
+
+                XElement pPr = p.Element(XName.Get("pPr", DocX.w.NamespaceName));
+
+                if (alignment != Novacode.Alignment.left)
+                {
+                    if (pPr == null)
+                        p.Add(new XElement(XName.Get("pPr", DocX.w.NamespaceName)));
+                    
+                    pPr = p.Element(XName.Get("pPr", DocX.w.NamespaceName));
+
+                    XElement jc = pPr.Element(XName.Get("jc", DocX.w.NamespaceName));
+
+                    if(jc == null)
+                        pPr.Add(new XElement(XName.Get("jc", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), alignment.ToString())));
+                    else
+                        jc.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value = alignment.ToString();
+                }
+
+                else
+                {
+                    if (pPr != null)
+                    {
+                        XElement jc = pPr.Element(XName.Get("jc", DocX.w.NamespaceName));
+
+                        if (jc != null)
+                            jc.Remove();
+                    }
+                }
+            } 
+        }
+
+        public void Delete(bool trackChanges)
+        {
+            if (trackChanges)
+            {
+                DateTime now = DateTime.Now.ToUniversalTime();
+
+                List<XElement> elements = p.Elements().ToList();
+                List<XElement> temp = new List<XElement>();
+                for (int i = 0; i < elements.Count(); i++ )
+                {
+                    XElement e = elements[i];
+
+                    if (e.Name.LocalName != "del")
+                    {
+                        temp.Add(e);
+                        e.Remove();
+                    }
+
+                    else
+                    {
+                        if (temp.Count() > 0)
+                        {
+                            e.AddBeforeSelf(CreateEdit(EditType.del, now, temp.Elements()));
+                            temp.Clear();
+                        }
+                    }
+                }
+
+                if (temp.Count() > 0)
+                    p.Add(CreateEdit(EditType.del, now, temp));                   
+            }
+
+            else
+            {
+                // Remove this paragraph from the document
+                p.Remove();
+                p = null;
+
+                runLookup.Clear();
+                runLookup = null;        
+            }
+
+            DocX.RebuildParagraphs();
         }
 
         private void BuildRunLookup(XElement p)
@@ -90,6 +186,32 @@ namespace Novacode
             }
         }
 
+        public void InsertPicture(Picture picture, int index)
+        {
+            Run run = GetFirstRunEffectedByEdit(index);
+
+            if (run == null)
+                p.Add(picture.i);
+            else
+            {
+                // Split this run at the point you want to insert
+                XElement[] splitRun = Run.SplitRun(run, index);
+
+                // Replace the origional run
+                run.Xml.ReplaceWith
+                (
+                    splitRun[0],
+                    picture.i,
+                    splitRun[1]
+                );
+            }
+
+            // Rebuild the run lookup for this paragraph
+            runLookup.Clear();
+            BuildRunLookup(p);
+            DocX.RenumberIDs();
+        }
+
         /// <summary>
         /// Creates an Edit either a ins or a del with the specified content and date
         /// </summary>
@@ -97,11 +219,11 @@ namespace Novacode
         /// <param name="edit_time">The time stamp to use for this edit</param>
         /// <param name="content">The initial content of this edit</param>
         /// <returns></returns>
-        private XElement CreateEdit(EditType t, DateTime edit_time, params object[] content)
+        private XElement CreateEdit(EditType t, DateTime edit_time, object content)
         {
             if (t == EditType.del)
             {
-                foreach (object o in content)
+                foreach (object o in (IEnumerable<XElement>)content)
                 {
                     if (o is XElement)
                     {
@@ -219,7 +341,7 @@ namespace Novacode
         /// </summary>
         /// <param name="run">An element</param>
         /// <returns>The length of this elements text</returns>
-        public static int GetElementTextLength(XElement run)
+        static internal int GetElementTextLength(XElement run)
         {
             int count = 0;
             
@@ -480,7 +602,7 @@ namespace Novacode
                             XElement[] splitEditAfter = SplitEdit(parentElement, index + processed + min, EditType.del);
 
                             XElement temp = SplitEdit(splitEditBefore[1], index + processed + min, EditType.del)[0];
-                            object middle = CreateEdit(EditType.del, remove_datetime, temp.Elements().ToArray());
+                            object middle = CreateEdit(EditType.del, remove_datetime, temp.Elements());
                             processed += GetElementTextLength(middle as XElement);
                             
                             if (!trackChanges)
@@ -517,7 +639,7 @@ namespace Novacode
                             int min = Math.Min(index + processed + (count - processed), run.EndIndex);
                             XElement[] splitRunAfter = Run.SplitRun(run, min);
 
-                            object middle = CreateEdit(EditType.del, remove_datetime, Run.SplitRun(new Run(run.StartIndex + GetElementTextLength(splitRunBefore[0]), splitRunBefore[1]), min)[0]);
+                            object middle = CreateEdit(EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun(new Run(run.StartIndex + GetElementTextLength(splitRunBefore[0]), splitRunBefore[1]), min)[0] });
                             processed += GetElementTextLength(middle as XElement);
                             
                             if (!trackChanges)

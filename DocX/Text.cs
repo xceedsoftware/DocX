@@ -39,7 +39,7 @@ namespace Novacode
         /// <param name="startIndex">The index this text starts at</param>
         /// <param name="text">The index this text ends at</param>
         /// <param name="e">The underlying xml element that this text wraps</param>
-        public Text(int startIndex, XElement e)
+        internal Text(int startIndex, XElement e)
         {
             this.startIndex = startIndex;
             this.e = e;

@@ -17,12 +17,12 @@ namespace Novacode
     {
         static internal string editSessionID;
 
-        public static XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+        static internal XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public DocX()
+        internal DocX()
         {
             editSessionID = Guid.NewGuid().ToString().Substring(0, 8);
         }
@@ -30,10 +30,12 @@ namespace Novacode
         #region Private static variable declarations
         // The URI of this .docx
         private static string uri;
+        // This memory stream will hold the DocX file
+        private static MemoryStream document;
         // Object representation of the .docx
         private static WordprocessingDocument wdDoc;
         // Object representation of the \word\document.xml part
-        private static MainDocumentPart mainDocumentPart;
+        internal static MainDocumentPart mainDocumentPart;
         // Object representation of the \docProps\custom.xml part
         private static CustomFilePropertiesPart customPropertiesPart = null;
         // The mainDocument is loaded into a XDocument object for easy querying and editing
@@ -43,8 +45,8 @@ namespace Novacode
         // The collection of Paragraphs <w:p></w:p> in this .docx
         private static IEnumerable<Paragraph> paragraphs;
         // The collection of custom properties in this .docx
-        private static IEnumerable<CustomProperty> customProperties = new List<CustomProperty>();
-
+        private static IEnumerable<CustomProperty> customProperties;
+        private static IEnumerable<Image> images;
         private static XNamespace customPropertiesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
         private static XNamespace customVTypesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
 
@@ -97,14 +99,19 @@ namespace Novacode
             get { return customProperties; }
         }
 
+        static internal void RebuildParagraphs()
+        {
+            // Get all of the paragraphs in this document
+            DocX.paragraphs = from p in mainDoc.Descendants(XName.Get("p", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"))
+                              select new Paragraph(p);
+        }
+
         public Paragraph AddParagraph()
         {
             XElement newParagraph = new XElement(w + "p");
             mainDoc.Descendants(XName.Get("body", "http://schemas.openxmlformats.org/wordprocessingml/2006/main")).Single().Add(newParagraph);
 
-            // Get all of the paragraphs in this document
-            DocX.paragraphs = from p in mainDoc.Descendants(XName.Get("p", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"))
-                              select new Paragraph(p);
+            RebuildParagraphs();
 
             return new Paragraph(newParagraph);
         }
@@ -216,6 +223,9 @@ namespace Novacode
             // Get all of the paragraphs in this document
             DocX.paragraphs = from p in mainDoc.Descendants(XName.Get("p", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"))
                               select new Paragraph(p);
+
+            DocX.images = from i in mainDocumentPart.ImageParts
+                          select new Image(i);
             #endregion
 
             #region CustomFilePropertiesPart
@@ -242,6 +252,37 @@ namespace Novacode
             return new DocX();
         }
 
+        public Image AddImage(string filename)
+        {
+            ImagePart ip = mainDocumentPart.AddImagePart(ImagePartType.Jpeg);
+
+            using (Stream stream = ip.GetStream(FileMode.Create, FileAccess.Write))
+            {
+                using (Stream s = new FileStream(filename, FileMode.Open))
+                {
+                    byte[] bytes = new byte[s.Length];
+                    s.Read(bytes, 0, (int)s.Length);
+                    stream.Write(bytes, 0, (int)s.Length);
+                }
+            }
+
+            return new Image(ip);
+        }
+
+        public Image AddImage(Stream s)
+        {
+            ImagePart ip = mainDocumentPart.AddImagePart(ImagePartType.Jpeg);
+
+            using (Stream stream = ip.GetStream(FileMode.Create, FileAccess.Write))
+            {
+                byte[] bytes = new byte[s.Length];
+                s.Read(bytes, 0, (int)s.Length);
+                stream.Write(bytes, 0, (int)s.Length);
+            }
+
+            return new Image(ip);
+        }
+
         /// <summary>
         /// Saves all changes made to the DocX object back to the .docx file it represents.
         /// </summary>
@@ -259,17 +300,17 @@ namespace Novacode
         public void Save()
         {
             // Save the main document part back to disk
-            using (TextWriter w = new StreamWriter(mainDocumentPart.GetStream(FileMode.Create, FileAccess.Write)))
+            using (TextWriter tw = new StreamWriter(mainDocumentPart.GetStream(FileMode.Create, FileAccess.Write)))
             {
-                mainDoc.Save(w, SaveOptions.DisableFormatting);
+                mainDoc.Save(tw, SaveOptions.DisableFormatting);
             }
 
             if (customPropertiesPart != null)
             {
                 // Save the custom properties part back to disk
-                using (TextWriter w = new StreamWriter(customPropertiesPart.GetStream(FileMode.Create, FileAccess.Write)))
+                using (TextWriter tw = new StreamWriter(customPropertiesPart.GetStream(FileMode.Create, FileAccess.Write)))
                 {
-                    customPropDoc.Save(w, SaveOptions.DisableFormatting);
+                    customPropDoc.Save(tw, SaveOptions.DisableFormatting);
                 }
             }
 
