@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{EA960F96-7CA4-4AA1-BB43-0478E3407C5C}</ProjectGuid>
+    <ProjectGuid>{EF2E13CC-B36B-4B5A-AE73-78F5DDCA094E}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StringReplaceTestApp</RootNamespace>
-    <AssemblyName>StringReplaceTestApp</AssemblyName>
+    <RootNamespace>Examples</RootNamespace>
+    <AssemblyName>Examples</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -39,6 +39,7 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -53,15 +54,21 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Test.docx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="Input\Image.docx" />
+    <None Include="Input\Template.docx" />
+    <None Include="Input\StringReplace.docx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DocX\DocX.csproj">
       <Project>{E863D072-AA8B-4108-B5F1-785241B37F67}</Project>
       <Name>DocX</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Input\Donkey.JPG" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Output\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
