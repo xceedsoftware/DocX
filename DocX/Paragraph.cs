@@ -695,7 +695,7 @@ namespace Novacode
         /// <param name="trackChanges">Track changes</param>
         public void Replace(string oldValue, string newValue, bool trackChanges, RegexOptions options)
         {
-            MatchCollection mc = Regex.Matches(this.Value, oldValue, options);
+            MatchCollection mc = Regex.Matches(this.Value, Regex.Escape(oldValue), options);
             
             // Loop through the matches in reverse order
             foreach (Match m in mc.Cast<Match>().Reverse())
