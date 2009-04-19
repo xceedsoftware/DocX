@@ -6,10 +6,19 @@ using DocumentFormat.OpenXml.Packaging;
 
 namespace Novacode
 {
+    /// <summary>
+    /// Represents an Image embedded in a document.
+    /// </summary>
     public class Image
     {
+        /// <summary>
+        /// A unique id which identifies this Image.
+        /// </summary>
         private string id;
 
+        /// <summary>
+        /// Returns the id of this Image.
+        /// </summary>
         public string Id 
         { 
             get {return id;} 

@@ -6,12 +6,12 @@ using System.Xml.Linq;
 
 namespace Novacode
 {
-    public class Text
+    internal class Text
     {
         private int startIndex;
         private int endIndex;
         private string text;
-        private XElement e;
+        internal XElement xml;
 
         /// <summary>
         /// Gets the start index of this Text (text length before this text)
@@ -28,21 +28,10 @@ namespace Novacode
         /// </summary>
         public string Value { get { return text; } }
 
-        /// <summary>
-        /// The underlying XElement of this run
-        /// </summary>
-        public XElement Xml { get { return e; } }
-
-        /// <summary>
-        /// A Text element
-        /// </summary>
-        /// <param name="startIndex">The index this text starts at</param>
-        /// <param name="text">The index this text ends at</param>
-        /// <param name="e">The underlying xml element that this text wraps</param>
         internal Text(int startIndex, XElement e)
         {
             this.startIndex = startIndex;
-            this.e = e;
+            this.xml = e;
 
             switch (e.Name.LocalName)
             {
@@ -78,29 +67,23 @@ namespace Novacode
             }
         }
 
-        /// <summary>
-        /// Splits a text element at a specified index
-        /// </summary>
-        /// <param name="e">The text element to split</param>
-        /// <param name="index">The index to split at</param>
-        /// <returns>A two element array which contains both sides of the split</returns>
-        public static XElement[] SplitText(Text t, int index)
+        internal static XElement[] SplitText(Text t, int index)
         {
             if (index < t.startIndex || index > t.EndIndex)
                 throw new ArgumentOutOfRangeException("index");
 
             XElement splitLeft = null, splitRight = null;
-            if (t.e.Name.LocalName == "t" || t.e.Name.LocalName == "delText")
+            if (t.xml.Name.LocalName == "t" || t.xml.Name.LocalName == "delText")
             {
                 // The origional text element, now containing only the text before the index point.
-                splitLeft = new XElement(t.e.Name, t.e.Attributes(), t.e.Value.Substring(0, index - t.startIndex));
+                splitLeft = new XElement(t.xml.Name, t.xml.Attributes(), t.xml.Value.Substring(0, index - t.startIndex));
                 if (splitLeft.Value.Length == 0)
                     splitLeft = null;
                 else
                     PreserveSpace(splitLeft);
 
                 // The origional text element, now containing only the text after the index point.
-                splitRight = new XElement(t.e.Name, t.e.Attributes(), t.e.Value.Substring(index - t.startIndex, t.e.Value.Length - (index - t.startIndex)));
+                splitRight = new XElement(t.xml.Name, t.xml.Attributes(), t.xml.Value.Substring(index - t.startIndex, t.xml.Value.Length - (index - t.startIndex)));
                 if (splitRight.Value.Length == 0)
                     splitRight = null;
                 else
@@ -110,10 +93,10 @@ namespace Novacode
             else
             {
                 if (index == t.StartIndex)
-                    splitLeft = t.e;
+                    splitLeft = t.xml;
 
                 else
-                    splitRight = t.e;
+                    splitRight = t.xml;
             }
 
             return

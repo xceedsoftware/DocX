@@ -8,6 +8,9 @@ using DocumentFormat.OpenXml.Packaging;
 
 namespace Novacode
 {
+    /// <summary>
+    /// Represents a Picture in this document, a Picture is a customized view of an Image.
+    /// </summary>
     public class Picture
     {
         private string id;
@@ -24,6 +27,12 @@ namespace Novacode
         private XElement xfrm;
         private XElement prstGeom;
 
+        /// <summary>
+        /// Create a new Picture.
+        /// </summary>
+        /// <param name="id">A unique id that identifies an Image embedded in this document.</param>
+        /// <param name="name">The name of this Picture.</param>
+        /// <param name="descr">The description of this Picture.</param>
         public Picture(string id, string name, string descr)
         {
             OpenXmlPart part = DocX.mainDocumentPart.GetPartById(id);
@@ -171,46 +180,80 @@ namespace Novacode
             prstGeom.Attribute(XName.Get("prst")).Value = shape.ToString();
         }
 
+        /// <summary>
+        /// Set the shape of this Picture to one in the BasicShapes enumeration.
+        /// </summary>
+        /// <param name="shape">A shape from the BasicShapes enumeration.</param>
         public void SetPictureShape(BasicShapes shape)
         {
             SetPictureShape((object)shape);
         }
 
+        /// <summary>
+        /// Set the shape of this Picture to one in the RectangleShapes enumeration.
+        /// </summary>
+        /// <param name="shape">A shape from the RectangleShapes enumeration.</param>
         public void SetPictureShape(RectangleShapes shape)
         {
             SetPictureShape((object)shape);
         }
 
+        /// <summary>
+        /// Set the shape of this Picture to one in the BlockArrowShapes enumeration.
+        /// </summary>
+        /// <param name="shape">A shape from the BlockArrowShapes enumeration.</param>
         public void SetPictureShape(BlockArrowShapes shape)
         {
             SetPictureShape((object)shape);
         }
 
+        /// <summary>
+        /// Set the shape of this Picture to one in the EquationShapes enumeration.
+        /// </summary>
+        /// <param name="shape">A shape from the EquationShapes enumeration.</param>
         public void SetPictureShape(EquationShapes shape)
         {
             SetPictureShape((object)shape);
         }
 
+        /// <summary>
+        /// Set the shape of this Picture to one in the FlowchartShapes enumeration.
+        /// </summary>
+        /// <param name="shape">A shape from the FlowchartShapes enumeration.</param>
         public void SetPictureShape(FlowchartShapes shape)
         {
             SetPictureShape((object)shape);
         }
 
+        /// <summary>
+        /// Set the shape of this Picture to one in the StarAndBannerShapes enumeration.
+        /// </summary>
+        /// <param name="shape">A shape from the StarAndBannerShapes enumeration.</param>
         public void SetPictureShape(StarAndBannerShapes shape)
         {
             SetPictureShape((object)shape);
         }
 
+        /// <summary>
+        /// Set the shape of this Picture to one in the CalloutShapes enumeration.
+        /// </summary>
+        /// <param name="shape">A shape from the CalloutShapes enumeration.</param>
         public void SetPictureShape(CalloutShapes shape)
         {
             SetPictureShape((object)shape);
         }
 
+        /// <summary>
+        /// A unique id that identifies an Image embedded in this document.
+        /// </summary>
         public string Id
         {
             get { return id; }
         }
 
+        /// <summary>
+        /// Flip this Picture Horizontally.
+        /// </summary>
         public bool FlipHorizontal
         {
             get { return hFlip; }
@@ -227,6 +270,9 @@ namespace Novacode
             }
         }
 
+        /// <summary>
+        /// Flip this Picture Vertically.
+        /// </summary>
         public bool FlipVertical
         {
             get { return vFlip; }

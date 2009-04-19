@@ -6,9 +6,9 @@ using System.Drawing;
 
 namespace Novacode
 {
-    public static class Extensions
+    internal static class Extensions
     {
-        public static string ToHex(this Color source)
+        internal static string ToHex(this Color source)
         {
             byte red = source.R;
             byte green = source.G;

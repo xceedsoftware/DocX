@@ -4,16 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using System.Drawing;
-
 namespace Novacode
 {
-    public enum Script { superscript, subscript, none }
-    public enum Highlight { yellow, green, cyan, magenta, blue, red, darkBlue, darkCyan, darkGreen, darkMagenta, darkRed, darkYellow, darkGray, lightGray, black, none};
-    public enum UnderlineStyle { none, singleLine, doubleLine, thick, dotted, dottedHeavy, dash, dashedHeavy, dashLong, dashLongHeavy, dotDash, dashDotHeavy, dotDotDash, dashDotDotHeavy, wave, wavyHeavy, wavyDouble, words};
-    public enum StrickThrough { none, strike, doubleStrike };
-    public enum Misc { none, shadow, outline, outlineShadow, emboss, engrave};
-    public enum CapsStyle { none, caps, smallCaps };
-
+    /// <summary>
+    /// A text formatting.
+    /// </summary>
     public class Formatting
     {
         private XElement rPr;
@@ -35,6 +30,9 @@ namespace Novacode
         private int? position;
         private double? spacing;
 
+        /// <summary>
+        /// A text formatting.
+        /// </summary>
         public Formatting()
         {
             capsStyle = CapsStyle.none;
@@ -47,7 +45,7 @@ namespace Novacode
             rPr = new XElement(XName.Get("rPr", DocX.w.NamespaceName));
         }
 
-        public XElement Xml
+        internal XElement Xml
         {
             get
             {
@@ -173,11 +171,29 @@ namespace Novacode
             }
         }
 
+        /// <summary>
+        /// This formatting will apply Bold.
+        /// </summary>
         public bool Bold { get { return bold; } set { bold = value;} }
+
+        /// <summary>
+        /// This formatting will apply Italic.
+        /// </summary>
         public bool Italic { get { return Italic; } set { italic = value; } }
+
+        /// <summary>
+        /// This formatting will apply StrickThrough.
+        /// </summary>
         public StrickThrough StrikeThrough { get { return strikethrough; } set { strikethrough = value; } }
+
+        /// <summary>
+        /// The script that this formatting should be, normal, superscript or subscript.
+        /// </summary>
         public Script Script { get { return script; } set { script = value; } }
         
+        /// <summary>
+        /// The Size of this text, must be between 0 and 1638.
+        /// </summary>
         public double? Size 
         { 
             get { return size; } 
@@ -199,6 +215,9 @@ namespace Novacode
             } 
         }
 
+        /// <summary>
+        /// Percentage scale must be one of the following values 200, 150, 100, 90, 80, 66, 50 or 33.
+        /// </summary>
         public int? PercentageScale
         { 
             get { return percentageScale; } 
@@ -212,6 +231,9 @@ namespace Novacode
             } 
         }
 
+        /// <summary>
+        /// The Kerning to apply to this text must be one of the following values 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72.
+        /// </summary>
         public int? Kerning 
         { 
             get { return kerning; } 
@@ -225,6 +247,9 @@ namespace Novacode
             } 
         }
 
+        /// <summary>
+        /// Text position must be in the range (-1585 - 1585).
+        /// </summary>
         public int? Position
         {
             get { return position; }
@@ -238,6 +263,9 @@ namespace Novacode
             }
         }
 
+        /// <summary>
+        /// Text spacing must be in the range (-1585 - 1585).
+        /// </summary>
         public double? Spacing
         {
             get { return spacing; }
@@ -259,13 +287,44 @@ namespace Novacode
             } 
         }
 
+        /// <summary>
+        /// The colour of the text.
+        /// </summary>
         public Color? FontColor { get { return fontColor; } set { fontColor = value; } }
+
+        /// <summary>
+        /// Highlight colour.
+        /// </summary>
         public Highlight Highlight { get { return highlight; } set { highlight = value; } }
+       
+        /// <summary>
+        /// The Underline style that this formatting applies.
+        /// </summary>
         public UnderlineStyle UnderlineStyle { get { return underlineStyle; } set { underlineStyle = value; } }
+        
+        /// <summary>
+        /// The underline colour.
+        /// </summary>
         public Color? UnderlineColor { get { return underlineColor; } set { underlineColor = value; } }
+        
+        /// <summary>
+        /// Misc settings.
+        /// </summary>
         public Misc Misc { get { return misc; } set { misc = value; } }
+        
+        /// <summary>
+        /// Is this text hidden or visible.
+        /// </summary>
         public bool Hidden { get { return hidden; } set { hidden = value; } }
+        
+        /// <summary>
+        /// Capitalization style.
+        /// </summary>
         public CapsStyle CapsStyle { get { return capsStyle; } set { capsStyle = value; } }
+        
+        /// <summary>
+        /// The font familt of this formatting.
+        /// </summary>
         public FontFamily FontFamily { get { return FontFamily; } set { fontFamily = value; } }
 
     }

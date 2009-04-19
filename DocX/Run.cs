@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace Novacode
 {
-    public class Run
+    internal class Run
     {
         // A lookup for the text elements in this paragraph
         Dictionary<int, Text> textLookup = new Dictionary<int, Text>();
@@ -14,7 +14,7 @@ namespace Novacode
         private int startIndex;
         private int endIndex;
         private string text;
-        private XElement e;
+        internal XElement xml;
 
         /// <summary>
         /// Gets the start index of this Text (text length before this text)
@@ -31,44 +31,32 @@ namespace Novacode
         /// </summary>
         private string Value { set { value = text; } get { return text; } }
 
-        /// <summary>
-        /// The underlying XElement of this run
-        /// </summary>
-        public XElement Xml { get { return e; } }
-
-        /// <summary>
-        /// A Run can contain text, delText, br, t and rPr elements
-        /// </summary>
-        /// <param name="startIndex">The start index of this run (text length before this run)</param>
-        /// <param name="endIndex">The end index of this run (text length before this run, plus this runs text length)</param>
-        /// <param name="runText">The text value of this run</param>
-        /// <param name="e">The underlying XElement of this run</param>
-        internal Run(int startIndex, XElement e)
+        internal Run(int startIndex, XElement xml)
         {
             this.startIndex = startIndex;
-            this.e = e;
+            this.xml = xml;
 
             // Get the text elements in this run
-            IEnumerable<XElement> texts = e.Descendants();
+            IEnumerable<XElement> texts = xml.Descendants();
 
             int start = startIndex;
 
             // Loop through each text in this run
-            foreach (XElement text in texts)
+            foreach (XElement te in texts)
             {
-                switch (text.Name.LocalName)
+                switch (te.Name.LocalName)
                 {
                     case "tab":
                         {
-                            textLookup.Add(start + 1, new Text(start, text));
-                            Value += "\t";
+                            textLookup.Add(start + 1, new Text(start, te));
+                            text += "\t";
                             start++;
                             break;
                         }
                     case "br":
                         {
-                            textLookup.Add(start + 1, new Text(start, text));
-                            Value += "\n";
+                            textLookup.Add(start + 1, new Text(start, te));
+                            text += "\n";
                             start++;
                             break;
                         }
@@ -76,11 +64,11 @@ namespace Novacode
                     case "delText":
                         {
                             // Only add strings which are not empty
-                            if (text.Value.Length > 0)
+                            if (te.Value.Length > 0)
                             {
-                                textLookup.Add(start + text.Value.Length, new Text(start, text));
-                                Value += text.Value;
-                                start += text.Value.Length;
+                                textLookup.Add(start + te.Value.Length, new Text(start, te));
+                                text += te.Value;
+                                start += te.Value.Length;
                             }
                             break;
                         }
@@ -91,22 +79,16 @@ namespace Novacode
             endIndex = start;
         }
 
-        /// <summary>
-        /// Splits a run element at a specified index
-        /// </summary>
-        /// <param name="r">The run element to split</param>
-        /// <param name="index">The index to split at</param>
-        /// <returns>A two element array which contains both sides of the split</returns>
         static internal XElement[] SplitRun(Run r, int index)
         {
             Text t = r.GetFirstTextEffectedByEdit(index);
             XElement[] splitText = Text.SplitText(t, index);
             
-            XElement splitLeft = new XElement(r.e.Name, r.e.Attributes(), r.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)), t.Xml.ElementsBeforeSelf().Where(n => n.Name.LocalName != "rPr"), splitText[0]);
+            XElement splitLeft = new XElement(r.xml.Name, r.xml.Attributes(), r.xml.Element(XName.Get("rPr", DocX.w.NamespaceName)), t.xml.ElementsBeforeSelf().Where(n => n.Name.LocalName != "rPr"), splitText[0]);
             if(Paragraph.GetElementTextLength(splitLeft) == 0)
                 splitLeft = null;
 
-            XElement splitRight = new XElement(r.e.Name, r.e.Attributes(), r.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)), splitText[1], t.Xml.ElementsAfterSelf().Where(n => n.Name.LocalName != "rPr"));
+            XElement splitRight = new XElement(r.xml.Name, r.xml.Attributes(), r.xml.Element(XName.Get("rPr", DocX.w.NamespaceName)), splitText[1], t.xml.ElementsAfterSelf().Where(n => n.Name.LocalName != "rPr"));
             if(Paragraph.GetElementTextLength(splitRight) == 0)
                 splitRight = null;
 
@@ -120,12 +102,7 @@ namespace Novacode
             );
         }
 
-        /// <summary>
-        /// Return the first Run that will be effected by an edit at the index
-        /// </summary>
-        /// <param name="index">The index of this edit</param>
-        /// <returns>The first Run that will be effected</returns>
-        public Text GetFirstTextEffectedByEdit(int index)
+        internal Text GetFirstTextEffectedByEdit(int index)
         {
             foreach (int textEndIndex in textLookup.Keys)
             {

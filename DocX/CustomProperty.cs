@@ -7,12 +7,12 @@ using System.Xml.Linq;
 namespace Novacode
 {
     /// <summary>
-    /// Represents a .docx custom property.
+    /// Represents a document custom property.
     /// </summary>
     public class CustomProperty
     {
         // The underlying XElement which this CustomProperty wraps
-        private XElement cp;
+        private XElement xml;
         // This customPropertys name
         private string name;
         // This customPropertys type
@@ -35,16 +35,12 @@ namespace Novacode
         /// </summary>
         public object Value { get { return value; } }
 
-        /// <summary>
-        /// Wraps a System.Xml.Linq.XElement as an instance of Novacode.DocX.CustomProperty
-        /// </summary>
-        /// <param name="cp">The XElement to wrap</param>
-        public CustomProperty(XElement cp)
+        internal CustomProperty(XElement xml)
         {
-            this.cp = cp;
-            name = cp.Attribute(XName.Get("name")).Value;
+            this.xml = xml;
+            name = xml.Attribute(XName.Get("name")).Value;
             
-            XElement p = cp.Elements().SingleOrDefault();
+            XElement p = xml.Elements().SingleOrDefault();
 
             switch (p.Name.LocalName)
             {

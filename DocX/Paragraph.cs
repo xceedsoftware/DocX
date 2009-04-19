@@ -11,7 +11,7 @@ using System.Collections;
 namespace Novacode
 {
     /// <summary>
-    /// Represents a .docx paragraph.
+    /// Represents a document paragraph.
     /// </summary>
     public class Paragraph
     {
@@ -22,28 +22,32 @@ namespace Novacode
         Dictionary<int, Run> runLookup = new Dictionary<int, Run>();
 
         // The underlying XElement which this Paragraph wraps
-        private XElement p;
+        internal XElement xml;
+        internal int startIndex, endIndex;
 
         // A collection of images in this paragraph
-        private IEnumerable<Picture> pictures;
-        public IEnumerable<Picture> Pictures { get { return pictures; } }
+        private List<Picture> pictures;
+
         /// <summary>
-        /// Wraps a XElement as a Paragraph.
+        /// Returns a list of Pictures in this Paragraph.
         /// </summary>
-        /// <param name="p">The XElement to wrap.</param>
-        internal Paragraph(XElement p)
+        public List<Picture> Pictures { get { return pictures; } }
+
+        internal Paragraph(int startIndex, XElement p)
         {
-            this.p = p;
+            this.startIndex = startIndex;
+            this.endIndex = startIndex + GetElementTextLength(p);
+            this.xml = p;
 
             BuildRunLookup(p);
 
             // Get all of the images in this document
-            pictures = from i in p.Descendants(XName.Get("drawing", DocX.w.NamespaceName))
-                     select new Picture(i);
+            pictures = (from i in p.Descendants(XName.Get("drawing", DocX.w.NamespaceName))
+                        select new Picture(i)).ToList();
         }
 
         /// <summary>
-        /// Gets or set this paragraphs text alignment
+        /// Gets or set this Paragraphs text alignment.
         /// </summary>
         public Alignment Alignment 
         { 
@@ -53,14 +57,14 @@ namespace Novacode
             {
                 alignment = value;
 
-                XElement pPr = p.Element(XName.Get("pPr", DocX.w.NamespaceName));
+                XElement pPr = xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
 
                 if (alignment != Novacode.Alignment.left)
                 {
                     if (pPr == null)
-                        p.Add(new XElement(XName.Get("pPr", DocX.w.NamespaceName)));
+                        xml.Add(new XElement(XName.Get("pPr", DocX.w.NamespaceName)));
                     
-                    pPr = p.Element(XName.Get("pPr", DocX.w.NamespaceName));
+                    pPr = xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
 
                     XElement jc = pPr.Element(XName.Get("jc", DocX.w.NamespaceName));
 
@@ -83,13 +87,33 @@ namespace Novacode
             } 
         }
 
-        public void Delete(bool trackChanges)
+        /// <summary>
+        /// Remove this Paragraph from the document.
+        /// </summary>
+        /// <param name="trackChanges">Should this remove be tracked as a change?</param>
+        /// <example>
+        /// Remove a Paragraph from a document and track it as a change.
+        /// <code>
+        /// // Load a document using its fully qualified filename.
+        /// DocX document = DocX.Create(@"Test.docx");
+        ///
+        /// // Create and Insert a new Paragraph into this document.
+        /// Paragraph p = document.InsertParagraph("Hello", false);
+        /// 
+        /// // Remove the Paragraph and track this as a change.
+        /// p.Remove(true);
+        ///
+        /// // Close the document.
+        /// document.Close(true);
+        /// </code>
+        /// </example>
+        public void Remove(bool trackChanges)
         {
             if (trackChanges)
             {
                 DateTime now = DateTime.Now.ToUniversalTime();
 
-                List<XElement> elements = p.Elements().ToList();
+                List<XElement> elements = xml.Elements().ToList();
                 List<XElement> temp = new List<XElement>();
                 for (int i = 0; i < elements.Count(); i++ )
                 {
@@ -112,14 +136,14 @@ namespace Novacode
                 }
 
                 if (temp.Count() > 0)
-                    p.Add(CreateEdit(EditType.del, now, temp));                   
+                    xml.Add(CreateEdit(EditType.del, now, temp));                   
             }
 
             else
             {
                 // Remove this paragraph from the document
-                p.Remove();
-                p = null;
+                xml.Remove();
+                xml = null;
 
                 runLookup.Clear();
                 runLookup = null;        
@@ -149,9 +173,9 @@ namespace Novacode
         }
 
         /// <summary>
-        /// Gets the value of this Novacode.DocX.Paragraph.
+        /// Gets the text value of this Paragraph.
         /// </summary>
-        public string Value
+        public string Text
         {
             // Returns the underlying XElement's Value property.
             get
@@ -159,7 +183,7 @@ namespace Novacode
                 StringBuilder sb = new StringBuilder();
 
                 // Loop through each run in this paragraph
-                foreach (XElement r in p.Descendants(XName.Get("r", DocX.w.NamespaceName)))
+                foreach (XElement r in xml.Descendants(XName.Get("r", DocX.w.NamespaceName)))
                 {
                     // Loop through each text item in this run
                     foreach (XElement descendant in r.Descendants())
@@ -186,19 +210,58 @@ namespace Novacode
             }
         }
 
+        /// <summary>
+        /// Insert a Picture into this document at a specified index.
+        /// </summary>
+        /// <param name="picture">The Picture to insert.</param>
+        /// <param name="index">The index to insert at.</param>
+        /// <example>
+        /// <code>
+        /// // Create a document using a relative filename.
+        /// DocX document = DocX.Create(@"Test.docx");
+        ///
+        /// // Add an Image to this document.
+        /// Novacode.Image img = document.AddImage("Image.jpg");
+        ///
+        /// // Create a Picture, a picture is like a custom view of an Image.
+        /// Picture pic = new Picture(img.Id, "Photo 31415", "A pie I baked.");
+        ///
+        /// // Rotate the Picture clockwise by 30 degrees. 
+        /// pic.Rotation = 30;
+        ///
+        /// // Resize the Picture.
+        /// pic.Width = 400;
+        /// pic.Height = 300;
+        ///
+        /// // Set the shape of this Picture to be a cube.
+        /// pic.SetPictureShape(BasicShapes.cube);
+        ///
+        /// // Flip the Picture Horizontally.
+        /// pic.FlipHorizontal = true;
+        ///
+        /// // Add a new Paragraph to this document.
+        /// Paragraph p = document.InsertParagraph("Here is Picture 1", false);
+        ///
+        /// // Insert pic at the end of Paragraph p.
+        /// p.InsertPicture(pic, p.Text.Length);
+        ///
+        /// // Close the document.
+        /// document.Close(true);
+        /// </code>
+        /// </example>
         public void InsertPicture(Picture picture, int index)
         {
             Run run = GetFirstRunEffectedByEdit(index);
 
             if (run == null)
-                p.Add(picture.i);
+                xml.Add(picture.i);
             else
             {
                 // Split this run at the point you want to insert
                 XElement[] splitRun = Run.SplitRun(run, index);
 
                 // Replace the origional run
-                run.Xml.ReplaceWith
+                run.xml.ReplaceWith
                 (
                     splitRun[0],
                     picture.i,
@@ -208,7 +271,7 @@ namespace Novacode
 
             // Rebuild the run lookup for this paragraph
             runLookup.Clear();
-            BuildRunLookup(p);
+            BuildRunLookup(xml);
             DocX.RenumberIDs();
         }
 
@@ -249,12 +312,7 @@ namespace Novacode
             );
         }
 
-        /// <summary>
-        /// Return the first Run that will be effected by an edit at the index
-        /// </summary>
-        /// <param name="index">The index of this edit</param>
-        /// <returns>The first Run that will be effected</returns>
-        public Run GetFirstRunEffectedByEdit(int index)
+        internal Run GetFirstRunEffectedByEdit(int index)
         {
             foreach (int runEndIndex in runLookup.Keys)
             {
@@ -268,12 +326,7 @@ namespace Novacode
             throw new ArgumentOutOfRangeException();
         }
 
-        /// <summary>
-        /// Return the first Run that will be effected by an edit at the index
-        /// </summary>
-        /// <param name="index">The index of this edit</param>
-        /// <returns>The first Run that will be effected</returns>
-        public Run GetFirstRunEffectedByInsert(int index)
+        internal Run GetFirstRunEffectedByInsert(int index)
         {
             // This paragraph contains no Runs and insertion is at index 0
             if (runLookup.Keys.Count() == 0 && index == 0)
@@ -288,13 +341,10 @@ namespace Novacode
             throw new ArgumentOutOfRangeException();
         }
 
-        /// <summary>
-        /// If the value to be inserted contains tab elements or br elements, multiple runs will be inserted.
-        /// </summary>
-        /// <param name="text">The text to be inserted, this text can contain the special characters \t (tab) and \n (br)</param>
-        /// <returns></returns>
-        private List<XElement> formatInput(string text, XElement rPr)
+        private List<XElement> FormatInput(string text, XElement rPr)
         {
+            // Need to support /n as non breaking space
+
             List<XElement> newRuns = new List<XElement>();
             XElement tabRun = new XElement(DocX.w + "tab");
 
@@ -304,7 +354,7 @@ namespace Novacode
             {
                 XElement firstText = new XElement(DocX.w + "t", runTexts[0]);
 
-                Text.PreserveSpace(firstText);
+                Novacode.Text.PreserveSpace(firstText);
 
                 firstRun = new XElement(DocX.w + "r", rPr, firstText);
 
@@ -324,7 +374,7 @@ namespace Novacode
                     else
                     {
                         // Value begins or ends with a space
-                        Text.PreserveSpace(newText);
+                        Novacode.Text.PreserveSpace(newText);
 
                         newRun = new XElement(DocX.w + "r", rPr, tabRun, newText);
                     }
@@ -336,11 +386,6 @@ namespace Novacode
             return newRuns;
         }
 
-        /// <summary>
-        /// Counts the text length of an element
-        /// </summary>
-        /// <param name="run">An element</param>
-        /// <returns>The length of this elements text</returns>
         static internal int GetElementTextLength(XElement run)
         {
             int count = 0;
@@ -362,14 +407,7 @@ namespace Novacode
             return count;
         }
 
-        /// <summary>
-        /// Splits an edit element at the specified run, at the specified index.
-        /// </summary>
-        /// <param name="edit">The edit element to split</param>
-        /// <param name="run">The run element to split</param>
-        /// <param name="index">The index to split at</param>
-        /// <returns></returns>
-        public XElement[] SplitEdit(XElement edit, int index, EditType type)
+        internal XElement[] SplitEdit(XElement edit, int index, EditType type)
         {
             Run run;
             if(type == EditType.del)
@@ -379,11 +417,11 @@ namespace Novacode
 
             XElement[] splitRun = Run.SplitRun(run, index);
             
-            XElement splitLeft = new XElement(edit.Name, edit.Attributes(), run.Xml.ElementsBeforeSelf(), splitRun[0]);
+            XElement splitLeft = new XElement(edit.Name, edit.Attributes(), run.xml.ElementsBeforeSelf(), splitRun[0]);
             if (GetElementTextLength(splitLeft) == 0)
                 splitLeft = null;
 
-            XElement splitRight = new XElement(edit.Name, edit.Attributes(), splitRun[1], run.Xml.ElementsAfterSelf());
+            XElement splitRight = new XElement(edit.Name, edit.Attributes(), splitRun[1], run.xml.ElementsAfterSelf());
             if (GetElementTextLength(splitRight) == 0)
                 splitRight = null;
 
@@ -397,56 +435,214 @@ namespace Novacode
             );
         }
 
-        public void Insert(int index, string value, bool trackChanges)
+        /// <summary>
+        /// Inserts a specified instance of System.String into a Novacode.DocX.Paragraph at a specified index position.
+        /// </summary>
+        /// <example>
+        /// <code> 
+        ///  // Load Test.docx.
+        ///  DocX document = DocX.Load(@"C:\Example\Test.docx");
+        ///
+        ///  // Iterate through the Paragraphs in this document.
+        ///  foreach (Paragraph p in document.Paragraphs)
+        ///  {
+        ///     // Insert the string "Start: " at the begining of every Paragraph and flag it as a change.
+        ///     p.InsertText(0, "Start: ", true);
+        ///  }
+        ///
+        ///  // Save changes to this document.
+        ///  document.Close(true);
+        /// </code>
+        /// </example>
+        /// <example>
+        /// Inserting tabs using the \t switch.
+        /// <code>  
+        ///  // Load Test.docx.
+        ///  DocX document = DocX.Load(@"C:\Example\Test.docx");
+        ///
+        ///  // Iterate through the paragraphs in this document.
+        ///  foreach (Paragraph p in document.Paragraphs)
+        ///  {
+        ///     // Insert the string "\tStart:\t" at the begining of every paragraph and flag it as a change.
+        ///     p.InsertText(0, "\tStart:\t", true);
+        ///  }
+        ///
+        ///  // Save changes to this document.
+        ///  document.Close(true);
+        /// </code>
+        /// </example>
+        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
+        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
+        /// <param name="index">The index position of the insertion.</param>
+        /// <param name="value">The System.String to insert.</param>
+        /// <param name="trackChanges">Flag this insert as a change.</param>
+        public void InsertText(int index, string value, bool trackChanges)
         {
-            Insert(index, value, null, trackChanges);
+            InsertText(index, value, trackChanges, null);
         }
 
         /// <summary>
         /// Inserts a specified instance of System.String into a Novacode.DocX.Paragraph at a specified index position.
         /// </summary>
         /// <example>
-        /// <code>
-        ///  // Description: Simple string insertion
-        ///  
-        ///  // Load Example.docx
-        ///  DocX dx = DocX.Load(@"C:\Example.docx");
+        /// <code> 
+        ///  // Load Test.docx.
+        ///  DocX document = DocX.Load(@"C:\Example\Test.docx");
         ///
-        ///  // Iterate through the paragraphs
-        ///  foreach (Paragraph p in dx.Paragraphs)
+        ///  // Iterate through the Paragraphs in this document.
+        ///  foreach (Paragraph p in document.Paragraphs)
         ///  {
-        ///     // Insert the string "Start: " at the begining of every paragraph and flag it as a change.
-        ///     p.Insert(0, "Start: ", true);
+        ///     // Insert the string "End: " at the end of every Paragraph and flag it as a change.
+        ///     p.InsertText("End: ", true);
         ///  }
         ///
-        ///  // Save changes to Example.docx
-        ///  dx.Save();
+        ///  // Save changes to this document.
+        ///  document.Close(true);
         /// </code>
         /// </example>
         /// <example>
-        /// <code>
-        ///  // Description: Inserting tabs using the \t switch
-        ///  
-        ///  // Load Example.docx
-        ///  DocX dx = DocX.Load(@"C:\Example.docx");
+        /// Inserting tabs using the \t switch.
+        /// <code>  
+        ///  // Load Test.docx.
+        ///  DocX document = DocX.Load(@"C:\Example\Test.docx");
         ///
-        ///  // Iterate through the paragraphs
-        ///  foreach (Paragraph p in dx.Paragraphs)
+        ///  // Iterate through the paragraphs in this document.
+        ///  foreach (Paragraph p in document.Paragraphs)
         ///  {
-        ///     // Insert the string "\tStart:\t" at the begining of every paragraph and flag it as a change.
-        ///     p.Insert(0, "\tStart:\t", true);
+        ///     // Insert the string "\tEnd" at the end of every paragraph and flag it as a change.
+        ///     p.InsertText("\tEnd", true);
         ///  }
         ///
-        ///  // Save changes to Example.docx
-        ///  dx.Save();
+        ///  // Save changes to this document.
+        ///  document.Close(true);
         /// </code>
         /// </example>
-        /// <seealso cref="Paragraph.Remove"/>
-        /// <seealso cref="Paragraph.Replace"/>
+        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
+        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
+        /// <param name="value">The System.String to insert.</param>
+        /// <param name="trackChanges">Flag this insert as a change.</param>
+        public void InsertText(string value, bool trackChanges)
+        {
+            InsertText(Text.Length, value, trackChanges, null);
+        }
+
+        /// <summary>
+        /// Inserts a specified instance of System.String into a Novacode.DocX.Paragraph at a specified index position.
+        /// </summary>
+        /// <example>
+        /// <code> 
+        ///  // Load Test.docx.
+        ///  DocX document = DocX.Load(@"C:\Example\Test.docx");
+        /// 
+        ///  // Create a text formatting.
+        ///  Formatting f = new Formatting();
+        ///  f.FontColor = Color.Red;
+        ///  f.Size = 30;
+        ///  
+        ///  // Iterate through the Paragraphs in this document.
+        ///  foreach (Paragraph p in document.Paragraphs)
+        ///  {
+        ///     // Insert the string "Start: " at the begining of every Paragraph and flag it as a change.
+        ///     p.InsertText("Start: ", true, f);
+        ///  }
+        ///
+        ///  // Save changes to this document.
+        ///  document.Close(true);
+        /// </code>
+        /// </example>
+        /// <example>
+        /// Inserting tabs using the \t switch.
+        /// <code>  
+        /// // Load Test.docx.
+        /// DocX document = DocX.Load(@"C:\Example\Test.docx");
+        ///
+        /// // Create a text formatting.
+        /// Formatting f = new Formatting();
+        /// f.FontColor = Color.Red;
+        /// f.Size = 30;
+        ///
+        /// // Iterate through the paragraphs in this document.
+        /// foreach (Paragraph p in document.Paragraphs)
+        /// {
+        ///     // Insert the string "\tEnd" at the end of every paragraph and flag it as a change.
+        ///     p.InsertText("\tEnd", true, f);
+        /// }
+        ///
+        /// // Save changes to this document.
+        /// document.Close(true);
+        /// </code>
+        /// </example>
+        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
+        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
+        /// <param name="value">The System.String to insert.</param>
+        /// <param name="trackChanges">Flag this insert as a change.</param>
+        /// <param name="formatting">The text formatting.</param>
+        public void InsertText(string value, bool trackChanges, Formatting formatting)
+        {
+            InsertText(Text.Length, value, trackChanges, formatting);
+        }
+
+        /// <summary>
+        /// Inserts a specified instance of System.String into a Novacode.DocX.Paragraph at a specified index position.
+        /// </summary>
+        /// <example>
+        /// <code> 
+        ///  // Load Test.docx.
+        ///  DocX document = DocX.Load(@"C:\Example\Test.docx");
+        ///
+        ///  // Create a text formatting.
+        ///  Formatting f = new Formatting();
+        ///  f.FontColor = Color.Red;
+        ///  f.Size = 30;
+        ///
+        ///  // Iterate through the Paragraphs in this document.
+        ///  foreach (Paragraph p in document.Paragraphs)
+        ///  {
+        ///     // Insert the string "Start: " at the begining of every Paragraph and flag it as a change.
+        ///     p.InsertText(0, "Start: ", true, f);
+        ///  }
+        ///
+        ///  // Save changes to this document.
+        ///  document.Close(true);
+        /// </code>
+        /// </example>
+        /// <example>
+        /// Inserting tabs using the \t switch.
+        /// <code>  
+        ///  // Load Test.docx.
+        ///  DocX document = DocX.Load(@"C:\Example\Test.docx");
+        ///
+        ///  // Create a text formatting.
+        ///  Formatting f = new Formatting();
+        ///  f.FontColor = Color.Red;
+        ///  f.Size = 30;
+        ///
+        ///  // Iterate through the paragraphs in this document.
+        ///  foreach (Paragraph p in document.Paragraphs)
+        ///  {
+        ///     // Insert the string "\tStart:\t" at the begining of every paragraph and flag it as a change.
+        ///     p.InsertText(0, "\tStart:\t", true, f);
+        ///  }
+        ///
+        ///  // Save changes to this document.
+        ///  document.Close(true);
+        /// </code>
+        /// </example>
+        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
+        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
         /// <param name="index">The index position of the insertion.</param>
         /// <param name="value">The System.String to insert.</param>
-        /// <param name="trackChanges">Flag this insert as a change</param>
-        public void Insert(int index, string value, Formatting formatting, bool trackChanges)
+        /// <param name="trackChanges">Flag this insert as a change.</param>
+        /// <param name="formatting">The text formatting.</param>
+        public void InsertText(int index, string value, bool trackChanges, Formatting formatting)
         {
             // Timestamp to mark the start of insert
             DateTime now = DateTime.Now;
@@ -459,25 +655,25 @@ namespace Novacode
             {
                 object insert;
                 if (formatting != null)
-                    insert = formatInput(value, formatting.Xml);
+                    insert = FormatInput(value, formatting.Xml);
                 else
-                    insert = formatInput(value, null);
+                    insert = FormatInput(value, null);
                 
                 if (trackChanges)
                     insert = CreateEdit(EditType.ins, insert_datetime, insert);
-                p.Add(insert);
+                xml.Add(insert);
             }
 
             else
             {
                 object newRuns;
                 if (formatting != null)
-                    newRuns = formatInput(value, formatting.Xml);
+                    newRuns = FormatInput(value, formatting.Xml);
                 else
-                    newRuns = formatInput(value, run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)));
+                    newRuns = FormatInput(value, run.xml.Element(XName.Get("rPr", DocX.w.NamespaceName)));
 
                 // The parent of this Run
-                XElement parentElement = run.Xml.Parent;
+                XElement parentElement = run.xml.Parent;
                 switch (parentElement.Name.LocalName)
                 {
                     case "ins":
@@ -535,7 +731,7 @@ namespace Novacode
                             XElement[] splitRun = Run.SplitRun(run, index);
 
                             // Replace the origional run
-                            run.Xml.ReplaceWith
+                            run.xml.ReplaceWith
                             (
                                 splitRun[0],
                                 insert,
@@ -549,7 +745,7 @@ namespace Novacode
 
             // Rebuild the run lookup for this paragraph
             runLookup.Clear();
-            BuildRunLookup(p);
+            BuildRunLookup(xml);
             DocX.RenumberIDs();
         }
 
@@ -558,26 +754,30 @@ namespace Novacode
         /// </summary>
         /// <example>
         /// <code>
-        /// // Load Example.docx
-        /// DocX dx = DocX.Load(@"C:\Example.docx");
+        /// // Load the document Test.docx.
+        /// DocX document = DocX.Load(@"C:\Example\Test.docx");
         ///
         /// // Iterate through the paragraphs
-        /// foreach (Paragraph p in dx.Paragraphs)
+        /// foreach (Paragraph p in document.Paragraphs)
         /// {
         ///     // Remove the first two characters from every paragraph
-        ///     p.Remove(0, 2);
+        ///     p.RemoveText(0, 2, false);
         /// }
         ///
-        /// // Save changes to Example.docx
-        /// dx.Save();
+        /// // Save changes to this document.
+        /// document.Close(true);
         /// </code>
         /// </example>
-        /// <seealso cref="Paragraph.Insert"/>
-        /// <seealso cref="Paragraph.Replace"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
         /// <param name="index">The position to begin deleting characters.</param>
         /// <param name="count">The number of characters to delete</param>
         /// <param name="trackChanges">Track changes</param>
-        public void Remove(int index, int count, bool trackChanges)
+        public void RemoveText(int index, int count, bool trackChanges)
         {
             // Timestamp to mark the start of insert
             DateTime now = DateTime.Now;
@@ -592,13 +792,13 @@ namespace Novacode
                 Run run = GetFirstRunEffectedByEdit(index + processed);
 
                 // The parent of this Run
-                XElement parentElement = run.Xml.Parent;
+                XElement parentElement = run.xml.Parent;
                 switch (parentElement.Name.LocalName)
                 {
                     case "ins":
                         {
                             XElement[] splitEditBefore = SplitEdit(parentElement, index + processed, EditType.del);
-                            int min = Math.Min(count - processed, run.Xml.ElementsAfterSelf().Sum(e => GetElementTextLength(e)));
+                            int min = Math.Min(count - processed, run.xml.ElementsAfterSelf().Sum(e => GetElementTextLength(e)));
                             XElement[] splitEditAfter = SplitEdit(parentElement, index + processed + min, EditType.del);
 
                             XElement temp = SplitEdit(splitEditBefore[1], index + processed + min, EditType.del)[0];
@@ -645,7 +845,7 @@ namespace Novacode
                             if (!trackChanges)
                                 middle = null;
 
-                            run.Xml.ReplaceWith
+                            run.xml.ReplaceWith
                             (
                                 splitRunBefore[0],
                                 middle,
@@ -664,8 +864,41 @@ namespace Novacode
 
             // Rebuild the run lookup
             runLookup.Clear();
-            BuildRunLookup(p);
+            BuildRunLookup(xml);
             DocX.RenumberIDs();
+        }
+
+
+        /// <summary>
+        /// Removes characters from a Novacode.DocX.Paragraph.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Load the document Test.docx.
+        /// DocX document = DocX.Load(@"C:\Example\Test.docx");
+        ///
+        /// // Iterate through the paragraphs
+        /// foreach (Paragraph p in document.Paragraphs)
+        /// {
+        ///     // Remove all but the first 2 characters from this Paragraph.
+        ///     p.RemoveText(2, false);
+        /// }
+        ///
+        /// // Save changes to this document.
+        /// document.Close(true);
+        /// </code>
+        /// </example>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
+        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
+        /// <param name="index">The position to begin deleting characters.</param>
+        /// <param name="trackChanges">Track changes</param>
+        public void RemoveText(int index, bool trackChanges)
+        {
+            RemoveText(index, Text.Length - index, trackChanges);
         }
 
         /// <summary>
@@ -673,41 +906,73 @@ namespace Novacode
         /// </summary>
         /// <example>
         /// <code>
-        /// // Load Example.docx
-        /// DocX dx = DocX.Load(@"C:\Example.docx");
+        /// // Load the document Test.docx.
+        /// DocX document = DocX.Load(@"C:\Example.docx");
         ///
-        /// // Iterate through the paragraphs
-        /// foreach (Paragraph p in dx.Paragraphs)
+        /// // Iterate through the paragraphs in this document.
+        /// foreach (Paragraph p in document.Paragraphs)
         /// {
-        ///     // Replace all instances of the string "wrong" with the stirng "right"
-        ///     p.Replace("wrong", "right");
+        ///     // Replace all instances of the string "wrong" with the string "right" and ignore case.
+        ///     p.ReplaceText("wrong", "right", false, RegexOptions.IgnoreCase);
         /// }
         ///
-        /// // Save changes to Example.docx
-        /// dx.Save();
+        /// // Save changes to this document.
+        /// document.Close(true);
         /// </code>
         /// </example>
-        /// <seealso cref="Paragraph.Remove"/>
-        /// <seealso cref="Paragraph.Insert"/>
+        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
         /// <param name="newValue">A System.String to replace all occurances of oldValue.</param>
         /// <param name="oldValue">A System.String to be replaced.</param>
         /// <param name="options">A bitwise OR combination of RegexOption enumeration options.</param>
         /// <param name="trackChanges">Track changes</param>
-        public void Replace(string oldValue, string newValue, bool trackChanges, RegexOptions options)
+        public void ReplaceText(string oldValue, string newValue, bool trackChanges, RegexOptions options)
         {
-            MatchCollection mc = Regex.Matches(this.Value, Regex.Escape(oldValue), options);
+            MatchCollection mc = Regex.Matches(this.Text, Regex.Escape(oldValue), options);
             
             // Loop through the matches in reverse order
             foreach (Match m in mc.Cast<Match>().Reverse())
             {
-                Insert(m.Index + oldValue.Length, newValue, trackChanges);
-                Remove(m.Index, m.Length, trackChanges);
+                InsertText(m.Index + oldValue.Length, newValue, trackChanges);
+                RemoveText(m.Index, m.Length, trackChanges);
             }
         }
 
-        public void Replace(string oldValue, string newValue, bool trackChanges)
+        /// <summary>
+        /// Replaces all occurrences of a specified System.String in this instance, with another specified System.String.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Load the document Test.docx.
+        /// DocX document = DocX.Load(@"C:\Example.docx");
+        ///
+        /// // Iterate through the paragraphs in this document.
+        /// foreach (Paragraph p in document.Paragraphs)
+        /// {
+        ///     // Replace all instances of the string "wrong" with the string "right".
+        ///     p.ReplaceText("wrong", "right", false);
+        /// }
+        ///
+        /// // Save changes to this document.
+        /// document.Close(true);
+        /// </code>
+        /// </example>
+        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
+        /// <param name="newValue">A System.String to replace all occurances of oldValue.</param>
+        /// <param name="oldValue">A System.String to be replaced.</param>
+        /// <param name="trackChanges">Track changes</param>
+        public void ReplaceText(string oldValue, string newValue, bool trackChanges)
         {
-            Replace(oldValue, newValue, trackChanges, RegexOptions.None);
+            ReplaceText(oldValue, newValue, trackChanges, RegexOptions.None);
         }
     }
 }
