@@ -689,7 +689,7 @@ namespace Novacode
         public static DocX Load(string filename)
         {
             if (!File.Exists(filename))
-                throw new FileNotFoundException(string.Format("File could not be found {0}"));
+                throw new FileNotFoundException(string.Format("File could not be found {0}", filename));
 
             // Open the docx package
             wdDoc = WordprocessingDocument.Open(filename, true);
