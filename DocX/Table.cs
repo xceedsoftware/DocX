@@ -13,13 +13,16 @@ namespace Novacode
     /// <summary>
     /// Designs\Styles that can be applied to a table.
     /// </summary>
-    public enum TableDesign { TableNormal, TableGrid, LightShading, LightShadingAccent1, LightShadingAccent2, LightShadingAccent3, LightShadingAccent4, LightShadingAccent5, LightShadingAccent6, LightList, LightListAccent1, LightListAccent2, LightListAccent3, LightListAccent4, LightListAccent5, LightListAccent6, LightGrid, LightGridAccent1, LightGridAccent2, LightGridAccent3, LightGridAccent4, LightGridAccent5, LightGridAccent6, MediumShading1, MediumShading1Accent1, MediumShading1Accent2, MediumShading1Accent3, MediumShading1Accent4, MediumShading1Accent5, MediumShading1Accent6, MediumShading2, MediumShading2Accent1, MediumShading2Accent2, MediumShading2Accent3, MediumShading2Accent4, MediumShading2Accent5, MediumShading2Accent6, MediumList1, MediumList1Accent1, MediumList1Accent2, MediumList1Accent3, MediumList1Accent4, MediumList1Accent5, MediumList1Accent6, MediumList2, MediumList2Accent1, MediumList2Accent2, MediumList2Accent3, MediumList2Accent4, MediumList2Accent5, MediumList2Accent6, MediumGrid1, MediumGrid1Accent1, MediumGrid1Accent2, MediumGrid1Accent3, MediumGrid1Accent4, MediumGrid1Accent5, MediumGrid1Accent6, MediumGrid2, MediumGrid2Accent1, MediumGrid2Accent2, MediumGrid2Accent3, MediumGrid2Accent4, MediumGrid2Accent5, MediumGrid2Accent6, MediumGrid3, MediumGrid3Accent1, MediumGrid3Accent2, MediumGrid3Accent3, MediumGrid3Accent4, MediumGrid3Accent5, MediumGrid3Accent6, DarkList, DarkListAccent1, DarkListAccent2, DarkListAccent3, DarkListAccent4, DarkListAccent5, DarkListAccent6, ColorfulShading, ColorfulShadingAccent1, ColorfulShadingAccent2, ColorfulShadingAccent3, ColorfulShadingAccent4, ColorfulShadingAccent5, ColorfulShadingAccent6, ColorfulList, ColorfulListAccent1, ColorfulListAccent2, ColorfulListAccent3, ColorfulListAccent4, ColorfulListAccent5, ColorfulListAccent6, ColorfulGrid, ColorfulGridAccent1, ColorfulGridAccent2, ColorfulGridAccent3, ColorfulGridAccent4, ColorfulGridAccent5, ColorfulGridAccent6};
-
+    public enum TableDesign { TableNormal, TableGrid, LightShading, LightShadingAccent1, LightShadingAccent2, LightShadingAccent3, LightShadingAccent4, LightShadingAccent5, LightShadingAccent6, LightList, LightListAccent1, LightListAccent2, LightListAccent3, LightListAccent4, LightListAccent5, LightListAccent6, LightGrid, LightGridAccent1, LightGridAccent2, LightGridAccent3, LightGridAccent4, LightGridAccent5, LightGridAccent6, MediumShading1, MediumShading1Accent1, MediumShading1Accent2, MediumShading1Accent3, MediumShading1Accent4, MediumShading1Accent5, MediumShading1Accent6, MediumShading2, MediumShading2Accent1, MediumShading2Accent2, MediumShading2Accent3, MediumShading2Accent4, MediumShading2Accent5, MediumShading2Accent6, MediumList1, MediumList1Accent1, MediumList1Accent2, MediumList1Accent3, MediumList1Accent4, MediumList1Accent5, MediumList1Accent6, MediumList2, MediumList2Accent1, MediumList2Accent2, MediumList2Accent3, MediumList2Accent4, MediumList2Accent5, MediumList2Accent6, MediumGrid1, MediumGrid1Accent1, MediumGrid1Accent2, MediumGrid1Accent3, MediumGrid1Accent4, MediumGrid1Accent5, MediumGrid1Accent6, MediumGrid2, MediumGrid2Accent1, MediumGrid2Accent2, MediumGrid2Accent3, MediumGrid2Accent4, MediumGrid2Accent5, MediumGrid2Accent6, MediumGrid3, MediumGrid3Accent1, MediumGrid3Accent2, MediumGrid3Accent3, MediumGrid3Accent4, MediumGrid3Accent5, MediumGrid3Accent6, DarkList, DarkListAccent1, DarkListAccent2, DarkListAccent3, DarkListAccent4, DarkListAccent5, DarkListAccent6, ColorfulShading, ColorfulShadingAccent1, ColorfulShadingAccent2, ColorfulShadingAccent3, ColorfulShadingAccent4, ColorfulShadingAccent5, ColorfulShadingAccent6, ColorfulList, ColorfulListAccent1, ColorfulListAccent2, ColorfulListAccent3, ColorfulListAccent4, ColorfulListAccent5, ColorfulListAccent6, ColorfulGrid, ColorfulGridAccent1, ColorfulGridAccent2, ColorfulGridAccent3, ColorfulGridAccent4, ColorfulGridAccent5, ColorfulGridAccent6, None};
+    public enum AutoFit{Contents, Window, ColoumnWidth};
+    
     /// <summary>
     /// Represents a Table in a document.
     /// </summary>
     public class Table
     {
+        private Alignment alignment;
+        private AutoFit autofit;
         private List<Row> rows;
         private int rowCount, columnCount;
         internal XElement xml;
@@ -43,6 +46,7 @@ namespace Novacode
 
         internal Table(DocX document, XElement xml)
         {
+            autofit = AutoFit.ColoumnWidth;
             this.xml = xml;
             this.document = document;
 
@@ -58,10 +62,108 @@ namespace Novacode
                     columnCount = rows[0].Cells.Count;
 
             XElement style = properties.Element(XName.Get("tblStyle", DocX.w.NamespaceName));
-            XAttribute val = style.Attribute(XName.Get("val", DocX.w.NamespaceName));
-            design = (TableDesign)Enum.Parse(typeof(TableDesign), val.Value.Replace("-", string.Empty));
+            if (style != null)
+            {
+                XAttribute val = style.Attribute(XName.Get("val", DocX.w.NamespaceName));
+
+                if (val != null)
+                    design = (TableDesign)Enum.Parse(typeof(TableDesign), val.Value.Replace("-", string.Empty));
+                else
+                    design = TableDesign.None;
+            }
+
+            else
+                design = TableDesign.None;
         }
 
+        public Alignment Alignment
+        {
+            get { return alignment; }
+            set
+            {
+                string alignmentString = string.Empty;
+                switch (value)
+                {
+                    case Alignment.left:
+                    {
+                        alignmentString = "left";
+                        break;
+                    }
+
+                    case Alignment.both:
+                    {
+                        alignmentString = "both";
+                        break;
+                    }
+
+
+                    case Alignment.right:
+                    {
+                        alignmentString = "right";
+                        break;
+                    }
+
+                    case Alignment.center:
+                    {
+                        alignmentString = "center";
+                        break;
+                    }
+                }
+
+                XElement tblPr = xml.Descendants(XName.Get("tblPr", DocX.w.NamespaceName)).First();
+                XElement jc = tblPr.Descendants(XName.Get("jc", DocX.w.NamespaceName)).FirstOrDefault();
+
+                if(jc != null)
+                    jc.Remove();
+
+                jc = new XElement(XName.Get("jc", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), alignmentString));
+                tblPr.Add(jc);
+                alignment = value;
+            }
+        }
+
+        /// <summary>
+        /// Auto size this table according to some rule.
+        /// </summary>
+        public AutoFit AutoFit
+        {
+            get{return autofit;}
+            
+            set
+            {
+                string attributeValue = string.Empty;
+                switch(value)
+                {
+                    case AutoFit.ColoumnWidth:
+                    {
+                        attributeValue = "dxa";
+                        break;
+                    }
+
+                    case AutoFit.Contents:
+                    {
+                        attributeValue = "auto";
+                        break;
+                    }
+
+                    case AutoFit.Window:
+                    {
+                        attributeValue = "pct";
+                        break;
+                    }
+                }
+
+                var query = from d in xml.Descendants()
+                            let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
+                            where (d.Name.LocalName == "tcW" || d.Name.LocalName == "tblW") && type != null
+                            select type;
+
+                foreach (XAttribute type in query)
+                    type.Value = attributeValue;
+
+                autofit = value;
+            }
+        }
         /// <summary>
         /// The design\style to apply to this table.
         /// </summary>
@@ -86,6 +188,12 @@ namespace Novacode
                 }
 
                 design = value;
+
+                if (design == TableDesign.None)
+                {
+                    if (style != null)
+                        style.Remove();
+                }
 
                 switch (design)
                 {
@@ -212,9 +320,7 @@ namespace Novacode
 
                 if (tableStyle == null)
                 {
-                    Assembly _assembly = Assembly.GetExecutingAssembly();
-                    TextReader _textStreamReader = new StreamReader(_assembly.GetManifestResourceStream("Novacode.styles.xml"));
-                    XDocument external_style_doc = XDocument.Load(_textStreamReader);
+                    XDocument external_style_doc = DocX.DecompressXMLResource("Novacode.Resources.styles.xml.gz");
 
                     var styleElement =
                     (
@@ -262,6 +368,74 @@ namespace Novacode
         public Row InsertRow()
         {
             return InsertRow(rows.Count);
+        }
+
+        /// <summary>
+        /// Returns the index of this Table.
+        /// </summary>
+        /// <example>
+        /// Replace the first table in this document with a new Table.
+        /// <code>
+        /// // Load a document into memory.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Get the first Table in this document.
+        ///     Table t = document.Tables[0];
+        ///
+        ///     // Get the character index of Table t in this document.
+        ///     int index = t.Index;
+        ///
+        ///     // Remove Table t.
+        ///     t.Remove();
+        ///
+        ///     // Insert a new Table at the original index of Table t.
+        ///     Table newTable = document.InsertTable(index, 4, 4);
+        ///
+        ///     // Set the design of this new Table, so that we can see it.
+        ///     newTable.Design = TableDesign.LightShadingAccent1;
+        ///
+        ///     // Save all changes made to the document.
+        ///     document.Save();
+        /// } // Release this document from memory.
+        /// </code>
+        /// </example>
+        public int Index
+        {
+            get
+            {
+                int index = 0;
+                IEnumerable<XElement> previous = xml.ElementsBeforeSelf();
+
+                foreach (XElement e in previous)
+                    index += Paragraph.GetElementTextLength(e);
+
+                return index;
+            }
+        }
+
+        /// <summary>
+        /// Remove this Table from this document.
+        /// </summary>
+        /// <example>
+        /// Remove the first Table from this document.
+        /// <code>
+        /// // Load a document into memory.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Get the first Table in this document.
+        ///     Table t = d.Tables[0];
+        ///        
+        ///     // Remove this Table.
+        ///     t.Remove();
+        ///
+        ///     // Save all changes made to the document.
+        ///     document.Save();
+        /// } // Release this document from memory.
+        /// </code>
+        /// </example>
+        public void Remove()
+        {
+            xml.Remove();
         }
 
         /// <summary>
@@ -534,6 +708,450 @@ namespace Novacode
                     if (rows[0].Cells.Count > 0)
                         columnCount = rows[0].Cells.Count;
             }
+        }
+
+        /// <summary>
+        /// Insert a new Table before this Table, this Table can be from this document or another document.
+        /// </summary>
+        /// <param name="t">The Table t to be inserted</param>
+        /// <returns>A new Table inserted before this Table.</returns>
+        /// <example>
+        /// Insert a new Table before this Table.
+        /// <code>
+        /// // Place holder for a Table.
+        /// Table t;
+        ///
+        /// // Load document a.
+        /// using (DocX documentA = DocX.Load(@"a.docx"))
+        /// {
+        ///     // Get the first Table from this document.
+        ///     t = documentA.Tables[0];
+        /// }
+        ///
+        /// // Load document b.
+        /// using (DocX documentB = DocX.Load(@"b.docx"))
+        /// {
+        ///     // Get the first Table in document b.
+        ///     Table t2 = documentB.Tables[0];
+        ///
+        ///     // Insert the Table from document a before this Table.
+        ///     Table newTable = t2.InsertTableBeforeSelf(t);
+        ///
+        ///     // Save all changes made to document b.
+        ///     documentB.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Table InsertTableBeforeSelf(Table t)
+        {
+            xml.AddBeforeSelf(t.xml);
+            XElement newlyInserted = xml.ElementsBeforeSelf().First();
+
+            t.xml = newlyInserted;
+            DocX.RebuildTables(document);
+            DocX.RebuildParagraphs(document);
+
+            return t;
+        }
+
+        /// <summary>
+        /// Insert a new Table into this document before this Table.
+        /// </summary>
+        /// <param name="rowCount">The number of rows this Table should have.</param>
+        /// <param name="coloumnCount">The number of coloumns this Table should have.</param>
+        /// <returns>A new Table inserted before this Table.</returns>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     //Insert a Table into this document.
+        ///     Table t = document.InsertTable(2, 2);
+        ///     t.Design = TableDesign.LightShadingAccent1;
+        ///     t.Alignment = Alignment.center;
+        ///     
+        ///     // Insert a new Table before this Table.
+        ///     Table newTable = t.InsertTableBeforeSelf(2, 2);
+        ///     newTable.Design = TableDesign.LightShadingAccent2;
+        ///     newTable.Alignment = Alignment.center;
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Table InsertTableBeforeSelf(int rowCount, int coloumnCount)
+        {
+            XElement newTable = DocX.CreateTable(rowCount, coloumnCount);
+            xml.AddBeforeSelf(newTable);
+            XElement newlyInserted = xml.ElementsBeforeSelf().First();
+
+            DocX.RebuildTables(document);
+            DocX.RebuildParagraphs(document);
+            return new Table(document, newlyInserted);
+        }
+
+        /// <summary>
+        /// Insert a new Table after this Table, this Table can be from this document or another document.
+        /// </summary>
+        /// <param name="t">The Table t to be inserted</param>
+        /// <returns>A new Table inserted after this Table.</returns>
+        /// <example>
+        /// Insert a new Table after this Table.
+        /// <code>
+        /// // Place holder for a Table.
+        /// Table t;
+        ///
+        /// // Load document a.
+        /// using (DocX documentA = DocX.Load(@"a.docx"))
+        /// {
+        ///     // Get the first Table from this document.
+        ///     t = documentA.Tables[0];
+        /// }
+        ///
+        /// // Load document b.
+        /// using (DocX documentB = DocX.Load(@"b.docx"))
+        /// {
+        ///     // Get the first Table in document b.
+        ///     Table t2 = documentB.Tables[0];
+        ///
+        ///     // Insert the Table from document a after this Table.
+        ///     Table newTable = t2.InsertTableAfterSelf(t);
+        ///
+        ///     // Save all changes made to document b.
+        ///     documentB.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Table InsertTableAfterSelf(Table t)
+        {
+            xml.AddAfterSelf(t.xml);
+            XElement newlyInserted = xml.ElementsAfterSelf().First();
+
+            t.xml = newlyInserted;
+            DocX.RebuildTables(document);
+            DocX.RebuildParagraphs(document);
+
+            return t;
+        }
+
+        /// <summary>
+        /// Insert a new Table into this document after this Table.
+        /// </summary>
+        /// <param name="rowCount">The number of rows this Table should have.</param>
+        /// <param name="coloumnCount">The number of coloumns this Table should have.</param>
+        /// <returns>A new Table inserted before this Table.</returns>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     //Insert a Table into this document.
+        ///     Table t = document.InsertTable(2, 2);
+        ///     t.Design = TableDesign.LightShadingAccent1;
+        ///     t.Alignment = Alignment.center;
+        ///     
+        ///     // Insert a new Table after this Table.
+        ///     Table newTable = t.InsertTableAfterSelf(2, 2);
+        ///     newTable.Design = TableDesign.LightShadingAccent2;
+        ///     newTable.Alignment = Alignment.center;
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Table InsertTableAfterSelf(int rowCount, int coloumnCount)
+        {
+            XElement newTable = DocX.CreateTable(rowCount, coloumnCount);
+            xml.AddAfterSelf(newTable);
+            XElement newlyInserted = xml.ElementsAfterSelf().First();
+
+            DocX.RebuildTables(document);
+            DocX.RebuildParagraphs(document);
+            return new Table(document, newlyInserted);
+        }
+
+        /// <summary>
+        /// Insert a Paragraph before this Table, this Paragraph may have come from the same or another document.
+        /// </summary>
+        /// <param name="p">The Paragraph to insert.</param>
+        /// <returns>The Paragraph now associated with this document.</returns>
+        /// <example>
+        /// Take a Paragraph from document a, and insert it into document b before this Table.
+        /// <code>
+        /// // Place holder for a Paragraph.
+        /// Paragraph p;
+        ///
+        /// // Load document a.
+        /// using (DocX documentA = DocX.Load(@"a.docx"))
+        /// {
+        ///     // Get the first paragraph from this document.
+        ///     p = documentA.Paragraphs[0];
+        /// }
+        ///
+        /// // Load document b.
+        /// using (DocX documentB = DocX.Load(@"b.docx"))
+        /// {
+        ///     // Get the first Table in document b.
+        ///     Table t = documentB.Tables[0];
+        ///
+        ///     // Insert the Paragraph from document a before this Table.
+        ///     Paragraph newParagraph = t.InsertParagraphBeforeSelf(p);
+        ///
+        ///     // Save all changes made to document b.
+        ///     documentB.Save();
+        /// }// Release this document from memory.
+        /// </code> 
+        /// </example>
+        public Paragraph InsertParagraphBeforeSelf(Paragraph p)
+        {
+            xml.AddBeforeSelf(p.xml);
+            XElement newlyInserted = xml.ElementsBeforeSelf().First();
+
+            p.xml = newlyInserted;
+            DocX.RebuildParagraphs(document);
+
+            return p;
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph before this Table.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <returns>A new Paragraph inserted before this Table.</returns>
+        /// <example>
+        /// Insert a new Paragraph before the first Table in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Table into this document.
+        ///     Table t = document.InsertTable(2, 2);
+        ///
+        ///     t.InsertParagraphBeforeSelf("I was inserted before the next Table.");
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphBeforeSelf(string text)
+        {
+            return InsertParagraphBeforeSelf(text, false, new Formatting());
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph before this Table.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
+        /// <returns>A new Paragraph inserted before this Table.</returns>
+        /// <example>
+        /// Insert a new paragraph before the first Table in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Table into this document.
+        ///     Table t = document.InsertTable(2, 2);
+        ///
+        ///     t.InsertParagraphBeforeSelf("I was inserted before the next Table.", false);
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges)
+        {
+            return InsertParagraphBeforeSelf(text, trackChanges, new Formatting());
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph before this Table.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
+        /// <param name="formatting">The formatting to apply to this insertion.</param>
+        /// <returns>A new Paragraph inserted before this Table.</returns>
+        /// <example>
+        /// Insert a new paragraph before the first Table in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Table into this document.
+        ///     Table t = document.InsertTable(2, 2);
+        ///
+        ///     Formatting boldFormatting = new Formatting();
+        ///     boldFormatting.Bold = true;
+        ///
+        ///     t.InsertParagraphBeforeSelf("I was inserted before the next Table.", false, boldFormatting);
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges, Formatting formatting)
+        {
+            XElement newParagraph = new XElement
+            (
+                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), DocX.FormatInput(text, formatting.Xml)
+            );
+
+            if (trackChanges)
+                newParagraph = Paragraph.CreateEdit(EditType.ins, DateTime.Now, newParagraph);
+
+            xml.AddBeforeSelf(newParagraph);
+            XElement newlyInserted = xml.ElementsBeforeSelf().First();
+
+            Paragraph p = new Paragraph(document, -1, newlyInserted);
+            DocX.RebuildParagraphs(document);
+
+            return p;
+        }
+
+        /// <summary>
+        /// Insert a Paragraph after this Table, this Paragraph may have come from the same or another document.
+        /// </summary>
+        /// <param name="p">The Paragraph to insert.</param>
+        /// <returns>The Paragraph now associated with this document.</returns>
+        /// <example>
+        /// Take a Paragraph from document a, and insert it into document b after this Table.
+        /// <code>
+        /// // Place holder for a Paragraph.
+        /// Paragraph p;
+        ///
+        /// // Load document a.
+        /// using (DocX documentA = DocX.Load(@"a.docx"))
+        /// {
+        ///     // Get the first paragraph from this document.
+        ///     p = documentA.Paragraphs[0];
+        /// }
+        ///
+        /// // Load document b.
+        /// using (DocX documentB = DocX.Load(@"b.docx"))
+        /// {
+        ///     // Get the first Table in document b.
+        ///     Table t = documentB.Tables[0];
+        ///
+        ///     // Insert the Paragraph from document a after this Table.
+        ///     Paragraph newParagraph = t.InsertParagraphAfterSelf(p);
+        ///
+        ///     // Save all changes made to document b.
+        ///     documentB.Save();
+        /// }// Release this document from memory.
+        /// </code> 
+        /// </example>
+        public Paragraph InsertParagraphAfterSelf(Paragraph p)
+        {
+            xml.AddAfterSelf(p.xml);
+            XElement newlyInserted = xml.ElementsAfterSelf().First();
+
+            p.xml = newlyInserted;
+            DocX.RebuildParagraphs(document);
+
+            return p;
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph after this Table.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
+        /// <param name="formatting">The formatting to apply to this insertion.</param>
+        /// <returns>A new Paragraph inserted after this Table.</returns>
+        /// <example>
+        /// Insert a new paragraph after the first Table in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Table into this document.
+        ///     Table t = document.InsertTable(2, 2);
+        ///
+        ///     Formatting boldFormatting = new Formatting();
+        ///     boldFormatting.Bold = true;
+        ///
+        ///     t.InsertParagraphAfterSelf("I was inserted after the previous Table.", false, boldFormatting);
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphAfterSelf(string text, bool trackChanges, Formatting formatting)
+        {
+            XElement newParagraph = new XElement
+            (
+                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), DocX.FormatInput(text, formatting.Xml)
+            );
+
+            if (trackChanges)
+                newParagraph = Paragraph.CreateEdit(EditType.ins, DateTime.Now, newParagraph);
+
+            xml.AddAfterSelf(newParagraph);
+            XElement newlyInserted = xml.ElementsAfterSelf().First();
+
+            Paragraph p = new Paragraph(document, -1, newlyInserted);
+            DocX.RebuildParagraphs(document);
+
+            return p;
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph after this Table.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
+        /// <returns>A new Paragraph inserted after this Table.</returns>
+        /// <example>
+        /// Insert a new paragraph after the first Table in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Table into this document.
+        ///     Table t = document.InsertTable(2, 2);
+        ///
+        ///     t.InsertParagraphAfterSelf("I was inserted after the previous Table.", false);
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphAfterSelf(string text, bool trackChanges)
+        {
+            return InsertParagraphAfterSelf(text, trackChanges, new Formatting());
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph after this Table.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <returns>A new Paragraph inserted after this Table.</returns>
+        /// <example>
+        /// Insert a new Paragraph after the first Table in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Table into this document.
+        ///     Table t = document.InsertTable(2, 2);
+        ///
+        ///     t.InsertParagraphAfterSelf("I was inserted after the previous Table.");
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphAfterSelf(string text)
+        {
+            return InsertParagraphAfterSelf(text, false, new Formatting());
         }
     }
 

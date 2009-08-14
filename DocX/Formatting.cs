@@ -49,6 +49,8 @@ namespace Novacode
         {
             get
             {
+                rPr = new XElement(XName.Get("rPr", DocX.w.NamespaceName));
+
                 if(spacing.HasValue)
                     rPr.Add(new XElement(XName.Get("spacing", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), spacing.Value * 20)));
 
@@ -325,7 +327,11 @@ namespace Novacode
         /// <summary>
         /// The font familt of this formatting.
         /// </summary>
-        public FontFamily FontFamily { get { return FontFamily; } set { fontFamily = value; } }
+        /// <!-- 
+        /// Bug found and fixed by krugs525 on August 12 2009.
+        /// Use TFS compare to see exact code change.
+        /// -->
+        public FontFamily FontFamily { get { return fontFamily; } set { fontFamily = value; } }
 
     }
 }

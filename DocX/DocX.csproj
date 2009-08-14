@@ -18,6 +18,8 @@
     <SccProvider>SAK</SccProvider>
     <StartupObject>
     </StartupObject>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>StrongNameKey.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -58,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CustomProperty.cs" />
+    <Compile Include="DocProperty.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="Enumerations.cs" />
     <Compile Include="Extensions.cs" />
@@ -71,12 +74,13 @@
     <Compile Include="Text.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Help\DocX v1.0.0.5 - Documentation.chm" />
+    <None Include="Help\Documentation - DocX v 1.0.0.7.chm" />
+    <None Include="StrongNameKey.pfx" />
+    <EmbeddedResource Include="Resources\default_styles.xml.gz" />
+    <EmbeddedResource Include="Resources\styles.xml.gz" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="License\License.html" />
-    <Content Include="Resources\styles.xml" />
-    <EmbeddedResource Include="styles.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

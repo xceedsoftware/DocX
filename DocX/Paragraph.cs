@@ -6,6 +6,8 @@ using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using System.Security.Principal;
 using System.Collections;
+using System.IO.Packaging;
+using System.IO;
 
 namespace Novacode
 {
@@ -13,7 +15,7 @@ namespace Novacode
     /// Represents a document paragraph.
     /// </summary>
     public class Paragraph
-    {
+    {        
         // This paragraphs text alignment
         private Alignment alignment;
 
@@ -32,9 +34,22 @@ namespace Novacode
         /// </summary>
         public List<Picture> Pictures { get { return pictures; } }
 
-        DocX document;
-        internal Paragraph(DocX document, int startIndex, XElement p)
+        // A collection of field type DocProperty.
+        private List<DocProperty> docProperties;
+
+        internal List<XElement> styles = new List<XElement>();
+
+        /// <summary>
+        /// Returns a list of field type DocProperty in this document.
+        /// </summary>
+        public List<DocProperty> DocumentProperties
         {
+            get { return docProperties; }
+        }
+
+        internal DocX document;
+        internal Paragraph(DocX document, int startIndex, XElement p)
+        {           
             this.document = document;
             this.startIndex = startIndex;
             this.endIndex = startIndex + GetElementTextLength(p);
@@ -45,6 +60,501 @@ namespace Novacode
             // Get all of the images in this document
             pictures = (from i in p.Descendants(XName.Get("drawing", DocX.w.NamespaceName))
                         select new Picture(i)).ToList();
+
+            RebuildDocProperties();
+
+            #region It's possible that a Paragraph may have pStyle references
+            // Check if this Paragraph references any pStyle elements.
+            var stylesElements = xml.Descendants(XName.Get("pStyle", DocX.w.NamespaceName));
+
+            // If one or more pStyles are referenced.
+            if (stylesElements.Count() > 0)
+            {
+                Uri style_package_uri = new Uri("/word/styles.xml", UriKind.Relative);
+                PackagePart styles_document = document.package.GetPart(style_package_uri);
+                
+                using (TextReader tr = new StreamReader(styles_document.GetStream()))
+                {
+                    XDocument style_document = XDocument.Load(tr);
+                    XElement styles_element = style_document.Element(XName.Get("styles", DocX.w.NamespaceName));
+
+                    var styles_element_ids = stylesElements.Select(e => e.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value);
+                    
+                    foreach(string id in styles_element_ids)
+                    {
+                        var style = 
+                        (
+                            from d in styles_element.Descendants()
+                            let styleId = d.Attribute(XName.Get("styleId", DocX.w.NamespaceName))
+                            where styleId != null && styleId.Value == id
+                            select d
+                        ).Single();
+
+                        styles.Add(style);
+                    } 
+                }
+            } 
+            #endregion
+
+            #region Pictures
+		    // Check if this Paragraph contains any Pictures
+            List<string> pictureElementIDs = 
+            (
+                from d in xml.Descendants()
+                let embed = d.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
+                where embed != null
+                select embed.Value
+            ).ToList();
+	        #endregion
+        }
+
+        /// <summary>
+        /// Insert a new Table before this Paragraph, this Table can be from this document or another document.
+        /// </summary>
+        /// <param name="t">The Table t to be inserted.</param>
+        /// <returns>A new Table inserted before this Paragraph.</returns>
+        /// <example>
+        /// Insert a new Table before this Paragraph.
+        /// <code>
+        /// // Place holder for a Table.
+        /// Table t;
+        ///
+        /// // Load document a.
+        /// using (DocX documentA = DocX.Load(@"a.docx"))
+        /// {
+        ///     // Get the first Table from this document.
+        ///     t = documentA.Tables[0];
+        /// }
+        ///
+        /// // Load document b.
+        /// using (DocX documentB = DocX.Load(@"b.docx"))
+        /// {
+        ///     // Get the first Paragraph in document b.
+        ///     Paragraph p2 = documentB.Paragraphs[0];
+        ///
+        ///     // Insert the Table from document a before this Paragraph.
+        ///     Table newTable = p2.InsertTableBeforeSelf(t);
+        ///
+        ///     // Save all changes made to document b.
+        ///     documentB.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Table InsertTableBeforeSelf(Table t)
+        {
+            xml.AddBeforeSelf(t.xml);
+            XElement newlyInserted = xml.ElementsBeforeSelf().First();
+
+            t.xml = newlyInserted;
+            DocX.RebuildTables(document);
+            DocX.RebuildParagraphs(document);
+
+            return t;
+        }
+
+        /// <summary>
+        /// Insert a new Table into this document before this Paragraph.
+        /// </summary>
+        /// <param name="rowCount">The number of rows this Table should have.</param>
+        /// <param name="coloumnCount">The number of coloumns this Table should have.</param>
+        /// <returns>A new Table inserted before this Paragraph.</returns>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     //Insert a Paragraph into this document.
+        ///     Paragraph p = document.InsertParagraph("Hello World", false);
+        ///
+        ///     // Insert a new Table before this Paragraph.
+        ///     Table newTable = p.InsertTableBeforeSelf(2, 2);
+        ///     newTable.Design = TableDesign.LightShadingAccent2;
+        ///     newTable.Alignment = Alignment.center;
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Table InsertTableBeforeSelf(int rowCount, int coloumnCount)
+        {
+            XElement newTable = DocX.CreateTable(rowCount, coloumnCount);
+            xml.AddBeforeSelf(newTable);
+            XElement newlyInserted = xml.ElementsBeforeSelf().First();
+
+            DocX.RebuildTables(document);
+            DocX.RebuildParagraphs(document);
+            return new Table(document, newlyInserted);
+        }
+
+        /// <summary>
+        /// Insert a new Table after this Paragraph.
+        /// </summary>
+        /// <param name="t">The Table t to be inserted.</param>
+        /// <returns>A new Table inserted after this Paragraph.</returns>
+        /// <example>
+        /// Insert a new Table after this Paragraph.
+        /// <code>
+        /// // Place holder for a Table.
+        /// Table t;
+        ///
+        /// // Load document a.
+        /// using (DocX documentA = DocX.Load(@"a.docx"))
+        /// {
+        ///     // Get the first Table from this document.
+        ///     t = documentA.Tables[0];
+        /// }
+        ///
+        /// // Load document b.
+        /// using (DocX documentB = DocX.Load(@"b.docx"))
+        /// {
+        ///     // Get the first Paragraph in document b.
+        ///     Paragraph p2 = documentB.Paragraphs[0];
+        ///
+        ///     // Insert the Table from document a after this Paragraph.
+        ///     Table newTable = p2.InsertTableAfterSelf(t);
+        ///
+        ///     // Save all changes made to document b.
+        ///     documentB.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Table InsertTableAfterSelf(Table t)
+        {
+            xml.AddAfterSelf(t.xml);
+            XElement newlyInserted = xml.ElementsAfterSelf().First();
+
+            t.xml = newlyInserted;
+            DocX.RebuildTables(document);
+            DocX.RebuildParagraphs(document);
+
+            return t;
+        }
+
+        /// <summary>
+        /// Insert a new Table into this document after this Paragraph.
+        /// </summary>
+        /// <param name="rowCount">The number of rows this Table should have.</param>
+        /// <param name="coloumnCount">The number of coloumns this Table should have.</param>
+        /// <returns>A new Table inserted after this Paragraph.</returns>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     //Insert a Paragraph into this document.
+        ///     Paragraph p = document.InsertParagraph("Hello World", false);
+        ///
+        ///     // Insert a new Table after this Paragraph.
+        ///     Table newTable = p.InsertTableAfterSelf(2, 2);
+        ///     newTable.Design = TableDesign.LightShadingAccent2;
+        ///     newTable.Alignment = Alignment.center;
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Table InsertTableAfterSelf(int rowCount, int coloumnCount)
+        {
+            XElement newTable = DocX.CreateTable(rowCount, coloumnCount);
+            xml.AddAfterSelf(newTable);
+            XElement newlyInserted = xml.ElementsAfterSelf().First();
+
+            DocX.RebuildTables(document);
+            DocX.RebuildParagraphs(document);
+            return new Table(document, newlyInserted);
+        }
+
+        /// <summary>
+        /// Insert a Paragraph before this Paragraph, this Paragraph may have come from the same or another document.
+        /// </summary>
+        /// <param name="p">The Paragraph to insert.</param>
+        /// <returns>The Paragraph now associated with this document.</returns>
+        /// <example>
+        /// Take a Paragraph from document a, and insert it into document b before this Paragraph.
+        /// <code>
+        /// // Place holder for a Paragraph.
+        /// Paragraph p;
+        ///
+        /// // Load document a.
+        /// using (DocX documentA = DocX.Load(@"a.docx"))
+        /// {
+        ///     // Get the first paragraph from this document.
+        ///     p = documentA.Paragraphs[0];
+        /// }
+        ///
+        /// // Load document b.
+        /// using (DocX documentB = DocX.Load(@"b.docx"))
+        /// {
+        ///     // Get the first Paragraph in document b.
+        ///     Paragraph p2 = documentB.Paragraphs[0];
+        ///
+        ///     // Insert the Paragraph from document a before this Paragraph.
+        ///     Paragraph newParagraph = p2.InsertParagraphBeforeSelf(p);
+        ///
+        ///     // Save all changes made to document b.
+        ///     documentB.Save();
+        /// }// Release this document from memory.
+        /// </code> 
+        /// </example>
+        public Paragraph InsertParagraphBeforeSelf(Paragraph p)
+        {
+            xml.AddBeforeSelf(p.xml);
+            XElement newlyInserted = xml.ElementsBeforeSelf().First();
+
+            p.xml = newlyInserted;
+            DocX.RebuildParagraphs(document);
+
+            return p;
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph before this Paragraph.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <returns>A new Paragraph inserted before this Paragraph.</returns>
+        /// <example>
+        /// Insert a new paragraph before the first Paragraph in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Paragraph into this document.
+        ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
+        ///
+        ///     p.InsertParagraphBeforeSelf("I was inserted before the next Paragraph.");
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphBeforeSelf(string text)
+        {
+            return InsertParagraphBeforeSelf(text, false, new Formatting());
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph before this Paragraph.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
+        /// <returns>A new Paragraph inserted before this Paragraph.</returns>
+        /// <example>
+        /// Insert a new paragraph before the first Paragraph in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Paragraph into this document.
+        ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
+        ///
+        ///     p.InsertParagraphBeforeSelf("I was inserted before the next Paragraph.", false);
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges)
+        {
+            return InsertParagraphBeforeSelf(text, trackChanges, new Formatting());
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph before this Paragraph.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
+        /// <param name="formatting">The formatting to apply to this insertion.</param>
+        /// <returns>A new Paragraph inserted before this Paragraph.</returns>
+        /// <example>
+        /// Insert a new paragraph before the first Paragraph in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Paragraph into this document.
+        ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
+        ///
+        ///     Formatting boldFormatting = new Formatting();
+        ///     boldFormatting.Bold = true;
+        ///
+        ///     p.InsertParagraphBeforeSelf("I was inserted before the next Paragraph.", false, boldFormatting);
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges, Formatting formatting)
+        {
+            XElement newParagraph = new XElement
+            (
+                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), DocX.FormatInput(text, formatting.Xml)
+            );
+
+            if (trackChanges)
+                newParagraph = CreateEdit(EditType.ins, DateTime.Now, newParagraph);
+
+            xml.AddBeforeSelf(newParagraph);
+            XElement newlyInserted = xml.ElementsBeforeSelf().First();
+
+            Paragraph p = new Paragraph(document, -1, newlyInserted);
+            DocX.RebuildParagraphs(document);
+
+            return p;
+        }
+
+        /// <summary>
+        /// Insert a Paragraph after this Paragraph, this Paragraph may have come from the same or another document.
+        /// </summary>
+        /// <param name="p">The Paragraph to insert.</param>
+        /// <returns>The Paragraph now associated with this document.</returns>
+        /// <example>
+        /// Take a Paragraph from document a, and insert it into document b after this Paragraph.
+        /// <code>
+        /// // Place holder for a Paragraph.
+        /// Paragraph p;
+        ///
+        /// // Load document a.
+        /// using (DocX documentA = DocX.Load(@"a.docx"))
+        /// {
+        ///     // Get the first paragraph from this document.
+        ///     p = documentA.Paragraphs[0];
+        /// }
+        ///
+        /// // Load document b.
+        /// using (DocX documentB = DocX.Load(@"b.docx"))
+        /// {
+        ///     // Get the first Paragraph in document b.
+        ///     Paragraph p2 = documentB.Paragraphs[0];
+        ///
+        ///     // Insert the Paragraph from document a after this Paragraph.
+        ///     Paragraph newParagraph = p2.InsertParagraphAfterSelf(p);
+        ///
+        ///     // Save all changes made to document b.
+        ///     documentB.Save();
+        /// }// Release this document from memory.
+        /// </code> 
+        /// </example>
+        public Paragraph InsertParagraphAfterSelf(Paragraph p)
+        {
+            xml.AddAfterSelf(p.xml);
+            XElement newlyInserted = xml.ElementsAfterSelf().First();
+
+            p.xml = newlyInserted;
+            DocX.RebuildParagraphs(document);
+
+            return p;
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph after this Paragraph.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
+        /// <param name="formatting">The formatting to apply to this insertion.</param>
+        /// <returns>A new Paragraph inserted after this Paragraph.</returns>
+        /// <example>
+        /// Insert a new paragraph after the first Paragraph in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Paragraph into this document.
+        ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
+        ///
+        ///     Formatting boldFormatting = new Formatting();
+        ///     boldFormatting.Bold = true;
+        ///
+        ///     p.InsertParagraphAfterSelf("I was inserted after the previous Paragraph.", false, boldFormatting);
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphAfterSelf(string text, bool trackChanges, Formatting formatting)
+        {
+            XElement newParagraph = new XElement
+            (
+                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), DocX.FormatInput(text, formatting.Xml)
+            );
+
+            if (trackChanges)
+                newParagraph = CreateEdit(EditType.ins, DateTime.Now, newParagraph);
+
+            xml.AddAfterSelf(newParagraph);
+            XElement newlyInserted = xml.ElementsAfterSelf().First();
+
+            Paragraph p = new Paragraph(document, -1, newlyInserted);
+            DocX.RebuildParagraphs(document);
+
+            return p;
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph after this Paragraph.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
+        /// <returns>A new Paragraph inserted after this Paragraph.</returns>
+        /// <example>
+        /// Insert a new paragraph after the first Paragraph in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Paragraph into this document.
+        ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
+        ///
+        ///     p.InsertParagraphAfterSelf("I was inserted after the previous Paragraph.", false);
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphAfterSelf(string text, bool trackChanges)
+        {
+            return InsertParagraphAfterSelf(text, trackChanges, new Formatting());
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph after this Paragraph.
+        /// </summary>
+        /// <param name="text">The initial text for this new Paragraph.</param>
+        /// <returns>A new Paragraph inserted after this Paragraph.</returns>
+        /// <example>
+        /// Insert a new paragraph after the first Paragraph in this document.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a Paragraph into this document.
+        ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
+        ///
+        ///     p.InsertParagraphAfterSelf("I was inserted after the previous Paragraph.");
+        ///
+        ///     // Save all changes made to this new document.
+        ///     document.Save();
+        ///    }// Release this new document form memory.
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraphAfterSelf(string text)
+        {
+            return InsertParagraphAfterSelf(text, false, new Formatting());
+        }
+
+        private void RebuildDocProperties()
+        {
+            docProperties =
+            (
+                from dp in xml.Descendants(XName.Get("fldSimple", DocX.w.NamespaceName))
+                select new DocProperty(dp)
+            ).ToList();
         }
 
         /// <summary>
@@ -161,7 +671,7 @@ namespace Novacode
             DocX.RebuildParagraphs(document);
         }
 
-        private void BuildRunLookup(XElement p)
+        internal void BuildRunLookup(XElement p)
         {
             // Get the runs in this paragraph
             IEnumerable<XElement> runs = p.Descendants(XName.Get("r", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"));
@@ -271,12 +781,16 @@ namespace Novacode
         public Picture InsertPicture(string imageID, string name, string description)
         {
             Picture p = new Picture(document, imageID, name, description);
-            xml.Add(p.i);
+            xml.Add(p.xml);
             pictures.Add(p);
             return p;
         }
 
-        
+        public Picture InsertPicture(string imageID)
+        {
+            return InsertPicture(imageID, string.Empty, string.Empty);
+        }
+
         //public Picture InsertPicture(int index, Picture picture)
         //{
         //    Picture p = picture;
@@ -354,7 +868,7 @@ namespace Novacode
             Run run = GetFirstRunEffectedByEdit(index);
 
             if (run == null)
-                xml.Add(picture.i);
+                xml.Add(picture.xml);
             else
             {
                 // Split this run at the point you want to insert
@@ -364,7 +878,7 @@ namespace Novacode
                 run.xml.ReplaceWith
                 (
                     splitRun[0],
-                    picture.i,
+                    picture.xml,
                     splitRun[1]
                 );
             }
@@ -376,6 +890,11 @@ namespace Novacode
             return picture;
         }
 
+        public Picture InsertPicture(int index, string imageID)
+        {
+            return InsertPicture(index, imageID, string.Empty, string.Empty);
+        }
+
         /// <summary>
         /// Creates an Edit either a ins or a del with the specified content and date
         /// </summary>
@@ -383,7 +902,7 @@ namespace Novacode
         /// <param name="edit_time">The time stamp to use for this edit</param>
         /// <param name="content">The initial content of this edit</param>
         /// <returns></returns>
-        private XElement CreateEdit(EditType t, DateTime edit_time, object content)
+        internal static XElement CreateEdit(EditType t, DateTime edit_time, object content)
         {
             if (t == EditType.del)
             {
@@ -442,55 +961,14 @@ namespace Novacode
             throw new ArgumentOutOfRangeException();
         }
 
-        private List<XElement> FormatInput(string text, XElement rPr)
-        {
-            // Need to support /n as non breaking space
-
-            List<XElement> newRuns = new List<XElement>();
-            XElement tabRun = new XElement(DocX.w + "tab");
-
-            string[] runTexts = text.Split('\t');
-            XElement firstRun;
-            if (runTexts[0] != String.Empty)
-            {
-                XElement firstText = new XElement(DocX.w + "t", runTexts[0]);
-
-                Novacode.Text.PreserveSpace(firstText);
-
-                firstRun = new XElement(DocX.w + "r", rPr, firstText);
-
-                newRuns.Add(firstRun);
-            }
-
-            if (runTexts.Length > 1)
-            {
-                for (int k = 1; k < runTexts.Length; k++)
-                {
-                    XElement newText = new XElement(DocX.w + "t", runTexts[k]);
-
-                    XElement newRun;
-                    if (runTexts[k] == String.Empty)
-                        newRun = new XElement(DocX.w + "r", tabRun);
-
-                    else
-                    {
-                        // Value begins or ends with a space
-                        Novacode.Text.PreserveSpace(newText);
-
-                        newRun = new XElement(DocX.w + "r", rPr, tabRun, newText);
-                    }
-
-                    newRuns.Add(newRun);
-                }
-            }
-
-            return newRuns;
-        }
-
+        /// <!-- 
+        /// Bug found and fixed by krugs525 on August 12 2009.
+        /// Use TFS compare to see exact code change.
+        /// -->
         static internal int GetElementTextLength(XElement run)
         {
             int count = 0;
-            
+
             if (run == null)
                 return count;
 
@@ -498,7 +976,9 @@ namespace Novacode
             {
                 switch (d.Name.LocalName)
                 {
-                    case "tab": goto case "br";
+                    case "tab":
+                        if (d.Parent.Name.LocalName != "tabs")
+                            goto case "br"; break;
                     case "br": count++; break;
                     case "t": goto case "delText";
                     case "delText": count += d.Value.Length; break;
@@ -632,7 +1112,7 @@ namespace Novacode
         /// <param name="trackChanges">Flag this insert as a change.</param>
         public void InsertText(string value, bool trackChanges)
         {
-            List<XElement> newRuns = FormatInput(value, null);
+            List<XElement> newRuns = DocX.FormatInput(value, null);
             xml.Add(newRuns);
 
             runLookup.Clear();
@@ -697,12 +1177,13 @@ namespace Novacode
         /// <param name="formatting">The text formatting.</param>
         public void InsertText(string value, bool trackChanges, Formatting formatting)
         {
-            List<XElement> newRuns = FormatInput(value, formatting.Xml);
+            List<XElement> newRuns = DocX.FormatInput(value, formatting.Xml);
             xml.Add(newRuns);
 
             runLookup.Clear();
             BuildRunLookup(xml);
             DocX.RenumberIDs(document);
+            DocX.RebuildParagraphs(document);
         }
 
         /// <summary>
@@ -774,9 +1255,9 @@ namespace Novacode
             {
                 object insert;
                 if (formatting != null)
-                    insert = FormatInput(value, formatting.Xml);
+                    insert = DocX.FormatInput(value, formatting.Xml);
                 else
-                    insert = FormatInput(value, null);
+                    insert = DocX.FormatInput(value, null);
                 
                 if (trackChanges)
                     insert = CreateEdit(EditType.ins, insert_datetime, insert);
@@ -787,9 +1268,9 @@ namespace Novacode
             {
                 object newRuns;
                 if (formatting != null)
-                    newRuns = FormatInput(value, formatting.Xml);
+                    newRuns = DocX.FormatInput(value, formatting.Xml);
                 else
-                    newRuns = FormatInput(value, run.xml.Element(XName.Get("rPr", DocX.w.NamespaceName)));
+                    newRuns = DocX.FormatInput(value, run.xml.Element(XName.Get("rPr", DocX.w.NamespaceName)));
 
                 // The parent of this Run
                 XElement parentElement = run.xml.Parent;
@@ -866,6 +1347,84 @@ namespace Novacode
             runLookup.Clear();
             BuildRunLookup(xml);
             DocX.RenumberIDs(document);
+        }
+        /// <summary>
+        /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
+        /// </summary>
+        /// <param name="cp">The custom property to display.</param>
+        /// <param name="f">The formatting to use for this text.</param>
+        /// <example>
+        /// Create, add and display a custom property in a document.
+        /// <code>
+        /// // Load a document
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Create a custom property.
+        ///     CustomProperty name = new CustomProperty("name", "Cathal Coffey");
+        ///        
+        ///     // Add this custom property to this document.
+        ///     document.AddCustomProperty(name);
+        ///
+        ///     // Create a text formatting.
+        ///     Formatting f = new Formatting();
+        ///     f.Bold = true;
+        ///     f.Size = 14;
+        ///     f.StrikeThrough = StrickThrough.strike;
+        ///
+        ///     // Insert a new paragraph.
+        ///     Paragraph p = document.InsertParagraph("Author: ", false, f);
+        ///
+        ///     // Insert a field of type document property to display the custom property name
+        ///     p.InsertDocProperty(name, f);
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public void InsertDocProperty(CustomProperty cp, Formatting f)
+        {
+            XElement e = new XElement
+            (
+                XName.Get("fldSimple", DocX.w.NamespaceName),
+                new XAttribute(XName.Get("instr", DocX.w.NamespaceName), string.Format(@"DOCPROPERTY {0} \* MERGEFORMAT", cp.Name)),
+                    new XElement(XName.Get("r", DocX.w.NamespaceName),
+                        new XElement(XName.Get("t", DocX.w.NamespaceName), f.Xml, cp.Value))
+            );
+
+            xml.Add(e);                    
+        }
+
+        /// <summary>
+        /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
+        /// </summary>
+        /// <param name="cp">The custom property to display.</param>
+        /// <example>
+        /// Create, add and display a custom property in a document.
+        /// <code>
+        /// // Load a document
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Create a custom property.
+        ///     CustomProperty name = new CustomProperty("name", "Cathal Coffey");
+        ///        
+        ///     // Add this custom property to this document.
+        ///     document.AddCustomProperty(name);
+        ///
+        ///     // Insert a new paragraph.
+        ///     Paragraph p = document.InsertParagraph("Author: ", false);
+        ///        
+        ///     // Insert a field of type document property to display the custom property name
+        ///     p.InsertDocProperty(name);
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public void InsertDocProperty(CustomProperty cp)
+        {
+            InsertDocProperty(cp, new Formatting());
         }
 
         /// <summary>
@@ -1065,6 +1624,93 @@ namespace Novacode
                 InsertText(m.Index + oldValue.Length, newValue, trackChanges);
                 RemoveText(m.Index, m.Length, trackChanges);
             }
+        }
+
+        /// <summary>
+        /// Find all instances of a string in this paragraph and return their indexes in a List.
+        /// </summary>
+        /// <param name="str">The string to find</param>
+        /// <returns>A list of indexes.</returns>
+        /// <example>
+        /// Find all instances of Hello in this document and insert 'don't' in frount of them.
+        /// <code>
+        /// // Load a document
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Loop through the paragraphs in this document.
+        ///     foreach(Paragraph p in document.Paragraphs)
+        ///     {
+        ///         // Find all instances of 'go' in this paragraph.
+        ///         List&lt;int&gt; gos = document.FindAll("go");
+        ///
+        ///         /* 
+        ///          * Insert 'don't' in frount of every instance of 'go' in this document to produce 'don't go'.
+        ///          * An important trick here is to do the inserting in reverse document order. If you inserted 
+        ///          * in document order, every insert would shift the index of the remaining matches.
+        ///          */
+        ///         gos.Reverse();
+        ///         foreach (int index in gos)
+        ///         {
+        ///             p.InsertText(index, "don't ", false);
+        ///         }
+        ///     }
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public List<int> FindAll(string str)
+        {
+            return FindAll(str, RegexOptions.None);
+        }
+
+        /// <summary>
+        /// Find all instances of a string in this paragraph and return their indexes in a List.
+        /// </summary>
+        /// <param name="str">The string to find</param>
+        /// <param name="options">The options to use when finding a string match.</param>
+        /// <returns>A list of indexes.</returns>
+        /// <example>
+        /// Find all instances of Hello in this document and insert 'don't' in frount of them.
+        /// <code>
+        /// // Load a document
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Loop through the paragraphs in this document.
+        ///     foreach(Paragraph p in document.Paragraphs)
+        ///     {
+        ///         // Find all instances of 'go' in this paragraph (Ignore case).
+        ///         List&lt;int&gt; gos = document.FindAll("go", RegexOptions.IgnoreCase);
+        ///
+        ///         /* 
+        ///          * Insert 'don't' in frount of every instance of 'go' in this document to produce 'don't go'.
+        ///          * An important trick here is to do the inserting in reverse document order. If you inserted 
+        ///          * in document order, every insert would shift the index of the remaining matches.
+        ///          */
+        ///         gos.Reverse();
+        ///         foreach (int index in gos)
+        ///         {
+        ///             p.InsertText(index, "don't ", false);
+        ///         }
+        ///     }
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public List<int> FindAll(string str, RegexOptions options)
+        {
+            MatchCollection mc = Regex.Matches(this.Text, Regex.Escape(str), options);
+
+            var query =
+            (
+                from m in mc.Cast<Match>()
+                select m.Index
+            ).ToList();
+
+            return query;
         }
 
         /// <summary>
