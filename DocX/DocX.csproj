@@ -19,7 +19,8 @@
     <StartupObject>
     </StartupObject>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>StrongNameKey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -76,11 +77,13 @@
   <ItemGroup>
     <None Include="Help\Documentation - DocX v 1.0.0.7.chm" />
     <None Include="StrongNameKey.pfx" />
-    <EmbeddedResource Include="Resources\default_styles.xml.gz" />
-    <EmbeddedResource Include="Resources\styles.xml.gz" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="License\License.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\default_styles.xml.gz" />
+    <EmbeddedResource Include="Resources\styles.xml.gz" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
