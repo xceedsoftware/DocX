@@ -266,6 +266,7 @@ namespace Novacode
                         }
                         newRuns.Add(new XElement(DocX.w + "r", rPr, breakRun));
                         break;
+
                     default:
                         sb.Append(c);
                         break;

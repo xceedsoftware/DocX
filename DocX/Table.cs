@@ -711,6 +711,92 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Insert a page break after a Table.
+        /// </summary>
+        /// <example>
+        /// Insert a Table and a Paragraph into a document with a page break between them.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Table.
+        ///     Table t1 = document.InsertTable(2, 2);
+        ///     t1.Design = TableDesign.LightShadingAccent1;
+        ///        
+        ///     // Insert a page break after this Table.
+        ///     t1.InsertPageBreakAfterSelf();
+        ///        
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p1 = document.InsertParagraph("Paragraph", false);
+        ///
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public void InsertPageBreakAfterSelf()
+        {
+            XElement p = new XElement
+            (
+                XName.Get("p", DocX.w.NamespaceName),
+                    new XElement
+                    (
+                        XName.Get("r", DocX.w.NamespaceName),
+                            new XElement
+                            (
+                                XName.Get("br", DocX.w.NamespaceName),
+                                new XAttribute(XName.Get("type", DocX.w.NamespaceName), "page")
+                            )
+                    )
+            );
+
+            xml.AddAfterSelf(p);
+        }
+
+        /// <summary>
+        /// Insert a page break before a Table.
+        /// </summary>
+        /// <example>
+        /// Insert a Table and a Paragraph into a document with a page break between them.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {              
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p1 = document.InsertParagraph("Paragraph", false);
+        ///
+        ///     // Insert a new Table.
+        ///     Table t1 = document.InsertTable(2, 2);
+        ///     t1.Design = TableDesign.LightShadingAccent1;
+        ///     
+        ///     // Insert a page break before this Table.
+        ///     t1.InsertPageBreakBeforeSelf();
+        ///     
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public void InsertPageBreakBeforeSelf()
+        {
+            XElement p = new XElement
+            (
+                XName.Get("p", DocX.w.NamespaceName),
+                    new XElement
+                    (
+                        XName.Get("r", DocX.w.NamespaceName),
+                            new XElement
+                            (
+                                XName.Get("br", DocX.w.NamespaceName),
+                                new XAttribute(XName.Get("type", DocX.w.NamespaceName), "page")
+                            )
+                    )
+            );
+
+            xml.AddBeforeSelf(p);
+        }
+
+        /// <summary>
         /// Insert a new Table before this Table, this Table can be from this document or another document.
         /// </summary>
         /// <param name="t">The Table t to be inserted</param>

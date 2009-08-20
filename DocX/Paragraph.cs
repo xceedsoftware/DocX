@@ -408,6 +408,88 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Insert a page break after a Paragraph.
+        /// </summary>
+        /// <example>
+        /// Insert 2 Paragraphs into a document with a page break between them.
+        /// <code>
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///    // Insert a new Paragraph.
+        ///    Paragraph p1 = document.InsertParagraph("Paragraph 1", false);
+        ///       
+        ///    // Insert a page break after this Paragraph.
+        ///    p1.InsertPageBreakAfterSelf();
+        ///       
+        ///    // Insert a new Paragraph.
+        ///    Paragraph p2 = document.InsertParagraph("Paragraph 2", false);
+        ///
+        ///    // Save this document.
+        ///    document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public void InsertPageBreakAfterSelf()
+        {
+            XElement p = new XElement
+            (
+                XName.Get("p", DocX.w.NamespaceName),
+                    new XElement
+                    (
+                        XName.Get("r", DocX.w.NamespaceName),
+                            new XElement
+                            (
+                                XName.Get("br", DocX.w.NamespaceName),
+                                new XAttribute(XName.Get("type", DocX.w.NamespaceName), "page")
+                            )
+                    )
+            );
+
+            xml.AddAfterSelf(p);
+        }
+
+        /// <summary>
+        /// Insert a page break before a Paragraph.
+        /// </summary>
+        /// <example>
+        /// Insert 2 Paragraphs into a document with a page break between them.
+        /// <code>
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///    // Insert a new Paragraph.
+        ///    Paragraph p1 = document.InsertParagraph("Paragraph 1", false);
+        ///       
+        ///    // Insert a new Paragraph.
+        ///    Paragraph p2 = document.InsertParagraph("Paragraph 2", false);
+        ///    
+        ///    // Insert a page break before Paragraph two.
+        ///    p2.InsertPageBreakBeforeSelf();
+        ///    
+        ///    // Save this document.
+        ///    document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public void InsertPageBreakBeforeSelf()
+        {
+            XElement p = new XElement
+            (
+                XName.Get("p", DocX.w.NamespaceName),
+                    new XElement
+                    (
+                        XName.Get("r", DocX.w.NamespaceName),
+                            new XElement
+                            (
+                                XName.Get("br", DocX.w.NamespaceName),
+                                new XAttribute(XName.Get("type", DocX.w.NamespaceName), "page")
+                            )
+                    )
+            );
+
+            xml.AddBeforeSelf(p);
+        }
+
+        /// <summary>
         /// Insert a Paragraph after this Paragraph, this Paragraph may have come from the same or another document.
         /// </summary>
         /// <param name="p">The Paragraph to insert.</param>
