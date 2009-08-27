@@ -5,6 +5,7 @@ using System.Text;
 
 namespace Novacode
 {
+    public enum MatchFormattingOptions { ExactMatch, SubsetMatch};
     public enum Script { superscript, subscript, none }
     public enum Highlight { yellow, green, cyan, magenta, blue, red, darkBlue, darkCyan, darkGreen, darkMagenta, darkRed, darkYellow, darkGray, lightGray, black, none };
     public enum UnderlineStyle { none, singleLine, doubleLine, thick, dotted, dottedHeavy, dash, dashedHeavy, dashLong, dashLongHeavy, dotDash, dashDotHeavy, dotDotDash, dashDotDotHeavy, wave, wavyHeavy, wavyDouble, words };

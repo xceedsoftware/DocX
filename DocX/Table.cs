@@ -13,7 +13,7 @@ namespace Novacode
     /// <summary>
     /// Designs\Styles that can be applied to a table.
     /// </summary>
-    public enum TableDesign { TableNormal, TableGrid, LightShading, LightShadingAccent1, LightShadingAccent2, LightShadingAccent3, LightShadingAccent4, LightShadingAccent5, LightShadingAccent6, LightList, LightListAccent1, LightListAccent2, LightListAccent3, LightListAccent4, LightListAccent5, LightListAccent6, LightGrid, LightGridAccent1, LightGridAccent2, LightGridAccent3, LightGridAccent4, LightGridAccent5, LightGridAccent6, MediumShading1, MediumShading1Accent1, MediumShading1Accent2, MediumShading1Accent3, MediumShading1Accent4, MediumShading1Accent5, MediumShading1Accent6, MediumShading2, MediumShading2Accent1, MediumShading2Accent2, MediumShading2Accent3, MediumShading2Accent4, MediumShading2Accent5, MediumShading2Accent6, MediumList1, MediumList1Accent1, MediumList1Accent2, MediumList1Accent3, MediumList1Accent4, MediumList1Accent5, MediumList1Accent6, MediumList2, MediumList2Accent1, MediumList2Accent2, MediumList2Accent3, MediumList2Accent4, MediumList2Accent5, MediumList2Accent6, MediumGrid1, MediumGrid1Accent1, MediumGrid1Accent2, MediumGrid1Accent3, MediumGrid1Accent4, MediumGrid1Accent5, MediumGrid1Accent6, MediumGrid2, MediumGrid2Accent1, MediumGrid2Accent2, MediumGrid2Accent3, MediumGrid2Accent4, MediumGrid2Accent5, MediumGrid2Accent6, MediumGrid3, MediumGrid3Accent1, MediumGrid3Accent2, MediumGrid3Accent3, MediumGrid3Accent4, MediumGrid3Accent5, MediumGrid3Accent6, DarkList, DarkListAccent1, DarkListAccent2, DarkListAccent3, DarkListAccent4, DarkListAccent5, DarkListAccent6, ColorfulShading, ColorfulShadingAccent1, ColorfulShadingAccent2, ColorfulShadingAccent3, ColorfulShadingAccent4, ColorfulShadingAccent5, ColorfulShadingAccent6, ColorfulList, ColorfulListAccent1, ColorfulListAccent2, ColorfulListAccent3, ColorfulListAccent4, ColorfulListAccent5, ColorfulListAccent6, ColorfulGrid, ColorfulGridAccent1, ColorfulGridAccent2, ColorfulGridAccent3, ColorfulGridAccent4, ColorfulGridAccent5, ColorfulGridAccent6, None};
+    public enum TableDesign { Custom, TableNormal, TableGrid, LightShading, LightShadingAccent1, LightShadingAccent2, LightShadingAccent3, LightShadingAccent4, LightShadingAccent5, LightShadingAccent6, LightList, LightListAccent1, LightListAccent2, LightListAccent3, LightListAccent4, LightListAccent5, LightListAccent6, LightGrid, LightGridAccent1, LightGridAccent2, LightGridAccent3, LightGridAccent4, LightGridAccent5, LightGridAccent6, MediumShading1, MediumShading1Accent1, MediumShading1Accent2, MediumShading1Accent3, MediumShading1Accent4, MediumShading1Accent5, MediumShading1Accent6, MediumShading2, MediumShading2Accent1, MediumShading2Accent2, MediumShading2Accent3, MediumShading2Accent4, MediumShading2Accent5, MediumShading2Accent6, MediumList1, MediumList1Accent1, MediumList1Accent2, MediumList1Accent3, MediumList1Accent4, MediumList1Accent5, MediumList1Accent6, MediumList2, MediumList2Accent1, MediumList2Accent2, MediumList2Accent3, MediumList2Accent4, MediumList2Accent5, MediumList2Accent6, MediumGrid1, MediumGrid1Accent1, MediumGrid1Accent2, MediumGrid1Accent3, MediumGrid1Accent4, MediumGrid1Accent5, MediumGrid1Accent6, MediumGrid2, MediumGrid2Accent1, MediumGrid2Accent2, MediumGrid2Accent3, MediumGrid2Accent4, MediumGrid2Accent5, MediumGrid2Accent6, MediumGrid3, MediumGrid3Accent1, MediumGrid3Accent2, MediumGrid3Accent3, MediumGrid3Accent4, MediumGrid3Accent5, MediumGrid3Accent6, DarkList, DarkListAccent1, DarkListAccent2, DarkListAccent3, DarkListAccent4, DarkListAccent5, DarkListAccent6, ColorfulShading, ColorfulShadingAccent1, ColorfulShadingAccent2, ColorfulShadingAccent3, ColorfulShadingAccent4, ColorfulShadingAccent5, ColorfulShadingAccent6, ColorfulList, ColorfulListAccent1, ColorfulListAccent2, ColorfulListAccent3, ColorfulListAccent4, ColorfulListAccent5, ColorfulListAccent6, ColorfulGrid, ColorfulGridAccent1, ColorfulGridAccent2, ColorfulGridAccent3, ColorfulGridAccent4, ColorfulGridAccent5, ColorfulGridAccent6, None};
     public enum AutoFit{Contents, Window, ColoumnWidth};
     
     /// <summary>
@@ -67,7 +67,17 @@ namespace Novacode
                 XAttribute val = style.Attribute(XName.Get("val", DocX.w.NamespaceName));
 
                 if (val != null)
-                    design = (TableDesign)Enum.Parse(typeof(TableDesign), val.Value.Replace("-", string.Empty));
+                {
+                    try
+                    {
+                        design = (TableDesign)Enum.Parse(typeof(TableDesign), val.Value.Replace("-", string.Empty));
+                    }
+
+                    catch (Exception e)
+                    {
+                        design = TableDesign.Custom;
+                    }
+                }
                 else
                     design = TableDesign.None;
             }
@@ -1262,6 +1272,165 @@ namespace Novacode
             cells = (from c in xml.Elements(XName.Get("tc", DocX.w.NamespaceName))
                      select new Cell(document, c)).ToList();
         }
+
+        /// <summary>
+        /// Height in pixels. // Added by Joel, refactored by Cathal.
+        /// </summary>
+        public double Height
+        {
+            get
+            {
+                /*
+                * Get the trPr (table row properties) element for this Row,
+                * null will be return if no such element exists.
+                */
+                XElement trPr = xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+
+                // If trPr is null, this row contains no height information.
+                if(trPr == null)
+                    return double.NaN;
+
+                /*
+                 * Get the trHeight element for this Row,
+                 * null will be return if no such element exists.
+                 */
+                XElement trHeight = trPr.Element(XName.Get("trHeight", DocX.w.NamespaceName));
+               
+                // If trHeight is null, this row contains no height information.
+                if (trHeight == null)
+                    return double.NaN;
+
+                // Get the val attribute for this trHeight element.
+                XAttribute val = trHeight.Attribute(XName.Get("val", DocX.w.NamespaceName));
+
+                // If w is null, this cell contains no width information.
+                if (val == null)
+                    return double.NaN;
+
+                // If val is not a double, something is wrong with this attributes value, so remove it and return double.NaN;
+                double heightInWordUnits;
+                if (!double.TryParse(val.Value, out heightInWordUnits))
+                {
+                    val.Remove();
+                    return double.NaN;
+                }
+
+                // 15 "word units" in one pixel
+                return (heightInWordUnits / 15);
+            }
+
+            set
+            {
+                /*
+                 * Get the trPr (table row properties) element for this Row,
+                 * null will be return if no such element exists.
+                 */
+                XElement trPr = xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                if (trPr == null)
+                {
+                    xml.SetElementValue(XName.Get("trPr", DocX.w.NamespaceName), string.Empty);
+                    trPr = xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                }
+
+                /*
+                 * Get the trHeight element for this Row,
+                 * null will be return if no such element exists.
+                 */
+                XElement trHeight = trPr.Element(XName.Get("trHeight", DocX.w.NamespaceName));
+                if (trHeight == null)
+                {
+                    trPr.SetElementValue(XName.Get("trHeight", DocX.w.NamespaceName), string.Empty);
+                    trHeight = trPr.Element(XName.Get("trHeight", DocX.w.NamespaceName));
+                }
+
+                // The hRule attribute needs to be set to exact.
+                trHeight.SetAttributeValue(XName.Get("hRule", DocX.w.NamespaceName), "exact");
+
+                // 15 "word units" is equal to one pixel. 
+                trHeight.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), (value * 15).ToString());
+            }
+        }
+
+        /// <summary>
+        /// Merge cells starting with startIndex and ending with endIndex.
+        /// </summary>
+        public void MergeCells(int startIndex, int endIndex)
+        {
+            // Check for valid start and end indexes.
+            if (startIndex < 0 || endIndex <= startIndex || endIndex > Cells.Count + 1)
+                throw new IndexOutOfRangeException();
+
+            // The sum of all merged gridSpans.
+            int gridSpanSum = 0;
+            
+            // Foreach each Cell between startIndex and endIndex inclusive.
+            foreach (Cell c in cells.Where((z, i) => i > startIndex && i <= endIndex))
+            {
+                XElement tcPr = c.xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                if (tcPr != null)
+                {
+                    XElement gridSpan = tcPr.Element(XName.Get("gridSpan", DocX.w.NamespaceName));
+                    if (gridSpan != null)
+                    {
+                        XAttribute val = gridSpan.Attribute(XName.Get("val", DocX.w.NamespaceName));
+
+                        int value = 0;
+                        if (val != null)
+                            if (int.TryParse(val.Value, out value))
+                                gridSpanSum += value - 1;
+                    }
+                }
+
+                // Add this cells Pragraph to the merge start Cell.
+                cells[startIndex].xml.Add(c.xml.Elements(XName.Get("p", DocX.w.NamespaceName)));
+                
+                // Remove this Cell.
+                c.xml.Remove();
+            }
+
+            /* 
+             * Get the tcPr (table cell properties) element for the first cell in this merge,
+             * null will be returned if no such element exists.
+             */
+            XElement start_tcPr = cells[startIndex].xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+            if (start_tcPr == null)
+            {
+                cells[startIndex].xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                start_tcPr = cells[startIndex].xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+            }
+
+            /* 
+             * Get the gridSpan element of this row,
+             * null will be returned if no such element exists.
+             */
+            XElement start_gridSpan = start_tcPr.Element(XName.Get("gridSpan", DocX.w.NamespaceName));
+            if (start_gridSpan == null)
+            {
+                start_tcPr.SetElementValue(XName.Get("gridSpan", DocX.w.NamespaceName), string.Empty);
+                start_gridSpan = start_tcPr.Element(XName.Get("gridSpan", DocX.w.NamespaceName));
+            }
+
+            /* 
+             * Get the val attribute of this row,
+             * null will be returned if no such element exists.
+             */
+            XAttribute start_val = start_gridSpan.Attribute(XName.Get("val", DocX.w.NamespaceName));
+
+            int start_value = 0;
+            if (start_val != null)
+                if (int.TryParse(start_val.Value, out start_value))
+                    gridSpanSum += start_value - 1;
+
+            // Set the val attribute to the number of merged cells.
+            start_gridSpan.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), (gridSpanSum + (endIndex - startIndex + 1)).ToString());
+
+            // Rebuild the cells collection.
+            cells = 
+            (
+                from c in xml.Elements(XName.Get("tc", DocX.w.NamespaceName))
+                select new Cell(document, c)
+            ).ToList();
+        }
     }
 
     public class Cell
@@ -1284,6 +1453,84 @@ namespace Novacode
             XElement properties = xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
 
             p = new Paragraph(document, 0, xml.Element(XName.Get("p", DocX.w.NamespaceName)));
+        }
+
+        /// <summary>
+        /// Width in pixels. // Added by Joel, refactored by Cathal
+        /// </summary>
+        public double Width
+        {
+            get
+            {
+                /*
+                 * Get the tcPr (table cell properties) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement tcPr = xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+
+                // If tcPr is null, this cell contains no width information.
+                if (tcPr == null)
+                    return double.NaN;
+
+                /*
+                 * Get the tcW (table cell width) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement tcW = tcPr.Element(XName.Get("tcW", DocX.w.NamespaceName));
+
+                // If tcW is null, this cell contains no width information.
+                if (tcW == null)
+                    return double.NaN;
+             
+                // Get the w attribute of the tcW element.
+                XAttribute w = tcW.Attribute(XName.Get("w", DocX.w.NamespaceName));
+
+                // If w is null, this cell contains no width information.
+                if (w == null)
+                    return double.NaN;
+
+                // If w is not a double, something is wrong with this attributes value, so remove it and return double.NaN;
+                double widthInWordUnits;
+                if (!double.TryParse(w.Value, out widthInWordUnits))
+                {
+                    w.Remove();
+                    return double.NaN;
+                }
+
+                // 15 "word units" is equal to one pixel.
+                return (widthInWordUnits / 15);
+            }
+
+            set
+            {
+                /*
+                 * Get the tcPr (table cell properties) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement tcPr = xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                if (tcPr == null)
+                {
+                    xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                    tcPr = xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                }
+
+                /*
+                 * Get the tcW (table cell width) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement tcW = tcPr.Element(XName.Get("tcW", DocX.w.NamespaceName));
+                if (tcW == null)
+                {
+                    tcPr.SetElementValue(XName.Get("tcW", DocX.w.NamespaceName), string.Empty);
+                    tcW = tcPr.Element(XName.Get("tcW", DocX.w.NamespaceName));
+                }
+
+                // The type attribute needs to be set to dxa which represents "twips" or twentieths of a point. In other words, 1/1440th of an inch.
+                tcW.SetAttributeValue(XName.Get("type", DocX.w.NamespaceName), "dxa");
+
+                // 15 "word units" is equal to one pixel. 
+                tcW.SetAttributeValue(XName.Get("w", DocX.w.NamespaceName), (value * 15).ToString());
+            }
         }
     }
 }

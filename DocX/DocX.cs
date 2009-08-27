@@ -410,17 +410,14 @@ namespace Novacode
 
             foreach (Paragraph p in paragraphs)
             {
-                MatchCollection mc = Regex.Matches(p.Text, Regex.Escape(str), options);
-                
-                var query =
-                (
-                    from m in mc.Cast<Match>()
-                    select m.Index +  p.startIndex
-                ).ToList();
+                List<int> indexes = p.FindAll(str, options);
 
-                list.AddRange(query);
+                for (int i = 0; i < indexes.Count(); i++)
+                    indexes[0] += p.startIndex;
+
+                list.AddRange(indexes);
             }
-           
+
             return list;
         }
 
@@ -453,6 +450,67 @@ namespace Novacode
                     text += p.Text + "\n";
                 }
                 return text;
+            }
+        }
+
+        internal string GetCollectiveText(List<PackagePart> list)
+        {
+            string text = string.Empty;
+
+            foreach (var hp in list)
+            {
+                using (TextReader tr = new StreamReader(hp.GetStream()))
+                {
+                    XDocument d = XDocument.Load(tr);
+
+                    StringBuilder sb = new StringBuilder();
+
+                    // Loop through each text item in this run
+                    foreach (XElement descendant in d.Descendants())
+                    {
+                        switch (descendant.Name.LocalName)
+                        {
+                            case "tab":
+                                sb.Append("\t");
+                                break;
+                            case "br":
+                                sb.Append("\n");
+                                break;
+                            case "t":
+                                goto case "delText";
+                            case "delText":
+                                sb.Append(descendant.Value);
+                                break;
+                            default: break;
+                        }
+                    }
+
+                    text += "\n" + sb.ToString();
+                }
+            }
+
+            return text;
+        }
+
+        /// <summary>
+        /// Gets the concatenated text of all header files in this document.
+        /// </summary>
+        public string HeaderText
+        {
+            get
+            {
+                return GetCollectiveText(headers);
+            }
+        }
+
+        /// <summary>
+        /// Gets the concatenated text of all footer files in this document.
+        /// </summary>
+        public string FooterText
+        {
+            get
+            {
+                return GetCollectiveText(footers);
             }
         }
 
@@ -498,7 +556,7 @@ namespace Novacode
             external_elements = internal_body.Elements().Reverse().TakeWhile((i, j) => j < count);
             #endregion
 
-            #region /word/settings.xml
+            #region /word/styles.xml
             Uri word_styles_Uri = new Uri("/word/styles.xml", UriKind.Relative);
 
             // If the external document has a styles.xml, we need to insert its elements into the internal documents styles.xml.
@@ -698,7 +756,30 @@ namespace Novacode
         {
             return InsertParagraph(index, text, trackChanges, null);
         }
-        
+
+        /// <summary>
+        /// Insert a new Paragraph at the end of this document.
+        /// </summary>
+        /// <returns>A new Paragraph.</returns>
+        /// <example>
+        /// Inserting a new Paragraph at the end of a document.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph at the end of this document.
+        ///     document.InsertParagraph();
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraph()
+        {
+            return InsertParagraph(string.Empty, false);
+        }
+
         /// <summary>
         /// Insert a Paragraph into this document, this Paragraph may have come from the same or another document.
         /// </summary>
@@ -2206,7 +2287,7 @@ namespace Novacode
         /// <param name="options">RegexOptions to use for this text replace.</param>
         public void ReplaceText(string oldValue, string newValue, bool trackChanges, RegexOptions options)
         {
-            ReplaceText(oldValue, newValue, false, false, trackChanges, options);
+            ReplaceText(oldValue, newValue, false, false, trackChanges, options, null, null, MatchFormattingOptions.SubsetMatch);
         }
 
         /// <summary>
@@ -2234,8 +2315,58 @@ namespace Novacode
         /// <param name="options">RegexOptions to use for this text replace.</param>
         public void ReplaceText(string oldValue, string newValue, bool includeHeaders, bool includeFooters, bool trackChanges, RegexOptions options)
         {
+            ReplaceText(oldValue, newValue, includeHeaders, includeFooters, trackChanges, options, null, null, MatchFormattingOptions.SubsetMatch);
+        }
+
+        /// <summary>
+        /// Replace text in this document, ignore case, include the headers and footers.
+        /// </summary>
+        /// <example>
+        /// Replace every instance of "old" in this document with "new".
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // The formatting to match.
+        ///     Formatting matchFormatting = new Formatting();
+        ///     matchFormatting.Size = 10;
+        ///     matchFormatting.Italic = true;
+        ///     matchFormatting.FontFamily = new FontFamily("Times New Roman");
+        ///
+        ///     // The formatting to apply to the inserted text.
+        ///     Formatting newFormatting = new Formatting();
+        ///     newFormatting.Size = 22;
+        ///     newFormatting.UnderlineStyle = UnderlineStyle.dotted;
+        ///     newFormatting.Bold = true;
+        ///
+        ///     /* 
+        ///      * Replace all instances of the string "old" with the string "new", include both the header and footer and ignore case.
+        ///      * Each inserted instance of "new" should use the Formatting newFormatting.
+        ///      * Only replace an instance of "old" if it is Size 10, Italic and Times New Roman.
+        ///      * SubsetMatch means that the formatting must contain all elements of the match formatting,
+        ///      * but it can also contain additional formatting for example Color, UnderlineStyle, etc.
+        ///      * ExactMatch means it must not contain additional formatting.
+        ///      */
+        ///     document.ReplaceText("old", "new", true, true, false, RegexOptions.IgnoreCase, newFormatting, matchFormatting, MatchFormattingOptions.SubsetMatch);
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        /// <param name="oldValue">The text to replace.</param>
+        /// <param name="newValue">The new text to insert.</param>
+        /// <param name="includeHeaders">Should ReplaceText include text in the headers?</param>
+        /// <param name="includeFooters">Should ReplaceText include text in the footers?</param>
+        /// <param name="trackChanges">Should this change be tracked?</param>
+        /// <param name="options">RegexOptions to use for this text replace.</param>
+        /// <param name="newFormatting">The formatting to apply to the text being inserted.</param>
+        /// <param name="matchFormatting">The formatting that the text must match in order to be replaced.</param>
+        /// <param name="fo">How should formatting be matched?</param>
+        public void ReplaceText(string oldValue, string newValue, bool includeHeaders, bool includeFooters, bool trackChanges, RegexOptions options, Formatting newFormatting, Formatting matchFormatting, MatchFormattingOptions fo)
+        {
             foreach (Paragraph p in paragraphs)
-                p.ReplaceText(oldValue, newValue, trackChanges, options);
+                p.ReplaceText(oldValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo);
 
             #region Headers & Footers
             List<PackagePart> headerAndFooters = new List<PackagePart>();
@@ -2258,13 +2389,13 @@ namespace Novacode
 
                     foreach (Paragraph p in paras)
                     {
-                        p.ReplaceText(oldValue, newValue, trackChanges, options);
+                        p.ReplaceText(oldValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo);
                     }
                 }
 
                 using (TextWriter tw = new StreamWriter(pp.GetStream(FileMode.Create)))
                     d.Save(tw);
-            } 
+            }
             #endregion
         }
 
@@ -2318,7 +2449,7 @@ namespace Novacode
         /// <param name="trackChanges">Should this change be tracked?</param>
         public void ReplaceText(string oldValue, string newValue, bool includeHeaders, bool includeFooters, bool trackChanges)
         {
-            ReplaceText(oldValue, newValue, includeHeaders, includeFooters, trackChanges);
+            ReplaceText(oldValue, newValue, includeHeaders, includeFooters, trackChanges, RegexOptions.None, null, null, MatchFormattingOptions.SubsetMatch);
         }
 
         #region IDisposable Members

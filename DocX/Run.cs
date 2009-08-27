@@ -29,7 +29,7 @@ namespace Novacode
         /// <summary>
         /// The text value of this text element
         /// </summary>
-        private string Value { set { value = text; } get { return text; } }
+        internal string Value { set { value = text; } get { return text; } }
 
         internal Run(int startIndex, XElement xml)
         {

@@ -86,9 +86,10 @@ namespace Novacode
                         (
                             from d in styles_element.Descendants()
                             let styleId = d.Attribute(XName.Get("styleId", DocX.w.NamespaceName))
-                            where styleId != null && styleId.Value == id
+                            let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
+                            where type != null && type.Value == "paragraph" && styleId != null && styleId.Value == id
                             select d
-                        ).Single();
+                        ).First();
 
                         styles.Add(style);
                     } 
@@ -1698,14 +1699,172 @@ namespace Novacode
         /// <param name="trackChanges">Track changes</param>
         public void ReplaceText(string oldValue, string newValue, bool trackChanges, RegexOptions options)
         {
+            ReplaceText(oldValue, newValue, trackChanges, options, null, null, MatchFormattingOptions.SubsetMatch);
+        }
+
+        /// <summary>
+        /// Replaces all occurrences of a specified System.String in this instance, with another specified System.String.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Create a document using a relative filename.
+        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
+        /// {
+        ///     // The formatting to apply to the inserted text.
+        ///     Formatting newFormatting = new Formatting();
+        ///     newFormatting.Size = 22;
+        ///     newFormatting.UnderlineStyle = UnderlineStyle.dotted;
+        ///     newFormatting.Bold = true;
+        ///
+        ///     // Iterate through the paragraphs in this document.
+        ///     foreach (Paragraph p in document.Paragraphs)
+        ///     {
+        ///         /* 
+        ///          * Replace all instances of the string "wrong" with the string "right" and ignore case.
+        ///          * Each inserted instance of "wrong" should use the Formatting newFormatting.
+        ///          */ 
+        ///         p.ReplaceText("wrong", "right", false, RegexOptions.IgnoreCase, newFormatting);
+        ///     }
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
+        /// <param name="newValue">A System.String to replace all occurances of oldValue.</param>
+        /// <param name="oldValue">A System.String to be replaced.</param>
+        /// <param name="options">A bitwise OR combination of RegexOption enumeration options.</param>
+        /// <param name="trackChanges">Track changes</param>
+        /// <param name="newFormatting">The formatting to apply to the text being inserted.</param>
+        public void ReplaceText(string oldValue, string newValue, bool trackChanges, RegexOptions options, Formatting newFormatting)
+        {
+            ReplaceText(oldValue, newValue, trackChanges, options, null, null, MatchFormattingOptions.SubsetMatch);
+        }
+
+        /// <summary>
+        /// Replaces all occurrences of a specified System.String in this instance, with another specified System.String.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Load a document using a relative filename.
+        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
+        /// {
+        ///     // The formatting to match.
+        ///     Formatting matchFormatting = new Formatting();
+        ///     matchFormatting.Size = 10;
+        ///     matchFormatting.Italic = true;
+        ///     matchFormatting.FontFamily = new FontFamily("Times New Roman");
+        ///
+        ///     // The formatting to apply to the inserted text.
+        ///     Formatting newFormatting = new Formatting();
+        ///     newFormatting.Size = 22;
+        ///     newFormatting.UnderlineStyle = UnderlineStyle.dotted;
+        ///     newFormatting.Bold = true;
+        ///
+        ///     // Iterate through the paragraphs in this document.
+        ///     foreach (Paragraph p in document.Paragraphs)
+        ///     {
+        ///         /* 
+        ///          * Replace all instances of the string "wrong" with the string "right" and ignore case.
+        ///          * Each inserted instance of "wrong" should use the Formatting newFormatting.
+        ///          * Only replace an instance of "wrong" if it is Size 10, Italic and Times New Roman.
+        ///          * SubsetMatch means that the formatting must contain all elements of the match formatting,
+        ///          * but it can also contain additional formatting for example Color, UnderlineStyle, etc.
+        ///          * ExactMatch means it must not contain additional formatting.
+        ///          */
+        ///         p.ReplaceText("wrong", "right", false, RegexOptions.IgnoreCase, newFormatting, matchFormatting, MatchFormattingOptions.SubsetMatch);
+        ///     }
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
+        /// <param name="newValue">A System.String to replace all occurances of oldValue.</param>
+        /// <param name="oldValue">A System.String to be replaced.</param>
+        /// <param name="options">A bitwise OR combination of RegexOption enumeration options.</param>
+        /// <param name="trackChanges">Track changes</param>
+        /// <param name="newFormatting">The formatting to apply to the text being inserted.</param>
+        /// <param name="matchFormatting">The formatting that the text must match in order to be replaced.</param>
+        /// <param name="fo">How should formatting be matched?</param>
+        public void ReplaceText(string oldValue, string newValue, bool trackChanges, RegexOptions options, Formatting newFormatting, Formatting matchFormatting, MatchFormattingOptions fo)
+        {
             MatchCollection mc = Regex.Matches(this.Text, Regex.Escape(oldValue), options);
-            
+
             // Loop through the matches in reverse order
             foreach (Match m in mc.Cast<Match>().Reverse())
             {
-                InsertText(m.Index + oldValue.Length, newValue, trackChanges);
-                RemoveText(m.Index, m.Length, trackChanges);
+                // Assume the formatting matches until proven otherwise.
+                bool formattingMatch = true;
+
+                // Does the user want to match formatting?
+                if (matchFormatting != null)
+                {
+                    // The number of characters processed so far
+                    int processed = 0;
+
+                    do
+                    {
+                        // Get the next run effected
+                        Run run = GetFirstRunEffectedByEdit(m.Index + processed);
+                        
+                        // Get this runs properties
+                        XElement rPr = run.xml.Element(XName.Get("rPr", DocX.w.NamespaceName));
+
+                        if (rPr == null)
+                            rPr = new Formatting().Xml;
+
+                        /* 
+                         * Make sure that every formatting element in f.xml is also in this run,
+                         * if this is not true, then their formatting does not match.
+                         */
+                        if (!ContainsEveryChildOf(matchFormatting.Xml, rPr, fo))
+                        {
+                            formattingMatch = false;
+                            break;
+                        }
+
+                        // We have processed some characters, so update the counter.
+                        processed += run.Value.Length;
+
+                    } while (processed < m.Length);
+                }
+
+                // If the formatting matches, do the replace.
+                if(formattingMatch)
+                {
+                    InsertText(m.Index + oldValue.Length, newValue, trackChanges, newFormatting);
+                    RemoveText(m.Index, m.Length, trackChanges);
+                }
             }
+        }
+
+        internal bool ContainsEveryChildOf(XElement a, XElement b, MatchFormattingOptions fo)
+        {
+            foreach (XElement e in a.Elements())
+            {
+                // If a formatting property has the same name and value, its considered to be equivalent.
+                if (!b.Elements(e.Name).Where(bElement => bElement.Value == e.Value).Any())
+                    return false;
+            }
+
+            // If the formatting has to be exact, no additionaly formatting must exist.
+            if (fo == MatchFormattingOptions.ExactMatch)
+                return a.Elements().Count() == b.Elements().Count();
+
+            return true;
         }
 
         /// <summary>
@@ -1826,7 +1985,7 @@ namespace Novacode
         /// <param name="trackChanges">Track changes</param>
         public void ReplaceText(string oldValue, string newValue, bool trackChanges)
         {
-            ReplaceText(oldValue, newValue, trackChanges, RegexOptions.None);
+            ReplaceText(oldValue, newValue, trackChanges, RegexOptions.None, null, null, MatchFormattingOptions.SubsetMatch);
         }
     }
 }
