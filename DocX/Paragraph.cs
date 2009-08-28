@@ -8,6 +8,7 @@ using System.Security.Principal;
 using System.Collections;
 using System.IO.Packaging;
 using System.IO;
+using System.Drawing;
 
 namespace Novacode
 {
@@ -15,7 +16,9 @@ namespace Novacode
     /// Represents a document paragraph.
     /// </summary>
     public class Paragraph
-    {        
+    {
+        internal List<XElement> runs;
+
         // This paragraphs text alignment
         private Alignment alignment;
 
@@ -756,6 +759,8 @@ namespace Novacode
 
         internal void BuildRunLookup(XElement p)
         {
+            runLookup.Clear();
+
             // Get the runs in this paragraph
             IEnumerable<XElement> runs = p.Descendants(XName.Get("r", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"));
 
@@ -1431,6 +1436,613 @@ namespace Novacode
             BuildRunLookup(xml);
             DocX.RenumberIDs(document);
         }
+
+        /// <summary>
+        /// Append text to this Paragraph.
+        /// </summary>
+        /// <param name="text">The text to append.</param>
+        /// <returns>This Paragraph with the new text appened.</returns>
+        /// <example>
+        /// Add a new Paragraph to this document and then append some text to it.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph and Append some text to it.
+        ///     Paragraph p = document.InsertParagraph().Append("Hello World!!!");
+        ///       
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public Paragraph Append(string text)
+        {
+            List<XElement> newRuns = DocX.FormatInput(text, null);
+            xml.Add(newRuns);
+
+            this.runs = xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(newRuns.Count()).ToList();
+            BuildRunLookup(xml);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Append text on a new line to this Paragraph.
+        /// </summary>
+        /// <param name="text">The text to append.</param>
+        /// <returns>This Paragraph with the new text appened.</returns>
+        /// <example>
+        /// Add a new Paragraph to this document and then append a new line with some text to it.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph and Append a new line with some text to it.
+        ///     Paragraph p = document.InsertParagraph().AppendLine("Hello World!!!");
+        ///       
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public Paragraph AppendLine(string text)
+        {
+            return Append("\n" + text);
+        }
+
+        internal void ApplyTextFormattingProperty(XName textFormatPropName, string value, object content)
+        {
+            foreach (XElement run in runs)
+            {
+                XElement rPr = run.Element(XName.Get("rPr", DocX.w.NamespaceName));
+                if (rPr == null)
+                {
+                    run.AddFirst(new XElement(XName.Get("rPr", DocX.w.NamespaceName)));
+                    rPr = run.Element(XName.Get("rPr", DocX.w.NamespaceName));
+                }
+
+                rPr.SetElementValue(textFormatPropName, value);
+                XElement last = rPr.Elements().Last();
+                last.Add(content);
+            }
+
+            BuildRunLookup(xml);
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <returns>This Paragraph with the last appended text bold.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then make it bold.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("Bold").Bold()
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph Bold()
+        {
+            ApplyTextFormattingProperty(XName.Get("b", DocX.w.NamespaceName), string.Empty, null);
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <returns>This Paragraph with the last appended text italic.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then make it italic.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("Italic").Italic()
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph Italic()
+        {
+            ApplyTextFormattingProperty(XName.Get("i", DocX.w.NamespaceName), string.Empty, null);
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="c">A color to use on the appended text.</param>
+        /// <returns>This Paragraph with the last appended text colored.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then color it.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("Blue").Color(Color.Blue)
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph Color(Color c)
+        {
+            ApplyTextFormattingProperty(XName.Get("color", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), c.ToHex()));
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="underlineStyle">The underline style to use for the appended text.</param>
+        /// <returns>This Paragraph with the last appended text underlined.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then underline it.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("Underlined").UnderlineStyle(UnderlineStyle.doubleLine)
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph UnderlineStyle(UnderlineStyle underlineStyle)
+        {
+            string value;
+            switch (underlineStyle)
+            {
+                case Novacode.UnderlineStyle.none: value = string.Empty; break;
+                case Novacode.UnderlineStyle.singleLine: value = "single"; break;
+                case Novacode.UnderlineStyle.doubleLine: value = "double"; break;
+                default: value = underlineStyle.ToString(); break;
+            }
+
+            ApplyTextFormattingProperty(XName.Get("u", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), value));
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="fontSize">The font size to use for the appended text.</param>
+        /// <returns>This Paragraph with the last appended text resized.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then resize it.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("Big").FontSize(20)
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph FontSize(double fontSize)
+        {
+            if (fontSize - (int)fontSize == 0)
+            {
+                if (!(fontSize > 0 && fontSize < 1639))
+                    throw new ArgumentException("Size", "Value must be in the range 0 - 1638");
+            }
+
+            else
+                throw new ArgumentException("Size", "Value must be either a whole or half number, examples: 32, 32.5");
+        
+            ApplyTextFormattingProperty(XName.Get("sz", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), fontSize * 2));
+            ApplyTextFormattingProperty(XName.Get("szCs", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), fontSize * 2));
+
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="fontFamily">The font to use for the appended text.</param>
+        /// <returns>This Paragraph with the last appended text's font changed.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then change its font.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("Times new roman").Font(new FontFamily("Times new roman"))
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph Font(FontFamily fontFamily)
+        {
+            ApplyTextFormattingProperty(XName.Get("rFonts", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("ascii", DocX.w.NamespaceName), fontFamily.Name));
+
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="capsStyle">The caps style to apply to the last appended text.</param>
+        /// <returns>This Paragraph with the last appended text's caps style changed.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then set it to full caps.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("Capitalized").CapsStyle(CapsStyle.caps)
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph CapsStyle(CapsStyle capsStyle)
+        {
+            switch(capsStyle)
+            {
+                case Novacode.CapsStyle.none:
+                    break;
+                
+                default: 
+                {
+                    ApplyTextFormattingProperty(XName.Get(capsStyle.ToString(), DocX.w.NamespaceName), string.Empty, null);
+                    break;
+                }
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="script">The script style to apply to the last appended text.</param>
+        /// <returns>This Paragraph with the last appended text's script style changed.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then set it to superscript.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("superscript").Script(Script.superscript)
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph Script(Script script)
+        {
+            switch (script)
+            {
+                case Novacode.Script.none:
+                    break;
+
+                default:
+                {
+                    ApplyTextFormattingProperty(XName.Get("vertAlign", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), script.ToString()));
+                    break;
+                }
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        ///<param name="highlight">The highlight to apply to the last appended text.</param>
+        /// <returns>This Paragraph with the last appended text highlighted.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then highlight it.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("highlighted").Highlight(Highlight.green)
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph Highlight(Highlight highlight)
+        {
+            switch (highlight)
+            {
+                case Novacode.Highlight.none:
+                    break;
+
+                default:
+                {
+                    ApplyTextFormattingProperty(XName.Get("highlight", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), highlight.ToString()));
+                    break;
+                }
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="misc">The miscellaneous property to set.</param>
+        /// <returns>This Paragraph with the last appended text changed by a miscellaneous property.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then apply a miscellaneous property.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("outlined").Misc(Misc.outline)
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph Misc(Misc misc)
+        {
+            switch (misc)
+            {
+                case Novacode.Misc.none:
+                    break;
+
+                case Novacode.Misc.outlineShadow:
+                {
+                    ApplyTextFormattingProperty(XName.Get("outline", DocX.w.NamespaceName), string.Empty, null);
+                    ApplyTextFormattingProperty(XName.Get("shadow", DocX.w.NamespaceName), string.Empty, null);
+
+                    break;
+                }
+                
+                case Novacode.Misc.engrave:
+                {
+                    ApplyTextFormattingProperty(XName.Get("imprint", DocX.w.NamespaceName), string.Empty, null);
+                    
+                    break;
+                }
+                
+                default:
+                {
+                    ApplyTextFormattingProperty(XName.Get(misc.ToString(), DocX.w.NamespaceName), string.Empty, null);
+                    
+                    break;
+                }
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="strikeThrough">The strike through style to used on the last appended text.</param>
+        /// <returns>This Paragraph with the last appended text striked.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then strike it.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("striked").StrikeThrough(StrikeThrough.doubleStrike)
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph StrikeThrough(StrikeThrough strikeThrough)
+        {
+            string value;
+            switch (strikeThrough)
+            {
+                case Novacode.StrikeThrough.strike: value = "strike"; break;
+                case Novacode.StrikeThrough.doubleStrike: value = "dstrike"; break;
+                default: return this;
+            }
+
+            ApplyTextFormattingProperty(XName.Get(value, DocX.w.NamespaceName), string.Empty, null);
+                    
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="underlineColor">The underline color to use, if no underline is set, a single line will be used.</param>
+        /// <returns>This Paragraph with the last appended text underlined in a color.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then underline it using a color.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("color underlined").UnderlineStyle(UnderlineStyle.dotted).UnderlineColor(Color.Orange)
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph UnderlineColor(Color underlineColor)
+        {
+            foreach (XElement run in runs)
+            {
+                XElement rPr = run.Element(XName.Get("rPr", DocX.w.NamespaceName));
+                if (rPr == null)
+                {
+                    run.AddFirst(new XElement(XName.Get("rPr", DocX.w.NamespaceName)));
+                    rPr = run.Element(XName.Get("rPr", DocX.w.NamespaceName));
+                }
+
+                XElement u = rPr.Element(XName.Get("u", DocX.w.NamespaceName));
+                if (u == null)
+                {
+                    rPr.SetElementValue(XName.Get("u", DocX.w.NamespaceName), string.Empty);
+                    u = rPr.Element(XName.Get("u", DocX.w.NamespaceName));
+                    u.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), "single");
+                }
+
+                u.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), underlineColor.ToHex());
+            }
+
+            BuildRunLookup(xml);
+            
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <returns>This Paragraph with the last appended text hidden.</returns>
+        /// <example>
+        /// Append text to this Paragraph and then hide it.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph();
+        ///
+        ///     p.Append("I am ")
+        ///     .Append("hidden").Hide()
+        ///     .Append(" I am not");
+        ///        
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public Paragraph Hide()
+        {
+            ApplyTextFormattingProperty(XName.Get("vanish", DocX.w.NamespaceName), string.Empty, null);
+
+            return this;
+        }
+
+        public Paragraph Spacing(double spacing)
+        {
+            spacing *= 20;
+
+            if (spacing - (int)spacing == 0)
+            {
+                if (!(spacing > -1585 && spacing < 1585))
+                    throw new ArgumentException("Spacing", "Value must be in the range: -1584 - 1584");         
+            }
+
+            else
+                throw new ArgumentException("Spacing", "Value must be either a whole or acurate to one decimal, examples: 32, 32.1, 32.2, 32.9");
+            
+            ApplyTextFormattingProperty(XName.Get("spacing", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), spacing));
+            
+            return this;
+        }
+
+        public Paragraph Kerning(int kerning)
+        {
+            if (!new int?[] { 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72 }.Contains(kerning))
+                throw new ArgumentOutOfRangeException("Kerning", "Value must be one of the following: 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48 or 72");
+
+            ApplyTextFormattingProperty(XName.Get("kern", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), kerning * 2));
+            return this;
+        }
+
+        public Paragraph Position(double position)
+        {
+            if (!(position > -1585 && position < 1585))
+                throw new ArgumentOutOfRangeException("Position", "Value must be in the range -1585 - 1585");
+
+            ApplyTextFormattingProperty(XName.Get("position", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), position * 2));
+
+            return this;
+        }
+
+        public Paragraph PercentageScale(int percentageScale)
+        {
+            if (!(new int?[] { 200, 150, 100, 90, 80, 66, 50, 33 }).Contains(percentageScale))
+                throw new ArgumentOutOfRangeException("PercentageScale", "Value must be one of the following: 200, 150, 100, 90, 80, 66, 50 or 33");
+
+            ApplyTextFormattingProperty(XName.Get("w", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), percentageScale));
+
+            return this;
+        }
+
         /// <summary>
         /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
         /// </summary>

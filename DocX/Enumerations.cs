@@ -9,7 +9,7 @@ namespace Novacode
     public enum Script { superscript, subscript, none }
     public enum Highlight { yellow, green, cyan, magenta, blue, red, darkBlue, darkCyan, darkGreen, darkMagenta, darkRed, darkYellow, darkGray, lightGray, black, none };
     public enum UnderlineStyle { none, singleLine, doubleLine, thick, dotted, dottedHeavy, dash, dashedHeavy, dashLong, dashLongHeavy, dotDash, dashDotHeavy, dotDotDash, dashDotDotHeavy, wave, wavyHeavy, wavyDouble, words };
-    public enum StrickThrough { none, strike, doubleStrike };
+    public enum StrikeThrough { none, strike, doubleStrike };
     public enum Misc { none, shadow, outline, outlineShadow, emboss, engrave };
     public enum CapsStyle { none, caps, smallCaps };
 

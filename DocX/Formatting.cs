@@ -15,7 +15,7 @@ namespace Novacode
         private bool hidden;
         private bool bold;
         private bool italic;
-        private StrickThrough strikethrough;
+        private StrikeThrough strikethrough;
         private Script script;
         private Highlight highlight;
         private double? size;
@@ -36,7 +36,7 @@ namespace Novacode
         public Formatting()
         {
             capsStyle = CapsStyle.none;
-            strikethrough = StrickThrough.none;
+            strikethrough = StrikeThrough.none;
             script = Script.none;
             highlight = Highlight.none;
             underlineStyle = UnderlineStyle.none;
@@ -105,12 +105,12 @@ namespace Novacode
 
                 switch (strikethrough)
                 {
-                    case StrickThrough.none:
+                    case StrikeThrough.none:
                         break;
-                    case StrickThrough.strike:
+                    case StrikeThrough.strike:
                         rPr.Add(new XElement(XName.Get("strike", DocX.w.NamespaceName)));
                         break;
-                    case StrickThrough.doubleStrike:
+                    case StrikeThrough.doubleStrike:
                         rPr.Add(new XElement(XName.Get("dstrike", DocX.w.NamespaceName)));
                         break;
                     default:
@@ -186,7 +186,7 @@ namespace Novacode
         /// <summary>
         /// This formatting will apply StrickThrough.
         /// </summary>
-        public StrickThrough StrikeThrough { get { return strikethrough; } set { strikethrough = value; } }
+        public StrikeThrough StrikeThrough { get { return strikethrough; } set { strikethrough = value; } }
 
         /// <summary>
         /// The script that this formatting should be, normal, superscript or subscript.

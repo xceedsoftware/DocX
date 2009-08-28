@@ -75,7 +75,7 @@
     <Compile Include="Text.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Help\Documentation - DocX v 1.0.0.7.chm" />
+    <None Include="Help\DocX v1.0.0.8 - Documentation.chm" />
     <None Include="StrongNameKey.pfx" />
   </ItemGroup>
   <ItemGroup>
