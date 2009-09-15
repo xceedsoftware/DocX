@@ -11,7 +11,7 @@ namespace Novacode
     /// <summary>
     /// Represents a Picture in this document, a Picture is a customized view of an Image.
     /// </summary>
-    public class Picture
+    public class Picture: DocXElement
     {
         private string id;
         private string name;
@@ -20,118 +20,33 @@ namespace Novacode
         private uint rotation;
         private bool hFlip, vFlip;
         private object pictureShape;
-
-        // The underlying XElement which this Image wraps
-        internal XElement xml;
-
         private XElement xfrm;
         private XElement prstGeom;
-
-        /// <summary>
-        /// Create a new Picture.
-        /// </summary>
-        /// <param name="id">A unique id that identifies an Image embedded in this document.</param>
-        /// <param name="name">The name of this Picture.</param>
-        /// <param name="descr">The description of this Picture.</param>
-        internal Picture(DocX document, string id, string name, string descr)
-        {
-            PackagePart word_document = document.package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
-            PackagePart part = document.package.GetPart(word_document.GetRelationship(id).TargetUri);
-            
-            this.id = id;
-            this.name = name;
-            this.descr = descr;
-
-            using (System.Drawing.Image img = System.Drawing.Image.FromStream(part.GetStream()))
-            {
-                this.cx = img.Width * 9526;
-                this.cy = img.Height * 9526;
-            }
-
-            XElement e = new XElement(DocX.w + "drawing");
-
-            xml = XElement.Parse 
-            (string.Format(@"
-            <drawing xmlns = ""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
-                <wp:inline distT=""0"" distB=""0"" distL=""0"" distR=""0"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"">
-                    <wp:extent cx=""{0}"" cy=""{1}"" />
-                    <wp:effectExtent l=""0"" t=""0"" r=""0"" b=""0"" />
-                    <wp:docPr id=""1"" name=""{3}"" descr=""{4}"" />
-                    <wp:cNvGraphicFramePr>
-                        <a:graphicFrameLocks xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" noChangeAspect=""1"" />
-                    </wp:cNvGraphicFramePr>
-                    <a:graphic xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"">
-                        <a:graphicData uri=""http://schemas.openxmlformats.org/drawingml/2006/picture"">
-                            <pic:pic xmlns:pic=""http://schemas.openxmlformats.org/drawingml/2006/picture"">
-                                <pic:nvPicPr>
-                                <pic:cNvPr id=""0"" name=""{3}"" />
-                                    <pic:cNvPicPr />
-                                </pic:nvPicPr>
-                                <pic:blipFill>
-                                    <a:blip r:embed=""{2}"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships""/>
-                                    <a:stretch>
-                                        <a:fillRect />
-                                    </a:stretch>
-                                </pic:blipFill>
-                                <pic:spPr>
-                                    <a:xfrm>
-                                        <a:off x=""0"" y=""0"" />
-                                        <a:ext cx=""{0}"" cy=""{1}"" />
-                                    </a:xfrm>
-                                    <a:prstGeom prst=""rect"">
-                                        <a:avLst />
-                                    </a:prstGeom>
-                                </pic:spPr>
-                            </pic:pic>
-                        </a:graphicData>
-                    </a:graphic>
-                </wp:inline>
-            </drawing>
-            ", cx, cy, id, name, descr));
-
-            this.xfrm =
-            (
-                from d in xml.Descendants()
-                where d.Name.LocalName.Equals("xfrm")
-                select d
-            ).Single();
-
-            this.prstGeom =
-            (
-                from d in xml.Descendants()
-                where d.Name.LocalName.Equals("prstGeom")
-                select d
-            ).Single();
-
-            this.rotation = xfrm.Attribute(XName.Get("rot")) == null ? 0 : uint.Parse(xfrm.Attribute(XName.Get("rot")).Value);
-        }
 
         /// <summary>
         /// Remove this Picture from this document.
         /// </summary>
         public void Remove()
         {
-            xml.Remove();
+            Xml.Remove();
         }
 
         /// <summary>
         /// Wraps an XElement as an Image
         /// </summary>
         /// <param name="i">The XElement i to wrap</param>
-        internal Picture(XElement i)
+        internal Picture(DocX document, XElement i):base(document, i)
         {
-            this.xml = i;
-
             this.id =
             (
-                from e in i.Descendants()
+                from e in Xml.Descendants()
                 where e.Name.LocalName.Equals("blip")
                 select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
             ).Single();
 
             this.name = 
             (
-                from e in i.Descendants()
+                from e in Xml.Descendants()
                 let a = e.Attribute(XName.Get("name"))
                 where (a != null)
                 select a.Value
@@ -140,7 +55,7 @@ namespace Novacode
 
             this.descr =
             (
-                from e in i.Descendants()
+                from e in Xml.Descendants()
                 let a = e.Attribute(XName.Get("descr"))
                 where (a != null)
                 select a.Value
@@ -148,7 +63,7 @@ namespace Novacode
 
             this.cx = 
             (
-                from e in i.Descendants()
+                from e in Xml.Descendants()
                 let a = e.Attribute(XName.Get("cx"))
                 where (a != null)
                 select int.Parse(a.Value)
@@ -156,7 +71,7 @@ namespace Novacode
 
             this.cy = 
             (
-                from e in i.Descendants()
+                from e in Xml.Descendants()
                 let a = e.Attribute(XName.Get("cy"))
                 where (a != null)
                 select int.Parse(a.Value)
@@ -164,14 +79,14 @@ namespace Novacode
 
             this.xfrm =
             (
-                from d in i.Descendants()
+                from d in Xml.Descendants()
                 where d.Name.LocalName.Equals("xfrm")
                 select d
             ).Single();
 
             this.prstGeom =
             (
-                from d in i.Descendants()
+                from d in Xml.Descendants()
                 where d.Name.LocalName.Equals("prstGeom")
                 select d
             ).Single();
@@ -309,8 +224,8 @@ namespace Novacode
             set
             {
                 rotation = (value % 360) * 60000;
-                XElement xfrm = 
-                    (from d in xml.Descendants()
+                XElement xfrm =
+                    (from d in Xml.Descendants()
                     where d.Name.LocalName.Equals("xfrm")
                     select d).Single();
 
@@ -333,7 +248,7 @@ namespace Novacode
             { 
                 name = value;
 
-                foreach (XAttribute a in xml.Descendants().Attributes(XName.Get("name")))
+                foreach (XAttribute a in Xml.Descendants().Attributes(XName.Get("name")))
                     a.Value = name;
             } 
         }
@@ -349,7 +264,7 @@ namespace Novacode
             { 
                 descr = value;
 
-                foreach (XAttribute a in xml.Descendants().Attributes(XName.Get("descr")))
+                foreach (XAttribute a in Xml.Descendants().Attributes(XName.Get("descr")))
                     a.Value = descr;
             } 
         }
@@ -365,7 +280,7 @@ namespace Novacode
             { 
                 cx = value;
 
-                foreach (XAttribute a in xml.Descendants().Attributes(XName.Get("cx")))
+                foreach (XAttribute a in Xml.Descendants().Attributes(XName.Get("cx")))
                     a.Value = (cx * 4156).ToString();
             } 
         }
@@ -381,7 +296,7 @@ namespace Novacode
             { 
                 cy = value;
 
-                foreach (XAttribute a in xml.Descendants().Attributes(XName.Get("cy")))
+                foreach (XAttribute a in Xml.Descendants().Attributes(XName.Get("cy")))
                     a.Value = (cy * 4156).ToString();
             } 
         }

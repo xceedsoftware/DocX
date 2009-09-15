@@ -7,25 +7,19 @@ using Novacode;
 using System.IO.Packaging;
 using System.IO;
 using System.Reflection;
+using System.Drawing;
 
 namespace Novacode
-{
-    /// <summary>
-    /// Designs\Styles that can be applied to a table.
-    /// </summary>
-    public enum TableDesign { Custom, TableNormal, TableGrid, LightShading, LightShadingAccent1, LightShadingAccent2, LightShadingAccent3, LightShadingAccent4, LightShadingAccent5, LightShadingAccent6, LightList, LightListAccent1, LightListAccent2, LightListAccent3, LightListAccent4, LightListAccent5, LightListAccent6, LightGrid, LightGridAccent1, LightGridAccent2, LightGridAccent3, LightGridAccent4, LightGridAccent5, LightGridAccent6, MediumShading1, MediumShading1Accent1, MediumShading1Accent2, MediumShading1Accent3, MediumShading1Accent4, MediumShading1Accent5, MediumShading1Accent6, MediumShading2, MediumShading2Accent1, MediumShading2Accent2, MediumShading2Accent3, MediumShading2Accent4, MediumShading2Accent5, MediumShading2Accent6, MediumList1, MediumList1Accent1, MediumList1Accent2, MediumList1Accent3, MediumList1Accent4, MediumList1Accent5, MediumList1Accent6, MediumList2, MediumList2Accent1, MediumList2Accent2, MediumList2Accent3, MediumList2Accent4, MediumList2Accent5, MediumList2Accent6, MediumGrid1, MediumGrid1Accent1, MediumGrid1Accent2, MediumGrid1Accent3, MediumGrid1Accent4, MediumGrid1Accent5, MediumGrid1Accent6, MediumGrid2, MediumGrid2Accent1, MediumGrid2Accent2, MediumGrid2Accent3, MediumGrid2Accent4, MediumGrid2Accent5, MediumGrid2Accent6, MediumGrid3, MediumGrid3Accent1, MediumGrid3Accent2, MediumGrid3Accent3, MediumGrid3Accent4, MediumGrid3Accent5, MediumGrid3Accent6, DarkList, DarkListAccent1, DarkListAccent2, DarkListAccent3, DarkListAccent4, DarkListAccent5, DarkListAccent6, ColorfulShading, ColorfulShadingAccent1, ColorfulShadingAccent2, ColorfulShadingAccent3, ColorfulShadingAccent4, ColorfulShadingAccent5, ColorfulShadingAccent6, ColorfulList, ColorfulListAccent1, ColorfulListAccent2, ColorfulListAccent3, ColorfulListAccent4, ColorfulListAccent5, ColorfulListAccent6, ColorfulGrid, ColorfulGridAccent1, ColorfulGridAccent2, ColorfulGridAccent3, ColorfulGridAccent4, ColorfulGridAccent5, ColorfulGridAccent6, None};
-    public enum AutoFit{Contents, Window, ColoumnWidth};
-    
+{   
     /// <summary>
     /// Represents a Table in a document.
     /// </summary>
-    public class Table
+    public class Table : InsertBeforeOrAfter
     {
         private Alignment alignment;
         private AutoFit autofit;
         private List<Row> rows;
         private int rowCount, columnCount;
-        internal XElement xml;
 
         /// <summary>
         /// Returns the number of rows in this table.
@@ -41,14 +35,12 @@ namespace Novacode
         /// Returns a list of rows in this table.
         /// </summary>
         public List<Row> Rows { get { return rows; } }
-        DocX document;
         private TableDesign design;
 
-        internal Table(DocX document, XElement xml)
+        internal Table(DocX document, XElement xml):base(document, xml)
         {
             autofit = AutoFit.ColoumnWidth;
-            this.xml = xml;
-            this.document = document;
+            this.Xml = xml;
 
             XElement properties = xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
             
@@ -120,7 +112,7 @@ namespace Novacode
                     }
                 }
 
-                XElement tblPr = xml.Descendants(XName.Get("tblPr", DocX.w.NamespaceName)).First();
+                XElement tblPr = Xml.Descendants(XName.Get("tblPr", DocX.w.NamespaceName)).First();
                 XElement jc = tblPr.Descendants(XName.Get("jc", DocX.w.NamespaceName)).FirstOrDefault();
 
                 if(jc != null)
@@ -163,7 +155,7 @@ namespace Novacode
                     }
                 }
 
-                var query = from d in xml.Descendants()
+                var query = from d in Xml.Descendants()
                             let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
                             where (d.Name.LocalName == "tcW" || d.Name.LocalName == "tblW") && type != null
                             select type;
@@ -182,7 +174,7 @@ namespace Novacode
             get { return design; }
             set
             {
-                XElement tblPr = xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
+                XElement tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
                 XElement style = tblPr.Element(XName.Get("tblStyle", DocX.w.NamespaceName));
                 if (style == null)
                 {
@@ -316,7 +308,7 @@ namespace Novacode
                 }
 
                 XDocument style_doc;
-                PackagePart word_styles = document.package.GetPart(new Uri("/word/styles.xml", UriKind.Relative));
+                PackagePart word_styles = Document.package.GetPart(new Uri("/word/styles.xml", UriKind.Relative));
                 using (TextReader tr = new StreamReader(word_styles.GetStream()))
                     style_doc = XDocument.Load(tr);
 
@@ -414,7 +406,7 @@ namespace Novacode
             get
             {
                 int index = 0;
-                IEnumerable<XElement> previous = xml.ElementsBeforeSelf();
+                IEnumerable<XElement> previous = Xml.ElementsBeforeSelf();
 
                 foreach (XElement e in previous)
                     index += Paragraph.GetElementTextLength(e);
@@ -445,7 +437,7 @@ namespace Novacode
         /// </example>
         public void Remove()
         {
-            xml.Remove();
+            Xml.Remove();
         }
 
         /// <summary>
@@ -541,7 +533,7 @@ namespace Novacode
             if (index < 0 || index > rows.Count)
                 throw new IndexOutOfRangeException();
 
-            rows[index].xml.Remove();
+            rows[index].Xml.Remove();
         }
 
         /// <summary>
@@ -596,7 +588,7 @@ namespace Novacode
                 throw new IndexOutOfRangeException();
 
             foreach (Row r in rows)
-                r.Cells[index].xml.Remove();
+                r.Cells[index].Xml.Remove();
         }
 
         /// <summary>
@@ -638,19 +630,19 @@ namespace Novacode
                 content.Add(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
 
             XElement e = new XElement(XName.Get("tr", DocX.w.NamespaceName), content);
-            Row newRow = new Row(document, e);
+            Row newRow = new Row(Document, e);
 
             XElement rowXml;
             if (index == rows.Count)
             {
-                rowXml = rows.Last().xml;
-                rowXml.AddAfterSelf(newRow.xml);
+                rowXml = rows.Last().Xml;
+                rowXml.AddAfterSelf(newRow.Xml);
             }
             
             else
             {
-                rowXml = rows[index].xml;
-                rowXml.AddBeforeSelf(newRow.xml);
+                rowXml = rows[index].Xml;
+                rowXml.AddBeforeSelf(newRow.Xml);
             }
 
             rows.Insert(index, newRow);
@@ -704,13 +696,13 @@ namespace Novacode
                 foreach (Row r in rows)
                 {
                     if(columnCount == index)
-                        r.Cells[index - 1].xml.AddAfterSelf(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
+                        r.Cells[index - 1].Xml.AddAfterSelf(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
                     else
-                        r.Cells[index].xml.AddBeforeSelf(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
+                        r.Cells[index].Xml.AddBeforeSelf(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
                 }
 
-                rows = (from r in xml.Elements(XName.Get("tr", DocX.w.NamespaceName))
-                        select new Row(document, r)).ToList();
+                rows = (from r in Xml.Elements(XName.Get("tr", DocX.w.NamespaceName))
+                        select new Row(Document, r)).ToList();
 
                 rowCount = rows.Count;
 
@@ -718,49 +710,6 @@ namespace Novacode
                     if (rows[0].Cells.Count > 0)
                         columnCount = rows[0].Cells.Count;
             }
-        }
-
-        /// <summary>
-        /// Insert a page break after a Table.
-        /// </summary>
-        /// <example>
-        /// Insert a Table and a Paragraph into a document with a page break between them.
-        /// <code>
-        /// // Create a new document.
-        /// using (DocX document = DocX.Create(@"Test.docx"))
-        /// {
-        ///     // Insert a new Table.
-        ///     Table t1 = document.InsertTable(2, 2);
-        ///     t1.Design = TableDesign.LightShadingAccent1;
-        ///        
-        ///     // Insert a page break after this Table.
-        ///     t1.InsertPageBreakAfterSelf();
-        ///        
-        ///     // Insert a new Paragraph.
-        ///     Paragraph p1 = document.InsertParagraph("Paragraph", false);
-        ///
-        ///     // Save this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        public void InsertPageBreakAfterSelf()
-        {
-            XElement p = new XElement
-            (
-                XName.Get("p", DocX.w.NamespaceName),
-                    new XElement
-                    (
-                        XName.Get("r", DocX.w.NamespaceName),
-                            new XElement
-                            (
-                                XName.Get("br", DocX.w.NamespaceName),
-                                new XAttribute(XName.Get("type", DocX.w.NamespaceName), "page")
-                            )
-                    )
-            );
-
-            xml.AddAfterSelf(p);
         }
 
         /// <summary>
@@ -787,23 +736,39 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public void InsertPageBreakBeforeSelf()
+        public override void InsertPageBreakBeforeSelf()
         {
-            XElement p = new XElement
-            (
-                XName.Get("p", DocX.w.NamespaceName),
-                    new XElement
-                    (
-                        XName.Get("r", DocX.w.NamespaceName),
-                            new XElement
-                            (
-                                XName.Get("br", DocX.w.NamespaceName),
-                                new XAttribute(XName.Get("type", DocX.w.NamespaceName), "page")
-                            )
-                    )
-            );
+            base.InsertPageBreakBeforeSelf();
+        }
 
-            xml.AddBeforeSelf(p);
+
+        /// <summary>
+        /// Insert a page break after a Table.
+        /// </summary>
+        /// <example>
+        /// Insert a Table and a Paragraph into a document with a page break between them.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Table.
+        ///     Table t1 = document.InsertTable(2, 2);
+        ///     t1.Design = TableDesign.LightShadingAccent1;
+        ///        
+        ///     // Insert a page break after this Table.
+        ///     t1.InsertPageBreakAfterSelf();
+        ///        
+        ///     // Insert a new Paragraph.
+        ///     Paragraph p1 = document.InsertParagraph("Paragraph", false);
+        ///
+        ///     // Save this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public override void InsertPageBreakAfterSelf()
+        {
+            base.InsertPageBreakAfterSelf();
         }
 
         /// <summary>
@@ -838,16 +803,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTableBeforeSelf(Table t)
+        public override Table InsertTableBeforeSelf(Table t)
         {
-            xml.AddBeforeSelf(t.xml);
-            XElement newlyInserted = xml.ElementsBeforeSelf().First();
-
-            t.xml = newlyInserted;
-            DocX.RebuildTables(document);
-            DocX.RebuildParagraphs(document);
-
-            return t;
+            return base.InsertTableBeforeSelf(t);
         }
 
         /// <summary>
@@ -876,15 +834,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTableBeforeSelf(int rowCount, int coloumnCount)
+        public override Table InsertTableBeforeSelf(int rowCount, int coloumnCount)
         {
-            XElement newTable = DocX.CreateTable(rowCount, coloumnCount);
-            xml.AddBeforeSelf(newTable);
-            XElement newlyInserted = xml.ElementsBeforeSelf().First();
-
-            DocX.RebuildTables(document);
-            DocX.RebuildParagraphs(document);
-            return new Table(document, newlyInserted);
+            return base.InsertTableBeforeSelf(rowCount, coloumnCount);
         }
 
         /// <summary>
@@ -919,16 +871,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTableAfterSelf(Table t)
+        public override Table InsertTableAfterSelf(Table t)
         {
-            xml.AddAfterSelf(t.xml);
-            XElement newlyInserted = xml.ElementsAfterSelf().First();
-
-            t.xml = newlyInserted;
-            DocX.RebuildTables(document);
-            DocX.RebuildParagraphs(document);
-
-            return t;
+            return base.InsertTableAfterSelf(t);
         }
 
         /// <summary>
@@ -957,15 +902,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTableAfterSelf(int rowCount, int coloumnCount)
+        public override Table InsertTableAfterSelf(int rowCount, int coloumnCount)
         {
-            XElement newTable = DocX.CreateTable(rowCount, coloumnCount);
-            xml.AddAfterSelf(newTable);
-            XElement newlyInserted = xml.ElementsAfterSelf().First();
-
-            DocX.RebuildTables(document);
-            DocX.RebuildParagraphs(document);
-            return new Table(document, newlyInserted);
+            return base.InsertTableAfterSelf(rowCount, coloumnCount);
         }
 
         /// <summary>
@@ -1000,15 +939,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code> 
         /// </example>
-        public Paragraph InsertParagraphBeforeSelf(Paragraph p)
+        public override Paragraph InsertParagraphBeforeSelf(Paragraph p)
         {
-            xml.AddBeforeSelf(p.xml);
-            XElement newlyInserted = xml.ElementsBeforeSelf().First();
-
-            p.xml = newlyInserted;
-            DocX.RebuildParagraphs(document);
-
-            return p;
+            return base.InsertParagraphBeforeSelf(p);
         }
 
         /// <summary>
@@ -1032,9 +965,9 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphBeforeSelf(string text)
+        public override Paragraph InsertParagraphBeforeSelf(string text)
         {
-            return InsertParagraphBeforeSelf(text, false, new Formatting());
+            return base.InsertParagraphBeforeSelf(text);
         }
 
         /// <summary>
@@ -1059,9 +992,9 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges)
+        public override Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges)
         {
-            return InsertParagraphBeforeSelf(text, trackChanges, new Formatting());
+            return base.InsertParagraphBeforeSelf(text, trackChanges);
         }
 
         /// <summary>
@@ -1090,23 +1023,9 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges, Formatting formatting)
+        public override Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges, Formatting formatting)
         {
-            XElement newParagraph = new XElement
-            (
-                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), DocX.FormatInput(text, formatting.Xml)
-            );
-
-            if (trackChanges)
-                newParagraph = Paragraph.CreateEdit(EditType.ins, DateTime.Now, newParagraph);
-
-            xml.AddBeforeSelf(newParagraph);
-            XElement newlyInserted = xml.ElementsBeforeSelf().First();
-
-            Paragraph p = new Paragraph(document, -1, newlyInserted);
-            DocX.RebuildParagraphs(document);
-
-            return p;
+            return base.InsertParagraphBeforeSelf(text, trackChanges, formatting);
         }
 
         /// <summary>
@@ -1141,15 +1060,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code> 
         /// </example>
-        public Paragraph InsertParagraphAfterSelf(Paragraph p)
+        public override Paragraph InsertParagraphAfterSelf(Paragraph p)
         {
-            xml.AddAfterSelf(p.xml);
-            XElement newlyInserted = xml.ElementsAfterSelf().First();
-
-            p.xml = newlyInserted;
-            DocX.RebuildParagraphs(document);
-
-            return p;
+            return base.InsertParagraphAfterSelf(p);
         }
 
         /// <summary>
@@ -1178,23 +1091,9 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphAfterSelf(string text, bool trackChanges, Formatting formatting)
+        public override Paragraph InsertParagraphAfterSelf(string text, bool trackChanges, Formatting formatting)
         {
-            XElement newParagraph = new XElement
-            (
-                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), DocX.FormatInput(text, formatting.Xml)
-            );
-
-            if (trackChanges)
-                newParagraph = Paragraph.CreateEdit(EditType.ins, DateTime.Now, newParagraph);
-
-            xml.AddAfterSelf(newParagraph);
-            XElement newlyInserted = xml.ElementsAfterSelf().First();
-
-            Paragraph p = new Paragraph(document, -1, newlyInserted);
-            DocX.RebuildParagraphs(document);
-
-            return p;
+            return base.InsertParagraphAfterSelf(text, trackChanges, formatting);
         }
 
         /// <summary>
@@ -1219,9 +1118,9 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphAfterSelf(string text, bool trackChanges)
+        public override Paragraph InsertParagraphAfterSelf(string text, bool trackChanges)
         {
-            return InsertParagraphAfterSelf(text, trackChanges, new Formatting());
+            return base.InsertParagraphAfterSelf(text, trackChanges);
         }
 
         /// <summary>
@@ -1245,19 +1144,17 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphAfterSelf(string text)
+        public override Paragraph InsertParagraphAfterSelf(string text)
         {
-            return InsertParagraphAfterSelf(text, false, new Formatting());
+            return base.InsertParagraphAfterSelf(text);
         }
     }
 
     /// <summary>
     /// Represents a single row in a Table.
     /// </summary>
-    public class Row
+    public class Row:DocXElement
     {
-        DocX document;
-        internal XElement xml;
         private List<Cell> cells;
 
         /// <summary>
@@ -1265,10 +1162,8 @@ namespace Novacode
         /// </summary>
         public List<Cell> Cells { get { return cells; } }
 
-        internal Row(DocX document, XElement xml)
+        internal Row(DocX document, XElement xml):base(document, xml)
         {
-            this.document = document;
-            this.xml = xml;
             cells = (from c in xml.Elements(XName.Get("tc", DocX.w.NamespaceName))
                      select new Cell(document, c)).ToList();
         }
@@ -1284,7 +1179,7 @@ namespace Novacode
                 * Get the trPr (table row properties) element for this Row,
                 * null will be return if no such element exists.
                 */
-                XElement trPr = xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
 
                 // If trPr is null, this row contains no height information.
                 if(trPr == null)
@@ -1325,11 +1220,11 @@ namespace Novacode
                  * Get the trPr (table row properties) element for this Row,
                  * null will be return if no such element exists.
                  */
-                XElement trPr = xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
                 if (trPr == null)
                 {
-                    xml.SetElementValue(XName.Get("trPr", DocX.w.NamespaceName), string.Empty);
-                    trPr = xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                    Xml.SetElementValue(XName.Get("trPr", DocX.w.NamespaceName), string.Empty);
+                    trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
                 }
 
                 /*
@@ -1366,7 +1261,7 @@ namespace Novacode
             // Foreach each Cell between startIndex and endIndex inclusive.
             foreach (Cell c in cells.Where((z, i) => i > startIndex && i <= endIndex))
             {
-                XElement tcPr = c.xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                XElement tcPr = c.Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
                 if (tcPr != null)
                 {
                     XElement gridSpan = tcPr.Element(XName.Get("gridSpan", DocX.w.NamespaceName));
@@ -1382,21 +1277,21 @@ namespace Novacode
                 }
 
                 // Add this cells Pragraph to the merge start Cell.
-                cells[startIndex].xml.Add(c.xml.Elements(XName.Get("p", DocX.w.NamespaceName)));
+                cells[startIndex].Xml.Add(c.Xml.Elements(XName.Get("p", DocX.w.NamespaceName)));
                 
                 // Remove this Cell.
-                c.xml.Remove();
+                c.Xml.Remove();
             }
 
             /* 
              * Get the tcPr (table cell properties) element for the first cell in this merge,
              * null will be returned if no such element exists.
              */
-            XElement start_tcPr = cells[startIndex].xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+            XElement start_tcPr = cells[startIndex].Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
             if (start_tcPr == null)
             {
-                cells[startIndex].xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
-                start_tcPr = cells[startIndex].xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                cells[startIndex].Xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                start_tcPr = cells[startIndex].Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
             }
 
             /* 
@@ -1427,32 +1322,94 @@ namespace Novacode
             // Rebuild the cells collection.
             cells = 
             (
-                from c in xml.Elements(XName.Get("tc", DocX.w.NamespaceName))
-                select new Cell(document, c)
+                from c in Xml.Elements(XName.Get("tc", DocX.w.NamespaceName))
+                select new Cell(Document, c)
             ).ToList();
         }
     }
 
-    public class Cell
+    public class Cell:DocXElement
     {
-        private Paragraph p;
-        private DocX document;
-        internal XElement xml;
+        private List<Paragraph> paragraphs;
 
-        public Paragraph Paragraph
+        public List<Paragraph> Paragraphs
         {
-            get { return p; }
-            set { p = value; }
+            get { return paragraphs; }
+            set { paragraphs = value; }
         }
 
-        internal Cell(DocX document, XElement xml)
+        internal Cell(DocX document, XElement xml):base(document, xml)
         {
-            this.document = document;
-            this.xml = xml;
+            paragraphs = xml.Elements(XName.Get("p", DocX.w.NamespaceName)).Select(p => new Paragraph(document, p, 0)).ToList();
+        }
 
-            XElement properties = xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+        public Color Shading
+        {
+            get
+            {
+                /*
+                 * Get the tcPr (table cell properties) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
 
-            p = new Paragraph(document, 0, xml.Element(XName.Get("p", DocX.w.NamespaceName)));
+                // If tcPr is null, this cell contains no Color information.
+                if (tcPr == null)
+                    return Color.White;
+
+                /*
+                 * Get the shd (table shade) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement shd = tcPr.Element(XName.Get("shd", DocX.w.NamespaceName));
+
+                // If shd is null, this cell contains no Color information.
+                if (shd == null)
+                    return Color.White;
+             
+                // Get the w attribute of the tcW element.
+                XAttribute fill = shd.Attribute(XName.Get("fill", DocX.w.NamespaceName));
+
+                // If fill is null, this cell contains no Color information.
+                if (fill == null)
+                    return Color.White;
+
+               return ColorTranslator.FromHtml(string.Format("#{0}", fill.Value));
+            }
+
+            set
+            {
+                /*
+                 * Get the tcPr (table cell properties) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                if (tcPr == null)
+                {
+                    Xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                    tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                }
+
+                /*
+                 * Get the shd (table shade) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement shd = tcPr.Element(XName.Get("shd", DocX.w.NamespaceName));
+                if (shd == null)
+                {
+                    tcPr.SetElementValue(XName.Get("shd", DocX.w.NamespaceName), string.Empty);
+                    shd = tcPr.Element(XName.Get("shd", DocX.w.NamespaceName));
+                }
+
+                // The val attribute needs to be set to clear
+                shd.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), "clear");
+
+                // The color attribute needs to be set to auto
+                shd.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), "auto");
+
+                // The fill attribute needs to be set to the hex for this Color.
+                shd.SetAttributeValue(XName.Get("fill", DocX.w.NamespaceName), value.ToHex());
+            }
         }
 
         /// <summary>
@@ -1466,7 +1423,7 @@ namespace Novacode
                  * Get the tcPr (table cell properties) element for this Cell,
                  * null will be return if no such element exists.
                  */
-                XElement tcPr = xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                XElement tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
 
                 // If tcPr is null, this cell contains no width information.
                 if (tcPr == null)
@@ -1507,11 +1464,11 @@ namespace Novacode
                  * Get the tcPr (table cell properties) element for this Cell,
                  * null will be return if no such element exists.
                  */
-                XElement tcPr = xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                XElement tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
                 if (tcPr == null)
                 {
-                    xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
-                    tcPr = xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                    Xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                    tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
                 }
 
                 /*

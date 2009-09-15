@@ -15,7 +15,7 @@ namespace Novacode
     /// <summary>
     /// Represents a document paragraph.
     /// </summary>
-    public class Paragraph
+    public class Paragraph : InsertBeforeOrAfter
     {
         internal List<XElement> runs;
 
@@ -25,8 +25,6 @@ namespace Novacode
         // A lookup for the runs in this paragraph
         Dictionary<int, Run> runLookup = new Dictionary<int, Run>();
 
-        // The underlying XElement which this Paragraph wraps
-        internal XElement xml;
         internal int startIndex, endIndex;
 
         // A collection of Images in this Paragraph
@@ -50,19 +48,16 @@ namespace Novacode
             get { return docProperties; }
         }
 
-        internal DocX document;
-        internal Paragraph(DocX document, int startIndex, XElement p)
+        internal Paragraph(DocX document, XElement xml, int startIndex):base(document, xml)
         {           
-            this.document = document;
             this.startIndex = startIndex;
-            this.endIndex = startIndex + GetElementTextLength(p);
-            this.xml = p;
+            this.endIndex = startIndex + GetElementTextLength(xml);
 
-            BuildRunLookup(p);
+            BuildRunLookup(xml);
 
             // Get all of the images in this document
-            pictures = (from i in p.Descendants(XName.Get("drawing", DocX.w.NamespaceName))
-                        select new Picture(i)).ToList();
+            pictures = (from i in xml.Descendants(XName.Get("drawing", DocX.w.NamespaceName))
+                        select new Picture(Document, i)).ToList();
 
             RebuildDocProperties();
 
@@ -144,16 +139,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTableBeforeSelf(Table t)
+        public override Table InsertTableBeforeSelf(Table t)
         {
-            xml.AddBeforeSelf(t.xml);
-            XElement newlyInserted = xml.ElementsBeforeSelf().First();
-
-            t.xml = newlyInserted;
-            DocX.RebuildTables(document);
-            DocX.RebuildParagraphs(document);
-
-            return t;
+            return base.InsertTableBeforeSelf(t);
         }
 
         /// <summary>
@@ -180,15 +168,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTableBeforeSelf(int rowCount, int coloumnCount)
+        public override Table InsertTableBeforeSelf(int rowCount, int coloumnCount)
         {
-            XElement newTable = DocX.CreateTable(rowCount, coloumnCount);
-            xml.AddBeforeSelf(newTable);
-            XElement newlyInserted = xml.ElementsBeforeSelf().First();
-
-            DocX.RebuildTables(document);
-            DocX.RebuildParagraphs(document);
-            return new Table(document, newlyInserted);
+            return base.InsertTableBeforeSelf(rowCount, coloumnCount);
         }
 
         /// <summary>
@@ -223,16 +205,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTableAfterSelf(Table t)
+        public override Table InsertTableAfterSelf(Table t)
         {
-            xml.AddAfterSelf(t.xml);
-            XElement newlyInserted = xml.ElementsAfterSelf().First();
-
-            t.xml = newlyInserted;
-            DocX.RebuildTables(document);
-            DocX.RebuildParagraphs(document);
-
-            return t;
+            return base.InsertTableAfterSelf(t);
         }
 
         /// <summary>
@@ -259,15 +234,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTableAfterSelf(int rowCount, int coloumnCount)
+        public override Table InsertTableAfterSelf(int rowCount, int coloumnCount)
         {
-            XElement newTable = DocX.CreateTable(rowCount, coloumnCount);
-            xml.AddAfterSelf(newTable);
-            XElement newlyInserted = xml.ElementsAfterSelf().First();
-
-            DocX.RebuildTables(document);
-            DocX.RebuildParagraphs(document);
-            return new Table(document, newlyInserted);
+            return base.InsertTableAfterSelf(rowCount, coloumnCount);
         }
 
         /// <summary>
@@ -302,15 +271,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code> 
         /// </example>
-        public Paragraph InsertParagraphBeforeSelf(Paragraph p)
+        public override Paragraph InsertParagraphBeforeSelf(Paragraph p)
         {
-            xml.AddBeforeSelf(p.xml);
-            XElement newlyInserted = xml.ElementsBeforeSelf().First();
-
-            p.xml = newlyInserted;
-            DocX.RebuildParagraphs(document);
-
-            return p;
+            return base.InsertParagraphBeforeSelf(p);
         }
 
         /// <summary>
@@ -361,9 +324,9 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges)
+        public override Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges)
         {
-            return InsertParagraphBeforeSelf(text, trackChanges, new Formatting());
+            return base.InsertParagraphBeforeSelf(text, trackChanges);
         }
 
         /// <summary>
@@ -392,64 +355,9 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges, Formatting formatting)
+        public override Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges, Formatting formatting)
         {
-            XElement newParagraph = new XElement
-            (
-                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), DocX.FormatInput(text, formatting.Xml)
-            );
-
-            if (trackChanges)
-                newParagraph = CreateEdit(EditType.ins, DateTime.Now, newParagraph);
-
-            xml.AddBeforeSelf(newParagraph);
-            XElement newlyInserted = xml.ElementsBeforeSelf().First();
-
-            Paragraph p = new Paragraph(document, -1, newlyInserted);
-            DocX.RebuildParagraphs(document);
-
-            return p;
-        }
-
-        /// <summary>
-        /// Insert a page break after a Paragraph.
-        /// </summary>
-        /// <example>
-        /// Insert 2 Paragraphs into a document with a page break between them.
-        /// <code>
-        /// using (DocX document = DocX.Create(@"Test.docx"))
-        /// {
-        ///    // Insert a new Paragraph.
-        ///    Paragraph p1 = document.InsertParagraph("Paragraph 1", false);
-        ///       
-        ///    // Insert a page break after this Paragraph.
-        ///    p1.InsertPageBreakAfterSelf();
-        ///       
-        ///    // Insert a new Paragraph.
-        ///    Paragraph p2 = document.InsertParagraph("Paragraph 2", false);
-        ///
-        ///    // Save this document.
-        ///    document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        public void InsertPageBreakAfterSelf()
-        {
-            XElement p = new XElement
-            (
-                XName.Get("p", DocX.w.NamespaceName),
-                    new XElement
-                    (
-                        XName.Get("r", DocX.w.NamespaceName),
-                            new XElement
-                            (
-                                XName.Get("br", DocX.w.NamespaceName),
-                                new XAttribute(XName.Get("type", DocX.w.NamespaceName), "page")
-                            )
-                    )
-            );
-
-            xml.AddAfterSelf(p);
+            return base.InsertParagraphBeforeSelf(text, trackChanges, formatting);
         }
 
         /// <summary>
@@ -474,23 +382,36 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public void InsertPageBreakBeforeSelf()
+        public override void InsertPageBreakBeforeSelf()
         {
-            XElement p = new XElement
-            (
-                XName.Get("p", DocX.w.NamespaceName),
-                    new XElement
-                    (
-                        XName.Get("r", DocX.w.NamespaceName),
-                            new XElement
-                            (
-                                XName.Get("br", DocX.w.NamespaceName),
-                                new XAttribute(XName.Get("type", DocX.w.NamespaceName), "page")
-                            )
-                    )
-            );
+            base.InsertPageBreakBeforeSelf();
+        }
 
-            xml.AddBeforeSelf(p);
+        /// <summary>
+        /// Insert a page break after a Paragraph.
+        /// </summary>
+        /// <example>
+        /// Insert 2 Paragraphs into a document with a page break between them.
+        /// <code>
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///    // Insert a new Paragraph.
+        ///    Paragraph p1 = document.InsertParagraph("Paragraph 1", false);
+        ///       
+        ///    // Insert a page break after this Paragraph.
+        ///    p1.InsertPageBreakAfterSelf();
+        ///       
+        ///    // Insert a new Paragraph.
+        ///    Paragraph p2 = document.InsertParagraph("Paragraph 2", false);
+        ///
+        ///    // Save this document.
+        ///    document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public override void InsertPageBreakAfterSelf()
+        {
+            base.InsertPageBreakAfterSelf();
         }
 
         /// <summary>
@@ -525,15 +446,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code> 
         /// </example>
-        public Paragraph InsertParagraphAfterSelf(Paragraph p)
+        public override Paragraph InsertParagraphAfterSelf(Paragraph p)
         {
-            xml.AddAfterSelf(p.xml);
-            XElement newlyInserted = xml.ElementsAfterSelf().First();
-
-            p.xml = newlyInserted;
-            DocX.RebuildParagraphs(document);
-
-            return p;
+            return base.InsertParagraphAfterSelf(p);
         }
 
         /// <summary>
@@ -562,23 +477,9 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphAfterSelf(string text, bool trackChanges, Formatting formatting)
+        public override Paragraph InsertParagraphAfterSelf(string text, bool trackChanges, Formatting formatting)
         {
-            XElement newParagraph = new XElement
-            (
-                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), DocX.FormatInput(text, formatting.Xml)
-            );
-
-            if (trackChanges)
-                newParagraph = CreateEdit(EditType.ins, DateTime.Now, newParagraph);
-
-            xml.AddAfterSelf(newParagraph);
-            XElement newlyInserted = xml.ElementsAfterSelf().First();
-
-            Paragraph p = new Paragraph(document, -1, newlyInserted);
-            DocX.RebuildParagraphs(document);
-
-            return p;
+            return base.InsertParagraphAfterSelf(text, trackChanges, formatting);
         }
 
         /// <summary>
@@ -603,9 +504,9 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphAfterSelf(string text, bool trackChanges)
+        public override Paragraph InsertParagraphAfterSelf(string text, bool trackChanges)
         {
-            return InsertParagraphAfterSelf(text, trackChanges, new Formatting());
+            return base.InsertParagraphAfterSelf(text, trackChanges);
         }
 
         /// <summary>
@@ -629,17 +530,17 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphAfterSelf(string text)
+        public override Paragraph InsertParagraphAfterSelf(string text)
         {
-            return InsertParagraphAfterSelf(text, false, new Formatting());
+            return base.InsertParagraphAfterSelf(text);
         }
 
         private void RebuildDocProperties()
         {
             docProperties =
             (
-                from dp in xml.Descendants(XName.Get("fldSimple", DocX.w.NamespaceName))
-                select new DocProperty(dp)
+                from xml in Xml.Descendants(XName.Get("fldSimple", DocX.w.NamespaceName))
+                select new DocProperty(Document, xml)
             ).ToList();
         }
 
@@ -654,14 +555,14 @@ namespace Novacode
             {
                 alignment = value;
 
-                XElement pPr = xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
+                XElement pPr = Xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
 
                 if (alignment != Novacode.Alignment.left)
                 {
                     if (pPr == null)
-                        xml.Add(new XElement(XName.Get("pPr", DocX.w.NamespaceName)));
+                        Xml.Add(new XElement(XName.Get("pPr", DocX.w.NamespaceName)));
                     
-                    pPr = xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
+                    pPr = Xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
 
                     XElement jc = pPr.Element(XName.Get("jc", DocX.w.NamespaceName));
 
@@ -711,7 +612,7 @@ namespace Novacode
             {
                 DateTime now = DateTime.Now.ToUniversalTime();
 
-                List<XElement> elements = xml.Elements().ToList();
+                List<XElement> elements = Xml.Elements().ToList();
                 List<XElement> temp = new List<XElement>();
                 for (int i = 0; i < elements.Count(); i++ )
                 {
@@ -734,27 +635,27 @@ namespace Novacode
                 }
 
                 if (temp.Count() > 0)
-                    xml.Add(CreateEdit(EditType.del, now, temp));                   
+                    Xml.Add(CreateEdit(EditType.del, now, temp));                   
             }
 
             else
             {
                 runLookup.Clear();
 
-                if (xml.Parent.Name.LocalName == "tc")
-                    xml.Value = string.Empty;
+                if (Xml.Parent.Name.LocalName == "tc")
+                    Xml.Value = string.Empty;
 
                 else
                 {
                     // Remove this paragraph from the document
-                    xml.Remove();
-                    xml = null;
+                    Xml.Remove();
+                    Xml = null;
 
                     runLookup = null;
                 }
             }
 
-            DocX.RebuildParagraphs(document);
+            DocX.RebuildParagraphs(Document);
         }
 
         internal void BuildRunLookup(XElement p)
@@ -772,7 +673,7 @@ namespace Novacode
                 // Only add runs which contain text
                 if (GetElementTextLength(run) > 0)
                 {
-                    Run r = new Run(startIndex, run);
+                    Run r = new Run(Document, run, startIndex);
                     runLookup.Add(r.EndIndex, r);
                     startIndex = r.EndIndex;
                 }
@@ -790,7 +691,7 @@ namespace Novacode
                 StringBuilder sb = new StringBuilder();
 
                 // Loop through each run in this paragraph
-                foreach (XElement r in xml.Descendants(XName.Get("r", DocX.w.NamespaceName)))
+                foreach (XElement r in Xml.Descendants(XName.Get("r", DocX.w.NamespaceName)))
                 {
                     // Loop through each text item in this run
                     foreach (XElement descendant in r.Descendants())
@@ -868,8 +769,8 @@ namespace Novacode
         /// </example>
         public Picture InsertPicture(string imageID, string name, string description)
         {
-            Picture p = new Picture(document, imageID, name, description);
-            xml.Add(p.xml);
+            Picture p = CreatePicture(Document, imageID, name, description);
+            Xml.Add(p.Xml);
             pictures.Add(p);
             return p;
         }
@@ -894,7 +795,7 @@ namespace Novacode
         //        XElement[] splitRun = Run.SplitRun(run, index);
 
         //        // Replace the origional run
-        //        run.xml.ReplaceWith
+        //        run.Xml.ReplaceWith
         //        (
         //            splitRun[0],
         //            p.i,
@@ -951,31 +852,94 @@ namespace Novacode
         /// </example>
         public Picture InsertPicture(int index, string imageID, string name, string description)
         {
-            Picture picture = new Picture(document, imageID, name, description);
+            Picture picture = CreatePicture(Document, imageID, name, description);
             
             Run run = GetFirstRunEffectedByEdit(index);
 
             if (run == null)
-                xml.Add(picture.xml);
+                Xml.Add(picture.Xml);
             else
             {
                 // Split this run at the point you want to insert
                 XElement[] splitRun = Run.SplitRun(run, index);
 
                 // Replace the origional run
-                run.xml.ReplaceWith
+                run.Xml.ReplaceWith
                 (
                     splitRun[0],
-                    picture.xml,
+                    picture.Xml,
                     splitRun[1]
                 );
             }
 
             // Rebuild the run lookup for this paragraph
             runLookup.Clear();
-            BuildRunLookup(xml);
-            DocX.RenumberIDs(document);
+            BuildRunLookup(Xml);
+            DocX.RenumberIDs(Document);
             return picture;
+        }
+
+        /// <summary>
+        /// Create a new Picture.
+        /// </summary>
+        /// <param name="id">A unique id that identifies an Image embedded in this document.</param>
+        /// <param name="name">The name of this Picture.</param>
+        /// <param name="descr">The description of this Picture.</param>
+        internal Picture CreatePicture(DocX document, string id, string name, string descr)
+        {
+            PackagePart word_document = document.package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
+            PackagePart part = document.package.GetPart(word_document.GetRelationship(id).TargetUri);
+
+            int cx, cy;
+
+            using (System.Drawing.Image img = System.Drawing.Image.FromStream(part.GetStream()))
+            {
+                cx = img.Width * 9526;
+                cy = img.Height * 9526;
+            }
+
+            XElement e = new XElement(DocX.w + "drawing");
+
+            XElement xml = XElement.Parse 
+            (string.Format(@"
+            <drawing xmlns = ""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                <wp:inline distT=""0"" distB=""0"" distL=""0"" distR=""0"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"">
+                    <wp:extent cx=""{0}"" cy=""{1}"" />
+                    <wp:effectExtent l=""0"" t=""0"" r=""0"" b=""0"" />
+                    <wp:docPr id=""1"" name=""{3}"" descr=""{4}"" />
+                    <wp:cNvGraphicFramePr>
+                        <a:graphicFrameLocks xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" noChangeAspect=""1"" />
+                    </wp:cNvGraphicFramePr>
+                    <a:graphic xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"">
+                        <a:graphicData uri=""http://schemas.openxmlformats.org/drawingml/2006/picture"">
+                            <pic:pic xmlns:pic=""http://schemas.openxmlformats.org/drawingml/2006/picture"">
+                                <pic:nvPicPr>
+                                <pic:cNvPr id=""0"" name=""{3}"" />
+                                    <pic:cNvPicPr />
+                                </pic:nvPicPr>
+                                <pic:blipFill>
+                                    <a:blip r:embed=""{2}"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships""/>
+                                    <a:stretch>
+                                        <a:fillRect />
+                                    </a:stretch>
+                                </pic:blipFill>
+                                <pic:spPr>
+                                    <a:xfrm>
+                                        <a:off x=""0"" y=""0"" />
+                                        <a:ext cx=""{0}"" cy=""{1}"" />
+                                    </a:xfrm>
+                                    <a:prstGeom prst=""rect"">
+                                        <a:avLst />
+                                    </a:prstGeom>
+                                </pic:spPr>
+                            </pic:pic>
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </drawing>
+            ", cx, cy, id, name, descr));
+
+            return new Picture(Document, xml);
         }
 
         public Picture InsertPicture(int index, string imageID)
@@ -1086,11 +1050,11 @@ namespace Novacode
 
             XElement[] splitRun = Run.SplitRun(run, index);
             
-            XElement splitLeft = new XElement(edit.Name, edit.Attributes(), run.xml.ElementsBeforeSelf(), splitRun[0]);
+            XElement splitLeft = new XElement(edit.Name, edit.Attributes(), run.Xml.ElementsBeforeSelf(), splitRun[0]);
             if (GetElementTextLength(splitLeft) == 0)
                 splitLeft = null;
 
-            XElement splitRight = new XElement(edit.Name, edit.Attributes(), splitRun[1], run.xml.ElementsAfterSelf());
+            XElement splitRight = new XElement(edit.Name, edit.Attributes(), splitRun[1], run.Xml.ElementsAfterSelf());
             if (GetElementTextLength(splitRight) == 0)
                 splitRight = null;
 
@@ -1201,11 +1165,11 @@ namespace Novacode
         public void InsertText(string value, bool trackChanges)
         {
             List<XElement> newRuns = DocX.FormatInput(value, null);
-            xml.Add(newRuns);
+            Xml.Add(newRuns);
 
             runLookup.Clear();
-            BuildRunLookup(xml);
-            DocX.RenumberIDs(document);
+            BuildRunLookup(Xml);
+            DocX.RenumberIDs(Document);
         }
 
         /// <summary>
@@ -1266,12 +1230,12 @@ namespace Novacode
         public void InsertText(string value, bool trackChanges, Formatting formatting)
         {
             List<XElement> newRuns = DocX.FormatInput(value, formatting.Xml);
-            xml.Add(newRuns);
+            Xml.Add(newRuns);
 
             runLookup.Clear();
-            BuildRunLookup(xml);
-            DocX.RenumberIDs(document);
-            DocX.RebuildParagraphs(document);
+            BuildRunLookup(Xml);
+            DocX.RenumberIDs(Document);
+            DocX.RebuildParagraphs(Document);
         }
 
         /// <summary>
@@ -1349,7 +1313,7 @@ namespace Novacode
                 
                 if (trackChanges)
                     insert = CreateEdit(EditType.ins, insert_datetime, insert);
-                xml.Add(insert);
+                Xml.Add(insert);
             }
 
             else
@@ -1358,10 +1322,10 @@ namespace Novacode
                 if (formatting != null)
                     newRuns = DocX.FormatInput(value, formatting.Xml);
                 else
-                    newRuns = DocX.FormatInput(value, run.xml.Element(XName.Get("rPr", DocX.w.NamespaceName)));
+                    newRuns = DocX.FormatInput(value, run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)));
 
                 // The parent of this Run
-                XElement parentElement = run.xml.Parent;
+                XElement parentElement = run.Xml.Parent;
                 switch (parentElement.Name.LocalName)
                 {
                     case "ins":
@@ -1419,7 +1383,7 @@ namespace Novacode
                             XElement[] splitRun = Run.SplitRun(run, index);
 
                             // Replace the origional run
-                            run.xml.ReplaceWith
+                            run.Xml.ReplaceWith
                             (
                                 splitRun[0],
                                 insert,
@@ -1433,8 +1397,8 @@ namespace Novacode
 
             // Rebuild the run lookup for this paragraph
             runLookup.Clear();
-            BuildRunLookup(xml);
-            DocX.RenumberIDs(document);
+            BuildRunLookup(Xml);
+            DocX.RenumberIDs(Document);
         }
 
         /// <summary>
@@ -1459,10 +1423,10 @@ namespace Novacode
         public Paragraph Append(string text)
         {
             List<XElement> newRuns = DocX.FormatInput(text, null);
-            xml.Add(newRuns);
+            Xml.Add(newRuns);
 
-            this.runs = xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(newRuns.Count()).ToList();
-            BuildRunLookup(xml);
+            this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(newRuns.Count()).ToList();
+            BuildRunLookup(Xml);
 
             return this;
         }
@@ -1507,7 +1471,7 @@ namespace Novacode
                 last.Add(content);
             }
 
-            BuildRunLookup(xml);
+            BuildRunLookup(Xml);
         }
 
         /// <summary>
@@ -1962,7 +1926,7 @@ namespace Novacode
                 u.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), underlineColor.ToHex());
             }
 
-            BuildRunLookup(xml);
+            BuildRunLookup(Xml);
             
             return this;
         }
@@ -2077,7 +2041,46 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public void InsertDocProperty(CustomProperty cp, Formatting f)
+        public DocProperty InsertDocProperty(CustomProperty cp, Formatting f)
+        {
+            return InsertDocProperty(cp, false, f);
+        }
+
+        /// <summary>
+        /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
+        /// </summary>
+        /// <param name="cp">The custom property to display.</param>
+        /// <param name="f">The formatting to use for this text.</param>
+        /// <example>
+        /// Create, add and display a custom property in a document.
+        /// <code>
+        /// // Load a document
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Create a custom property.
+        ///     CustomProperty name = new CustomProperty("name", "Cathal Coffey");
+        ///        
+        ///     // Add this custom property to this document.
+        ///     document.AddCustomProperty(name);
+        ///
+        ///     // Create a text formatting.
+        ///     Formatting f = new Formatting();
+        ///     f.Bold = true;
+        ///     f.Size = 14;
+        ///     f.StrikeThrough = StrickThrough.strike;
+        ///
+        ///     // Insert a new paragraph.
+        ///     Paragraph p = document.InsertParagraph("Author: ", false, f);
+        ///
+        ///     // Insert a field of type document property to display the custom property name and track this change.
+        ///     p.InsertDocProperty(name, true, f);
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public DocProperty InsertDocProperty(CustomProperty cp, bool trackChanges, Formatting f)
         {
             XElement e = new XElement
             (
@@ -2087,7 +2090,17 @@ namespace Novacode
                         new XElement(XName.Get("t", DocX.w.NamespaceName), f.Xml, cp.Value))
             );
 
-            xml.Add(e);                    
+            XElement xml = e;
+            if (trackChanges)
+            {
+                DateTime now = DateTime.Now;
+                DateTime insert_datetime = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc);
+                e = CreateEdit(EditType.ins, insert_datetime, e);
+            }
+
+            Xml.Add(e);
+
+            return new DocProperty(Document, xml);
         }
 
         /// <summary>
@@ -2117,9 +2130,41 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public void InsertDocProperty(CustomProperty cp)
+        public DocProperty InsertDocProperty(CustomProperty cp)
         {
-            InsertDocProperty(cp, new Formatting());
+            return InsertDocProperty(cp, false, new Formatting());
+        }
+
+        /// <summary>
+        /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
+        /// </summary>
+        /// <param name="cp">The custom property to display.</param>
+        /// <example>
+        /// Create, add and display a custom property in a document.
+        /// <code>
+        /// // Load a document
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Create a custom property.
+        ///     CustomProperty name = new CustomProperty("name", "Cathal Coffey");
+        ///        
+        ///     // Add this custom property to this document.
+        ///     document.AddCustomProperty(name);
+        ///
+        ///     // Insert a new paragraph.
+        ///     Paragraph p = document.InsertParagraph("Author: ", false);
+        ///        
+        ///     // Insert a field of type document property to display the custom property name and track this change.
+        ///     p.InsertDocProperty(name, true);
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public DocProperty InsertDocProperty(CustomProperty cp, bool trackChanges)
+        {
+            return InsertDocProperty(cp, trackChanges, new Formatting());
         }
 
         /// <summary>
@@ -2166,13 +2211,13 @@ namespace Novacode
                 Run run = GetFirstRunEffectedByEdit(index + processed);
 
                 // The parent of this Run
-                XElement parentElement = run.xml.Parent;
+                XElement parentElement = run.Xml.Parent;
                 switch (parentElement.Name.LocalName)
                 {
                     case "ins":
                         {
                             XElement[] splitEditBefore = SplitEdit(parentElement, index + processed, EditType.del);
-                            int min = Math.Min(count - processed, run.xml.ElementsAfterSelf().Sum(e => GetElementTextLength(e)));
+                            int min = Math.Min(count - processed, run.Xml.ElementsAfterSelf().Sum(e => GetElementTextLength(e)));
                             XElement[] splitEditAfter = SplitEdit(parentElement, index + processed + min, EditType.del);
 
                             XElement temp = SplitEdit(splitEditBefore[1], index + processed + min, EditType.del)[0];
@@ -2213,13 +2258,13 @@ namespace Novacode
                             int min = Math.Min(index + processed + (count - processed), run.EndIndex);
                             XElement[] splitRunAfter = Run.SplitRun(run, min);
 
-                            object middle = CreateEdit(EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun(new Run(run.StartIndex + GetElementTextLength(splitRunBefore[0]), splitRunBefore[1]), min)[0] });
+                            object middle = CreateEdit(EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun(new Run(Document, splitRunBefore[1], run.StartIndex + GetElementTextLength(splitRunBefore[0])), min)[0] });
                             processed += GetElementTextLength(middle as XElement);
                             
                             if (!trackChanges)
                                 middle = null;
 
-                            run.xml.ReplaceWith
+                            run.Xml.ReplaceWith
                             (
                                 splitRunBefore[0],
                                 middle,
@@ -2241,8 +2286,8 @@ namespace Novacode
 
             // Rebuild the run lookup
             runLookup.Clear();
-            BuildRunLookup(xml);
-            DocX.RenumberIDs(document);
+            BuildRunLookup(Xml);
+            DocX.RenumberIDs(Document);
         }
 
 
@@ -2433,7 +2478,7 @@ namespace Novacode
                         Run run = GetFirstRunEffectedByEdit(m.Index + processed);
                         
                         // Get this runs properties
-                        XElement rPr = run.xml.Element(XName.Get("rPr", DocX.w.NamespaceName));
+                        XElement rPr = run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName));
 
                         if (rPr == null)
                             rPr = new Formatting().Xml;
@@ -2598,6 +2643,250 @@ namespace Novacode
         public void ReplaceText(string oldValue, string newValue, bool trackChanges)
         {
             ReplaceText(oldValue, newValue, trackChanges, RegexOptions.None, null, null, MatchFormattingOptions.SubsetMatch);
+        }
+    }
+
+    internal class Run : DocXElement
+    {
+        // A lookup for the text elements in this paragraph
+        Dictionary<int, Text> textLookup = new Dictionary<int, Text>();
+
+        private int startIndex;
+        private int endIndex;
+        private string text;
+
+        /// <summary>
+        /// Gets the start index of this Text (text length before this text)
+        /// </summary>
+        public int StartIndex { get { return startIndex; } }
+
+        /// <summary>
+        /// Gets the end index of this Text (text length before this text + this texts length)
+        /// </summary>
+        public int EndIndex { get { return endIndex; } }
+
+        /// <summary>
+        /// The text value of this text element
+        /// </summary>
+        internal string Value { set { text = value; } get { return text; } }
+
+        internal Run(DocX document, XElement xml, int startIndex)
+            : base(document, xml)
+        {
+            this.startIndex = startIndex;
+
+            // Get the text elements in this run
+            IEnumerable<XElement> texts = xml.Descendants();
+
+            int start = startIndex;
+
+            // Loop through each text in this run
+            foreach (XElement te in texts)
+            {
+                switch (te.Name.LocalName)
+                {
+                    case "tab":
+                        {
+                            textLookup.Add(start + 1, new Text(Document, te, start));
+                            text += "\t";
+                            start++;
+                            break;
+                        }
+                    case "br":
+                        {
+                            textLookup.Add(start + 1, new Text(Document, te, start));
+                            text += "\n";
+                            start++;
+                            break;
+                        }
+                    case "t": goto case "delText";
+                    case "delText":
+                        {
+                            // Only add strings which are not empty
+                            if (te.Value.Length > 0)
+                            {
+                                textLookup.Add(start + te.Value.Length, new Text(Document, te, start));
+                                text += te.Value;
+                                start += te.Value.Length;
+                            }
+                            break;
+                        }
+                    default: break;
+                }
+            }
+
+            endIndex = start;
+        }
+
+        static internal XElement[] SplitRun(Run r, int index)
+        {
+            Text t = r.GetFirstTextEffectedByEdit(index);
+            XElement[] splitText = Text.SplitText(t, index);
+
+            XElement splitLeft = new XElement(r.Xml.Name, r.Xml.Attributes(), r.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)), t.Xml.ElementsBeforeSelf().Where(n => n.Name.LocalName != "rPr"), splitText[0]);
+            if (Paragraph.GetElementTextLength(splitLeft) == 0)
+                splitLeft = null;
+
+            XElement splitRight = new XElement(r.Xml.Name, r.Xml.Attributes(), r.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)), splitText[1], t.Xml.ElementsAfterSelf().Where(n => n.Name.LocalName != "rPr"));
+            if (Paragraph.GetElementTextLength(splitRight) == 0)
+                splitRight = null;
+
+            return
+            (
+                new XElement[]
+                {
+                    splitLeft,
+                    splitRight
+                }
+            );
+        }
+
+        internal Text GetFirstTextEffectedByEdit(int index)
+        {
+            foreach (int textEndIndex in textLookup.Keys)
+            {
+                if (textEndIndex > index)
+                    return textLookup[textEndIndex];
+            }
+
+            if (textLookup.Last().Value.EndIndex == index)
+                return textLookup.Last().Value;
+
+            throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    internal class Text : DocXElement
+    {
+        private int startIndex;
+        private int endIndex;
+        private string text;
+
+        /// <summary>
+        /// Gets the start index of this Text (text length before this text)
+        /// </summary>
+        public int StartIndex { get { return startIndex; } }
+
+        /// <summary>
+        /// Gets the end index of this Text (text length before this text + this texts length)
+        /// </summary>
+        public int EndIndex { get { return endIndex; } }
+
+        /// <summary>
+        /// The text value of this text element
+        /// </summary>
+        public string Value { get { return text; } }
+
+        internal Text(DocX document, XElement xml, int startIndex)
+            : base(document, xml)
+        {
+            this.startIndex = startIndex;
+
+            switch (Xml.Name.LocalName)
+            {
+                case "t":
+                    {
+                        goto case "delText";
+                    }
+
+                case "delText":
+                    {
+                        endIndex = startIndex + xml.Value.Length;
+                        text = xml.Value;
+                        break;
+                    }
+
+                case "br":
+                    {
+                        text = "\n";
+                        endIndex = startIndex + 1;
+                        break;
+                    }
+
+                case "tab":
+                    {
+                        text = "\t";
+                        endIndex = startIndex + 1;
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+
+        internal static XElement[] SplitText(Text t, int index)
+        {
+            if (index < t.startIndex || index > t.EndIndex)
+                throw new ArgumentOutOfRangeException("index");
+
+            XElement splitLeft = null, splitRight = null;
+            if (t.Xml.Name.LocalName == "t" || t.Xml.Name.LocalName == "delText")
+            {
+                // The origional text element, now containing only the text before the index point.
+                splitLeft = new XElement(t.Xml.Name, t.Xml.Attributes(), t.Xml.Value.Substring(0, index - t.startIndex));
+                if (splitLeft.Value.Length == 0)
+                    splitLeft = null;
+                else
+                    PreserveSpace(splitLeft);
+
+                // The origional text element, now containing only the text after the index point.
+                splitRight = new XElement(t.Xml.Name, t.Xml.Attributes(), t.Xml.Value.Substring(index - t.startIndex, t.Xml.Value.Length - (index - t.startIndex)));
+                if (splitRight.Value.Length == 0)
+                    splitRight = null;
+                else
+                    PreserveSpace(splitRight);
+            }
+
+            else
+            {
+                if (index == t.StartIndex)
+                    splitLeft = t.Xml;
+
+                else
+                    splitRight = t.Xml;
+            }
+
+            return
+            (
+                new XElement[]
+                {
+                    splitLeft,
+                    splitRight
+                }
+            );
+        }
+
+        /// <summary>
+        /// If a text element or delText element, starts or ends with a space,
+        /// it must have the attribute space, otherwise it must not have it.
+        /// </summary>
+        /// <param name="e">The (t or delText) element check</param>
+        public static void PreserveSpace(XElement e)
+        {
+            // PreserveSpace should only be used on (t or delText) elements
+            if (!e.Name.Equals(DocX.w + "t") && !e.Name.Equals(DocX.w + "delText"))
+                throw new ArgumentException("SplitText can only split elements of type t or delText", "e");
+
+            // Check if this w:t contains a space atribute
+            XAttribute space = e.Attributes().Where(a => a.Name.Equals(XNamespace.Xml + "space")).SingleOrDefault();
+
+            // This w:t's text begins or ends with whitespace
+            if (e.Value.StartsWith(" ") || e.Value.EndsWith(" "))
+            {
+                // If this w:t contains no space attribute, add one.
+                if (space == null)
+                    e.Add(new XAttribute(XNamespace.Xml + "space", "preserve"));
+            }
+
+            // This w:t's text does not begin or end with a space
+            else
+            {
+                // If this w:r contains a space attribute, remove it.
+                if (space != null)
+                    space.Remove();
+            }
         }
     }
 }

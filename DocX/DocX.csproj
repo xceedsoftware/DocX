@@ -62,17 +62,18 @@
   <ItemGroup>
     <Compile Include="CustomProperty.cs" />
     <Compile Include="DocProperty.cs" />
+    <Compile Include="_BaseClasses.cs" />
     <Compile Include="Table.cs" />
-    <Compile Include="Enumerations.cs" />
-    <Compile Include="Extensions.cs" />
+    <Compile Include="_Enumerations.cs" />
     <Compile Include="Formatting.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="Picture.cs" />
     <Compile Include="Paragraph.cs" />
     <Compile Include="DocX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Run.cs" />
-    <Compile Include="Text.cs" />
+    <Compile Include="_Extensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Help\DocX v1.0.0.8 - Documentation.chm" />

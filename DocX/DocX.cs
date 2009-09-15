@@ -196,7 +196,7 @@ namespace Novacode
             // Loop through each run in this paragraph
             foreach (XElement par in paras)
             {
-                Paragraph xp = new Paragraph(document, startIndex, par);
+                Paragraph xp = new Paragraph(document, par, startIndex);
 
                 // Add to paragraph list
                 document.paragraphs.Add(xp);
@@ -233,6 +233,31 @@ namespace Novacode
         public Paragraph InsertParagraph(string text, bool trackChanges)
         {
             return InsertParagraph(text, trackChanges, new Formatting());
+        }
+
+        /// <summary>
+        /// Insert a new Paragraph at the end of this document.
+        /// </summary>
+        /// <param name="text">The text of this Paragraph.</param>
+        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
+        /// <returns>A new Paragraph.</returns>
+        /// <example>
+        /// Inserting a new Paragraph at the end of a document with text formatting.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph at the end of this document.
+        ///     document.InsertParagraph("New text");
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory
+        /// </code>
+        /// </example>
+        public Paragraph InsertParagraph(string text)
+        {
+            return InsertParagraph(text, false, new Formatting());
         }
 
         internal static List<XElement> FormatInput(string text, XElement rPr)
@@ -815,18 +840,18 @@ namespace Novacode
         /// </example>
         public Paragraph InsertParagraph(int index, Paragraph p)
         {
-            XElement newXElement = new XElement(p.xml);
-            p.xml = newXElement;
+            XElement newXElement = new XElement(p.Xml);
+            p.Xml = newXElement;
 
             Paragraph paragraph = GetFirstParagraphEffectedByInsert(this, index);
             
             if (paragraph == null)
-                mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(p.xml);
+                mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(p.Xml);
             else
             {
                 XElement[] split = SplitParagraph(paragraph, index - paragraph.startIndex);
 
-                paragraph.xml.ReplaceWith
+                paragraph.Xml.ReplaceWith
                 (
                     split[0],
                     newXElement,
@@ -918,7 +943,7 @@ namespace Novacode
             } 
             #endregion
 
-            XElement newXElement = new XElement(p.xml);
+            XElement newXElement = new XElement(p.Xml);
 
             mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newXElement);
             int index = 0;
@@ -932,7 +957,7 @@ namespace Novacode
                     index += paragraphLookup.Last().Value.Text.Length;
             }
 
-            Paragraph newParagraph = new Paragraph(this, index, newXElement);
+            Paragraph newParagraph = new Paragraph(this, newXElement, index);
             paragraphLookup.Add(index, newParagraph);
             return newParagraph;
         }
@@ -1064,8 +1089,8 @@ namespace Novacode
             Paragraph p = GetFirstParagraphEffectedByInsert(this, index);
 
             XElement[] split = SplitParagraph(p, index - p.startIndex);
-            XElement newXElement = new XElement(t.xml);
-            p.xml.ReplaceWith
+            XElement newXElement = new XElement(t.Xml);
+            p.Xml.ReplaceWith
             (
                 split[0],
                 newXElement,
@@ -1114,7 +1139,7 @@ namespace Novacode
         /// </example>
         public Table InsertTable(Table t)
         {
-            XElement newXElement = new XElement(t.xml);
+            XElement newXElement = new XElement(t.Xml);
             mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newXElement);
 
             Table newTable = new Table(this, newXElement);
@@ -1173,7 +1198,7 @@ namespace Novacode
             {
                 XElement[] split = SplitParagraph(p, index - p.startIndex);
 
-                p.xml.ReplaceWith
+                p.Xml.ReplaceWith
                 (
                     split[0],
                     newTable,
@@ -1229,7 +1254,7 @@ namespace Novacode
         /// </example>
         public Paragraph InsertParagraph(int index, string text, bool trackChanges, Formatting formatting)
         {
-            Paragraph newParagraph = new Paragraph(this, index, new XElement(w + "p"));
+            Paragraph newParagraph = new Paragraph(this, new XElement(w + "p"), index);
             newParagraph.InsertText(0, text, trackChanges, formatting);
 
             Paragraph firstPar = GetFirstParagraphEffectedByInsert(this, index);
@@ -1238,16 +1263,16 @@ namespace Novacode
             {
                 XElement[] splitParagraph = SplitParagraph(firstPar, index - firstPar.startIndex);
 
-                firstPar.xml.ReplaceWith
+                firstPar.Xml.ReplaceWith
                 (
                     splitParagraph[0],
-                    newParagraph.xml,
+                    newParagraph.Xml,
                     splitParagraph[1]
                 );
             }
 
             else
-                mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newParagraph.xml);
+                mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newParagraph.Xml);
 
             DocX.RebuildParagraphs(this);
             return newParagraph;
@@ -1275,27 +1300,27 @@ namespace Novacode
             XElement[] split;
             XElement before, after;
 
-            if (r.xml.Parent.Name.LocalName == "ins")
+            if (r.Xml.Parent.Name.LocalName == "ins")
             {
-                split = p.SplitEdit(r.xml.Parent, index, EditType.ins);
-                before = new XElement(p.xml.Name, p.xml.Attributes(), r.xml.Parent.ElementsBeforeSelf(), split[0]);
-                after = new XElement(p.xml.Name, p.xml.Attributes(), r.xml.Parent.ElementsAfterSelf(), split[1]);
+                split = p.SplitEdit(r.Xml.Parent, index, EditType.ins);
+                before = new XElement(p.Xml.Name, p.Xml.Attributes(), r.Xml.Parent.ElementsBeforeSelf(), split[0]);
+                after = new XElement(p.Xml.Name, p.Xml.Attributes(), r.Xml.Parent.ElementsAfterSelf(), split[1]);
             }
 
-            else if (r.xml.Parent.Name.LocalName == "del")
+            else if (r.Xml.Parent.Name.LocalName == "del")
             {
-                split = p.SplitEdit(r.xml.Parent, index, EditType.del);
+                split = p.SplitEdit(r.Xml.Parent, index, EditType.del);
 
-                before = new XElement(p.xml.Name, p.xml.Attributes(), r.xml.Parent.ElementsBeforeSelf(), split[0]);
-                after = new XElement(p.xml.Name, p.xml.Attributes(), r.xml.Parent.ElementsAfterSelf(), split[1]);
+                before = new XElement(p.Xml.Name, p.Xml.Attributes(), r.Xml.Parent.ElementsBeforeSelf(), split[0]);
+                after = new XElement(p.Xml.Name, p.Xml.Attributes(), r.Xml.Parent.ElementsAfterSelf(), split[1]);
             }
 
             else
             {
                 split = Run.SplitRun(r, index);
 
-                before = new XElement(p.xml.Name, p.xml.Attributes(), r.xml.ElementsBeforeSelf(), split[0]);
-                after = new XElement(p.xml.Name, p.xml.Attributes(), split[1], r.xml.ElementsAfterSelf());
+                before = new XElement(p.Xml.Name, p.Xml.Attributes(), r.Xml.ElementsBeforeSelf(), split[0]);
+                after = new XElement(p.Xml.Name, p.Xml.Attributes(), split[1], r.Xml.ElementsAfterSelf());
             }
 
             if (before.Elements().Count() == 0)
@@ -2385,7 +2410,7 @@ namespace Novacode
                     d = XDocument.Load(tr);
 
                     // Get the runs in this paragraph
-                    IEnumerable<Paragraph> paras = d.Descendants(XName.Get("p", "http://schemas.openxmlformats.org/wordprocessingml/2006/main")).Select(p => new Paragraph(this, -1, p));
+                    IEnumerable<Paragraph> paras = d.Descendants(XName.Get("p", "http://schemas.openxmlformats.org/wordprocessingml/2006/main")).Select(p => new Paragraph(this, p, -1));
 
                     foreach (Paragraph p in paras)
                     {
