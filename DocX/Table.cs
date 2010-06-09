@@ -22,6 +22,33 @@ namespace Novacode
         private int rowCount, columnCount;
 
         /// <summary>
+        /// Set the direction of all content in this Table.
+        /// </summary>
+        /// <param name="direction">(Left to Right) or (Right to Left)</param>
+        /// <example>
+        /// Set the content direction for all content in a table to RightToLeft.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Get the first table in a document.
+        ///     Table table = document.Tables[0];
+        ///
+        ///     // Set the content direction for all content in this table to RightToLeft.
+        ///     table.SetDirection(Direction.RightToLeft);
+        ///    
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public void SetDirection(Direction direction)
+        {
+            foreach (Row r in Rows)
+                r.SetDirection(direction);
+        }
+
+        /// <summary>
         /// Returns the number of rows in this table.
         /// </summary>
         public int RowCount { get { return rowCount; } }
@@ -1169,6 +1196,36 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Set the content direction of a single Row in a Table.
+        /// </summary>
+        /// <param name="direction">The direction either (LeftToRight or RightToLeft).</param>
+        /// <example>
+        /// Set the content direction of a single Row in a Table.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///    // Get the first Table from a document.
+        ///    Table t = document.Tables[0];
+        ///    
+        ///    // Get the first row from this Table.
+        ///    Row r = t.Rows[0];
+        ///
+        ///    // Set the content direction of this Row to RightToLeft.
+        ///    r.SetDirection(Direction.RightToLeft);
+        ///
+        ///    // Save all changes made to this document.
+        ///    document.Save();
+        ///}
+        /// </code>
+        /// </example>
+        public void SetDirection(Direction direction)
+        {
+            foreach (Cell c in Cells)
+                c.SetDirection(direction);
+        }
+
+        /// <summary>
         /// Height in pixels. // Added by Joel, refactored by Cathal.
         /// </summary>
         public double Height
@@ -1341,6 +1398,39 @@ namespace Novacode
         internal Cell(DocX document, XElement xml):base(document, xml)
         {
             paragraphs = xml.Elements(XName.Get("p", DocX.w.NamespaceName)).Select(p => new Paragraph(document, p, 0)).ToList();
+        }
+
+        /// <summary>
+        /// Set the content direction of a single Cell in a Table.
+        /// </summary>
+        /// <param name="direction">The direction either (LeftToRight or RightToLeft).</param>
+        /// <example>
+        /// Set the content direction of a single Cell in a Table.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///    // Get the first Table from a document.
+        ///    Table t = document.Tables[0];
+        ///    
+        ///    // Get the first row from this Table.
+        ///    Row r = t.Rows[0];
+        ///
+        ///    // Get the first cell from this Row.
+        ///    Cell c = r.Cells[1];
+        ///
+        ///    // Set the content direction of this Cell to RightToLeft.
+        ///    c.SetDirection(Direction.RightToLeft);
+        ///
+        ///    // Save all changes made to this document.
+        ///    document.Save();
+        ///}
+        /// </code>
+        /// </example>
+        public void SetDirection(Direction direction)
+        {
+            foreach (Paragraph p in Paragraphs)
+                p.Direction = direction;
         }
 
         public Color Shading

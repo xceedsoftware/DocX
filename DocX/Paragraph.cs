@@ -144,6 +144,324 @@ namespace Novacode
             return base.InsertTableBeforeSelf(t);
         }
 
+        private Direction direction;
+        /// <summary>
+        /// Gets or Sets the Direction of content in this Paragraph.
+        /// <example>
+        /// Create a Paragraph with content that flows right to left. Default is left to right.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// {
+        ///     // Create a new Paragraph with the text "Hello World".
+        ///     Paragraph p = document.InsertParagraph("Hello World.");
+        /// 
+        ///     // Make this Paragraph flow right to left. Default is left to right.
+        ///     p.Direction = Direction.RightToLeft;
+        ///     
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// </summary>
+        public Direction Direction 
+        {
+            get { return Direction; }
+
+            set
+            {
+                direction = value;
+
+                XElement pPr = GetOrCreate_pPr();
+                XElement bidi = pPr.Element(XName.Get("bidi", DocX.w.NamespaceName));
+
+                if (direction == Direction.RightToLeft)
+                {
+                    if(bidi == null)
+                        pPr.Add(new XElement(XName.Get("bidi", DocX.w.NamespaceName)));
+                }
+
+                else
+                {
+                    if (bidi != null)
+                        bidi.Remove();
+                }
+            }
+        }
+
+        /// <summary>
+        /// If the pPr element doesent exist it is created, either way it is returned by this function.
+        /// </summary>
+        /// <returns>The pPr element for this Paragraph.</returns>
+        internal XElement GetOrCreate_pPr()
+        {
+            // Get the element.
+            XElement pPr = Xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
+
+            // If it dosen't exist, create it.
+            if (pPr == null)
+            {
+                Xml.AddFirst(new XElement(XName.Get("pPr", DocX.w.NamespaceName)));
+                pPr = Xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
+            }
+
+            // Return the pPr element for this Paragraph.
+            return pPr;
+        }
+
+        /// <summary>
+        /// If the ind element doesent exist it is created, either way it is returned by this function.
+        /// </summary>
+        /// <returns>The ind element for this Paragraphs pPr.</returns>
+        internal XElement GetOrCreate_pPr_ind()
+        {
+            // Get the element.
+            XElement pPr = GetOrCreate_pPr();
+            XElement ind = pPr.Element(XName.Get("ind", DocX.w.NamespaceName));
+
+            // If it dosen't exist, create it.
+            if (ind == null)
+            {
+                pPr.Add(new XElement(XName.Get("ind", DocX.w.NamespaceName)));
+                ind = pPr.Element(XName.Get("ind", DocX.w.NamespaceName));
+            }
+
+            // Return the pPr element for this Paragraph.
+            return ind;
+        }
+
+        private float indentationFirstLine;
+        /// <summary>
+        /// Get or set the indentation of the first line of this Paragraph.
+        /// </summary>
+        /// <example>
+        /// Indent only the first line of a Paragraph.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// {
+        ///     // Create a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
+        /// 
+        ///     // Indent only the first line of the Paragraph.
+        ///     p.IndentationFirstLine = 2.0f;
+        ///     
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public float IndentationFirstLine 
+        {
+            get 
+            {
+                XElement pPr = GetOrCreate_pPr();
+                XElement ind = GetOrCreate_pPr_ind();        
+                XAttribute firstLine = ind.Attribute(XName.Get("firstLine", DocX.w.NamespaceName));
+
+                if (firstLine != null)
+                    return float.Parse(firstLine.Value);
+
+                return 0.0f;
+            }
+            
+            set
+            {
+                if (IndentationFirstLine != value)
+                {
+                    indentationFirstLine = value;
+
+                    XElement pPr = GetOrCreate_pPr();
+                    XElement ind = GetOrCreate_pPr_ind();
+                   
+                    // Paragraph can either be firstLine or hanging (Remove hanging).
+                    XAttribute hanging = ind.Attribute(XName.Get("hanging", DocX.w.NamespaceName));
+                    if (hanging != null)
+                        hanging.Remove();
+
+                    string indentation = ((indentationFirstLine / 0.1) * 57).ToString();
+                    XAttribute firstLine = ind.Attribute(XName.Get("firstLine", DocX.w.NamespaceName));
+                    if (firstLine != null)
+                        firstLine.Value = indentation;
+                    else
+                        ind.Add(new XAttribute(XName.Get("firstLine", DocX.w.NamespaceName), indentation));    
+                }
+            }
+        }
+
+        private float indentationHanging;
+        /// <summary>
+        /// Get or set the indentation of all but the first line of this Paragraph.
+        /// </summary>
+        /// <example>
+        /// Indent all but the first line of a Paragraph.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// {
+        ///     // Create a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
+        /// 
+        ///     // Indent all but the first line of the Paragraph.
+        ///     p.IndentationHanging = 1.0f;
+        ///     
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public float IndentationHanging
+        {
+            get 
+            {
+                XElement pPr = GetOrCreate_pPr();
+                XElement ind = GetOrCreate_pPr_ind();        
+                XAttribute hanging = ind.Attribute(XName.Get("hanging", DocX.w.NamespaceName));
+
+                if (hanging != null)
+                    return float.Parse(hanging.Value);
+
+                return 0.0f;
+            }
+
+            set
+            {
+                if (IndentationHanging != value)
+                {
+                    indentationHanging = value;
+
+                    XElement pPr = GetOrCreate_pPr();
+                    XElement ind = GetOrCreate_pPr_ind();
+                   
+                    // Paragraph can either be firstLine or hanging (Remove firstLine).
+                    XAttribute firstLine = ind.Attribute(XName.Get("firstLine", DocX.w.NamespaceName));
+                    if (firstLine != null)
+                        firstLine.Remove();
+
+                    string indentation = ((indentationHanging / 0.1) * 57).ToString();
+                    XAttribute hanging = ind.Attribute(XName.Get("hanging", DocX.w.NamespaceName));
+                    if (hanging != null)
+                        hanging.Value = indentation;
+                    else
+                        ind.Add(new XAttribute(XName.Get("hanging", DocX.w.NamespaceName), indentation));
+                }
+            }
+        }
+
+        private float indentationBefore;
+        /// <summary>
+        /// Set the before indentation in cm for this Paragraph.
+        /// </summary>
+        /// <example>
+        /// // Indent an entire Paragraph from the left.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// {
+        ///    // Create a new Paragraph.
+        ///    Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
+        ///
+        ///    // Indent this entire Paragraph from the left.
+        ///    p.IndentationBefore = 2.0f;
+        ///    
+        ///    // Save all changes made to this document.
+        ///    document.Save();
+        ///}
+        /// </code>
+        /// </example>
+        public float IndentationBefore 
+        {
+            get
+            {
+                XElement pPr = GetOrCreate_pPr();
+                XElement ind = GetOrCreate_pPr_ind();
+
+                XAttribute left = ind.Attribute(XName.Get("left", DocX.w.NamespaceName));
+                if (left != null)
+                    return float.Parse(left.Value);
+
+                return 0.0f;
+            }
+            
+            set
+            {
+                if (IndentationBefore != value)
+                {
+                    indentationBefore = value;
+
+                    XElement pPr = GetOrCreate_pPr();
+                    XElement ind = GetOrCreate_pPr_ind();
+
+                    string indentation = ((indentationBefore / 0.1) * 57).ToString();
+
+                    XAttribute left = ind.Attribute(XName.Get("left", DocX.w.NamespaceName));
+                    if(left != null)
+                        left.Value = indentation;
+                    else
+                        ind.Add(new XAttribute(XName.Get("left", DocX.w.NamespaceName), indentation));
+                }
+            }
+        }
+
+        private float indentationAfter = 0.0f;
+        /// <summary>
+        /// Set the after indentation in cm for this Paragraph.
+        /// </summary>
+        /// <example>
+        /// // Indent an entire Paragraph from the right.
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// {
+        ///     // Create a new Paragraph.
+        ///     Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
+        /// 
+        ///     // Make the content of this Paragraph flow right to left.
+        ///     p.Direction = Direction.RightToLeft;
+        /// 
+        ///     // Indent this entire Paragraph from the right.
+        ///     p.IndentationAfter = 2.0f;
+        ///     
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public float IndentationAfter
+        {
+            get
+            {
+                XElement pPr = GetOrCreate_pPr();
+                XElement ind = GetOrCreate_pPr_ind();
+
+                XAttribute right = ind.Attribute(XName.Get("right", DocX.w.NamespaceName));
+                if (right != null)
+                    return float.Parse(right.Value);
+
+                return 0.0f;
+            }
+
+            set
+            {
+                if (IndentationAfter != value)
+                {
+                    indentationAfter = value;
+
+                    XElement pPr = GetOrCreate_pPr();
+                    XElement ind = GetOrCreate_pPr_ind();
+
+                    string indentation = ((indentationAfter / 0.1) * 57).ToString();
+
+                    XAttribute right = ind.Attribute(XName.Get("right", DocX.w.NamespaceName));
+                    if (right != null)
+                        right.Value = indentation;
+                    else
+                        ind.Add(new XAttribute(XName.Get("right", DocX.w.NamespaceName), indentation));
+                }
+            }
+        }
+
         /// <summary>
         /// Insert a new Table into this document before this Paragraph.
         /// </summary>
@@ -555,17 +873,11 @@ namespace Novacode
             {
                 alignment = value;
 
-                XElement pPr = Xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
+                XElement pPr = GetOrCreate_pPr();
+                XElement jc = pPr.Element(XName.Get("jc", DocX.w.NamespaceName));
 
                 if (alignment != Novacode.Alignment.left)
                 {
-                    if (pPr == null)
-                        Xml.Add(new XElement(XName.Get("pPr", DocX.w.NamespaceName)));
-                    
-                    pPr = Xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
-
-                    XElement jc = pPr.Element(XName.Get("jc", DocX.w.NamespaceName));
-
                     if(jc == null)
                         pPr.Add(new XElement(XName.Get("jc", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), alignment.ToString())));
                     else
@@ -574,13 +886,8 @@ namespace Novacode
 
                 else
                 {
-                    if (pPr != null)
-                    {
-                        XElement jc = pPr.Element(XName.Get("jc", DocX.w.NamespaceName));
-
                         if (jc != null)
                             jc.Remove();
-                    }
                 }
             } 
         }
@@ -885,7 +1192,7 @@ namespace Novacode
         /// <param name="id">A unique id that identifies an Image embedded in this document.</param>
         /// <param name="name">The name of this Picture.</param>
         /// <param name="descr">The description of this Picture.</param>
-        internal Picture CreatePicture(DocX document, string id, string name, string descr)
+        static internal Picture CreatePicture(DocX document, string id, string name, string descr)
         {
             PackagePart word_document = document.package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
             PackagePart part = document.package.GetPart(word_document.GetRelationship(id).TargetUri);
@@ -939,7 +1246,7 @@ namespace Novacode
             </drawing>
             ", cx, cy, id, name, descr));
 
-            return new Picture(Document, xml);
+            return new Picture(document, xml);
         }
 
         public Picture InsertPicture(int index, string imageID)
@@ -1426,6 +1733,84 @@ namespace Novacode
             Xml.Add(newRuns);
 
             this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(newRuns.Count()).ToList();
+            BuildRunLookup(Xml);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Append a hyperlink to a Paragraph.
+        /// </summary>
+        /// <param name="h">The hyperlink to append.</param>
+        /// <returns>The Paragraph with the hyperlink appended.</returns>
+        /// <example>
+        /// Creates a Paragraph with some text and a hyperlink.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///    // Add a hyperlink to this document.
+        ///    Hyperlink h = document.AddHyperlink("Google", new Uri("http://www.google.com"));
+        ///    
+        ///    // Add a new Paragraph to this document.
+        ///    Paragraph p = document.InsertParagraph();
+        ///    p.Append("My favourite search engine is ");
+        ///    p.AppendHyperlink(h);
+        ///    p.Append(", I think it's great.");
+        ///
+        ///    // Save all changes made to this document.
+        ///    document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public Paragraph AppendHyperlink(Hyperlink h)
+        {
+            Xml.Add(h.Xml);
+
+            this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(h.Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Count()).ToList();
+            BuildRunLookup(Xml);
+
+            return this;
+        }
+
+      
+        
+        /// <summary>
+        /// Add an image to a document, create a custom view of that image (picture) and then insert it into a Paragraph using append.
+        /// </summary>
+        /// <param name="p">The Picture to append.</param>
+        /// <returns>The Paragraph with the Picture now appended.</returns>
+        /// <example>
+        /// Add an image to a document, create a custom view of that image (picture) and then insert it into a Paragraph using append.
+        /// <code>
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// {
+        ///    // Add an image to the document. 
+        ///    Image     i = document.AddImage(@"Image.jpg");
+        ///    
+        ///    // Create a picture i.e. (A custom view of an image)
+        ///    Picture   p = i.CreatePicture();
+        ///    p.FlipHorizontal = true;
+        ///    p.Rotation = 10;
+        ///
+        ///    // Create a new Paragraph.
+        ///    Paragraph par = document.InsertParagraph();
+        ///    
+        ///    // Append content to the Paragraph.
+        ///    par.Append("Here is a cool picture")
+        ///       .AppendPicture(p)
+        ///       .Append(" don't you think so?");
+        ///
+        ///    // Save all changes made to this document.
+        ///    document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public Paragraph AppendPicture(Picture p)
+        {
+            Xml.Add(p.Xml);
+
+            this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(p.Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Count()).ToList();
             BuildRunLookup(Xml);
 
             return this;

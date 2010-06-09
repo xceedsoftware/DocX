@@ -18,9 +18,8 @@
     <SccProvider>SAK</SccProvider>
     <StartupObject>
     </StartupObject>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>StrongNameKey.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -62,6 +61,7 @@
   <ItemGroup>
     <Compile Include="CustomProperty.cs" />
     <Compile Include="DocProperty.cs" />
+    <Compile Include="Hyperlink.cs" />
     <Compile Include="_BaseClasses.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="_Enumerations.cs" />
@@ -76,7 +76,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Help\DocX v1.0.0.8 - Documentation.chm" />
+    <None Include="Help\Changes in this version 1.0.0.9.docx" />
+    <None Include="Help\DocX v1.0.0.9 - Documentation.chm" />
+    <None Include="Help\Read Me.docx" />
     <None Include="StrongNameKey.pfx" />
   </ItemGroup>
   <ItemGroup>

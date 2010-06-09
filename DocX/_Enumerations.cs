@@ -200,26 +200,32 @@ namespace Novacode
     public enum Alignment
     {
         /// <summary>
-        /// Align text to the left.
+        /// Align Paragraph to the left.
         /// </summary>
         left,
 
         /// <summary>
-        /// Center text.
+        /// Align Paragraph as Centered.
         /// </summary>
         center,
 
         /// <summary>
-        /// Align text to the right.
+        /// Align Paragraph to the right.
         /// </summary>
         right,
 
         /// <summary>
-        /// Align text to both the left and right margins, adding extra space between words as necessary.
+        /// (Justified) Align Paragraph to both the left and right margins, adding extra space between content as necessary.
         /// </summary>
         both
     };
     
+    public enum Direction
+    {
+        LeftToRight, 
+        RightToLeft
+    };
+
     /// <summary>
     /// Paragraph edit types
     /// </summary>

@@ -52,7 +52,6 @@ namespace Novacode
                 select a.Value
             ).First();
 
-
             this.descr =
             (
                 from e in Xml.Descendants()

@@ -20,6 +20,7 @@ namespace Novacode
     {
         #region Namespaces
         static internal XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+        static internal XNamespace r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
         static internal XNamespace customPropertiesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
         static internal XNamespace customVTypesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
         #endregion
@@ -1691,6 +1692,30 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Set the content direction for all Paragraphs in this document.
+        /// </summary>
+        /// <param name="direction">(Left to Right) or (Right to Left)</param>
+        /// <example>
+        /// Set the direction for all content in a document to RightToLeft.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Set the direction for all content in the document to RightToLeft.
+        ///     document.SetDirection(Direction.RightToLeft);
+        ///    
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public void SetDirection(Direction direction) 
+        {
+            foreach (Paragraph p in Paragraphs)
+                p.Direction = direction;
+        }
+
+        /// <summary>
         /// Loads a document into a DocX object using a fully qualified or relative filename.
         /// </summary>
         /// <param name="filename">The fully qualified or relative filename.</param>
@@ -1837,6 +1862,135 @@ namespace Novacode
         public Image AddImage(Stream stream)
         {
             return AddImage(stream as object);
+        }
+
+        /// <summary>
+        /// Adds a hyperlink to a document and creates a Paragraph which uses it.
+        /// </summary>
+        /// <param name="text">The text as displayed by the hyperlink.</param>
+        /// <param name="uri">The hyperlink itself.</param>
+        /// <returns>Returns a hyperlink that can be inserted into a Paragraph.</returns>
+        /// <example>
+        /// Adds a hyperlink to a document and creates a Paragraph which uses it.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///    // Add a hyperlink to this document.
+        ///    Hyperlink h = document.AddHyperlink("Google", new Uri("http://www.google.com"));
+        ///    
+        ///    // Add a new Paragraph to this document.
+        ///    Paragraph p = document.InsertParagraph();
+        ///    p.Append("My favourite search engine is ");
+        ///    p.AppendHyperlink(h);
+        ///    p.Append(", I think it's great.");
+        ///
+        ///    // Save all changes made to this document.
+        ///    document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public Hyperlink AddHyperlink(string text, Uri uri)
+        {
+            // Get the word\document.xml part
+            PackagePart word_document = package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
+
+            // Create a new image relationship
+            PackageRelationship rel = word_document.CreateRelationship(uri, TargetMode.External, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink");
+            string id = rel.Id;
+
+            XElement i = new XElement
+            (
+                XName.Get("hyperlink", DocX.w.NamespaceName),
+                new XAttribute(r + "id", id),
+                new XAttribute(w + "history", "1"),
+                new XElement(XName.Get("r", DocX.w.NamespaceName),
+                new XElement(XName.Get("rPr", DocX.w.NamespaceName),
+                new XElement(XName.Get("rStyle", DocX.w.NamespaceName),
+                new XAttribute(w + "val", "Hyperlink"))),
+                new XElement(XName.Get("t", DocX.w.NamespaceName), text))
+            );
+
+            Hyperlink h = new Hyperlink(this, i);
+            h.Text = text;
+            h.Uri = uri;
+
+            AddHyperlinkStyleIfNotPresent();
+
+            return h;
+        }
+
+        internal void AddHyperlinkStyleIfNotPresent()
+        {
+            Uri word_styles_Uri = new Uri("/word/styles.xml", UriKind.Relative);
+
+            // If the internal document contains no /word/styles.xml create one.
+            if (!package.PartExists(word_styles_Uri))
+                AddDefaultStylesXml(package);
+
+            // Load the styles.xml into memory.
+            XDocument word_styles;
+            using (TextReader tr = new StreamReader(package.GetPart(word_styles_Uri).GetStream()))
+                word_styles = XDocument.Load(tr);
+
+            bool hyperlinkStyleExists = 
+            (
+                from s in word_styles.Element(w + "styles").Elements()
+                let styleId = s.Attribute(XName.Get("styleId", w.NamespaceName))
+                where (styleId != null && styleId.Value == "Hyperlink")
+                select s
+            ).Count() > 0;
+
+            if (!hyperlinkStyleExists)
+            {
+                XElement style = new XElement
+                (
+                    w + "style",
+                    new XAttribute(w + "type", "character"),
+                    new XAttribute(w + "styleId", "Hyperlink"),
+                        new XElement(w + "name",         new XAttribute(w + "val", "Hyperlink")),
+                        new XElement(w + "basedOn",      new XAttribute(w + "val", "DefaultParagraphFont")),
+                        new XElement(w + "uiPriority",   new XAttribute(w + "val", "99")),
+                        new XElement(w + "unhideWhenUsed"),
+                        new XElement(w + "rsid",         new XAttribute(w + "val", "0005416C")),
+                        new XElement
+                        (
+                            w + "rPr",
+                            new XElement(w + "color", new XAttribute(w + "val", "0000FF"), new XAttribute(w + "themeColor", "hyperlink")),
+                            new XElement
+                            (
+                                w + "u",
+                                new XAttribute(w + "val", "single")
+                            )
+                        )
+                );
+                word_styles.Element(w + "styles").Add(style);
+
+                // Save the styles document.
+                using (TextWriter tw = new StreamWriter(package.GetPart(word_styles_Uri).GetStream()))
+                    word_styles.Save(tw);
+            }
+        }
+
+        private string GetNextFreeRelationshipID()
+        {
+            // Get the word\document.xml part
+            PackagePart word_document = package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
+
+            string id =
+            (
+                from r in word_document.GetRelationships()
+                select r.Id
+            ).Max();
+
+            // The convension for ids is rid01, rid02, etc
+            string newId = id.Replace("rId", "");
+            int result;
+            if (int.TryParse(newId, out result))
+                return ("rId" + (result + 1));
+
+            else
+                return Guid.NewGuid().ToString();
         }
 
         internal Image AddImage(object o)
