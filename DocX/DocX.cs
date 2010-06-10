@@ -30,12 +30,6 @@ namespace Novacode
         internal List<PackagePart> footers = new List<PackagePart>();
         // The collection of Paragraphs in this document.
         private List<Paragraph> paragraphs = new List<Paragraph>();
-        // A dictionary of CustomProperties in this document.
-        private Dictionary<string, CustomProperty> customProperties = new Dictionary<string,CustomProperty>();
-        // A list of Images in this document.
-        private List<Image> images = new List<Image>();
-        // A collection of Tables in this Paragraph
-        private List<Table> tables = new List<Table>();
         #endregion
 
         #region Internal variables defined foreach DocX object
@@ -96,7 +90,18 @@ namespace Novacode
         /// </summary>
         public List<Table> Tables 
         { 
-            get { return tables; } 
+            get 
+            {
+                List<Table> tables =
+                (
+                    
+                    from t in mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).Elements()
+                    where (t.Name.LocalName == "tbl")
+                    select new Table(this, t)
+                ).ToList();
+
+                return tables;
+            } 
         }
 
         /// <summary>
@@ -123,7 +128,21 @@ namespace Novacode
         /// <seealso cref="Paragraph.InsertPicture"/>
         public List<Image> Images
         {
-            get { return images; }
+            get 
+            {
+                PackagePart word_document = package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
+                PackageRelationshipCollection imageRelationships = word_document.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+                if (imageRelationships.Count() > 0)
+                {
+                    return
+                    (
+                        from i in imageRelationships
+                        select new Image(this, i)
+                    ).ToList();
+                }
+
+                return new List<Image>();
+            }
         }
 
         /// <summary>
@@ -181,7 +200,28 @@ namespace Novacode
         /// <seealso cref="AddCustomProperty"/>
         public Dictionary<string, CustomProperty> CustomProperties
         {
-            get { return customProperties; }
+            get 
+            {
+                if (package.PartExists(new Uri("/docProps/custom.xml", UriKind.Relative)))
+                {
+                    PackagePart docProps_custom = package.GetPart(new Uri("/docProps/custom.xml", UriKind.Relative));
+                    XDocument customPropDoc;
+                    using (TextReader tr = new StreamReader(docProps_custom.GetStream(FileMode.Open, FileAccess.Read)))
+                        customPropDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
+
+                    // Get all of the custom properties in this document
+                    return
+                    (
+                        from p in customPropDoc.Descendants(XName.Get("property", customPropertiesSchema.NamespaceName))
+                        let Name = p.Attribute(XName.Get("name")).Value
+                        let Type = p.Descendants().Single().Name.LocalName
+                        let Value = p.Descendants().Single().Value
+                        select new CustomProperty(Name, Type, Value)
+                    ).ToDictionary(p => p.Name, StringComparer.CurrentCultureIgnoreCase);
+                }
+
+                return new Dictionary<string, CustomProperty>();
+            }
         }
 
         static internal void RebuildParagraphs(DocX document)
@@ -749,9 +789,6 @@ namespace Novacode
             #endregion
 
             RebuildParagraphs(this);
-            RebuildTables(this);
-            RebuildImages(this);
-            RebuildCustomProperties(this);
         }
 
         /// <summary>
@@ -1003,7 +1040,7 @@ namespace Novacode
             XElement newTable = CreateTable(rowCount, coloumnCount);
             mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newTable);
 
-            RebuildTables(this);
+
             RebuildParagraphs(this);
             return new Table(this, newTable);
         }
@@ -1106,7 +1143,7 @@ namespace Novacode
             Table newTable = new Table(this, newXElement);
             newTable.Design = t.Design;
 
-            RebuildTables(this);
+
             RebuildParagraphs(this);
             return newTable;
         }
@@ -1151,7 +1188,6 @@ namespace Novacode
             Table newTable = new Table(this, newXElement);
             newTable.Design = t.Design;
 
-            tables.Add(newTable);
             return newTable;
         }
 
@@ -1213,17 +1249,8 @@ namespace Novacode
             }
 
             RebuildParagraphs(this);
-            RebuildTables(this);
-            return new Table(this, newTable);
-        }
 
-        static internal void RebuildTables(DocX document)
-        {
-            document.tables =
-            (
-                from t in document.mainDoc.Descendants(XName.Get("tbl", DocX.w.NamespaceName))
-                select new Table(document, t)
-            ).ToList();
+            return new Table(this, newTable);
         }
 
         /// <summary>
@@ -1550,12 +1577,6 @@ namespace Novacode
                 document.mainDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
 
             RebuildParagraphs(document);
-            RebuildTables(document);
-            RebuildImages(document);
-            #endregion
-
-            #region CustomFilePropertiesPart
-            RebuildCustomProperties(document);
             #endregion
 
             #region Headers
@@ -1585,41 +1606,6 @@ namespace Novacode
             #endregion
 
             return document;
-        }
-
-        static internal void RebuildImages(DocX document)
-        {
-            PackagePart word_document = document.package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
-            PackageRelationshipCollection imageRelationships = word_document.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
-            if (imageRelationships.Count() > 0)
-            {
-                document.images =
-                (
-                    from i in imageRelationships
-                    select new Image(document, i)
-                ).ToList();
-            }
-        }
-
-        internal static void RebuildCustomProperties(DocX document)
-        {
-            if(document.package.PartExists(new Uri("/docProps/custom.xml", UriKind.Relative)))
-            {
-                PackagePart docProps_custom = document.package.GetPart(new Uri("/docProps/custom.xml", UriKind.Relative));
-                XDocument customPropDoc;
-                using (TextReader tr = new StreamReader(docProps_custom.GetStream(FileMode.Open, FileAccess.Read)))
-                    customPropDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
-
-                // Get all of the custom properties in this document
-                document.customProperties =
-                (
-                    from p in customPropDoc.Descendants(XName.Get("property", customPropertiesSchema.NamespaceName))
-                    let Name = p.Attribute(XName.Get("name")).Value
-                    let Type = p.Descendants().Single().Name.LocalName
-                    let Value = p.Descendants().Single().Value
-                    select new CustomProperty(Name, Type, Value)
-                ).ToDictionary(p => p.Name, StringComparer.CurrentCultureIgnoreCase);
-            }
         }
 
         /// <summary>
@@ -1925,6 +1911,71 @@ namespace Novacode
             return h;
         }
 
+        /// <summary>
+        /// Returns a list of Hyperlinks in this document.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///    // Get all of the hyperlinks in this document
+        ///    List<Hyperlink> hyperlinks = document.Hyperlinks;
+        ///    
+        ///    // Change the first hyperlinks text and Uri
+        ///    Hyperlink h0 = hyperlinks[0];
+        ///    h0.Text = "DocX";
+        ///    h0.Uri = new Uri("http://docx.codeplex.com");
+        ///
+        ///    // Save this document.
+        ///    document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public List<Hyperlink> Hyperlinks
+        {
+            get
+            {
+                List<Hyperlink> hyperlinks = new List<Hyperlink>();
+
+                foreach (Paragraph p in Paragraphs)
+                    hyperlinks.AddRange(p.Hyperlinks);
+
+                return hyperlinks;
+            }
+        }
+
+
+        /// <summary>
+        /// Returns a list of all Pictures in a Document.
+        /// </summary>
+        /// <example>
+        /// Returns a list of all Pictures in a Document.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///    // Get all of the Pictures in this Document.
+        ///    List<Picture> pictures = document.Pictures;
+        ///
+        ///    // Save this document.
+        ///    document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public List<Picture> Pictures
+        {
+            get
+            {
+                List<Picture> pictures = new List<Picture>();
+
+                foreach (Paragraph p in Paragraphs)
+                    pictures.AddRange(p.Pictures);
+
+                return pictures;
+            }
+        }
+
         internal void AddHyperlinkStyleIfNotPresent()
         {
             Uri word_styles_Uri = new Uri("/word/styles.xml", UriKind.Relative);
@@ -2028,7 +2079,7 @@ namespace Novacode
                         .Select(r => r.Id).First();
 
                         // Return the Image object
-                        return images.Where(i => i.Id == id).First();
+                        return Images.Where(i => i.Id == id).First();
                     }
                 }
             }
@@ -2068,9 +2119,7 @@ namespace Novacode
                 }// Close the Stream to the new image.
             }// Close the Stream to the new image part.
 
-            Image newImg = new Image(this, rel);
-            images.Add(newImg);
-            return newImg;
+            return new Image(this, rel);
         }
 
         /// <summary>
@@ -2330,16 +2379,6 @@ namespace Novacode
 
             // Refresh all fields in this document which display this custom property.
             UpdateCustomPropertyValue(this, cp.Name, cp.Value.ToString());
-
-            // Get all of the custom properties in this document
-            customProperties =
-            (
-                from p in customPropDoc.Descendants(XName.Get("property", customPropertiesSchema.NamespaceName))
-                let Name = p.Attribute(XName.Get("name")).Value
-                let Type = p.Descendants().Single().Name.LocalName
-                let Value = p.Descendants().Single().Value
-                select new CustomProperty(Name, Type, Value)
-            ).ToDictionary(p => p.Name, StringComparer.CurrentCultureIgnoreCase);
         }
 
         internal static void CreateCustomPropertiesPart(DocX document)

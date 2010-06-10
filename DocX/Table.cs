@@ -22,6 +22,39 @@ namespace Novacode
         private int rowCount, columnCount;
 
         /// <summary>
+        /// Returns a list of all Pictures in a Table.
+        /// </summary>
+        /// <example>
+        /// Returns a list of all Pictures in a Table.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Get the first Table in a document.
+        ///     Table t = document.Tables[0];
+        ///
+        ///     // Get all of the Pictures in this Table.
+        ///     List<Picture> pictures = t.Pictures;
+        ///
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public List<Picture> Pictures
+        {
+            get
+            {
+                List<Picture> pictures = new List<Picture>();
+
+                foreach (Row r in Rows)
+                    pictures.AddRange(r.Pictures);
+
+                return pictures;
+            }
+        }
+
+        /// <summary>
         /// Set the direction of all content in this Table.
         /// </summary>
         /// <param name="direction">(Left to Right) or (Right to Left)</param>
@@ -49,6 +82,39 @@ namespace Novacode
             
             foreach (Row r in Rows)
                 r.SetDirection(direction);
+        }
+
+        /// <summary>
+        /// Get all of the Hyperlinks in this Table.
+        /// </summary>
+        /// <example>
+        /// Get all of the Hyperlinks in this Table.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Get the first Table in this document.
+        ///     Table t = document.Tables[0];
+        ///
+        ///     // Get a list of all Hyperlinks in this Table.
+        ///     List<Hyperlink> hyperlinks = t.Hyperlinks;
+        ///
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public List<Hyperlink> Hyperlinks
+        {
+            get
+            {
+                List<Hyperlink> hyperlinks = new List<Hyperlink>();
+
+                foreach (Row r in Rows)
+                    hyperlinks.AddRange(r.Hyperlinks);
+
+                return hyperlinks;
+            }
         }
 
         /// <summary>
@@ -1219,6 +1285,78 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Returns a list of all Pictures in a Row.
+        /// </summary>
+        /// <example>
+        /// Returns a list of all Pictures in a Row.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Get the first Table in a document.
+        ///     Table t = document.Tables[0];
+        ///
+        ///     // Get the first Row in a Table.
+        ///     Row r = t.Rows[0];
+        ///
+        ///     // Get all of the Pictures in this Row.
+        ///     List<Picture> pictures = r.Pictures;
+        ///
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public List<Picture> Pictures
+        {
+            get
+            {
+                List<Picture> pictures = new List<Picture>();
+
+                foreach (Cell c in Cells)
+                    pictures.AddRange(c.Pictures);
+
+                return pictures;
+            }
+        }
+
+        /// <summary>
+        /// Get all of the Hyperlinks in this Row.
+        /// </summary>
+        /// <example>
+        /// Get all of the Hyperlinks in this Row.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Get the first Table in this document.
+        ///     Table t = document.Tables[0];
+        ///    
+        ///     // Get the first Row in this Table.
+        ///     Row r = t.Rows[0];
+        ///
+        ///     // Get a list of all Hyperlinks in this Row.
+        ///     List<Hyperlink> hyperlinks = r.Hyperlinks;
+        ///
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public List<Hyperlink> Hyperlinks
+        {
+            get
+            {
+                List<Hyperlink> hyperlinks = new List<Hyperlink>();
+
+                foreach (Cell c in Cells)
+                    hyperlinks.AddRange(c.Hyperlinks);
+
+                return hyperlinks;
+            }
+        }
+
+        /// <summary>
         /// Set the content direction of a single Row in a Table.
         /// </summary>
         /// <param name="direction">The direction either (LeftToRight or RightToLeft).</param>
@@ -1421,6 +1559,84 @@ namespace Novacode
         internal Cell(DocX document, XElement xml):base(document, xml)
         {
             paragraphs = xml.Elements(XName.Get("p", DocX.w.NamespaceName)).Select(p => new Paragraph(document, p, 0)).ToList();
+        }
+
+        /// <summary>
+        /// Returns a list of all Pictures in a Cell.
+        /// </summary>
+        /// <example>
+        /// Returns a list of all Pictures in a Cell.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Get the first Table in a document.
+        ///     Table t = document.Tables[0];
+        ///
+        ///     // Get the first Row in a Table.
+        ///     Row r = t.Rows[0];
+        ///
+        ///     // Get the first Cell in a Row.
+        ///     Cell c = r.Cells[0];
+        ///
+        ///     // Get all of the Pictures in this Cell.
+        ///     List<Picture> pictures = c.Pictures;
+        ///
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public List<Picture> Pictures
+        {
+            get
+            {
+                List<Picture> pictures = new List<Picture>();
+
+                foreach (Paragraph p in Paragraphs)
+                    pictures.AddRange(p.Pictures);
+                
+                return pictures;
+            }
+        }
+
+        /// <summary>
+        /// Get all of the Hyperlinks in this Cell.
+        /// </summary>
+        /// <example>
+        /// Get all of the Hyperlinks in this Cell.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///     // Get the first Table in this document.
+        ///     Table t = document.Tables[0];
+        ///    
+        ///     // Get the first Row in this Table.
+        ///     Row r = t.Rows[0];
+        ///
+        ///     // Get the first Cell in this Row.
+        ///     Cell c = r.Cells[0];
+        /// 
+        ///     // Get a list of all Hyperlinks in this Cell.
+        ///     List<Hyperlink> hyperlinks = c.Hyperlinks;
+        ///
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public List<Hyperlink> Hyperlinks
+        {
+            get
+            {
+                List<Hyperlink> hyperlinks = new List<Hyperlink>();
+
+                foreach (Paragraph p in Paragraphs)
+                    hyperlinks.AddRange(p.Hyperlinks);
+
+                return hyperlinks;
+            }
         }
 
         /// <summary>

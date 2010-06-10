@@ -175,7 +175,7 @@ namespace Novacode
             Xml.AddAfterSelf(newTable);
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
-            DocX.RebuildTables(Document);
+            ////DocX.RebuildTables(Document);
             DocX.RebuildParagraphs(Document);
             return new Table(Document, newlyInserted);
         }
@@ -186,7 +186,7 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
             t.Xml = newlyInserted;
-            DocX.RebuildTables(Document);
+            //DocX.RebuildTables(Document);
             DocX.RebuildParagraphs(Document);
 
             return t;
@@ -198,7 +198,7 @@ namespace Novacode
             Xml.AddBeforeSelf(newTable);
             XElement newlyInserted = Xml.ElementsBeforeSelf().First();
 
-            DocX.RebuildTables(Document);
+            //DocX.RebuildTables(Document);
             DocX.RebuildParagraphs(Document);
             return new Table(Document, newlyInserted);
         }
@@ -209,7 +209,7 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsBeforeSelf().First();
 
             t.Xml = newlyInserted;
-            DocX.RebuildTables(Document);
+            //DocX.RebuildTables(Document);
             DocX.RebuildParagraphs(Document);
 
             return t;

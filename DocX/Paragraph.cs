@@ -31,9 +31,78 @@ namespace Novacode
         private List<Picture> pictures;
 
         /// <summary>
-        /// Returns a list of Pictures in this Paragraph.
+        /// Returns a list of all Pictures in a Paragraph.
         /// </summary>
-        public List<Picture> Pictures { get { return pictures; } }
+        /// <example>
+        /// Returns a list of all Pictures in a Paragraph.
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///    // Get the first Paragraph in a document.
+        ///    Paragraph p = document.Paragraphs[0];
+        /// 
+        ///    // Get all of the Pictures in this Paragraph.
+        ///    List<Picture> pictures = p.Pictures;
+        ///
+        ///    // Save this document.
+        ///    document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public List<Picture> Pictures 
+        {
+            get
+            {
+                List<Picture> pictures =
+                (
+                    from p in Xml.Descendants()
+                    where (p.Name.LocalName == "drawing")
+                    select new Picture(Document, p)
+                ).ToList();
+
+                return pictures;
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of Hyperlinks in this Paragraph.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Load(@"Test.docx"))
+        /// {
+        ///    // Get the first Paragraph in this document.
+        ///    Paragraph p = document.Paragraphs[0];
+        ///    
+        ///    // Get all of the hyperlinks in this Paragraph.
+        ///    List<Hyperlink> hyperlinks = paragraph.Hyperlinks;
+        ///    
+        ///    // Change the first hyperlinks text and Uri
+        ///    Hyperlink h0 = hyperlinks[0];
+        ///    h0.Text = "DocX";
+        ///    h0.Uri = new Uri("http://docx.codeplex.com");
+        ///
+        ///    // Save this document.
+        ///    document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public List<Hyperlink> Hyperlinks 
+        {
+            get 
+            {  
+                List<Hyperlink> hyperlinks =
+                (
+                    from h in Xml.Elements()
+                    where (h.Name.LocalName == "hyperlink")
+                    select new Hyperlink(Document, h)
+                ).ToList();
+                
+                return hyperlinks;
+            }
+        }
 
         // A collection of field type DocProperty.
         private List<DocProperty> docProperties;
