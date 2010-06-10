@@ -1008,6 +1008,11 @@ namespace Novacode
             return new Table(this, newTable);
         }
 
+        public Table AddTable(int rowCount, int coloumnCount)
+        {
+            return (new Table(this, CreateTable(rowCount, coloumnCount)));
+        }
+
         internal static XElement CreateTable(int rowCount, int coloumnCount)
         {
             XElement newTable =

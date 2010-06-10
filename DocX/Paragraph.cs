@@ -1840,6 +1840,29 @@ namespace Novacode
             return Append("\n" + text);
         }
 
+        /// <summary>
+        /// Append a new line to this Paragraph.
+        /// </summary>
+        /// <returns>This Paragraph with a new line appeneded.</returns>
+        /// <example>
+        /// Add a new Paragraph to this document and then append a new line to it.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph and Append a new line with some text to it.
+        ///     Paragraph p = document.InsertParagraph().AppendLine();
+        ///       
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public Paragraph AppendLine()
+        {
+            return Append("\n");
+        }
+
         internal void ApplyTextFormattingProperty(XName textFormatPropName, string value, object content)
         {
             foreach (XElement run in runs)
@@ -2047,7 +2070,17 @@ namespace Novacode
         /// </example>
         public Paragraph Font(FontFamily fontFamily)
         {
-            ApplyTextFormattingProperty(XName.Get("rFonts", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("ascii", DocX.w.NamespaceName), fontFamily.Name));
+            ApplyTextFormattingProperty
+            (
+                XName.Get("rFonts", DocX.w.NamespaceName),
+                string.Empty,
+                new[] 
+                {
+                    new XAttribute(XName.Get("ascii", DocX.w.NamespaceName), fontFamily.Name),
+                    new XAttribute(XName.Get("hAnsi", DocX.w.NamespaceName), fontFamily.Name), // Added by Maurits Elbers to support non-standard characters. See http://docx.codeplex.com/Thread/View.aspx?ThreadId=70097&ANCHOR#Post453865
+                    new XAttribute(XName.Get("cs", DocX.w.NamespaceName), fontFamily.Name),    // Added by Maurits Elbers to support non-standard characters. See http://docx.codeplex.com/Thread/View.aspx?ThreadId=70097&ANCHOR#Post453865
+                }
+            );
 
             return this;
         }

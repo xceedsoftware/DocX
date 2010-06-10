@@ -44,8 +44,31 @@ namespace Novacode
         /// </example>
         public void SetDirection(Direction direction)
         {
+            XElement tblPr = GetOrCreate_tblPr();
+            tblPr.Add(new XElement(DocX.w + "bidiVisual"));
+            
             foreach (Row r in Rows)
                 r.SetDirection(direction);
+        }
+
+        /// <summary>
+        /// If the tblPr element doesent exist it is created, either way it is returned by this function.
+        /// </summary>
+        /// <returns>The tblPr element for this Table.</returns>
+        internal XElement GetOrCreate_tblPr()
+        {
+            // Get the element.
+            XElement tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
+
+            // If it dosen't exist, create it.
+            if (tblPr == null)
+            {
+                Xml.AddFirst(new XElement(XName.Get("tblPr", DocX.w.NamespaceName)));
+                tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
+            }
+
+            // Return the pPr element for this Paragraph.
+            return tblPr;
         }
 
         /// <summary>
