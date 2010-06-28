@@ -5,6 +5,7 @@ using System.Text;
 
 namespace Novacode
 {
+    public enum XmlDocument { Main, HeaderOdd, HeaderEven, HeaderFirst, FooterOdd, FooterEven, FooterFirst };
     public enum MatchFormattingOptions { ExactMatch, SubsetMatch};
     public enum Script { superscript, subscript, none }
     public enum Highlight { yellow, green, cyan, magenta, blue, red, darkBlue, darkCyan, darkGreen, darkMagenta, darkRed, darkYellow, darkGray, lightGray, black, none };

@@ -17,6 +17,7 @@ namespace Novacode
         /// </summary>
         private string id;
         private DocX document;
+        internal PackageRelationship pr;
 
         /// <summary>
         /// Returns the id of this Image.
@@ -29,6 +30,7 @@ namespace Novacode
         internal Image(DocX document, PackageRelationship pr)
         {
             this.document = document;
+            this.pr = pr;
             this.id = pr.Id;
         }
 

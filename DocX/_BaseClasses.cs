@@ -95,7 +95,7 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsBeforeSelf().First();
 
             p.Xml = newlyInserted;
-            DocX.RebuildParagraphs(Document);
+            HelperFunctions.RebuildParagraphs(Document);
 
             return p;
         }
@@ -106,7 +106,7 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
             p.Xml = newlyInserted;
-            DocX.RebuildParagraphs(Document);
+            HelperFunctions.RebuildParagraphs(Document);
 
             return p;
         }
@@ -135,7 +135,7 @@ namespace Novacode
         {
             XElement newParagraph = new XElement
             (
-                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), DocX.FormatInput(text, formatting.Xml)
+                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), HelperFunctions.FormatInput(text, formatting.Xml)
             );
 
             if (trackChanges)
@@ -145,7 +145,7 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsBeforeSelf().First();
 
             Paragraph p = new Paragraph(Document, newlyInserted, -1);
-            DocX.RebuildParagraphs(Document);
+            HelperFunctions.RebuildParagraphs(Document);
 
             return p;
         }
@@ -154,7 +154,7 @@ namespace Novacode
         {
             XElement newParagraph = new XElement
             (
-                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), DocX.FormatInput(text, formatting.Xml)
+                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), HelperFunctions.FormatInput(text, formatting.Xml)
             );
 
             if (trackChanges)
@@ -164,19 +164,19 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
             Paragraph p = new Paragraph(Document, newlyInserted, -1);
-            DocX.RebuildParagraphs(Document);
+            HelperFunctions.RebuildParagraphs(Document);
 
             return p;
         }
 
         public virtual Table InsertTableAfterSelf(int rowCount, int coloumnCount)
         {
-            XElement newTable = DocX.CreateTable(rowCount, coloumnCount);
+            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
             Xml.AddAfterSelf(newTable);
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
             ////DocX.RebuildTables(Document);
-            DocX.RebuildParagraphs(Document);
+            HelperFunctions.RebuildParagraphs(Document);
             return new Table(Document, newlyInserted);
         }
 
@@ -187,19 +187,19 @@ namespace Novacode
 
             t.Xml = newlyInserted;
             //DocX.RebuildTables(Document);
-            DocX.RebuildParagraphs(Document);
+            HelperFunctions.RebuildParagraphs(Document);
 
             return t;
         }
 
         public virtual Table InsertTableBeforeSelf(int rowCount, int coloumnCount)
         {
-            XElement newTable = DocX.CreateTable(rowCount, coloumnCount);
+            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
             Xml.AddBeforeSelf(newTable);
             XElement newlyInserted = Xml.ElementsBeforeSelf().First();
 
             //DocX.RebuildTables(Document);
-            DocX.RebuildParagraphs(Document);
+            HelperFunctions.RebuildParagraphs(Document);
             return new Table(Document, newlyInserted);
         }
 
@@ -210,7 +210,7 @@ namespace Novacode
 
             t.Xml = newlyInserted;
             //DocX.RebuildTables(Document);
-            DocX.RebuildParagraphs(Document);
+            HelperFunctions.RebuildParagraphs(Document);
 
             return t;
         }

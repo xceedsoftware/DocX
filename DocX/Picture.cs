@@ -13,6 +13,9 @@ namespace Novacode
     /// </summary>
     public class Picture: DocXElement
     {
+        internal Dictionary<PackagePart, PackageRelationship> picture_rels;
+        
+        internal Image img;
         private string id;
         private string name;
         private string descr;
@@ -35,14 +38,18 @@ namespace Novacode
         /// Wraps an XElement as an Image
         /// </summary>
         /// <param name="i">The XElement i to wrap</param>
-        internal Picture(DocX document, XElement i):base(document, i)
+        internal Picture(DocX document, XElement i, Image img):base(document, i)
         {
+            picture_rels = new Dictionary<PackagePart, PackageRelationship>();
+            
+            this.img = img;
+
             this.id =
             (
                 from e in Xml.Descendants()
                 where e.Name.LocalName.Equals("blip")
                 select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
-            ).Single();
+            ).Single(); 
 
             this.name = 
             (

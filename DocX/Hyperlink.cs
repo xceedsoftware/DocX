@@ -12,6 +12,43 @@ namespace Novacode
     /// </summary>
     public class Hyperlink: DocXElement
     {
+        internal Uri uri;
+        internal Dictionary<PackagePart, PackageRelationship> hyperlink_rels;
+
+        /// <summary>
+        /// Remove a Hyperlink from this Paragraph only.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///    // Add a hyperlink to this document.
+        ///    Hyperlink h = document.AddHyperlink("link", new Uri("http://www.google.com"));
+        ///
+        ///    // Add a Paragraph to this document and insert the hyperlink
+        ///    Paragraph p1 = document.InsertParagraph();
+        ///    p1.Append("This is a cool ").AppendHyperlink(h).Append(" .");
+        ///
+        ///    /* 
+        ///     * Remove the hyperlink from this Paragraph only. 
+        ///     * Note a reference to the hyperlink will still exist in the document and it can thus be reused.
+        ///     */
+        ///    p1.Hyperlinks[0].Remove();
+        ///
+        ///    // Add a new Paragraph to this document and reuse the hyperlink h.
+        ///    Paragraph p2 = document.InsertParagraph();
+        ///    p2.Append("This is the same cool ").AppendHyperlink(h).Append(" .");
+        ///
+        ///    document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        public void Remove()
+        {
+            Xml.Remove();
+        }
+
         /// <summary>
         /// Change the Text of a Hyperlink.
         /// </summary>
@@ -76,15 +113,9 @@ namespace Novacode
                 );
 
                 // Format and add the new text.
-                List<XElement> newRuns = DocX.FormatInput(value, rPr);
+                List<XElement> newRuns = HelperFunctions.FormatInput(value, rPr);
                 Xml.Add(newRuns);
             } 
-        }
-
-        // Return the Id of this Hyperlink.
-        internal string GetId()
-        {
-            return Xml.Attribute(DocX.r + "id").Value;
         }
 
         /// <summary>
@@ -112,39 +143,34 @@ namespace Novacode
         public Uri Uri 
         { 
             get
-            {
-                // Get the word\document.xml part
-                PackagePart word_document = Document.package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
-
-                // Get the Hyperlink relation based on its Id.
-                PackageRelationship r = word_document.GetRelationship(GetId());
-                
+            {                
                 // Return the Hyperlinks Uri.
-                return r.TargetUri;
+                return uri;
             } 
 
             set
             {
-                // Get the word\document.xml part
-                PackagePart word_document = Document.package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
+                foreach (PackagePart p in hyperlink_rels.Keys)
+                {
+                    PackageRelationship r = hyperlink_rels[p];
 
-                // Get the Hyperlink relation based on its Id.
-                PackageRelationship r = word_document.GetRelationship(GetId());
+                    // Get all of the information about this relationship.
+                    TargetMode r_tm = r.TargetMode;
+                    string r_rt = r.RelationshipType;
+                    string r_id = r.Id;
 
-                // Get all of the information about this relationship.
-                TargetMode r_tm = r.TargetMode;
-                string r_rt = r.RelationshipType;
-                string r_id = r.Id;
+                    // Delete the relationship
+                    p.DeleteRelationship(r_id);
+                    p.CreateRelationship(value, r_tm, r_rt, r_id);
+                }
 
-                // Delete the relationship
-                word_document.DeleteRelationship(r_id);
-                word_document.CreateRelationship(value, r_tm, r_rt, r_id);     
+                uri = value;
             } 
         }
 
         internal Hyperlink(DocX document, XElement i): base(document, i)
         {
-
+            hyperlink_rels = new Dictionary<PackagePart, PackageRelationship>();
         }
     }
 }

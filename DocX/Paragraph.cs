@@ -17,6 +17,9 @@ namespace Novacode
     /// </summary>
     public class Paragraph : InsertBeforeOrAfter
     {
+        PackagePart mainPart;
+        public PackagePart PackagePart { get { return mainPart; } set { mainPart = value; } }
+
         internal List<XElement> runs;
 
         // This paragraphs text alignment
@@ -58,9 +61,17 @@ namespace Novacode
                 (
                     from p in Xml.Descendants()
                     where (p.Name.LocalName == "drawing")
-                    select new Picture(Document, p)
+                    let id =
+                    (
+                        from e in p.Descendants()
+                        where e.Name.LocalName.Equals("blip")
+                        select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
+                    ).Single()
+                    let img = new Image(Document, mainPart.GetRelationship(id))
+                    select new Picture(Document, p, img)
                 ).ToList();
 
+                
                 return pictures;
             }
         }
@@ -125,8 +136,18 @@ namespace Novacode
             BuildRunLookup(xml);
 
             // Get all of the images in this document
-            pictures = (from i in xml.Descendants(XName.Get("drawing", DocX.w.NamespaceName))
-                        select new Picture(Document, i)).ToList();
+            pictures = 
+            (
+                from i in xml.Descendants(XName.Get("drawing", DocX.w.NamespaceName))
+                let id =
+                (
+                    from e in Xml.Descendants()
+                    where e.Name.LocalName.Equals("blip")
+                    select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
+                ).Single()
+                let img = new Image(Document, mainPart.GetRelationship(id))
+                select new Picture(Document, i, img)
+            ).ToList();
 
             RebuildDocProperties();
 
@@ -147,19 +168,19 @@ namespace Novacode
 
                     var styles_element_ids = stylesElements.Select(e => e.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value);
                     
-                    foreach(string id in styles_element_ids)
-                    {
-                        var style = 
-                        (
-                            from d in styles_element.Descendants()
-                            let styleId = d.Attribute(XName.Get("styleId", DocX.w.NamespaceName))
-                            let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
-                            where type != null && type.Value == "paragraph" && styleId != null && styleId.Value == id
-                            select d
-                        ).First();
+                    //foreach(string id in styles_element_ids)
+                    //{
+                    //    var style = 
+                    //    (
+                    //        from d in styles_element.Descendants()
+                    //        let styleId = d.Attribute(XName.Get("styleId", DocX.w.NamespaceName))
+                    //        let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
+                    //        where type != null && type.Value == "paragraph" && styleId != null && styleId.Value == id
+                    //        select d
+                    //    ).First();
 
-                        styles.Add(style);
-                    } 
+                    //    styles.Add(style);
+                    //} 
                 }
             } 
             #endregion
@@ -236,7 +257,17 @@ namespace Novacode
         /// </summary>
         public Direction Direction 
         {
-            get { return Direction; }
+            get 
+            {
+                XElement pPr = GetOrCreate_pPr();
+                XElement bidi = pPr.Element(XName.Get("bidi", DocX.w.NamespaceName));
+
+                if (bidi == null)
+                    return Direction.LeftToRight;
+
+                else
+                    return Direction.RightToLeft;
+            }
 
             set
             {
@@ -802,6 +833,44 @@ namespace Novacode
         }
 
         /// <summary>
+        /// This function inserts a hyperlink into a Paragraph at a specified character index.
+        /// </summary>
+        /// <param name="index">The index to insert at.</param>
+        /// <param name="h">The hyperlink to insert.</param>
+        /// <returns>The Paragraph with the Hyperlink inserted at the specified index.</returns>
+        /// <!-- 
+        /// This function was added by Brian Campbell aka chickendelicious on Jun 16 2010
+        /// Thank you Brian.
+        /// -->
+        public Paragraph InsertHyperlink(int index, Hyperlink h) 
+        { 
+            Run run = GetFirstRunEffectedByInsert(index); 
+            
+            if (run == null) 
+                return AppendHyperlink(h);
+            
+            else 
+            { 
+                // The parent of this Run 
+                XElement parentElement = run.Xml.Parent; 
+                // Split this run at the point you want to insert 
+                XElement[] splitRun = Run.SplitRun(run, index); 
+                XElement link = h.Xml; 
+                
+                // Replace the origional run 
+                run.Xml.ReplaceWith ( splitRun[0], link, splitRun[1] ); 
+            } 
+            
+            // Rebuild the run lookup for this paragraph 
+            runLookup.Clear(); 
+            BuildRunLookup(Xml); 
+
+            HelperFunctions.RenumberIDs(Document); 
+            
+            return this; 
+        }
+
+        /// <summary>
         /// Insert a Paragraph after this Paragraph, this Paragraph may have come from the same or another document.
         /// </summary>
         /// <param name="p">The Paragraph to insert.</param>
@@ -1031,7 +1100,7 @@ namespace Novacode
                 }
             }
 
-            DocX.RebuildParagraphs(Document);
+            HelperFunctions.RebuildParagraphs(Document);
         }
 
         internal void BuildRunLookup(XElement p)
@@ -1251,7 +1320,7 @@ namespace Novacode
             // Rebuild the run lookup for this paragraph
             runLookup.Clear();
             BuildRunLookup(Xml);
-            DocX.RenumberIDs(Document);
+            HelperFunctions.RenumberIDs(Document);
             return picture;
         }
 
@@ -1263,8 +1332,7 @@ namespace Novacode
         /// <param name="descr">The description of this Picture.</param>
         static internal Picture CreatePicture(DocX document, string id, string name, string descr)
         {
-            PackagePart word_document = document.package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
-            PackagePart part = document.package.GetPart(word_document.GetRelationship(id).TargetUri);
+           PackagePart part = document.package.GetPart(document.mainPart.GetRelationship(id).TargetUri);
 
             int cx, cy;
 
@@ -1315,7 +1383,7 @@ namespace Novacode
             </drawing>
             ", cx, cy, id, name, descr));
 
-            return new Picture(document, xml);
+            return new Picture(document, xml, new Image(document, document.mainPart.GetRelationship(id)));
         }
 
         public Picture InsertPicture(int index, string imageID)
@@ -1540,12 +1608,12 @@ namespace Novacode
         /// <param name="trackChanges">Flag this insert as a change.</param>
         public void InsertText(string value, bool trackChanges)
         {
-            List<XElement> newRuns = DocX.FormatInput(value, null);
+            List<XElement> newRuns = HelperFunctions.FormatInput(value, null);
             Xml.Add(newRuns);
 
             runLookup.Clear();
             BuildRunLookup(Xml);
-            DocX.RenumberIDs(Document);
+            HelperFunctions.RenumberIDs(Document);
         }
 
         /// <summary>
@@ -1605,13 +1673,13 @@ namespace Novacode
         /// <param name="formatting">The text formatting.</param>
         public void InsertText(string value, bool trackChanges, Formatting formatting)
         {
-            List<XElement> newRuns = DocX.FormatInput(value, formatting.Xml);
+            List<XElement> newRuns = HelperFunctions.FormatInput(value, formatting.Xml);
             Xml.Add(newRuns);
 
             runLookup.Clear();
             BuildRunLookup(Xml);
-            DocX.RenumberIDs(Document);
-            DocX.RebuildParagraphs(Document);
+            HelperFunctions.RenumberIDs(Document);
+            HelperFunctions.RebuildParagraphs(Document);
         }
 
         /// <summary>
@@ -1683,9 +1751,9 @@ namespace Novacode
             {
                 object insert;
                 if (formatting != null)
-                    insert = DocX.FormatInput(value, formatting.Xml);
+                    insert = HelperFunctions.FormatInput(value, formatting.Xml);
                 else
-                    insert = DocX.FormatInput(value, null);
+                    insert = HelperFunctions.FormatInput(value, null);
                 
                 if (trackChanges)
                     insert = CreateEdit(EditType.ins, insert_datetime, insert);
@@ -1696,9 +1764,9 @@ namespace Novacode
             {
                 object newRuns;
                 if (formatting != null)
-                    newRuns = DocX.FormatInput(value, formatting.Xml);
+                    newRuns = HelperFunctions.FormatInput(value, formatting.Xml);
                 else
-                    newRuns = DocX.FormatInput(value, run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)));
+                    newRuns = HelperFunctions.FormatInput(value, run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)));
 
                 // The parent of this Run
                 XElement parentElement = run.Xml.Parent;
@@ -1774,7 +1842,7 @@ namespace Novacode
             // Rebuild the run lookup for this paragraph
             runLookup.Clear();
             BuildRunLookup(Xml);
-            DocX.RenumberIDs(Document);
+            HelperFunctions.RenumberIDs(Document);
         }
 
         /// <summary>
@@ -1798,7 +1866,7 @@ namespace Novacode
         /// </example>
         public Paragraph Append(string text)
         {
-            List<XElement> newRuns = DocX.FormatInput(text, null);
+            List<XElement> newRuns = HelperFunctions.FormatInput(text, null);
             Xml.Add(newRuns);
 
             this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(newRuns.Count()).ToList();
@@ -1834,15 +1902,21 @@ namespace Novacode
         /// </example>
         public Paragraph AppendHyperlink(Hyperlink h)
         {
+            if(!h.hyperlink_rels.ContainsKey(mainPart))
+            {
+                PackageRelationship pr = mainPart.CreateRelationship(h.Uri, TargetMode.External, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink");
+                h.hyperlink_rels.Add(mainPart, pr);
+            }
+
+            PackageRelationship rel = h.hyperlink_rels[mainPart];
             Xml.Add(h.Xml);
+            Xml.Elements().Last().SetAttributeValue(DocX.r + "id", rel.Id);
 
             this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(h.Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Count()).ToList();
             BuildRunLookup(Xml);
 
             return this;
-        }
-
-      
+        }     
         
         /// <summary>
         /// Add an image to a document, create a custom view of that image (picture) and then insert it into a Paragraph using append.
@@ -1877,7 +1951,23 @@ namespace Novacode
         /// </example>
         public Paragraph AppendPicture(Picture p)
         {
+            if (!p.picture_rels.ContainsKey(mainPart))
+            {
+                PackageRelationship pr = mainPart.CreateRelationship(p.img.pr.TargetUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+                p.picture_rels.Add(mainPart, pr);
+            }
+
+            PackageRelationship rel = p.picture_rels[mainPart];
             Xml.Add(p.Xml);
+
+            XAttribute a_id = 
+            (
+                from e in Xml.Elements().Last().Descendants()
+                where e.Name.LocalName.Equals("blip")
+                select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
+            ).Single();
+
+            a_id.SetValue(rel.Id);
 
             this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(p.Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Count()).ToList();
             BuildRunLookup(Xml);
@@ -2774,7 +2864,7 @@ namespace Novacode
             // Rebuild the run lookup
             runLookup.Clear();
             BuildRunLookup(Xml);
-            DocX.RenumberIDs(Document);
+            HelperFunctions.RenumberIDs(Document);
         }
 
 

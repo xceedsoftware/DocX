@@ -22,6 +22,23 @@ namespace Novacode
         private int rowCount, columnCount;
 
         /// <summary>
+        /// Returns a list of all Paragraphs inside this container.
+        /// </summary>
+        /// 
+        public virtual List<Paragraph> Paragraphs
+        {
+            get
+            {
+                List<Paragraph> paragraphs = new List<Paragraph>();
+
+                foreach (Row r in Rows)
+                    paragraphs.AddRange(r.Paragraphs);
+
+                return paragraphs;
+            }
+        }
+
+        /// <summary>
         /// Returns a list of all Pictures in a Table.
         /// </summary>
         /// <example>
@@ -438,7 +455,7 @@ namespace Novacode
 
                 if (tableStyle == null)
                 {
-                    XDocument external_style_doc = DocX.DecompressXMLResource("Novacode.Resources.styles.xml.gz");
+                    XDocument external_style_doc = HelperFunctions.DecompressXMLResource("Novacode.Resources.styles.xml.gz");
 
                     var styleElement =
                     (
@@ -474,7 +491,7 @@ namespace Novacode
         ///     foreach (Cell c in row.Cells)
         ///     {
         ///         // Set the text of each new cell to "Hello".
-        ///         c.Paragraph.InsertText("Hello", false);
+        ///         c.Paragraphs[0].InsertText("Hello", false);
         ///     }
         ///
         ///     // Save the document to a new file.
@@ -582,8 +599,8 @@ namespace Novacode
         ///         // The cell in this row that belongs to the new coloumn.
         ///         Cell cell = row.Cells[table.ColumnCount - 1];
         ///
-        ///         // The Paragraph that this cell houses.
-        ///         Paragraph p = cell.Paragraph;
+        ///         // The first Paragraph that this cell houses.
+        ///         Paragraph p = cell.Paragraphs[0];
         ///
         ///         // Insert this rows index.
         ///         p.InsertText(i.ToString(), false);
@@ -725,7 +742,7 @@ namespace Novacode
         ///     foreach (Cell c in row.Cells)
         ///     {
         ///         // Set the text of each new cell to "Hello".
-        ///         c.Paragraph.InsertText("Hello", false);
+        ///         c.Paragraphs[0].InsertText("Hello", false);
         ///     }
         ///
         ///     // Save the document to a new file.
@@ -794,8 +811,8 @@ namespace Novacode
         ///         // The cell in this row that belongs to the new coloumn.
         ///         Cell cell = row.Cells[table.ColumnCount - 1];
         ///
-        ///         // The Paragraph that this cell houses.
-        ///         Paragraph p = cell.Paragraph;
+        ///         // The first Paragraph that this cell houses.
+        ///         Paragraph p = cell.Paragraphs[0];
         ///
         ///         // Insert this rows index.
         ///         p.InsertText(i.ToString(), false);
@@ -1269,121 +1286,27 @@ namespace Novacode
     /// <summary>
     /// Represents a single row in a Table.
     /// </summary>
-    public class Row:DocXElement
+    public class Row : Container
     {
-        private List<Cell> cells;
-
         /// <summary>
         /// A list of Cells in this Row.
         /// </summary>
-        public List<Cell> Cells { get { return cells; } }
+        public List<Cell> Cells 
+        { 
+            get 
+            {
+                List<Cell> cells = 
+                (
+                    from c in Xml.Elements(XName.Get("tc", DocX.w.NamespaceName))
+                    select new Cell(Document, c)
+                ).ToList();
+
+                return cells;
+            } 
+        }
 
         internal Row(DocX document, XElement xml):base(document, xml)
         {
-            cells = (from c in xml.Elements(XName.Get("tc", DocX.w.NamespaceName))
-                     select new Cell(document, c)).ToList();
-        }
-
-        /// <summary>
-        /// Returns a list of all Pictures in a Row.
-        /// </summary>
-        /// <example>
-        /// Returns a list of all Pictures in a Row.
-        /// <code>
-        /// // Create a document.
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///     // Get the first Table in a document.
-        ///     Table t = document.Tables[0];
-        ///
-        ///     // Get the first Row in a Table.
-        ///     Row r = t.Rows[0];
-        ///
-        ///     // Get all of the Pictures in this Row.
-        ///     List<Picture> pictures = r.Pictures;
-        ///
-        ///     // Save this document.
-        ///     document.Save();
-        /// }
-        /// </code>
-        /// </example>
-        public List<Picture> Pictures
-        {
-            get
-            {
-                List<Picture> pictures = new List<Picture>();
-
-                foreach (Cell c in Cells)
-                    pictures.AddRange(c.Pictures);
-
-                return pictures;
-            }
-        }
-
-        /// <summary>
-        /// Get all of the Hyperlinks in this Row.
-        /// </summary>
-        /// <example>
-        /// Get all of the Hyperlinks in this Row.
-        /// <code>
-        /// // Create a document.
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///     // Get the first Table in this document.
-        ///     Table t = document.Tables[0];
-        ///    
-        ///     // Get the first Row in this Table.
-        ///     Row r = t.Rows[0];
-        ///
-        ///     // Get a list of all Hyperlinks in this Row.
-        ///     List<Hyperlink> hyperlinks = r.Hyperlinks;
-        ///
-        ///     // Save this document.
-        ///     document.Save();
-        /// }
-        /// </code>
-        /// </example>
-        public List<Hyperlink> Hyperlinks
-        {
-            get
-            {
-                List<Hyperlink> hyperlinks = new List<Hyperlink>();
-
-                foreach (Cell c in Cells)
-                    hyperlinks.AddRange(c.Hyperlinks);
-
-                return hyperlinks;
-            }
-        }
-
-        /// <summary>
-        /// Set the content direction of a single Row in a Table.
-        /// </summary>
-        /// <param name="direction">The direction either (LeftToRight or RightToLeft).</param>
-        /// <example>
-        /// Set the content direction of a single Row in a Table.
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///    // Get the first Table from a document.
-        ///    Table t = document.Tables[0];
-        ///    
-        ///    // Get the first row from this Table.
-        ///    Row r = t.Rows[0];
-        ///
-        ///    // Set the content direction of this Row to RightToLeft.
-        ///    r.SetDirection(Direction.RightToLeft);
-        ///
-        ///    // Save all changes made to this document.
-        ///    document.Save();
-        ///}
-        /// </code>
-        /// </example>
-        public void SetDirection(Direction direction)
-        {
-            foreach (Cell c in Cells)
-                c.SetDirection(direction);
         }
 
         /// <summary>
@@ -1477,7 +1400,7 @@ namespace Novacode
             int gridSpanSum = 0;
             
             // Foreach each Cell between startIndex and endIndex inclusive.
-            foreach (Cell c in cells.Where((z, i) => i > startIndex && i <= endIndex))
+            foreach (Cell c in Cells.Where((z, i) => i > startIndex && i <= endIndex))
             {
                 XElement tcPr = c.Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
                 if (tcPr != null)
@@ -1495,7 +1418,7 @@ namespace Novacode
                 }
 
                 // Add this cells Pragraph to the merge start Cell.
-                cells[startIndex].Xml.Add(c.Xml.Elements(XName.Get("p", DocX.w.NamespaceName)));
+                Cells[startIndex].Xml.Add(c.Xml.Elements(XName.Get("p", DocX.w.NamespaceName)));
                 
                 // Remove this Cell.
                 c.Xml.Remove();
@@ -1505,11 +1428,11 @@ namespace Novacode
              * Get the tcPr (table cell properties) element for the first cell in this merge,
              * null will be returned if no such element exists.
              */
-            XElement start_tcPr = cells[startIndex].Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+            XElement start_tcPr = Cells[startIndex].Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
             if (start_tcPr == null)
             {
-                cells[startIndex].Xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
-                start_tcPr = cells[startIndex].Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                Cells[startIndex].Xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                start_tcPr = Cells[startIndex].Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
             }
 
             /* 
@@ -1536,140 +1459,14 @@ namespace Novacode
 
             // Set the val attribute to the number of merged cells.
             start_gridSpan.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), (gridSpanSum + (endIndex - startIndex + 1)).ToString());
-
-            // Rebuild the cells collection.
-            cells = 
-            (
-                from c in Xml.Elements(XName.Get("tc", DocX.w.NamespaceName))
-                select new Cell(Document, c)
-            ).ToList();
         }
     }
 
-    public class Cell:DocXElement
+    public class Cell:Container
     {
-        private List<Paragraph> paragraphs;
-
-        public List<Paragraph> Paragraphs
-        {
-            get { return paragraphs; }
-            set { paragraphs = value; }
-        }
-
         internal Cell(DocX document, XElement xml):base(document, xml)
         {
-            paragraphs = xml.Elements(XName.Get("p", DocX.w.NamespaceName)).Select(p => new Paragraph(document, p, 0)).ToList();
-        }
-
-        /// <summary>
-        /// Returns a list of all Pictures in a Cell.
-        /// </summary>
-        /// <example>
-        /// Returns a list of all Pictures in a Cell.
-        /// <code>
-        /// // Create a document.
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///     // Get the first Table in a document.
-        ///     Table t = document.Tables[0];
-        ///
-        ///     // Get the first Row in a Table.
-        ///     Row r = t.Rows[0];
-        ///
-        ///     // Get the first Cell in a Row.
-        ///     Cell c = r.Cells[0];
-        ///
-        ///     // Get all of the Pictures in this Cell.
-        ///     List<Picture> pictures = c.Pictures;
-        ///
-        ///     // Save this document.
-        ///     document.Save();
-        /// }
-        /// </code>
-        /// </example>
-        public List<Picture> Pictures
-        {
-            get
-            {
-                List<Picture> pictures = new List<Picture>();
-
-                foreach (Paragraph p in Paragraphs)
-                    pictures.AddRange(p.Pictures);
-                
-                return pictures;
-            }
-        }
-
-        /// <summary>
-        /// Get all of the Hyperlinks in this Cell.
-        /// </summary>
-        /// <example>
-        /// Get all of the Hyperlinks in this Cell.
-        /// <code>
-        /// // Create a document.
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///     // Get the first Table in this document.
-        ///     Table t = document.Tables[0];
-        ///    
-        ///     // Get the first Row in this Table.
-        ///     Row r = t.Rows[0];
-        ///
-        ///     // Get the first Cell in this Row.
-        ///     Cell c = r.Cells[0];
-        /// 
-        ///     // Get a list of all Hyperlinks in this Cell.
-        ///     List<Hyperlink> hyperlinks = c.Hyperlinks;
-        ///
-        ///     // Save this document.
-        ///     document.Save();
-        /// }
-        /// </code>
-        /// </example>
-        public List<Hyperlink> Hyperlinks
-        {
-            get
-            {
-                List<Hyperlink> hyperlinks = new List<Hyperlink>();
-
-                foreach (Paragraph p in Paragraphs)
-                    hyperlinks.AddRange(p.Hyperlinks);
-
-                return hyperlinks;
-            }
-        }
-
-        /// <summary>
-        /// Set the content direction of a single Cell in a Table.
-        /// </summary>
-        /// <param name="direction">The direction either (LeftToRight or RightToLeft).</param>
-        /// <example>
-        /// Set the content direction of a single Cell in a Table.
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///    // Get the first Table from a document.
-        ///    Table t = document.Tables[0];
-        ///    
-        ///    // Get the first row from this Table.
-        ///    Row r = t.Rows[0];
-        ///
-        ///    // Get the first cell from this Row.
-        ///    Cell c = r.Cells[1];
-        ///
-        ///    // Set the content direction of this Cell to RightToLeft.
-        ///    c.SetDirection(Direction.RightToLeft);
-        ///
-        ///    // Save all changes made to this document.
-        ///    document.Save();
-        ///}
-        /// </code>
-        /// </example>
-        public void SetDirection(Direction direction)
-        {
-            foreach (Paragraph p in Paragraphs)
-                p.Direction = direction;
+            
         }
 
         public Color Shading

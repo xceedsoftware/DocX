@@ -16,7 +16,7 @@ namespace Novacode
     /// <summary>
     /// Represents a document.
     /// </summary>
-    public class DocX: IDisposable
+    public class DocX: Container, IDisposable
     {
         #region Namespaces
         static internal XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
@@ -25,18 +25,279 @@ namespace Novacode
         static internal XNamespace customVTypesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
         #endregion
 
+        /// <summary>
+        /// Returns a collection of Headers in this Document.
+        /// A document typically contains three Headers.
+        /// A default one (odd), one for the first page and one for even pages.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///    // Add header support to this document.
+        ///    document.AddHeaders();
+        ///
+        ///    // Get a collection of all headers in this document.
+        ///    Headers headers = document.Headers;
+        ///
+        ///    // The header used for the first page of this document.
+        ///    Header first = headers.first;
+        ///
+        ///    // The header used for odd pages of this document.
+        ///    Header odd = headers.odd;
+        ///
+        ///    // The header used for even pages of this document.
+        ///    Header even = headers.even;
+        /// }
+        /// </code>
+        /// </example>
+        public Headers Headers 
+        {
+            get 
+            {
+                return headers;
+            } 
+        }
+        private Headers headers;
+
+        /// <summary>
+        /// Returns a collection of Footers in this Document.
+        /// A document typically contains three Footers.
+        /// A default one (odd), one for the first page and one for even pages.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///    // Add footer support to this document.
+        ///    document.AddFooters();
+        ///
+        ///    // Get a collection of all footers in this document.
+        ///    Footers footers = document.Footers;
+        ///
+        ///    // The footer used for the first page of this document.
+        ///    Footer first = footers.first;
+        ///
+        ///    // The footer used for odd pages of this document.
+        ///    Footer odd = footers.odd;
+        ///
+        ///    // The footer used for even pages of this document.
+        ///    Footer even = footers.even;
+        /// }
+        /// </code>
+        /// </example>
+        public Footers Footers
+        {
+            get
+            {
+                return footers;
+            }
+        }
+
+        private Footers footers;
+
+        /// <summary>
+        /// Should the Document use different Headers and Footers for odd and even pages?
+        /// </summary>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Add header support to this document.
+        ///     document.AddHeaders();
+        ///
+        ///     // Get a collection of all headers in this document.
+        ///     Headers headers = document.Headers;
+        ///
+        ///     // The header used for odd pages of this document.
+        ///     Header odd = headers.odd;
+        ///
+        ///     // The header used for even pages of this document.
+        ///     Header even = headers.even;
+        ///
+        ///     // Force the document to use a different header for odd and even pages.
+        ///     document.DifferentOddAndEvenPages = true;
+        ///
+        ///     // Content can be added to the Headers in the same manor that it would be added to the main document.
+        ///     Paragraph p1 = odd.InsertParagraph();
+        ///     p1.Append("This is the odd pages header.");
+        ///     
+        ///     Paragraph p2 = even.InsertParagraph();
+        ///     p2.Append("This is the even pages header.");
+        ///
+        ///     // Save all changes to this document.
+        ///     document.Save();    
+        /// }// Release this document from memory.
+        /// </example>
+        public bool DifferentOddAndEvenPages
+        {
+            get
+            {
+                XDocument settings;
+                using (TextReader tr = new StreamReader(settingsPart.GetStream()))
+                    settings = XDocument.Load(tr);
+
+                XElement evenAndOddHeaders = settings.Root.Element(w + "evenAndOddHeaders");
+
+                return evenAndOddHeaders != null;
+            }
+
+            set
+            {
+                XDocument settings;
+                using (TextReader tr = new StreamReader(settingsPart.GetStream()))
+                    settings = XDocument.Load(tr);
+
+                XElement evenAndOddHeaders = settings.Root.Element(w + "evenAndOddHeaders");
+                if (evenAndOddHeaders == null)
+                {
+                    if (value)
+                        settings.Root.AddFirst(new XElement(w + "evenAndOddHeaders"));
+                }
+
+                else
+                {
+                    if (!value)
+                        evenAndOddHeaders.Remove();
+                }
+
+                using (TextWriter tw = new StreamWriter(settingsPart.GetStream()))
+                    settings.Save(tw);
+            }
+        }
+
+        /// <summary>
+        /// Should the Document use an independent Header and Footer for the first page?
+        /// </summary>
+        /// <example>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Add header support to this document.
+        ///     document.AddHeaders();
+        ///
+        ///     // The header used for the first page of this document.
+        ///     Header first = document.Headers.first;
+        ///
+        ///     // Force the document to use a different header for first page.
+        ///     document.DifferentFirstPage = true;
+        ///     
+        ///     // Content can be added to the Headers in the same manor that it would be added to the main document.
+        ///     Paragraph p = first.InsertParagraph();
+        ///     p.Append("This is the first pages header.");
+        ///
+        ///     // Save all changes to this document.
+        ///     document.Save();    
+        /// }// Release this document from memory.
+        /// </example>
+        public bool DifferentFirstPage
+        {
+            get
+            {
+                XElement body = mainDoc.Root.Element(w + "body");
+                XElement sectPr = body.Element(w + "sectPr");
+                
+                if (sectPr != null)
+                {
+                    XElement titlePg = sectPr.Element(w + "titlePg");
+                    if (titlePg != null)
+                        return true;
+                }
+
+                return false;
+            }
+
+            set
+            {
+                XElement body = mainDoc.Root.Element(w + "body");
+                XElement sectPr = null;
+                XElement titlePg = null;
+
+                if (sectPr == null)
+                    body.Add(new XElement(w + "sectPr", string.Empty));
+
+                sectPr = body.Element(w + "sectPr");
+                
+                titlePg = sectPr.Element(w + "titlePg");
+                if (titlePg == null)
+                {
+                    if (value)
+                        sectPr.Add(new XElement(w + "titlePg", string.Empty));
+                }
+
+                else
+                {
+                    if (!value)
+                        titlePg.Remove();
+                }
+            }
+        }
+
+        private Header GetHeaderByType(string type)
+        {
+            return (Header)GetHeaderOrFooterByType(type, true);
+        }
+
+        private Footer GetFooterByType(string type)
+        {
+            return (Footer)GetHeaderOrFooterByType(type, false);
+        }
+
+        private object GetHeaderOrFooterByType(string type, bool b)
+        {
+            string reference = "footerReference";
+            if (b)
+                reference = "headerReference";
+
+            string Id =
+            (
+                from e in mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).Descendants()
+                where (e.Name.LocalName == reference) && (e.Attribute(w + "type").Value == type)
+                select e.Attribute(r + "id").Value
+            ).FirstOrDefault();
+
+            if (Id != null)
+            {
+                Uri partUri = mainPart.GetRelationship(Id).TargetUri;
+                if (!partUri.OriginalString.StartsWith("/word/"))
+                    partUri = new Uri("/word/" + partUri.OriginalString, UriKind.Relative);
+
+                PackagePart part = package.GetPart(partUri);
+                XDocument doc;
+                using (TextReader tr = new StreamReader(part.GetStream()))
+                {
+                    doc = XDocument.Load(tr);
+                    if(b)
+                        return new Header(this, doc.Element(w + "hdr"), part);
+                    else
+                        return new Footer(this, doc.Element(w + "ftr"), part);
+                }
+            }
+
+            return null;
+        }
+
+        // Get the word\document.xml part
+        internal PackagePart mainPart;
+
+        // Get the word\settings.xml part
+        internal PackagePart settingsPart;
+
         #region Private instance variables defined foreach DocX object
-        internal List<PackagePart> headers = new List<PackagePart>();
-        internal List<PackagePart> footers = new List<PackagePart>();
         // The collection of Paragraphs in this document.
-        private List<Paragraph> paragraphs = new List<Paragraph>();
+        internal List<Paragraph> paragraphs = new List<Paragraph>();
         #endregion
 
         #region Internal variables defined foreach DocX object
         // Object representation of the .docx
         internal Package package;
         // The mainDocument is loaded into a XDocument object for easy querying and editing
-        internal XDocument mainDoc; 
+        internal XDocument mainDoc;
+        internal XDocument header1;
+        internal XDocument header2;
+        internal XDocument header3;
+
         // A lookup for the Paragraphs in this document.
         internal Dictionary<int, Paragraph> paragraphLookup = new Dictionary<int, Paragraph>();
         // Every document is stored in a MemoryStream, all edits made to a document are done in memory.
@@ -47,61 +308,8 @@ namespace Novacode
         internal Stream stream;
         #endregion
 
-        internal DocX()
+        internal DocX(DocX document, XElement xml): base(document, xml)
         {      
-        }
-
-        /// <summary>
-        /// Returns a list of Paragraphs in this document.
-        /// </summary>
-        /// <example>
-        /// Write to Console the Text from each Paragraph in this document.
-        /// <code>
-        /// // Load a document
-        /// DocX document = DocX.Load(@"C:\Example\Test.docx");
-        ///
-        /// // Loop through each Paragraph in this document.
-        /// foreach (Paragraph p in document.Paragraphs)
-        /// {
-        ///     // Write this Paragraphs Text to Console.
-        ///     Console.WriteLine(p.Text);
-        /// }
-        ///
-        /// // Wait for the user to press a key before closing the console window.
-        /// Console.ReadKey();
-        /// </code>
-        /// </example>
-        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
-        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
-        /// <seealso cref="Paragraph.InsertPicture"/>
-        public List<Paragraph> Paragraphs
-        {
-            get { return paragraphs; }
-        }
-
-        /// <summary>
-        /// Returns a list of Tables in this Paragraph.
-        /// </summary>
-        public List<Table> Tables 
-        { 
-            get 
-            {
-                List<Table> tables =
-                (
-                    
-                    from t in mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).Elements()
-                    where (t.Name.LocalName == "tbl")
-                    select new Table(this, t)
-                ).ToList();
-
-                return tables;
-            } 
         }
 
         /// <summary>
@@ -130,8 +338,7 @@ namespace Novacode
         {
             get 
             {
-                PackagePart word_document = package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
-                PackageRelationshipCollection imageRelationships = word_document.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+                PackageRelationshipCollection imageRelationships = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
                 if (imageRelationships.Count() > 0)
                 {
                     return
@@ -224,269 +431,6 @@ namespace Novacode
             }
         }
 
-        static internal void RebuildParagraphs(DocX document)
-        {
-            document.paragraphLookup.Clear();
-            document.paragraphs.Clear();
-
-            // Get the runs in this paragraph
-            IEnumerable<XElement> paras = document.mainDoc.Descendants(XName.Get("p", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"));
-
-            int startIndex = 0;
-
-            // Loop through each run in this paragraph
-            foreach (XElement par in paras)
-            {
-                Paragraph xp = new Paragraph(document, par, startIndex);
-
-                // Add to paragraph list
-                document.paragraphs.Add(xp);
-
-                // Only add runs which contain text
-                if (Paragraph.GetElementTextLength(par) > 0)
-                {
-                    document.paragraphLookup.Add(xp.endIndex, xp);
-                    startIndex = xp.endIndex;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Insert a new Paragraph at the end of this document.
-        /// </summary>
-        /// <param name="text">The text of this Paragraph.</param>
-        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-        /// <returns>A new Paragraph.</returns>
-        /// <example>
-        /// Inserting a new Paragraph at the end of a document with text formatting.
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Insert a new Paragraph at the end of this document.
-        ///     document.InsertParagraph("New text", false);
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory
-        /// </code>
-        /// </example>
-        public Paragraph InsertParagraph(string text, bool trackChanges)
-        {
-            return InsertParagraph(text, trackChanges, new Formatting());
-        }
-
-        /// <summary>
-        /// Insert a new Paragraph at the end of this document.
-        /// </summary>
-        /// <param name="text">The text of this Paragraph.</param>
-        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-        /// <returns>A new Paragraph.</returns>
-        /// <example>
-        /// Inserting a new Paragraph at the end of a document with text formatting.
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Insert a new Paragraph at the end of this document.
-        ///     document.InsertParagraph("New text");
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory
-        /// </code>
-        /// </example>
-        public Paragraph InsertParagraph(string text)
-        {
-            return InsertParagraph(text, false, new Formatting());
-        }
-
-        internal static List<XElement> FormatInput(string text, XElement rPr)
-        {
-            List<XElement> newRuns = new List<XElement>();
-            XElement tabRun = new XElement(DocX.w + "tab");
-            XElement breakRun = new XElement(DocX.w + "br");
-
-            StringBuilder sb = new StringBuilder();
-            foreach (char c in text)
-            {
-                switch (c)
-                {
-                    case '\t':
-                        if (sb.Length > 0)
-                        {
-                            XElement t = new XElement(DocX.w + "t", sb.ToString());
-                            Novacode.Text.PreserveSpace(t);
-                            newRuns.Add(new XElement(DocX.w + "r", rPr, t));
-                            sb = new StringBuilder();
-                        }
-                        newRuns.Add(new XElement(DocX.w + "r", rPr, tabRun));
-                        break;
-                    case '\n':
-                        if (sb.Length > 0)
-                        {
-                            XElement t = new XElement(DocX.w + "t", sb.ToString());
-                            Novacode.Text.PreserveSpace(t);
-                            newRuns.Add(new XElement(DocX.w + "r", rPr, t));
-                            sb = new StringBuilder();
-                        }
-                        newRuns.Add(new XElement(DocX.w + "r", rPr, breakRun));
-                        break;
-
-                    default:
-                        sb.Append(c);
-                        break;
-                }
-            }
-
-            if (sb.Length > 0)
-            {
-                XElement t = new XElement(DocX.w + "t", sb.ToString());
-                Novacode.Text.PreserveSpace(t);
-                newRuns.Add(new XElement(DocX.w + "r", rPr, t));
-            }
-
-            return newRuns;
-        }
-
-        /// <summary>
-        /// Insert a new Paragraph at the end of a document with text formatting.
-        /// </summary>
-        /// <param name="text">The text of this Paragraph.</param>
-        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-        /// <param name="formatting">The formatting for the text of this Paragraph.</param>
-        /// <returns>A new Paragraph.</returns>
-        /// <example>
-        /// Inserting a new Paragraph at the end of a document with text formatting.
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Create a Formatting object
-        ///     Formatting formatting = new Formatting();
-        ///     formatting.Bold = true;
-        ///     formatting.FontColor = Color.Red;
-        ///     formatting.Size = 30;
-        ///
-        ///     // Insert a new Paragraph at the end of this document with text formatting.
-        ///     document.InsertParagraph("New text", false, formatting);
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory
-        /// </code>
-        /// </example>
-        public Paragraph InsertParagraph(string text, bool trackChanges, Formatting formatting)
-        {
-            XElement newParagraph = new XElement
-            (
-                XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)), FormatInput(text, formatting.Xml)
-            );
-
-            if (trackChanges)
-                newParagraph = CreateEdit(EditType.ins, DateTime.Now, newParagraph);
-
-            mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newParagraph);
-            
-            RebuildParagraphs(this);
-            return paragraphs.Last();
-        }
-
-        internal XElement CreateEdit(EditType t, DateTime edit_time, object content)
-        {
-            if (t == EditType.del)
-            {
-                foreach (object o in (IEnumerable<XElement>)content)
-                {
-                    if (o is XElement)
-                    {
-                        XElement e = (o as XElement);
-                        IEnumerable<XElement> ts = e.DescendantsAndSelf(XName.Get("t", DocX.w.NamespaceName));
-
-                        for (int i = 0; i < ts.Count(); i++)
-                        {
-                            XElement text = ts.ElementAt(i);
-                            text.ReplaceWith(new XElement(DocX.w + "delText", text.Attributes(), text.Value));
-                        }
-                    }
-                }
-            }
-
-            return
-            (
-                new XElement(DocX.w + t.ToString(),
-                    new XAttribute(DocX.w + "id", 0),
-                    new XAttribute(DocX.w + "author", WindowsIdentity.GetCurrent().Name),
-                    new XAttribute(DocX.w + "date", edit_time),
-                content)
-            );
-        }
-
-        /// <summary>
-        /// Find all instances of a string in this document and return their indexes in a List.
-        /// </summary>
-        /// <param name="str">The string to find</param>
-        /// <returns>A list of indexes.</returns>
-        /// <example>
-        /// Find all instances of Hello in this document.
-        /// <code>
-        /// // Load a document
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///     // Find all instances of 'Hello' in this document.
-        ///     List&lt;int&gt; hellos = document.FindAll("Hello");
-        ///
-        ///     // Print out each index that 'Hello' was found at.
-        ///     foreach (int index in hellos)
-        ///         Console.WriteLine("Line {0}", index);
-        ///
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        public List<int> FindAll(string str)
-        {
-            return FindAll(str, RegexOptions.None);
-        }
-        
-        /// <summary>
-        /// Find all instances of a string in this document and return their indexes in a List.
-        /// </summary>
-        /// <param name="str">The string to find</param>
-        /// <param name="options">The options to use when finding a string match.</param>
-        /// <returns>A list of indexes.</returns>
-        /// <example>
-        /// Find all instances of Hello in this document (Ignore case).
-        /// <code>
-        /// // Load a document
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///     // Find all instances of 'Hello' in this document.
-        ///     List&lt;int&gt; hellos = document.FindAll("Hello", RegexOptions.IgnoreCase);
-        ///
-        ///     // Print out each index that 'Hello' was found at.
-        ///     foreach (int index in hellos)
-        ///         Console.WriteLine("Line {0}", index);
-        ///
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        public List<int> FindAll(string str, RegexOptions options)
-        {
-            List<int> list = new List<int>();
-
-            foreach (Paragraph p in paragraphs)
-            {
-                List<int> indexes = p.FindAll(str, options);
-
-                for (int i = 0; i < indexes.Count(); i++)
-                    indexes[0] += p.startIndex;
-
-                list.AddRange(indexes);
-            }
-
-            return list;
-        }
-
         /// <summary>
         /// Get the Text of this document.
         /// </summary>
@@ -559,28 +503,6 @@ namespace Novacode
         }
 
         /// <summary>
-        /// Gets the concatenated text of all header files in this document.
-        /// </summary>
-        public string HeaderText
-        {
-            get
-            {
-                return GetCollectiveText(headers);
-            }
-        }
-
-        /// <summary>
-        /// Gets the concatenated text of all footer files in this document.
-        /// </summary>
-        public string FooterText
-        {
-            get
-            {
-                return GetCollectiveText(footers);
-            }
-        }
-
-        /// <summary>
         /// Insert the contents of another document at the end of this document. 
         /// </summary>
         /// <param name="document">The document to insert at the end of this document.</param>
@@ -635,7 +557,7 @@ namespace Novacode
 
                 // If the internal document contains no /word/styles.xml create one.
                 if (!package.PartExists(word_styles_Uri))
-                    AddDefaultStylesXml(package);
+                    HelperFunctions.AddDefaultStylesXml(package);
 
                 // Load the internal documents styles.xml into memory.
                 XDocument internal_word_styles;
@@ -661,9 +583,8 @@ namespace Novacode
             #endregion
 
             #region Images
-            Uri word_document_Uri = new Uri("/word/document.xml", UriKind.Relative);
-            PackagePart internal_word_document = package.GetPart(word_document_Uri);
-            PackagePart external_word_document = document.package.GetPart(word_document_Uri);
+            PackagePart internal_word_document = mainPart;
+            PackagePart external_word_document = document.mainPart;
 
             // Get all Image relationships in the external document.
             var external_image_rels = external_word_document.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
@@ -738,8 +659,9 @@ namespace Novacode
 
                 // If the internal document does not contain a customFilePropertyPart, create one.
                 if (!package.PartExists(new Uri("/docProps/custom.xml", UriKind.Relative)))
-                    CreateCustomPropertiesPart(this);
+                    HelperFunctions.CreateCustomPropertiesPart(this);
 
+                
                 PackagePart internal_docProps_custom = package.GetPart(new Uri("/docProps/custom.xml", UriKind.Relative));
                 XDocument internal_customPropDoc;
                 using (TextReader tr = new StreamReader(internal_docProps_custom.GetStream(FileMode.Open, FileAccess.Read)))
@@ -788,217 +710,10 @@ namespace Novacode
                 r.Remove();
             #endregion
 
-            RebuildParagraphs(this);
+            HelperFunctions.RebuildParagraphs(this);
         }
 
-        /// <summary>
-        /// Insert a new Paragraph into this document at a specified index.
-        /// </summary>
-        /// <param name="index">The character index to insert this document at.</param>
-        /// <param name="text">The text of this Paragraph.</param>
-        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-        /// <returns>A new Paragraph.</returns>
-        /// <example>
-        /// Insert a new Paragraph into the middle of a document.
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Find the middle character index of this document.
-        ///     int index = document.Text.Length / 2;
-        ///
-        ///     // Insert a new Paragraph at the middle of this document.
-        ///     document.InsertParagraph(index, "New text", false);
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        ///}// Release this document from memory
-        /// </code>
-        /// </example>
-        public Paragraph InsertParagraph(int index, string text, bool trackChanges)
-        {
-            return InsertParagraph(index, text, trackChanges, null);
-        }
-
-        /// <summary>
-        /// Insert a new Paragraph at the end of this document.
-        /// </summary>
-        /// <returns>A new Paragraph.</returns>
-        /// <example>
-        /// Inserting a new Paragraph at the end of a document.
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Insert a new Paragraph at the end of this document.
-        ///     document.InsertParagraph();
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory
-        /// </code>
-        /// </example>
-        public Paragraph InsertParagraph()
-        {
-            return InsertParagraph(string.Empty, false);
-        }
-
-        /// <summary>
-        /// Insert a Paragraph into this document, this Paragraph may have come from the same or another document.
-        /// </summary>
-        /// <param name="index">The index to insert this Paragragraph at.</param>
-        /// <param name="p">The Paragraph to insert.</param>
-        /// <returns>The Paragraph now associated with this document.</returns>
-        /// <example>
-        /// Take a Paragraph from document a, and insert it into document b at a specified position.
-        /// <code>
-        /// // Place holder for a Paragraph.
-        /// Paragraph p;
-        ///
-        /// // Load document a.
-        /// using (DocX documentA = DocX.Load(@"C:\Example\a.docx"))
-        /// {
-        ///     // Get the first paragraph from this document.
-        ///     p = documentA.Paragraphs[0];
-        /// }
-        ///
-        /// // Load document b.
-        /// using (DocX documentB = DocX.Load(@"C:\Example\b.docx"))
-        /// {
-        ///     /* 
-        ///      * Insert the Paragraph that was extracted from document a, into docment b. 
-        ///      * This creates a new Paragraph that is now associated with document b.
-        ///      */ 
-        ///      Paragraph newParagraph = documentB.InsertParagraph(0, p);
-        ///
-        ///     // Save all changes made to document b.
-        ///     documentB.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        public Paragraph InsertParagraph(int index, Paragraph p)
-        {
-            XElement newXElement = new XElement(p.Xml);
-            p.Xml = newXElement;
-
-            Paragraph paragraph = GetFirstParagraphEffectedByInsert(this, index);
-            
-            if (paragraph == null)
-                mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(p.Xml);
-            else
-            {
-                XElement[] split = SplitParagraph(paragraph, index - paragraph.startIndex);
-
-                paragraph.Xml.ReplaceWith
-                (
-                    split[0],
-                    newXElement,
-                    split[1]
-                );
-            }
-
-            RebuildParagraphs(this);
-            return p;
-        }
-
-        /// <summary>
-        /// Insert a Paragraph into this document, this Paragraph may have come from the same or another document.
-        /// </summary>
-        /// <param name="p">The Paragraph to insert.</param>
-        /// <returns>The Paragraph now associated with this document.</returns>
-        /// <example>
-        /// Take a Paragraph from document a, and insert it into the end of document b.
-        /// <code>
-        /// // Place holder for a Paragraph.
-        /// Paragraph p;
-        ///
-        /// // Load document a.
-        /// using (DocX documentA = DocX.Load(@"C:\Example\a.docx"))
-        /// {
-        ///     // Get the first paragraph from this document.
-        ///     p = documentA.Paragraphs[0];
-        /// }
-        ///
-        /// // Load document b.
-        /// using (DocX documentB = DocX.Load(@"C:\Example\b.docx"))
-        /// {
-        ///     /* 
-        ///      * Insert the Paragraph that was extracted from document a, into docment b. 
-        ///      * This creates a new Paragraph that is now associated with document b.
-        ///      */ 
-        ///      Paragraph newParagraph = documentB.InsertParagraph(p);
-        ///
-        ///     // Save all changes made to document b.
-        ///     documentB.Save();
-        /// }// Release this document from memory.
-        /// </code> 
-        /// </example>
-        public Paragraph InsertParagraph(Paragraph p)
-        {
-            #region Styles
-            XDocument style_document;
-
-            if (p.styles.Count() > 0)
-            {
-                Uri style_package_uri = new Uri("/word/styles.xml", UriKind.Relative);
-                if (!package.PartExists(style_package_uri))
-                {
-                    PackagePart style_package = package.CreatePart(style_package_uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml");
-                    using (TextWriter tw = new StreamWriter(style_package.GetStream()))
-                    {
-                        style_document = new XDocument
-                        (
-                            new XDeclaration("1.0", "UTF-8", "yes"),
-                            new XElement(XName.Get("styles", DocX.w.NamespaceName))
-                        );
-
-                        style_document.Save(tw);
-                    }
-                }
-
-                PackagePart styles_document = package.GetPart(style_package_uri);
-                using (TextReader tr = new StreamReader(styles_document.GetStream()))
-                {
-                    style_document = XDocument.Load(tr);
-                    XElement styles_element = style_document.Element(XName.Get("styles", DocX.w.NamespaceName));
-
-                    var ids = from d in styles_element.Descendants(XName.Get("style", DocX.w.NamespaceName))
-                              let a = d.Attribute(XName.Get("styleId", DocX.w.NamespaceName))
-                              where a != null
-                              select a.Value;
-
-                    foreach (XElement style in p.styles)
-                    {
-                        // If styles_element does not contain this element, then add it.
-
-                        if (!ids.Contains(style.Attribute(XName.Get("styleId", DocX.w.NamespaceName)).Value))
-                            styles_element.Add(style);
-                    }
-                }
-
-                using (TextWriter tw = new StreamWriter(styles_document.GetStream()))
-                    style_document.Save(tw);
-            } 
-            #endregion
-
-            XElement newXElement = new XElement(p.Xml);
-
-            mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newXElement);
-            int index = 0;
-            if (paragraphLookup.Keys.Count() > 0)
-            {
-                index = paragraphLookup.Last().Key;
-
-                if (paragraphLookup.Last().Value.Text.Length == 0)
-                    index++;
-                else
-                    index += paragraphLookup.Last().Value.Text.Length;
-            }
-
-            Paragraph newParagraph = new Paragraph(this, newXElement, index);
-            paragraphLookup.Add(index, newParagraph);
-            return newParagraph;
-        }
+        
 
         /// <summary>
         /// Insert a new Table at the end of this document.
@@ -1037,61 +752,17 @@ namespace Novacode
         /// </example>
         public Table InsertTable(int coloumnCount, int rowCount)
         {
-            XElement newTable = CreateTable(rowCount, coloumnCount);
+            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
             mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newTable);
 
 
-            RebuildParagraphs(this);
+            HelperFunctions.RebuildParagraphs(this);
             return new Table(this, newTable);
         }
 
         public Table AddTable(int rowCount, int coloumnCount)
         {
-            return (new Table(this, CreateTable(rowCount, coloumnCount)));
-        }
-
-        internal static XElement CreateTable(int rowCount, int coloumnCount)
-        {
-            XElement newTable =
-            new XElement
-            (
-                XName.Get("tbl", DocX.w.NamespaceName),
-                new XElement
-                (
-                    XName.Get("tblPr", DocX.w.NamespaceName),
-                        new XElement(XName.Get("tblStyle", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), "TableGrid")),
-                        new XElement(XName.Get("tblW", DocX.w.NamespaceName), new XAttribute(XName.Get("w", DocX.w.NamespaceName), "5000"), new XAttribute(XName.Get("type", DocX.w.NamespaceName), "auto")),
-                        new XElement(XName.Get("tblLook", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), "04A0"))
-                )
-            );
-
-            XElement tableGrid = new XElement(XName.Get("tblGrid", DocX.w.NamespaceName));
-            for (int i = 0; i < coloumnCount; i++)
-                tableGrid.Add(new XElement(XName.Get("gridCol", DocX.w.NamespaceName), new XAttribute(XName.Get("w", DocX.w.NamespaceName), "2310")));
-
-            newTable.Add(tableGrid);
-
-            for (int i = 0; i < rowCount; i++)
-            {
-                XElement row = new XElement(XName.Get("tr", DocX.w.NamespaceName));
-
-                for (int j = 0; j < coloumnCount; j++)
-                {
-                    XElement cell =
-                    new XElement
-                    (
-                        XName.Get("tc", DocX.w.NamespaceName),
-                            new XElement(XName.Get("tcPr", DocX.w.NamespaceName),
-                                new XElement(XName.Get("tcW", DocX.w.NamespaceName), new XAttribute(XName.Get("w", DocX.w.NamespaceName), "2310"), new XAttribute(XName.Get("type", DocX.w.NamespaceName), "dxa"))),
-                            new XElement(XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)))
-                    );
-
-                    row.Add(cell);
-                }
-
-                newTable.Add(row);
-            }
-            return newTable;
+            return (new Table(this, HelperFunctions.CreateTable(rowCount, coloumnCount)));
         }
 
         /// <summary>
@@ -1129,9 +800,9 @@ namespace Novacode
         /// </example>
         public Table InsertTable(int index, Table t)
         {
-            Paragraph p = GetFirstParagraphEffectedByInsert(this, index);
+            Paragraph p = HelperFunctions.GetFirstParagraphEffectedByInsert(this, index);
 
-            XElement[] split = SplitParagraph(p, index - p.startIndex);
+            XElement[] split = HelperFunctions.SplitParagraph(p, index - p.startIndex);
             XElement newXElement = new XElement(t.Xml);
             p.Xml.ReplaceWith
             (
@@ -1144,7 +815,7 @@ namespace Novacode
             newTable.Design = t.Design;
 
 
-            RebuildParagraphs(this);
+            HelperFunctions.RebuildParagraphs(this);
             return newTable;
         }
 
@@ -1229,16 +900,16 @@ namespace Novacode
         /// </example>
         public Table InsertTable(int index, int coloumnCount, int rowCount)
         {
-            XElement newTable = CreateTable(rowCount, coloumnCount);
+            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
 
-            Paragraph p = GetFirstParagraphEffectedByInsert(this, index);
+            Paragraph p = HelperFunctions.GetFirstParagraphEffectedByInsert(this, index);
 
             if (p == null)
                 mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().AddFirst(newTable);
 
             else
             {
-                XElement[] split = SplitParagraph(p, index - p.startIndex);
+                XElement[] split = HelperFunctions.SplitParagraph(p, index - p.startIndex);
 
                 p.Xml.ReplaceWith
                 (
@@ -1248,123 +919,11 @@ namespace Novacode
                 );
             }
 
-            RebuildParagraphs(this);
+            HelperFunctions.RebuildParagraphs(this);
 
             return new Table(this, newTable);
         }
-
-        /// <summary>
-        /// Insert a new Paragraph into this document at a specified index with text formatting.
-        /// </summary>
-        /// <param name="index">The character index to insert this document at.</param>
-        /// <param name="text">The text of this Paragraph.</param>
-        /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-        /// <param name="formatting">The formatting for the text of this Paragraph.</param>
-        /// <returns>A new Paragraph.</returns>
-        /// /// <example>
-        /// Insert a new Paragraph into the middle of a document with text formatting.
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Create a Formatting object
-        ///     Formatting formatting = new Formatting();
-        ///     formatting.Bold = true;
-        ///     formatting.FontColor = Color.Red;
-        ///     formatting.Size = 30;
-        ///
-        ///     //  Middle character index of this document.
-        ///     int index = document.Text.Length / 2;
-        ///
-        ///     // Insert a new Paragraph in the middle of this document.
-        ///     document.InsertParagraph(index, "New text", false, formatting);
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory
-        /// </code>
-        /// <remarks>You must add a reference to System.Drawing in order to use Color.Red.</remarks>
-        /// </example>
-        public Paragraph InsertParagraph(int index, string text, bool trackChanges, Formatting formatting)
-        {
-            Paragraph newParagraph = new Paragraph(this, new XElement(w + "p"), index);
-            newParagraph.InsertText(0, text, trackChanges, formatting);
-
-            Paragraph firstPar = GetFirstParagraphEffectedByInsert(this, index);
-
-            if (firstPar != null)
-            {
-                XElement[] splitParagraph = SplitParagraph(firstPar, index - firstPar.startIndex);
-
-                firstPar.Xml.ReplaceWith
-                (
-                    splitParagraph[0],
-                    newParagraph.Xml,
-                    splitParagraph[1]
-                );
-            }
-
-            else
-                mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newParagraph.Xml);
-
-            DocX.RebuildParagraphs(this);
-            return newParagraph;
-        }
-
-        static internal Paragraph GetFirstParagraphEffectedByInsert(DocX document, int index)
-        {
-            // This document contains no Paragraphs and insertion is at index 0
-            if (document.paragraphLookup.Keys.Count() == 0 && index == 0)
-                return null;
-
-            foreach (int paragraphEndIndex in document.paragraphLookup.Keys)
-            {
-                if (paragraphEndIndex >= index)
-                    return document.paragraphLookup[paragraphEndIndex];
-            }
-
-            throw new ArgumentOutOfRangeException();
-        }
-
-        internal XElement[] SplitParagraph(Paragraph p, int index)
-        {
-            Run r = p.GetFirstRunEffectedByInsert(index);
-
-            XElement[] split;
-            XElement before, after;
-
-            if (r.Xml.Parent.Name.LocalName == "ins")
-            {
-                split = p.SplitEdit(r.Xml.Parent, index, EditType.ins);
-                before = new XElement(p.Xml.Name, p.Xml.Attributes(), r.Xml.Parent.ElementsBeforeSelf(), split[0]);
-                after = new XElement(p.Xml.Name, p.Xml.Attributes(), r.Xml.Parent.ElementsAfterSelf(), split[1]);
-            }
-
-            else if (r.Xml.Parent.Name.LocalName == "del")
-            {
-                split = p.SplitEdit(r.Xml.Parent, index, EditType.del);
-
-                before = new XElement(p.Xml.Name, p.Xml.Attributes(), r.Xml.Parent.ElementsBeforeSelf(), split[0]);
-                after = new XElement(p.Xml.Name, p.Xml.Attributes(), r.Xml.Parent.ElementsAfterSelf(), split[1]);
-            }
-
-            else
-            {
-                split = Run.SplitRun(r, index);
-
-                before = new XElement(p.Xml.Name, p.Xml.Attributes(), r.Xml.ElementsBeforeSelf(), split[0]);
-                after = new XElement(p.Xml.Name, p.Xml.Attributes(), split[1], r.Xml.ElementsAfterSelf());
-            }
-
-            if (before.Elements().Count() == 0)
-                before = null;
-
-            if (after.Elements().Count() == 0)
-                after = null;
-
-            return new XElement[] { before, after };
-        }
-
+        
         /// <summary>
         /// Creates a document using a Stream.
         /// </summary>
@@ -1511,99 +1070,48 @@ namespace Novacode
             #endregion
 
             #region StylePart
-            stylesDoc = AddDefaultStylesXml(package);
+            stylesDoc = HelperFunctions.AddDefaultStylesXml(package);
             #endregion
 
             package.Close();
         }
 
-        /// <summary>
-        /// If this document does not contain a /word/styles.xml add the default one generated by Microsoft Word.
-        /// </summary>
-        /// <param name="package"></param>
-        /// <param name="mainDocumentPart"></param>
-        /// <returns></returns>
-        internal static XDocument AddDefaultStylesXml(Package package)
-        {
-            XDocument stylesDoc;
-            // Create the main document part for this package
-            PackagePart word_styles = package.CreatePart(new Uri("/word/styles.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml");
-
-            stylesDoc = DecompressXMLResource("Novacode.Resources.default_styles.xml.gz");
-
-            // Save /word/styles.xml
-            using (TextWriter tw = new StreamWriter(word_styles.GetStream(FileMode.Create, FileAccess.Write)))
-                stylesDoc.Save(tw, SaveOptions.DisableFormatting);
-
-            PackagePart mainDocumentPart = package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
-            mainDocumentPart.CreateRelationship(word_styles.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles");
-            return stylesDoc;
-        }
-
-        internal static XDocument DecompressXMLResource(string manifest_resource_name)
-        {
-            // XDocument to load the compressed Xml resource into.
-            XDocument document;
-
-            // Get a reference to the executing assembly.
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            
-            // Open a Stream to the embedded resource.
-            Stream stream = assembly.GetManifestResourceStream(manifest_resource_name);
-            
-            // Decompress the embedded resource.
-            using (GZipStream zip = new GZipStream(stream, CompressionMode.Decompress))
-            {
-                // Load this decompressed embedded resource into an XDocument using a TextReader.
-                using (TextReader sr = new StreamReader(zip))
-                {
-                    document = XDocument.Load(sr);
-                }
-            }
-
-            // Return the decompressed Xml as an XDocument.
-            return document;
-        }
-
         internal static DocX PostLoad(ref Package package)
         {
-            DocX document = new DocX();
+            DocX document = new DocX(null, null);
             document.package = package;
+            document.Document = document;
 
             #region MainDocumentPart
-            // Load the document part into a XDocument object
-            PackagePart word_document = package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
-            using (TextReader tr = new StreamReader(word_document.GetStream(FileMode.Open, FileAccess.Read)))
+            document.mainPart = package.GetParts().Where
+            (
+                p => p.ContentType.Equals
+                (
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
+                    StringComparison.CurrentCultureIgnoreCase
+                )
+            ).Single();
+
+            using (TextReader tr = new StreamReader(document.mainPart.GetStream(FileMode.Open, FileAccess.Read)))
                 document.mainDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
 
-            RebuildParagraphs(document);
+            HelperFunctions.RebuildParagraphs(document);
             #endregion
 
-            #region Headers
-            document.headers = new List<PackagePart>();
-            // Get all relationships of type header
-            var rels_header = word_document.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/header");
-            
-            // Foreach header relationship, get the package and add it to the headers list
-            foreach (var rel_header in rels_header)
-            {
-                PackagePart pp = document.package.GetParts().Where(p => p.Uri.ToString().EndsWith(rel_header.TargetUri.ToString())).First();
-                document.headers.Add(pp);
-            }   
-	        #endregion
+            Headers headers = new Headers();
+            headers.odd = document.GetHeaderByType("default");
+            headers.even = document.GetHeaderByType("even");
+            headers.first = document.GetHeaderByType("first");
 
-            #region Footers
-            document.footers = new List<PackagePart>();
-            // Get all relationships of type header
-            var rels_footer = word_document.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer");
+            Footers footers = new Footers();
+            footers.odd = document.GetFooterByType("default");
+            footers.even = document.GetFooterByType("even");
+            footers.first = document.GetFooterByType("first");
 
-            // Foreach footer relationship, get the package and add it to the footers list
-            foreach (var rel_footer in rels_footer)
-            {
-                PackagePart pp = document.package.GetParts().Where(p => p.Uri.ToString().EndsWith(rel_footer.TargetUri.ToString())).First();
-                document.footers.Add(pp);
-            }
-            #endregion
+            document.Xml = document.mainDoc.Root.Element(w + "body");
+            document.headers = headers;
+            document.footers = footers;
+            document.settingsPart = HelperFunctions.CreateOrGetSettingsPart(package);
 
             return document;
         }
@@ -1680,30 +1188,6 @@ namespace Novacode
             document.memoryStream = ms;
             document.stream = stream;
             return document;
-        }
-
-        /// <summary>
-        /// Set the content direction for all Paragraphs in this document.
-        /// </summary>
-        /// <param name="direction">(Left to Right) or (Right to Left)</param>
-        /// <example>
-        /// Set the direction for all content in a document to RightToLeft.
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///     // Set the direction for all content in the document to RightToLeft.
-        ///     document.SetDirection(Direction.RightToLeft);
-        ///    
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }
-        /// </code>
-        /// </example>
-        public void SetDirection(Direction direction) 
-        {
-            foreach (Paragraph p in Paragraphs)
-                p.Direction = direction;
         }
 
         /// <summary>
@@ -1790,41 +1274,6 @@ namespace Novacode
             return AddImage(filename as object);
         }
 
-        /// <!-- 
-        /// Bug found and fixed by trnilse. To see the change, 
-        /// please compare this release to the previous release using TFS compare.
-        /// -->
-        internal bool IsSameFile(Stream streamOne, Stream streamTwo)
-        {
-            int file1byte, file2byte;
-
-            if (streamOne.Length != streamOne.Length)
-            {
-                // Return false to indicate files are different
-                return false;
-            }
-
-            // Read and compare a byte from each file until either a
-            // non-matching set of bytes is found or until the end of
-            // file1 is reached.
-            do
-            {
-                // Read one byte from each file.
-                file1byte = streamOne.ReadByte();
-                file2byte = streamTwo.ReadByte();
-            }
-            while ((file1byte == file2byte) && (file1byte != -1));
-
-            // Return the success of the comparison. "file1byte" is 
-            // equal to "file2byte" at this point only if the files are 
-            // the same.
-
-            streamOne.Position = 0;
-            streamTwo.Position = 0;
-
-            return ((file1byte - file2byte) == 0);
-        }
-
         /// <summary>
         /// Add an Image into this document from a Stream.
         /// </summary>
@@ -1883,17 +1332,10 @@ namespace Novacode
         /// </example>
         public Hyperlink AddHyperlink(string text, Uri uri)
         {
-            // Get the word\document.xml part
-            PackagePart word_document = package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
-
-            // Create a new image relationship
-            PackageRelationship rel = word_document.CreateRelationship(uri, TargetMode.External, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink");
-            string id = rel.Id;
-
             XElement i = new XElement
             (
                 XName.Get("hyperlink", DocX.w.NamespaceName),
-                new XAttribute(r + "id", id),
+                new XAttribute(r + "id", string.Empty),
                 new XAttribute(w + "history", "1"),
                 new XElement(XName.Get("r", DocX.w.NamespaceName),
                 new XElement(XName.Get("rPr", DocX.w.NamespaceName),
@@ -1911,78 +1353,13 @@ namespace Novacode
             return h;
         }
 
-        /// <summary>
-        /// Returns a list of Hyperlinks in this document.
-        /// </summary>
-        /// <example>
-        /// <code>
-        /// // Create a document.
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///    // Get all of the hyperlinks in this document
-        ///    List<Hyperlink> hyperlinks = document.Hyperlinks;
-        ///    
-        ///    // Change the first hyperlinks text and Uri
-        ///    Hyperlink h0 = hyperlinks[0];
-        ///    h0.Text = "DocX";
-        ///    h0.Uri = new Uri("http://docx.codeplex.com");
-        ///
-        ///    // Save this document.
-        ///    document.Save();
-        /// }
-        /// </code>
-        /// </example>
-        public List<Hyperlink> Hyperlinks
-        {
-            get
-            {
-                List<Hyperlink> hyperlinks = new List<Hyperlink>();
-
-                foreach (Paragraph p in Paragraphs)
-                    hyperlinks.AddRange(p.Hyperlinks);
-
-                return hyperlinks;
-            }
-        }
-
-
-        /// <summary>
-        /// Returns a list of all Pictures in a Document.
-        /// </summary>
-        /// <example>
-        /// Returns a list of all Pictures in a Document.
-        /// <code>
-        /// // Create a document.
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///    // Get all of the Pictures in this Document.
-        ///    List<Picture> pictures = document.Pictures;
-        ///
-        ///    // Save this document.
-        ///    document.Save();
-        /// }
-        /// </code>
-        /// </example>
-        public List<Picture> Pictures
-        {
-            get
-            {
-                List<Picture> pictures = new List<Picture>();
-
-                foreach (Paragraph p in Paragraphs)
-                    pictures.AddRange(p.Pictures);
-
-                return pictures;
-            }
-        }
-
         internal void AddHyperlinkStyleIfNotPresent()
         {
             Uri word_styles_Uri = new Uri("/word/styles.xml", UriKind.Relative);
 
             // If the internal document contains no /word/styles.xml create one.
             if (!package.PartExists(word_styles_Uri))
-                AddDefaultStylesXml(package);
+                HelperFunctions.AddDefaultStylesXml(package);
 
             // Load the styles.xml into memory.
             XDocument word_styles;
@@ -2030,12 +1407,9 @@ namespace Novacode
 
         private string GetNextFreeRelationshipID()
         {
-            // Get the word\document.xml part
-            PackagePart word_document = package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
-
             string id =
             (
-                from r in word_document.GetRelationships()
+                from r in mainPart.GetRelationships()
                 select r.Id
             ).Max();
 
@@ -2049,6 +1423,201 @@ namespace Novacode
                 return Guid.NewGuid().ToString();
         }
 
+        /// <summary>
+        /// Adds three new Headers to this document. One for the first page, one for odd pages and one for even pages.
+        /// </summary>
+        /// <example>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Add header support to this document.
+        ///     document.AddHeaders();
+        ///
+        ///     // Get a collection of all headers in this document.
+        ///     Headers headers = document.Headers;
+        ///
+        ///     // The header used for the first page of this document.
+        ///     Header first = headers.first;
+        ///
+        ///     // The header used for odd pages of this document.
+        ///     Header odd = headers.odd;
+        ///
+        ///     // The header used for even pages of this document.
+        ///     Header even = headers.even;
+        ///
+        ///     // Force the document to use a different header for first, odd and even pages.
+        ///     document.DifferentFirstPage = true;
+        ///     document.DifferentOddAndEvenPages = true;
+        ///
+        ///     // Content can be added to the Headers in the same manor that it would be added to the main document.
+        ///     Paragraph p = first.InsertParagraph();
+        ///     p.Append("This is the first pages header.");
+        ///
+        ///     // Save all changes to this document.
+        ///     document.Save();    
+        /// }// Release this document from memory.
+        /// </example>
+        public void AddHeaders()
+        {
+            AddHeadersOrFooters(true);
+
+            headers.odd = Document.GetHeaderByType("default");
+            headers.even = Document.GetHeaderByType("even");
+            headers.first = Document.GetHeaderByType("first");
+        }
+
+        /// <summary>
+        /// Adds three new Footers to this document. One for the first page, one for odd pages and one for even pages.
+        /// </summary>
+        /// <example>
+        /// // Create a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Add footer support to this document.
+        ///     document.AddFooters();
+        ///
+        ///     // Get a collection of all footers in this document.
+        ///     Footers footers = document.Footers;
+        ///
+        ///     // The footer used for the first page of this document.
+        ///     Footer first = footers.first;
+        ///
+        ///     // The footer used for odd pages of this document.
+        ///     Footer odd = footers.odd;
+        ///
+        ///     // The footer used for even pages of this document.
+        ///     Footer even = footers.even;
+        ///
+        ///     // Force the document to use a different footer for first, odd and even pages.
+        ///     document.DifferentFirstPage = true;
+        ///     document.DifferentOddAndEvenPages = true;
+        ///
+        ///     // Content can be added to the Footers in the same manor that it would be added to the main document.
+        ///     Paragraph p = first.InsertParagraph();
+        ///     p.Append("This is the first pages footer.");
+        ///
+        ///     // Save all changes to this document.
+        ///     document.Save();    
+        /// }// Release this document from memory.
+        /// </example>
+        public void AddFooters()
+        {
+            AddHeadersOrFooters(false);
+
+            footers.odd = Document.GetFooterByType("default");
+            footers.even = Document.GetFooterByType("even");
+            footers.first = Document.GetFooterByType("first");
+        }
+
+        /// <summary>
+        /// Adds a Header to a document.
+        /// If the document already contains a Header it will be replaced.
+        /// </summary>
+        /// <returns>The Header that was added to the document.</returns>
+        internal void AddHeadersOrFooters(bool b)
+        {
+            string element = "ftr";
+            string reference = "footer";
+            if (b)
+            {
+                element = "hdr";
+                reference = "header";
+            }
+
+            DeleteHeadersOrFooters(b);
+
+            XElement sectPr = mainDoc.Root.Element(w + "body").Element(w + "sectPr");
+
+            for (int i = 1; i < 4; i++)
+            {
+                string header_uri = string.Format("/word/{0}{1}.xml", reference, i);
+
+                PackagePart headerPart = package.CreatePart(new Uri(header_uri, UriKind.Relative), string.Format("application/vnd.openxmlformats-officedocument.wordprocessingml.{0}+xml", reference));
+                PackageRelationship headerRelationship = mainPart.CreateRelationship(headerPart.Uri, TargetMode.Internal, string.Format("http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference));
+
+                XDocument header;
+
+                // Load the document part into a XDocument object
+                using (TextReader tr = new StreamReader(headerPart.GetStream(FileMode.Create, FileAccess.ReadWrite)))
+                {
+                    header = XDocument.Parse
+                    (string.Format(@"<?xml version=""1.0"" encoding=""utf-16"" standalone=""yes""?>
+                       <w:{0} xmlns:ve=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:wne=""http://schemas.microsoft.com/office/word/2006/wordml"">
+                         <w:p w:rsidR=""009D472B"" w:rsidRDefault=""009D472B"">
+                           <w:pPr>
+                             <w:pStyle w:val=""{1}"" />
+                           </w:pPr>
+                         </w:p>
+                       </w:{0}>", element, reference)
+                    );
+                }
+
+                // Save the main document
+                using (TextWriter tw = new StreamWriter(headerPart.GetStream(FileMode.Create, FileAccess.Write)))
+                    header.Save(tw, SaveOptions.DisableFormatting);
+
+                string type;
+                switch (i)
+                {
+                    case 1: type = "default"; break;
+                    case 2: type = "even"; break;
+                    case 3: type = "first"; break;
+                    default: throw new ArgumentOutOfRangeException();
+                }
+
+                sectPr.Add
+                (
+                    new XElement
+                    (
+                        w + string.Format("{0}Reference", reference),
+                        new XAttribute(w + "type", type),
+                        new XAttribute(r + "id", headerRelationship.Id)
+                    )
+                );
+            }
+        }
+
+        internal void DeleteHeadersOrFooters(bool b)
+        {
+            string reference = "footer";
+            if (b)
+                reference = "header";
+
+            // Get all header Relationships in this document.
+            var header_relationships = mainPart.GetRelationshipsByType(string.Format("http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference));
+
+            foreach (PackageRelationship header_relationship in header_relationships)
+            {
+                // Get the TargetUri for this Part.
+                Uri header_uri = header_relationship.TargetUri;
+
+                // Check to see if the document actually contains the Part.
+                if (!header_uri.OriginalString.StartsWith("/word/"))
+                    header_uri = new Uri("/word/" + header_uri.OriginalString, UriKind.Relative);
+
+                if (package.PartExists(header_uri))
+                {
+                    // Delete the Part
+                    package.DeletePart(header_uri);
+
+                    // Get all references to this Relationship in the document.
+                    var query =
+                    (
+                        from e in mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).Descendants()
+                        where (e.Name.LocalName == string.Format("{0}Reference", reference)) && (e.Attribute(r + "id").Value == header_relationship.Id)
+                        select e
+                    );
+
+                    // Remove all references to this Relationship in the document.
+                    for (int i = 0; i < query.Count(); i++)
+                        query.ElementAt(i).Remove();
+
+                    // Delete the Relationship.
+                    package.DeleteRelationship(header_relationship.Id);
+                }
+            }
+        }
+
         internal Image AddImage(object o)
         {
             // Open a Stream to the new image being added.
@@ -2058,11 +1627,8 @@ namespace Novacode
             else
                 newImageStream = o as Stream;
 
-            // Get the word\document.xml part
-            PackagePart word_document = package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
-
             // Get all image parts in word\document.xml
-            var imageParts = word_document.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image").Select(ir => package.GetParts().Where(p => p.Uri.ToString().EndsWith(ir.TargetUri.ToString())).First());
+            var imageParts = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image").Select(ir => package.GetParts().Where(p => p.Uri.ToString().EndsWith(ir.TargetUri.ToString())).First());
             
             // Loop through each image part in this document.
             foreach (PackagePart pp in imageParts)
@@ -2071,10 +1637,10 @@ namespace Novacode
                 using (Stream tempStream = pp.GetStream(FileMode.Open, FileAccess.Read))
                 {
                     // Compare this image to the new image being added.
-                    if (IsSameFile(tempStream, newImageStream))
+                    if (HelperFunctions.IsSameFile(tempStream, newImageStream))
                     {
                         // Get the image object for this image part
-                        string id = word_document.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
+                        string id = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
                         .Where(r => r.TargetUri == pp.Uri)
                         .Select(r => r.Id).First();
 
@@ -2105,7 +1671,7 @@ namespace Novacode
             PackagePart img = package.CreatePart(new Uri(string.Format("/word/media/image{0}.jpeg", max + 1), UriKind.Relative), System.Net.Mime.MediaTypeNames.Image.Jpeg);
 
             // Create a new image relationship
-            PackageRelationship rel = word_document.CreateRelationship(img.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+            PackageRelationship rel = mainPart.CreateRelationship(img.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
 
             // Open a Stream to the newly created Image part.
             using (Stream stream = img.GetStream(FileMode.Create, FileAccess.Write))
@@ -2149,11 +1715,156 @@ namespace Novacode
         /// -->
         public void Save()
         {
-            if (package.PartExists(new Uri("/word/document.xml", UriKind.Relative)))
+            Headers headers = Headers;
+
+            // Save the main document
+            using (TextWriter tw = new StreamWriter(mainPart.GetStream(FileMode.Create, FileAccess.Write)))
+                mainDoc.Save(tw, SaveOptions.DisableFormatting);
+
+            XElement body = mainDoc.Root.Element(w + "body");
+            XElement sectPr = body.Element(w + "sectPr");
+            
+            var evenHeaderRef = 
+            (
+                from e in sectPr.Elements(w + "headerReference")
+                let type = e.Attribute(w + "type")
+                where type != null && type.Value.Equals("even", StringComparison.CurrentCultureIgnoreCase)
+                select e.Attribute(r + "id").Value
+             ).SingleOrDefault();
+
+            if(evenHeaderRef != null)
             {
-                // Save the main document
-                using (TextWriter tw = new StreamWriter(package.GetPart(new Uri("/word/document.xml", UriKind.Relative)).GetStream(FileMode.Create, FileAccess.Write)))
-                    mainDoc.Save(tw, SaveOptions.DisableFormatting);
+                XElement even = headers.even.Xml;
+                Uri target = mainPart.GetRelationship(evenHeaderRef).TargetUri;
+                
+                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                {
+                    new XDocument
+                    (
+                        new XDeclaration("1.0", "UTF-8", "yes"),
+                        even
+                    ).Save(tw, SaveOptions.DisableFormatting);
+                }
+            }
+
+            var oddHeaderRef = 
+            (
+                from e in sectPr.Elements(w + "headerReference")
+                let type = e.Attribute(w + "type")
+                where type != null && type.Value.Equals("default", StringComparison.CurrentCultureIgnoreCase)
+                select e.Attribute(r + "id").Value
+             ).SingleOrDefault();
+
+            if(oddHeaderRef != null)
+            {
+                XElement odd = headers.odd.Xml;
+                Uri target = mainPart.GetRelationship(oddHeaderRef).TargetUri;
+               
+                // Save header1
+                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                {
+                    new XDocument
+                    (
+                        new XDeclaration("1.0", "UTF-8", "yes"),
+                        odd
+                    ).Save(tw, SaveOptions.DisableFormatting);
+                }
+            }
+
+            var firstHeaderRef =
+            (
+                from e in sectPr.Elements(w + "headerReference")
+                let type = e.Attribute(w + "type")
+                where type != null && type.Value.Equals("first", StringComparison.CurrentCultureIgnoreCase)
+                select e.Attribute(r + "id").Value
+             ).SingleOrDefault();
+
+            if(firstHeaderRef != null)
+            {
+                XElement first = headers.first.Xml;
+                Uri target = mainPart.GetRelationship(firstHeaderRef).TargetUri;
+               
+                // Save header3
+                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                {
+                    new XDocument
+                    (
+                        new XDeclaration("1.0", "UTF-8", "yes"),
+                        first
+                    ).Save(tw, SaveOptions.DisableFormatting);
+                }
+            }
+
+            var oddFooterRef =
+            (
+                from e in sectPr.Elements(w + "footerReference")
+                let type = e.Attribute(w + "type")
+                where type != null && type.Value.Equals("default", StringComparison.CurrentCultureIgnoreCase)
+                select e.Attribute(r + "id").Value
+             ).SingleOrDefault();
+
+            if(oddFooterRef != null)
+            {
+                XElement odd = footers.odd.Xml;
+                Uri target = mainPart.GetRelationship(oddFooterRef).TargetUri;
+             
+                // Save header1
+                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                {
+                    new XDocument
+                    (
+                        new XDeclaration("1.0", "UTF-8", "yes"),
+                        odd
+                    ).Save(tw, SaveOptions.DisableFormatting);
+                }
+            }
+
+            var evenFooterRef =
+            (
+                from e in sectPr.Elements(w + "footerReference")
+                let type = e.Attribute(w + "type")
+                where type != null && type.Value.Equals("even", StringComparison.CurrentCultureIgnoreCase)
+                select e.Attribute(r + "id").Value
+             ).SingleOrDefault();
+
+            if (evenFooterRef != null)
+            {
+                XElement even = footers.even.Xml;
+                Uri target = mainPart.GetRelationship(evenFooterRef).TargetUri;
+             
+                // Save header2
+                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                {
+                    new XDocument
+                    (
+                        new XDeclaration("1.0", "UTF-8", "yes"),
+                        even
+                    ).Save(tw, SaveOptions.DisableFormatting);
+                }
+            }
+
+            var firstFooterRef =
+            (
+                 from e in sectPr.Elements(w + "footerReference")
+                 let type = e.Attribute(w + "type")
+                 where type != null && type.Value.Equals("first", StringComparison.CurrentCultureIgnoreCase)
+                 select e.Attribute(r + "id").Value
+            ).SingleOrDefault();
+
+            if (firstFooterRef != null)
+            {         
+                XElement first = footers.first.Xml;
+                Uri target = mainPart.GetRelationship(firstFooterRef).TargetUri;
+
+                // Save header3
+                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                {
+                    new XDocument
+                    (
+                        new XDeclaration("1.0", "UTF-8", "yes"),
+                        first
+                    ).Save(tw, SaveOptions.DisableFormatting);
+                }
             }
 
             // Close the document so that it can be saved.
@@ -2329,7 +2040,7 @@ namespace Novacode
         {
             // If this document does not contain a customFilePropertyPart create one.
             if(!package.PartExists(new Uri("/docProps/custom.xml", UriKind.Relative)))
-                CreateCustomPropertiesPart(this);
+                HelperFunctions.CreateCustomPropertiesPart(this);
 
             XDocument customPropDoc;
             PackagePart customPropPart = package.GetPart(new Uri("/docProps/custom.xml", UriKind.Relative));
@@ -2381,25 +2092,7 @@ namespace Novacode
             UpdateCustomPropertyValue(this, cp.Name, cp.Value.ToString());
         }
 
-        internal static void CreateCustomPropertiesPart(DocX document)
-        {
-            PackagePart customPropertiesPart = document.package.CreatePart(new Uri("/docProps/custom.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.custom-properties+xml");
-
-            XDocument customPropDoc = new XDocument
-            (
-                new XDeclaration("1.0", "UTF-8", "yes"),
-                new XElement
-                (
-                    XName.Get("Properties", customPropertiesSchema.NamespaceName),
-                    new XAttribute(XNamespace.Xmlns + "vt", customVTypesSchema)
-                )
-            );
-
-            using (TextWriter tw = new StreamWriter(customPropertiesPart.GetStream(FileMode.Create, FileAccess.Write)))
-                customPropDoc.Save(tw, SaveOptions.DisableFormatting);
-
-            document.package.CreateRelationship(customPropertiesPart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties");
-        }
+        
 
         internal static void UpdateCustomPropertyValue(DocX document, string customPropertyName, string customPropertyValue)
         {
@@ -2423,257 +2116,112 @@ namespace Novacode
                 }
             }
 
-            PackagePart word_document = document.package.GetPart(new Uri("/word/document.xml", UriKind.Relative));
+            //#region Headers
+            //foreach(PackagePart pp in document.headers)
+            //{
+            //    XDocument header = XDocument.Load(new StreamReader(pp.GetStream()));
 
-            #region Headers
-            foreach(PackagePart pp in document.headers)
-            {
-                XDocument header = XDocument.Load(new StreamReader(pp.GetStream()));
+            //    foreach (XElement e in header.Descendants(XName.Get("fldSimple", w.NamespaceName)))
+            //    {
+            //        if (e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Trim().Equals(string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName), StringComparison.CurrentCultureIgnoreCase))
+            //        {
+            //            XElement firstRun = e.Element(w + "r");
 
-                foreach (XElement e in header.Descendants(XName.Get("fldSimple", w.NamespaceName)))
-                {
-                    if (e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Trim().Equals(string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName), StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        XElement firstRun = e.Element(w + "r");
+            //            // Delete everything and insert updated text value
+            //            e.RemoveNodes();
 
-                        // Delete everything and insert updated text value
-                        e.RemoveNodes();
+            //            XElement t = new XElement(w + "t", customPropertyValue);
+            //            Novacode.Text.PreserveSpace(t);
+            //            e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
+            //        }
+            //    }
 
-                        XElement t = new XElement(w + "t", customPropertyValue);
-                        Novacode.Text.PreserveSpace(t);
-                        e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
-                    }
-                }
+            //    using (TextWriter tw = new StreamWriter(pp.GetStream()))
+            //        header.Save(tw);
+            //} 
+            //#endregion
 
-                using (TextWriter tw = new StreamWriter(pp.GetStream()))
-                    header.Save(tw);
-            } 
-            #endregion
+            //#region Footers
+            //foreach (PackagePart pp in document.footers)
+            //{
+            //    XDocument footer = XDocument.Load(new StreamReader(pp.GetStream()));
 
-            #region Footers
-            foreach (PackagePart pp in document.footers)
-            {
-                XDocument footer = XDocument.Load(new StreamReader(pp.GetStream()));
+            //    foreach (XElement e in footer.Descendants(XName.Get("fldSimple", w.NamespaceName)))
+            //    {
+            //        if (e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Trim().Equals(string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName), StringComparison.CurrentCultureIgnoreCase))
+            //        {
+            //            XElement firstRun = e.Element(w + "r");
 
-                foreach (XElement e in footer.Descendants(XName.Get("fldSimple", w.NamespaceName)))
-                {
-                    if (e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Trim().Equals(string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName), StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        XElement firstRun = e.Element(w + "r");
+            //            // Delete everything and insert updated text value
+            //            e.RemoveNodes();
 
-                        // Delete everything and insert updated text value
-                        e.RemoveNodes();
+            //            XElement t = new XElement(w + "t", customPropertyValue);
+            //            Novacode.Text.PreserveSpace(t);
+            //            e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
+            //        }
+            //    }
 
-                        XElement t = new XElement(w + "t", customPropertyValue);
-                        Novacode.Text.PreserveSpace(t);
-                        e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
-                    }
-                }
-
-                using (TextWriter tw = new StreamWriter(pp.GetStream()))
-                    footer.Save(tw);
-            }
-            #endregion
+            //    using (TextWriter tw = new StreamWriter(pp.GetStream()))
+            //        footer.Save(tw);
+            //}
+            //#endregion
         }
 
-        internal static void RenumberIDs(DocX document)
+        public override Paragraph InsertParagraph()
         {
-            IEnumerable<XAttribute> trackerIDs =
-                            (from d in document.mainDoc.Descendants()
-                             where d.Name.LocalName == "ins" || d.Name.LocalName == "del"
-                             select d.Attribute(XName.Get("id", "http://schemas.openxmlformats.org/wordprocessingml/2006/main")));
-
-            for (int i = 0; i < trackerIDs.Count(); i++)
-                trackerIDs.ElementAt(i).Value = i.ToString();
+            Paragraph p = base.InsertParagraph();
+            p.PackagePart = mainPart;
+            return p;
         }
 
-        /// <summary>
-        /// Replace text in this document, not case sensetive.
-        /// </summary>
-        /// <example>
-        /// Replace every instance of "old" in this document with "new".
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Replace every instance of "old" in this document with "new".
-        ///     document.ReplaceText("old", "new", false, RegexOptions.IgnoreCase);
-        ///                
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <param name="oldValue">The text to replace.</param>
-        /// <param name="newValue">The new text to insert.</param>
-        /// <param name="trackChanges">Should this change be tracked?</param>
-        /// <param name="options">RegexOptions to use for this text replace.</param>
-        public void ReplaceText(string oldValue, string newValue, bool trackChanges, RegexOptions options)
+        public override Paragraph InsertParagraph(int index, string text, bool trackChanges)
         {
-            ReplaceText(oldValue, newValue, false, false, trackChanges, options, null, null, MatchFormattingOptions.SubsetMatch);
+            Paragraph p = base.InsertParagraph(index, text, trackChanges);
+            p.PackagePart = mainPart;
+            return p;
         }
 
-        /// <summary>
-        /// Replace text in this document, ignore case, include the headers and footers.
-        /// </summary>
-        /// <example>
-        /// Replace every instance of "old" in this document with "new".
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Replace every instance of "old" in this document with "new", include headers and footers in ReplaceText.
-        ///     document.ReplaceText("old", "new", true, true, false, RegexOptions.IgnoreCase);
-        ///                
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <param name="oldValue">The text to replace.</param>
-        /// <param name="newValue">The new text to insert.</param>
-        /// <param name="includeHeaders">Should ReplaceText include text in the headers?</param>
-        /// <param name="includeFooters">Should ReplaceText include text in the footers?</param>
-        /// <param name="trackChanges">Should this change be tracked?</param>
-        /// <param name="options">RegexOptions to use for this text replace.</param>
-        public void ReplaceText(string oldValue, string newValue, bool includeHeaders, bool includeFooters, bool trackChanges, RegexOptions options)
+        public override Paragraph InsertParagraph(Paragraph p)
         {
-            ReplaceText(oldValue, newValue, includeHeaders, includeFooters, trackChanges, options, null, null, MatchFormattingOptions.SubsetMatch);
+            p.PackagePart = mainPart;
+            return base.InsertParagraph(p);
         }
 
-        /// <summary>
-        /// Replace text in this document, ignore case, include the headers and footers.
-        /// </summary>
-        /// <example>
-        /// Replace every instance of "old" in this document with "new".
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"Test.docx"))
-        /// {
-        ///     // The formatting to match.
-        ///     Formatting matchFormatting = new Formatting();
-        ///     matchFormatting.Size = 10;
-        ///     matchFormatting.Italic = true;
-        ///     matchFormatting.FontFamily = new FontFamily("Times New Roman");
-        ///
-        ///     // The formatting to apply to the inserted text.
-        ///     Formatting newFormatting = new Formatting();
-        ///     newFormatting.Size = 22;
-        ///     newFormatting.UnderlineStyle = UnderlineStyle.dotted;
-        ///     newFormatting.Bold = true;
-        ///
-        ///     /* 
-        ///      * Replace all instances of the string "old" with the string "new", include both the header and footer and ignore case.
-        ///      * Each inserted instance of "new" should use the Formatting newFormatting.
-        ///      * Only replace an instance of "old" if it is Size 10, Italic and Times New Roman.
-        ///      * SubsetMatch means that the formatting must contain all elements of the match formatting,
-        ///      * but it can also contain additional formatting for example Color, UnderlineStyle, etc.
-        ///      * ExactMatch means it must not contain additional formatting.
-        ///      */
-        ///     document.ReplaceText("old", "new", true, true, false, RegexOptions.IgnoreCase, newFormatting, matchFormatting, MatchFormattingOptions.SubsetMatch);
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <param name="oldValue">The text to replace.</param>
-        /// <param name="newValue">The new text to insert.</param>
-        /// <param name="includeHeaders">Should ReplaceText include text in the headers?</param>
-        /// <param name="includeFooters">Should ReplaceText include text in the footers?</param>
-        /// <param name="trackChanges">Should this change be tracked?</param>
-        /// <param name="options">RegexOptions to use for this text replace.</param>
-        /// <param name="newFormatting">The formatting to apply to the text being inserted.</param>
-        /// <param name="matchFormatting">The formatting that the text must match in order to be replaced.</param>
-        /// <param name="fo">How should formatting be matched?</param>
-        public void ReplaceText(string oldValue, string newValue, bool includeHeaders, bool includeFooters, bool trackChanges, RegexOptions options, Formatting newFormatting, Formatting matchFormatting, MatchFormattingOptions fo)
+        public override Paragraph InsertParagraph(int index, Paragraph p)
         {
-            foreach (Paragraph p in paragraphs)
-                p.ReplaceText(oldValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo);
-
-            #region Headers & Footers
-            List<PackagePart> headerAndFooters = new List<PackagePart>();
-
-            if (includeHeaders)
-                headerAndFooters.AddRange(this.headers);
-
-            if (includeFooters)
-                headerAndFooters.AddRange(this.footers);
-
-            foreach (PackagePart pp in headerAndFooters)
-            {
-                XDocument d;
-                using (TextReader tr = new StreamReader(pp.GetStream()))
-                {
-                    d = XDocument.Load(tr);
-
-                    // Get the runs in this paragraph
-                    IEnumerable<Paragraph> paras = d.Descendants(XName.Get("p", "http://schemas.openxmlformats.org/wordprocessingml/2006/main")).Select(p => new Paragraph(this, p, -1));
-
-                    foreach (Paragraph p in paras)
-                    {
-                        p.ReplaceText(oldValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo);
-                    }
-                }
-
-                using (TextWriter tw = new StreamWriter(pp.GetStream(FileMode.Create)))
-                    d.Save(tw);
-            }
-            #endregion
+            p.PackagePart = mainPart;
+            return base.InsertParagraph(index, p);
         }
 
-        /// <summary>
-        /// Replace text in this document, case sensetive.
-        /// </summary>
-        /// <example>
-        /// Replace every instance of "old" in this document with "new".
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Replace every instance of "old" in this document with "new".
-        ///     document.ReplaceText("old", "new", false);
-        ///                
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <param name="oldValue">The text to replace.</param>
-        /// <param name="newValue">The new text to insert.</param>
-        /// <param name="trackChanges">Should this change be tracked?</param>
-        /// <param name="options">RegexOptions to use for this text replace.</param>
-        public void ReplaceText(string oldValue, string newValue, bool trackChanges)
+        public override Paragraph InsertParagraph(int index, string text, bool trackChanges, Formatting formatting)
         {
-            ReplaceText(oldValue, newValue, trackChanges, false, false, RegexOptions.None);
+            Paragraph p = base.InsertParagraph(index, text, trackChanges, formatting);
+            p.PackagePart = mainPart;
+            return p;
         }
 
-        /// <summary>
-        /// Replace text in this document, case sensetive, include the headers and footers.
-        /// </summary>
-        /// <example>
-        /// Replace every instance of "old" in this document with "new".
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Replace every instance of "old" in this document with "new", include headers and footers in ReplaceText.
-        ///     document.ReplaceText("old", "new", true, true, false);
-        ///                
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <param name="oldValue">The text to replace.</param>
-        /// <param name="newValue">The new text to insert.</param>
-        /// <param name="includeHeaders">Should ReplaceText include text in the headers?</param>
-        /// <param name="includeFooters">Should ReplaceText include text in the footers?</param>
-        /// <param name="trackChanges">Should this change be tracked?</param>
-        public void ReplaceText(string oldValue, string newValue, bool includeHeaders, bool includeFooters, bool trackChanges)
+        public override Paragraph InsertParagraph(string text)
         {
-            ReplaceText(oldValue, newValue, includeHeaders, includeFooters, trackChanges, RegexOptions.None, null, null, MatchFormattingOptions.SubsetMatch);
+            Paragraph p = base.InsertParagraph(text);
+            p.PackagePart = mainPart;
+            return p;
         }
+
+        public override Paragraph InsertParagraph(string text, bool trackChanges)
+        {
+            Paragraph p = base.InsertParagraph(text, trackChanges);
+            p.PackagePart = mainPart;
+            return p;
+        }
+
+        public override Paragraph InsertParagraph(string text, bool trackChanges, Formatting formatting)
+        {
+            Paragraph p = base.InsertParagraph(text, trackChanges, formatting);
+            p.PackagePart = mainPart;
+
+            return p;
+        }
+
 
         #region IDisposable Members
 
@@ -2709,5 +2257,7 @@ namespace Novacode
         }
 
         #endregion
+
+
     }
 }
