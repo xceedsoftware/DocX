@@ -170,6 +170,8 @@ namespace Novacode
         public List<Row> Rows { get { return rows; } }
         private TableDesign design;
 
+        internal PackagePart mainPart;
+
         internal Table(DocX document, XElement xml):base(document, xml)
         {
             autofit = AutoFit.ColoumnWidth;
@@ -178,7 +180,7 @@ namespace Novacode
             XElement properties = xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
             
             rows = (from r in xml.Elements(XName.Get("tr", DocX.w.NamespaceName))
-                       select new Row(document, r)).ToList();
+                       select new Row(this, document, r)).ToList();
 
             rowCount = rows.Count;
 
@@ -763,7 +765,7 @@ namespace Novacode
                 content.Add(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
 
             XElement e = new XElement(XName.Get("tr", DocX.w.NamespaceName), content);
-            Row newRow = new Row(Document, e);
+            Row newRow = new Row(this, Document, e);
 
             XElement rowXml;
             if (index == rows.Count)
@@ -835,7 +837,7 @@ namespace Novacode
                 }
 
                 rows = (from r in Xml.Elements(XName.Get("tr", DocX.w.NamespaceName))
-                        select new Row(Document, r)).ToList();
+                        select new Row(this, Document, r)).ToList();
 
                 rowCount = rows.Count;
 
@@ -1298,15 +1300,30 @@ namespace Novacode
                 List<Cell> cells = 
                 (
                     from c in Xml.Elements(XName.Get("tc", DocX.w.NamespaceName))
-                    select new Cell(Document, c)
+                    select new Cell(this, Document, c)
                 ).ToList();
 
                 return cells;
             } 
         }
 
-        internal Row(DocX document, XElement xml):base(document, xml)
+        public override List<Paragraph> Paragraphs
         {
+            get
+            {
+                List<Paragraph> paragraphs = base.Paragraphs;
+
+                foreach (Paragraph p in paragraphs)
+                    p.PackagePart = table.mainPart;
+
+                return paragraphs;
+            }
+        }
+
+        internal Table table;
+        internal Row(Table table, DocX document, XElement xml):base(document, xml)
+        {
+            this.table = table;
         }
 
         /// <summary>
@@ -1464,9 +1481,23 @@ namespace Novacode
 
     public class Cell:Container
     {
-        internal Cell(DocX document, XElement xml):base(document, xml)
+        internal Row row;
+        internal Cell(Row row, DocX document, XElement xml):base(document, xml)
         {
-            
+            this.row = row;
+        }
+
+        public override List<Paragraph> Paragraphs
+        {
+            get
+            {
+                List<Paragraph> paragraphs = base.Paragraphs;
+
+                foreach (Paragraph p in paragraphs)
+                    p.PackagePart = row.table.mainPart;
+
+                return paragraphs;
+            }
         }
 
         public Color Shading
