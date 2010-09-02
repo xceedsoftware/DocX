@@ -284,11 +284,6 @@ namespace Novacode
         // Get the word\settings.xml part
         internal PackagePart settingsPart;
 
-        #region Private instance variables defined foreach DocX object
-        // The collection of Paragraphs in this document.
-        internal List<Paragraph> paragraphs = new List<Paragraph>();
-        #endregion
-
         #region Internal variables defined foreach DocX object
         // Object representation of the .docx
         internal Package package;
@@ -455,7 +450,7 @@ namespace Novacode
             get
             {
                 string text = string.Empty;
-                foreach (Paragraph p in paragraphs)
+                foreach (Paragraph p in Paragraphs)
                 {
                     text += p.Text + "\n";
                 }
@@ -709,8 +704,6 @@ namespace Novacode
             foreach (var r in externalHeaderAndFooterReferences.ToList())
                 r.Remove();
             #endregion
-
-            HelperFunctions.RebuildParagraphs(this);
         }
 
         
@@ -755,8 +748,6 @@ namespace Novacode
             XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
             mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newTable);
 
-
-            HelperFunctions.RebuildParagraphs(this);
             return new Table(this, newTable);
         }
 
@@ -814,8 +805,6 @@ namespace Novacode
             Table newTable = new Table(this, newXElement);
             newTable.Design = t.Design;
 
-
-            HelperFunctions.RebuildParagraphs(this);
             return newTable;
         }
 
@@ -919,7 +908,6 @@ namespace Novacode
                 );
             }
 
-            HelperFunctions.RebuildParagraphs(this);
 
             return new Table(this, newTable);
         }
@@ -1094,8 +1082,6 @@ namespace Novacode
 
             using (TextReader tr = new StreamReader(document.mainPart.GetStream(FileMode.Open, FileAccess.Read)))
                 document.mainDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
-
-            HelperFunctions.RebuildParagraphs(document);
             #endregion
 
             Headers headers = new Headers();
@@ -2222,6 +2208,15 @@ namespace Novacode
             return p;
         }
 
+        public override List<Paragraph> Paragraphs
+        {
+            get
+            {
+                List<Paragraph> l = base.Paragraphs;
+                l.ForEach(x => x.PackagePart = mainPart);
+                return l;
+            }
+        }
 
         #region IDisposable Members
 

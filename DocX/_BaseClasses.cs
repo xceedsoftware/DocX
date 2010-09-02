@@ -95,7 +95,6 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsBeforeSelf().First();
 
             p.Xml = newlyInserted;
-            HelperFunctions.RebuildParagraphs(Document);
 
             return p;
         }
@@ -106,8 +105,6 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
             p.Xml = newlyInserted;
-            HelperFunctions.RebuildParagraphs(Document);
-
             return p;
         }
 
@@ -145,7 +142,6 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsBeforeSelf().First();
 
             Paragraph p = new Paragraph(Document, newlyInserted, -1);
-            HelperFunctions.RebuildParagraphs(Document);
 
             return p;
         }
@@ -164,7 +160,6 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
             Paragraph p = new Paragraph(Document, newlyInserted, -1);
-            HelperFunctions.RebuildParagraphs(Document);
 
             return p;
         }
@@ -175,8 +170,6 @@ namespace Novacode
             Xml.AddAfterSelf(newTable);
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
-            ////DocX.RebuildTables(Document);
-            HelperFunctions.RebuildParagraphs(Document);
             return new Table(Document, newlyInserted);
         }
 
@@ -186,8 +179,6 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
             t.Xml = newlyInserted;
-            //DocX.RebuildTables(Document);
-            HelperFunctions.RebuildParagraphs(Document);
 
             return t;
         }
@@ -198,8 +189,6 @@ namespace Novacode
             Xml.AddBeforeSelf(newTable);
             XElement newlyInserted = Xml.ElementsBeforeSelf().First();
 
-            //DocX.RebuildTables(Document);
-            HelperFunctions.RebuildParagraphs(Document);
             return new Table(Document, newlyInserted);
         }
 
@@ -209,8 +198,6 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsBeforeSelf().First();
 
             t.Xml = newlyInserted;
-            //DocX.RebuildTables(Document);
-            HelperFunctions.RebuildParagraphs(Document);
 
             return t;
         }

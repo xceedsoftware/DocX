@@ -30,9 +30,6 @@ namespace Novacode
 
         internal int startIndex, endIndex;
 
-        // A collection of Images in this Paragraph
-        private List<Picture> pictures;
-
         /// <summary>
         /// Returns a list of all Pictures in a Paragraph.
         /// </summary>
@@ -134,21 +131,6 @@ namespace Novacode
             this.endIndex = startIndex + GetElementTextLength(xml);
 
             BuildRunLookup(xml);
-
-            // Get all of the images in this document
-            pictures = 
-            (
-                from i in xml.Descendants(XName.Get("drawing", DocX.w.NamespaceName))
-                let id =
-                (
-                    from e in Xml.Descendants()
-                    where e.Name.LocalName.Equals("blip")
-                    select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
-                ).Single()
-                let img = new Image(Document, mainPart.GetRelationship(id))
-                select new Picture(Document, i, img)
-            ).ToList();
-
             RebuildDocProperties();
 
             #region It's possible that a Paragraph may have pStyle references
@@ -184,17 +166,6 @@ namespace Novacode
                 }
             } 
             #endregion
-
-            #region Pictures
-		    // Check if this Paragraph contains any Pictures
-            List<string> pictureElementIDs = 
-            (
-                from d in xml.Descendants()
-                let embed = d.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
-                where embed != null
-                select embed.Value
-            ).ToList();
-	        #endregion
         }
 
         /// <summary>
@@ -1099,8 +1070,6 @@ namespace Novacode
                     runLookup = null;
                 }
             }
-
-            HelperFunctions.RebuildParagraphs(Document);
         }
 
         internal void BuildRunLookup(XElement p)
@@ -1216,7 +1185,6 @@ namespace Novacode
         {
             Picture p = CreatePicture(Document, imageID, name, description);
             Xml.Add(p.Xml);
-            pictures.Add(p);
             return p;
         }
 
@@ -1679,7 +1647,6 @@ namespace Novacode
             runLookup.Clear();
             BuildRunLookup(Xml);
             HelperFunctions.RenumberIDs(Document);
-            HelperFunctions.RebuildParagraphs(Document);
         }
 
         /// <summary>

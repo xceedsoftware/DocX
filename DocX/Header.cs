@@ -69,5 +69,15 @@ namespace Novacode
 
             return p;
         }
+
+        public override List<Paragraph> Paragraphs
+        {
+            get
+            {
+                List<Paragraph> l = base.Paragraphs;
+                l.ForEach(x => x.PackagePart = mainPart);
+                return l;
+            }
+        }
     }
 }

@@ -191,7 +191,7 @@ namespace Novacode
 
         public virtual void ReplaceText(string oldValue, string newValue, bool trackChanges)
         {
-            ReplaceText(oldValue, newValue, trackChanges, false, false, RegexOptions.None);
+            ReplaceText(oldValue, newValue, false, false, trackChanges, RegexOptions.None);
         }
 
         public virtual void ReplaceText(string oldValue, string newValue, bool includeHeaders, bool includeFooters, bool trackChanges)
@@ -230,7 +230,6 @@ namespace Novacode
                 );
             }
 
-            HelperFunctions.RebuildParagraphs(Document);
             return p;
         }
 
@@ -324,7 +323,6 @@ namespace Novacode
             else
                 Xml.Add(newParagraph);
 
-            HelperFunctions.RebuildParagraphs(Document);
             return newParagraph;
         }
 
@@ -350,7 +348,6 @@ namespace Novacode
 
             Xml.Add(newParagraph);
 
-            HelperFunctions.RebuildParagraphs(Document);
             return Paragraphs.Last();
         }
 

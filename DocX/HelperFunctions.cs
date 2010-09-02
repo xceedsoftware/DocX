@@ -347,33 +347,6 @@ namespace Novacode
             return new XElement[] { before, after };
         }
 
-        static internal void RebuildParagraphs(DocX document)
-        {
-            document.paragraphLookup.Clear();
-            document.paragraphs.Clear();
-
-            // Get the runs in this paragraph
-            IEnumerable<XElement> paras = document.mainDoc.Descendants(XName.Get("p", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"));
-
-            int startIndex = 0;
-
-            // Loop through each run in this paragraph
-            foreach (XElement par in paras)
-            {
-                Paragraph xp = new Paragraph(document, par, startIndex);
-
-                // Add to paragraph list
-                document.paragraphs.Add(xp);
-
-                // Only add runs which contain text
-                if (Paragraph.GetElementTextLength(par) > 0)
-                {
-                    document.paragraphLookup.Add(xp.endIndex, xp);
-                    startIndex = xp.endIndex;
-                }
-            }
-        }
-
         /// <!-- 
         /// Bug found and fixed by trnilse. To see the change, 
         /// please compare this release to the previous release using TFS compare.

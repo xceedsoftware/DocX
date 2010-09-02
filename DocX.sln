@@ -1,15 +1,24 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DF41F5CE-8BCB-40CC-835F-54A3DB7D802F}"
+	ProjectSection(SolutionItems) = preProject
+		DocX.vsmdi = DocX.vsmdi
+		Local.testsettings = Local.testsettings
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocX", "DocX\DocX.csproj", "{E863D072-AA8B-4108-B5F1-785241B37F67}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DF41F5CE-8BCB-40CC-835F-54A3DB7D802F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{5C3408FE-0F80-4093-9C2B-1C46B4358F72}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 3
+		SccNumberOfProjects = 4
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs08.codeplex.com/
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs08
 		SccLocalPath0 = .
 		SccProjectUniqueName1 = DocX\\DocX.csproj
 		SccProjectName1 = DocX
@@ -17,16 +26,52 @@ Global
 		SccProjectUniqueName2 = ConsoleApplication1\\ConsoleApplication1.csproj
 		SccProjectName2 = ConsoleApplication1
 		SccLocalPath2 = ConsoleApplication1
+		SccProjectUniqueName3 = UnitTests\\UnitTests.csproj
+		SccProjectName3 = UnitTests
+		SccLocalPath3 = UnitTests
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = DocX.vsmdi
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E863D072-AA8B-4108-B5F1-785241B37F67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E863D072-AA8B-4108-B5F1-785241B37F67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E863D072-AA8B-4108-B5F1-785241B37F67}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E863D072-AA8B-4108-B5F1-785241B37F67}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E863D072-AA8B-4108-B5F1-785241B37F67}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{E863D072-AA8B-4108-B5F1-785241B37F67}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E863D072-AA8B-4108-B5F1-785241B37F67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E863D072-AA8B-4108-B5F1-785241B37F67}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E863D072-AA8B-4108-B5F1-785241B37F67}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E863D072-AA8B-4108-B5F1-785241B37F67}.Release|x86.ActiveCfg = Release|Any CPU
+		{5C3408FE-0F80-4093-9C2B-1C46B4358F72}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{5C3408FE-0F80-4093-9C2B-1C46B4358F72}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{5C3408FE-0F80-4093-9C2B-1C46B4358F72}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{5C3408FE-0F80-4093-9C2B-1C46B4358F72}.Debug|x86.ActiveCfg = Debug|x86
+		{5C3408FE-0F80-4093-9C2B-1C46B4358F72}.Debug|x86.Build.0 = Debug|x86
+		{5C3408FE-0F80-4093-9C2B-1C46B4358F72}.Release|Any CPU.ActiveCfg = Release|x86
+		{5C3408FE-0F80-4093-9C2B-1C46B4358F72}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{5C3408FE-0F80-4093-9C2B-1C46B4358F72}.Release|Mixed Platforms.Build.0 = Release|x86
+		{5C3408FE-0F80-4093-9C2B-1C46B4358F72}.Release|x86.ActiveCfg = Release|x86
+		{5C3408FE-0F80-4093-9C2B-1C46B4358F72}.Release|x86.Build.0 = Release|x86
+		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
