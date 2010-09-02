@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using System.IO.Packaging;
+using System.IO;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace Novacode
 {
@@ -18,6 +21,16 @@ namespace Novacode
         private string id;
         private DocX document;
         internal PackageRelationship pr;
+
+        public Stream GetStream(FileMode mode, FileAccess access)
+        {
+            string temp = pr.SourceUri.OriginalString;
+            string start = temp.Remove(temp.LastIndexOf('/'));
+            string end = pr.TargetUri.OriginalString;
+            string full = start + "/" + end;
+
+            return(document.package.GetPart(new Uri(full, UriKind.Relative)).GetStream(mode, access));
+        }
 
         /// <summary>
         /// Returns the id of this Image.
