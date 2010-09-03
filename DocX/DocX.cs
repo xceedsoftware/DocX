@@ -1721,7 +1721,12 @@ namespace Novacode
             if(evenHeaderRef != null)
             {
                 XElement even = headers.even.Xml;
-                Uri target = mainPart.GetRelationship(evenHeaderRef).TargetUri;
+
+                Uri target = PackUriHelper.ResolvePartUri
+                (
+                    mainPart.Uri,
+                    mainPart.GetRelationship(evenHeaderRef).TargetUri
+                );
                 
                 using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
                 {
@@ -1744,8 +1749,13 @@ namespace Novacode
             if(oddHeaderRef != null)
             {
                 XElement odd = headers.odd.Xml;
-                Uri target = mainPart.GetRelationship(oddHeaderRef).TargetUri;
-               
+
+                Uri target = PackUriHelper.ResolvePartUri
+                (
+                    mainPart.Uri,
+                    mainPart.GetRelationship(oddHeaderRef).TargetUri
+                );
+
                 // Save header1
                 using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
                 {
@@ -1768,7 +1778,11 @@ namespace Novacode
             if(firstHeaderRef != null)
             {
                 XElement first = headers.first.Xml;
-                Uri target = mainPart.GetRelationship(firstHeaderRef).TargetUri;
+                Uri target = PackUriHelper.ResolvePartUri
+                (
+                    mainPart.Uri,
+                    mainPart.GetRelationship(firstHeaderRef).TargetUri
+                );
                
                 // Save header3
                 using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
@@ -1792,7 +1806,11 @@ namespace Novacode
             if(oddFooterRef != null)
             {
                 XElement odd = footers.odd.Xml;
-                Uri target = mainPart.GetRelationship(oddFooterRef).TargetUri;
+                Uri target = PackUriHelper.ResolvePartUri
+                (
+                    mainPart.Uri,
+                    mainPart.GetRelationship(oddFooterRef).TargetUri
+                );
              
                 // Save header1
                 using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
@@ -1816,7 +1834,11 @@ namespace Novacode
             if (evenFooterRef != null)
             {
                 XElement even = footers.even.Xml;
-                Uri target = mainPart.GetRelationship(evenFooterRef).TargetUri;
+                Uri target = PackUriHelper.ResolvePartUri
+                (
+                    mainPart.Uri,
+                    mainPart.GetRelationship(evenFooterRef).TargetUri
+                );
              
                 // Save header2
                 using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
@@ -1840,7 +1862,11 @@ namespace Novacode
             if (firstFooterRef != null)
             {         
                 XElement first = footers.first.Xml;
-                Uri target = mainPart.GetRelationship(firstFooterRef).TargetUri;
+                Uri target = PackUriHelper.ResolvePartUri
+                (
+                    mainPart.Uri,
+                    mainPart.GetRelationship(firstFooterRef).TargetUri
+                );
 
                 // Save header3
                 using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
@@ -1854,7 +1880,7 @@ namespace Novacode
             }
 
             // Close the document so that it can be saved.
-            Dispose();
+            package.Flush();
 
             #region Save this document back to a file or stream, that was specified by the user at save time.
             if (filename != null)
@@ -1874,9 +1900,6 @@ namespace Novacode
                 memoryStream.WriteTo(stream);
             }
             #endregion
-
-            // Re-open the document
-            package = Package.Open(memoryStream, FileMode.Open, FileAccess.ReadWrite);
         }
 
         /// <summary>
@@ -2252,7 +2275,5 @@ namespace Novacode
         }
 
         #endregion
-
-
     }
 }

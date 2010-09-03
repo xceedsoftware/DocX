@@ -79,5 +79,23 @@ namespace Novacode
                 return l;
             }
         }
+
+        public List<Image> Images
+        {
+            get
+            {
+                PackageRelationshipCollection imageRelationships = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+                if (imageRelationships.Count() > 0)
+                {
+                    return
+                    (
+                        from i in imageRelationships
+                        select new Image(Document, i)
+                    ).ToList();
+                }
+
+                return new List<Image>();
+            }
+        }
     }
 }
