@@ -449,12 +449,9 @@ namespace Novacode
         {
             get
             {
-                string text = string.Empty;
-                foreach (Paragraph p in Paragraphs)
-                {
-                    text += p.Text + "\n";
-                }
-                return text;
+                StringBuilder sb = new StringBuilder();
+                HelperFunctions.GetText(Xml, sb);
+                return sb.ToString();
             }
         }
 

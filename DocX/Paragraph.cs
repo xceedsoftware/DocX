@@ -26,7 +26,7 @@ namespace Novacode
         private Alignment alignment;
 
         // A lookup for the runs in this paragraph
-        Dictionary<int, Run> runLookup = new Dictionary<int, Run>();
+        public Dictionary<int, Run> runLookup = new Dictionary<int, Run>();
 
         internal int startIndex, endIndex;
 
@@ -1103,31 +1103,7 @@ namespace Novacode
             get
             {
                 StringBuilder sb = new StringBuilder();
-
-                // Loop through each run in this paragraph
-                foreach (XElement r in Xml.Descendants(XName.Get("r", DocX.w.NamespaceName)))
-                {
-                    // Loop through each text item in this run
-                    foreach (XElement descendant in r.Descendants())
-                    {
-                        switch (descendant.Name.LocalName)
-                        {
-                            case "tab":
-                                sb.Append("\t");
-                                break;
-                            case "br":
-                                sb.Append("\n");
-                                break;
-                            case "t":
-                                goto case "delText";
-                            case "delText":
-                                sb.Append(descendant.Value);
-                                break;
-                            default: break;
-                        }
-                    }
-                }
-
+                HelperFunctions.GetText(Xml, sb);
                 return sb.ToString();
             }
         }
@@ -3190,7 +3166,7 @@ namespace Novacode
         }
     }
 
-    internal class Run : DocXElement
+    public class Run : DocXElement
     {
         // A lookup for the text elements in this paragraph
         Dictionary<int, Text> textLookup = new Dictionary<int, Text>();

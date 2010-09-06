@@ -1311,7 +1311,11 @@ namespace Novacode
         {
             get
             {
-                List<Paragraph> paragraphs = base.Paragraphs;
+                List<Paragraph> paragraphs =
+                (
+                    from p in Xml.Descendants(DocX.w + "p")
+                    select new Paragraph(Document, p, 0)
+                ).ToList();
 
                 foreach (Paragraph p in paragraphs)
                     p.PackagePart = table.mainPart;

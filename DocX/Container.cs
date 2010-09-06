@@ -63,7 +63,7 @@ namespace Novacode
             {
                 List<Paragraph> paragraphs =
                 (
-                    from p in Xml.Descendants(DocX.w + "p")
+                    from p in Xml.Elements(DocX.w + "p")
                     select new Paragraph(Document, p, 0)
                 ).ToList();
 

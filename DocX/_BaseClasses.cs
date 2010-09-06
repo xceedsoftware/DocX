@@ -22,7 +22,7 @@ namespace Novacode
         /// </p>
         /// </summary>
         private XElement xml;
-        internal XElement Xml { get { return xml; } set { xml = value; } }
+        public XElement Xml { get { return xml; } set { xml = value; } }
 
         /// <summary>
         /// This is a reference to the DocX object that this element belongs to.

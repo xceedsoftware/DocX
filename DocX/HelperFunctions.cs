@@ -13,6 +13,63 @@ namespace Novacode
 {
     internal static class HelperFunctions
     {
+        internal static void GetText(XElement e, StringBuilder sb)
+        {
+            if (e.HasElements)
+            {
+                XElement clone = CloneElement(e);
+
+                IEnumerable<XElement> children = clone.Elements();
+                children.Remove();
+
+                sb.Append(ToText(clone));
+                foreach (XElement elem in e.Elements())
+                    GetText(elem, sb);
+            }
+
+            else
+                sb.Append(ToText(e));
+        }
+
+        internal static string ToText(XElement e)
+        {
+            switch (e.Name.LocalName)
+            {
+                case "tab":
+                    return "\t";
+                case "br":
+                    return "\n";
+                case "t":
+                    goto case "delText";
+                case "delText":
+                    return e.Value;
+                case "tr":
+                    goto case "br";
+                case "tc":
+                    goto case "tab";
+                default: return "";
+            }
+        }
+
+        internal static XElement CloneElement(XElement element)
+        {
+            return new XElement
+            (
+                element.Name,
+                element.Attributes(),
+                element.Nodes().Select
+                (
+                    n =>
+                    {
+                        XElement e = n as XElement;
+                        if (e != null)
+                            return CloneElement(e);
+                        return n;
+                    }
+                )
+            );
+        }
+
         internal static PackagePart CreateOrGetSettingsPart(Package package)
         {
             PackagePart settingsPart;
