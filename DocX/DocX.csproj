@@ -19,7 +19,8 @@
     <StartupObject>
     </StartupObject>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>StrongNameKey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
@@ -109,6 +110,7 @@
     <None Include="StrongNameKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="bin\Debug\DocX.dll" />
     <Content Include="License\License.html" />
   </ItemGroup>
   <ItemGroup>

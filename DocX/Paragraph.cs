@@ -1076,9 +1076,9 @@ namespace Novacode
         {
             runLookup.Clear();
 
-            // Get the runs in this paragraph
-            IEnumerable<XElement> runs = p.Descendants(XName.Get("r", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"));
-
+            List<XElement> runs = new List<XElement>();
+            p.Flatten("r", runs);
+            
             int startIndex = 0;
 
             // Loop through each run in this paragraph
