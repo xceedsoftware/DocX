@@ -61,13 +61,17 @@ namespace Novacode
         {
             get 
             {
-                List<Paragraph> paragraphs =
-                (
-                    from p in Xml.Elements(DocX.w + "p")
-                    select new Paragraph(Document, p, 0)
-                ).ToList();
-
-                return paragraphs;
+              List<Paragraph> paragraphs = new List<Paragraph>();
+              foreach (var p in this.Xml.Elements(DocX.w + "p"))
+              {
+                var paragraph = new Paragraph(this.Document, p, 0);
+                if ((p.ElementsAfterSelf().FirstOrDefault() != null) &&(p.ElementsAfterSelf().First().Name.Equals(DocX.w + "tbl")))
+                {
+                  paragraph.FollowingTable = new Table(this.Document, p.ElementsAfterSelf().First());
+                }
+                paragraphs.Add(paragraph);
+              }
+              return paragraphs;
             }
         }
 

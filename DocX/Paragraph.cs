@@ -112,6 +112,42 @@ namespace Novacode
             }
         }
 
+        ///<summary>
+        /// The style name of the paragraph.
+        ///</summary>
+        public string StyleName
+        {
+          get
+          {
+            var element = this.GetOrCreate_pPr();
+            var styleElement = element.Element(XName.Get("pStyle", DocX.w.NamespaceName));
+            if (styleElement != null)
+            {
+              var attr = styleElement.Attribute(XName.Get("val", DocX.w.NamespaceName));
+              if (attr != null && !string.IsNullOrEmpty(attr.Value))
+              {
+                return attr.Value;
+              }
+            }
+            return "Normal";
+          }
+          set
+          {
+            if (string.IsNullOrEmpty(value))
+            {
+              value = "Normal";
+            }
+            var element = this.GetOrCreate_pPr();
+            var styleElement = element.Element(XName.Get("pStyle", DocX.w.NamespaceName));
+            if (styleElement == null)
+            {
+              element.Add(new XElement(XName.Get("pStyle", DocX.w.NamespaceName)));
+              styleElement = element.Element(XName.Get("pStyle", DocX.w.NamespaceName));
+            }
+            styleElement.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), value);
+          }
+        }
+
         // A collection of field type DocProperty.
         private List<DocProperty> docProperties;
 
@@ -2106,6 +2142,23 @@ namespace Novacode
             ApplyTextFormattingProperty(XName.Get("u", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), value));
             return this;
         }
+
+        private Table followingTable;
+
+      ///<summary>
+      /// Returns table following the paragraph. Null if the following element isn't table.
+      ///</summary>
+      public Table FollowingTable
+      {
+        get
+        {
+          return followingTable;
+        }
+        internal set
+        {
+          followingTable = value;
+        }
+      }
 
         /// <summary>
         /// For use with Append() and AppendLine()
