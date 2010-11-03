@@ -20,6 +20,7 @@ namespace Novacode
         private string name;
         private string descr;
         private int cx, cy;
+        private string fileName;
         private uint rotation;
         private bool hFlip, vFlip;
         private object pictureShape;
@@ -57,6 +58,13 @@ namespace Novacode
                 let a = e.Attribute(XName.Get("name"))
                 where (a != null)
                 select a.Value
+            ).First();
+
+
+            this.fileName =
+            (
+              from e in Xml.Descendants(XName.Get("cNvPr", "http://schemas.openxmlformats.org/drawingml/2006/picture"))
+              select e.Attribute("name").Value
             ).First();
 
             this.descr =
@@ -273,6 +281,14 @@ namespace Novacode
                 foreach (XAttribute a in Xml.Descendants().Attributes(XName.Get("descr")))
                     a.Value = descr;
             } 
+        }
+
+        ///<summary>
+        /// Returns the name of the image file for the picture.
+        ///</summary>
+        public string FileName
+        {
+          get { return fileName; }
         }
 
         /// <summary>
