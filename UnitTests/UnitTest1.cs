@@ -179,5 +179,46 @@ namespace UnitTests
             // Delete the tempory file.
             File.Delete(file_temp);
         }
+
+      [TestMethod]
+      public void Test_Document_ApplyTemplate()
+      {
+        using (MemoryStream documentStream = new MemoryStream())
+        {
+          using (DocX document = DocX.Create(documentStream))
+          {
+            document.ApplyTemplate(directory_documents + "Template.dotx");
+            document.Save();
+            Header firstHeader = document.Headers.first;
+            Header oddHeader = document.Headers.odd;
+            Header evenHeader = document.Headers.even;
+
+            Footer firstFooter = document.Footers.first;
+            Footer oddFooter = document.Footers.odd;
+            Footer evenFooter = document.Footers.even;
+
+            Assert.IsTrue(firstHeader.Paragraphs.Count==1, "More than one paragraph in header.");
+            Assert.IsTrue(firstHeader.Paragraphs[0].Text.Equals("First page header"), "Header isn't retrieved from template.");
+
+            Assert.IsTrue(oddHeader.Paragraphs.Count == 1, "More than one paragraph in header.");
+            Assert.IsTrue(oddHeader.Paragraphs[0].Text.Equals("Odd page header"), "Header isn't retrieved from template.");
+
+            Assert.IsTrue(evenHeader.Paragraphs.Count == 1, "More than one paragraph in header.");
+            Assert.IsTrue(evenHeader.Paragraphs[0].Text.Equals("Even page header"), "Header isn't retrieved from template.");
+
+            Assert.IsTrue(firstFooter.Paragraphs.Count == 1, "More than one paragraph in footer.");
+            Assert.IsTrue(firstFooter.Paragraphs[0].Text.Equals("First page footer"), "Footer isn't retrieved from template.");
+
+            Assert.IsTrue(oddFooter.Paragraphs.Count == 1, "More than one paragraph in footer.");
+            Assert.IsTrue(oddFooter.Paragraphs[0].Text.Equals("Odd page footer"), "Footer isn't retrieved from template.");
+
+            Assert.IsTrue(evenFooter.Paragraphs.Count == 1, "More than one paragraph in footer.");
+            Assert.IsTrue(evenFooter.Paragraphs[0].Text.Equals("Even page footer"), "Footer isn't retrieved from template.");
+
+            Paragraph firstParagraph = document.Paragraphs[0];
+            Assert.IsTrue(firstParagraph.StyleName.Equals("DocXSample"), "First paragraph isn't of style from template.");
+          }
+        }
+      }
     }
 }

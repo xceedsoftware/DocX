@@ -426,6 +426,35 @@ namespace Novacode
             }
         }
 
+      ///<summary>
+      /// Returns the list of document core properties with corresponding values.
+      ///</summary>
+      public Dictionary<string, string> CoreProperties
+      {
+        get
+        {
+          if (package.PartExists(new Uri("/docProps/core.xml", UriKind.Relative)))
+          {
+            PackagePart docProps_Core = package.GetPart(new Uri("/docProps/core.xml", UriKind.Relative));
+            XDocument corePropDoc;
+            using (TextReader tr = new StreamReader(docProps_Core.GetStream(FileMode.Open, FileAccess.Read)))
+              corePropDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
+
+            // Get all of the core properties in this document
+            return (from docProperty in corePropDoc.Root.Elements()
+                    select
+                      new KeyValuePair<string, string>(
+                      string.Format(
+                        "{0}:{1}",
+                        corePropDoc.Root.GetPrefixOfNamespace(docProperty.Name.Namespace),
+                        docProperty.Name.LocalName),
+                      docProperty.Value)).ToDictionary(p => p.Key, v => v.Value);
+          }
+
+          return new Dictionary<string, string>();
+        }
+      }
+
         /// <summary>
         /// Get the Text of this document.
         /// </summary>
@@ -1081,25 +1110,30 @@ namespace Novacode
                 document.mainDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
             #endregion
 
-            Headers headers = new Headers();
-            headers.odd = document.GetHeaderByType("default");
-            headers.even = document.GetHeaderByType("even");
-            headers.first = document.GetHeaderByType("first");
+            PopulateDocument(document, package);
 
-            Footers footers = new Footers();
-            footers.odd = document.GetFooterByType("default");
-            footers.even = document.GetFooterByType("even");
-            footers.first = document.GetFooterByType("first");
-
-            document.Xml = document.mainDoc.Root.Element(w + "body");
-            document.headers = headers;
-            document.footers = footers;
-            document.settingsPart = HelperFunctions.CreateOrGetSettingsPart(package);
-
-            return document;
+          return document;
         }
 
-        /// <summary>
+      private static void PopulateDocument(DocX document, Package package)
+      {
+        Headers headers = new Headers();
+        headers.odd = document.GetHeaderByType("default");
+        headers.even = document.GetHeaderByType("even");
+        headers.first = document.GetHeaderByType("first");
+
+        Footers footers = new Footers();
+        footers.odd = document.GetFooterByType("default");
+        footers.even = document.GetFooterByType("even");
+        footers.first = document.GetFooterByType("first");
+
+        document.Xml = document.mainDoc.Root.Element(w + "body");
+        document.headers = headers;
+        document.footers = footers;
+        document.settingsPart = HelperFunctions.CreateOrGetSettingsPart(package);
+      }
+
+      /// <summary>
         /// Loads a document into a DocX object using a Stream.
         /// </summary>
         /// <param name="stream">The Stream to load the document from.</param>
@@ -1229,6 +1263,151 @@ namespace Novacode
             document.memoryStream = ms;
 
             return document;
+        }
+
+        ///<summary>
+        /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
+        ///</summary>
+        ///<param name="templateFilePath">The path to the document template file.</param>
+        ///<exception cref="FileNotFoundException">The document template file not found.</exception>
+        public void ApplyTemplate(string templateFilePath)
+        {
+          ApplyTemplate(templateFilePath, true);
+        }
+
+        ///<summary>
+        /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
+        ///</summary>
+        ///<param name="templateFilePath">The path to the document template file.</param>
+        ///<param name="includeContent">Whether to copy the document template text content to document.</param>
+        ///<exception cref="FileNotFoundException">The document template file not found.</exception>
+        public void ApplyTemplate(string templateFilePath, bool includeContent)
+        {
+          if (!File.Exists(templateFilePath))
+          {
+            throw new FileNotFoundException(string.Format("File could not be found {0}", templateFilePath));
+          }
+          using (FileStream packageStream = new FileStream(templateFilePath, FileMode.Open, FileAccess.Read))
+          {
+            ApplyTemplate(packageStream, includeContent);
+          }
+        }
+
+        ///<summary>
+        /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
+        ///</summary>
+        ///<param name="templateStream">The stream of the document template file.</param>
+        public void ApplyTemplate(Stream templateStream)
+        {
+          ApplyTemplate(templateStream, true);
+        }
+
+        ///<summary>
+        /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
+        ///</summary>
+        ///<param name="templateStream">The stream of the document template file.</param>
+        ///<param name="includeContent">Whether to copy the document template text content to document.</param>
+        public void ApplyTemplate(Stream templateStream, bool includeContent)
+        {
+          Package templatePackage = Package.Open(templateStream);
+          try
+          {
+            PackagePart documentPart = null;
+            XDocument documentDoc = null;
+            foreach (PackagePart packagePart in templatePackage.GetParts())
+            {
+              switch (packagePart.Uri.ToString())
+              {
+                case "/word/document.xml":
+                  documentPart = packagePart;
+                  using (XmlReader xr = XmlReader.Create(packagePart.GetStream(FileMode.Open, FileAccess.Read)))
+                  {
+                    documentDoc = XDocument.Load(xr);
+                  }
+                  break;
+                case "/_rels/.rels":
+                  if (!this.package.PartExists(packagePart.Uri))
+                  {
+                    this.package.CreatePart(packagePart.Uri, packagePart.ContentType, packagePart.CompressionOption);
+                  }
+                  PackagePart globalRelsPart = this.package.GetPart(packagePart.Uri);
+                  using (
+                    StreamReader tr = new StreamReader(
+                      packagePart.GetStream(FileMode.Open, FileAccess.Read), Encoding.UTF8))
+                  {
+                    using (
+                      StreamWriter tw = new StreamWriter(
+                        globalRelsPart.GetStream(FileMode.Create, FileAccess.Write), Encoding.UTF8))
+                    {
+                      tw.Write(tr.ReadToEnd());
+                    }
+                  }
+                  break;
+                case "/word/_rels/document.xml.rels":
+                  break;
+                default:
+                  if (!this.package.PartExists(packagePart.Uri))
+                  {
+                    this.package.CreatePart(packagePart.Uri, packagePart.ContentType, packagePart.CompressionOption);
+                  }
+                  Encoding packagePartEncoding = Encoding.Default;
+                  if (packagePart.Uri.ToString().EndsWith(".xml") || packagePart.Uri.ToString().EndsWith(".rels"))
+                  {
+                    packagePartEncoding = Encoding.UTF8;
+                  }
+                  PackagePart nativePart = this.package.GetPart(packagePart.Uri);
+                  using (
+                    StreamReader tr = new StreamReader(
+                      packagePart.GetStream(FileMode.Open, FileAccess.Read), packagePartEncoding))
+                  {
+                    using (
+                      StreamWriter tw = new StreamWriter(
+                        nativePart.GetStream(FileMode.Create, FileAccess.Write), tr.CurrentEncoding))
+                    {
+                      tw.Write(tr.ReadToEnd());
+                    }
+                  }
+                  break;
+              }
+            }
+            if (documentPart != null)
+            {
+              string mainContentType = documentPart.ContentType.Replace("template.main", "document.main");
+              if (this.package.PartExists(documentPart.Uri))
+              {
+                this.package.DeletePart(documentPart.Uri);
+              }
+              PackagePart documentNewPart = this.package.CreatePart(
+                documentPart.Uri, mainContentType, documentPart.CompressionOption);
+              using (XmlWriter xw = XmlWriter.Create(documentNewPart.GetStream(FileMode.Create, FileAccess.Write)))
+              {
+                documentDoc.WriteTo(xw);
+              }
+              foreach (PackageRelationship documentPartRel in documentPart.GetRelationships())
+              {
+                documentNewPart.CreateRelationship(
+                  documentPartRel.TargetUri,
+                  documentPartRel.TargetMode,
+                  documentPartRel.RelationshipType,
+                  documentPartRel.Id);
+              }
+              this.mainPart = documentNewPart;
+              this.mainDoc = documentDoc;
+              PopulateDocument(this, templatePackage);
+            }
+            if (!includeContent)
+            {
+              foreach (Paragraph paragraph in this.Paragraphs)
+              {
+                paragraph.Remove(false);
+              }
+            }
+          }
+          finally
+          {
+            this.package.Flush();
+            templatePackage.Close();
+          }
         }
 
         /// <summary>
@@ -1611,7 +1790,35 @@ namespace Novacode
                 newImageStream = o as Stream;
 
             // Get all image parts in word\document.xml
-            var imageParts = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image").Select(ir => package.GetParts().Where(p => p.Uri.ToString().EndsWith(ir.TargetUri.ToString())).First());
+            List<PackagePart> imageParts = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image").Select(ir => package.GetParts().Where(p => p.Uri.ToString().EndsWith(ir.TargetUri.ToString())).First()).ToList();
+            foreach (PackagePart relsPart in package.GetParts().Where(part => part.Uri.ToString().Contains("/word/")).Where(part => part.ContentType.Equals("application/vnd.openxmlformats-package.relationships+xml")))
+          {
+            XDocument relsPartContent;
+            using (TextReader tr = new StreamReader(relsPart.GetStream(FileMode.Open, FileAccess.Read)))
+            {
+              relsPartContent = XDocument.Load(tr);
+            }
+            IEnumerable<XElement> imageRelationships =
+              relsPartContent.Root.Elements().Where(
+                imageRel =>
+                imageRel.Attribute(XName.Get("Type")).Value.Equals(
+                  "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"));
+            foreach (XElement imageRelationship in imageRelationships)
+            {
+              if (imageRelationship.Attribute(XName.Get("Target")) != null)
+              {
+                string imagePartUri = Path.Combine(Path.GetDirectoryName(relsPart.Uri.ToString()), imageRelationship.Attribute(XName.Get("Target")).Value);
+                imagePartUri = Path.GetFullPath(imagePartUri.Replace("\\_rels", string.Empty));
+                imagePartUri = imagePartUri.Replace(Path.GetFullPath("\\"), string.Empty).Replace("\\", "/");
+                if (!imagePartUri.StartsWith("/"))
+                {
+                  imagePartUri = "/" + imagePartUri;
+                }
+                PackagePart imagePart = package.GetPart(new Uri(imagePartUri, UriKind.Relative));
+                imageParts.Add(imagePart);
+              }
+            }
+          }
             
             // Loop through each image part in this document.
             foreach (PackagePart pp in imageParts)
@@ -1651,7 +1858,12 @@ namespace Novacode
                 max = Math.Max(max, values.Max());
 
             // Create a new image part.
-            PackagePart img = package.CreatePart(new Uri(string.Format("/word/media/image{0}.jpeg", max + 1), UriKind.Relative), System.Net.Mime.MediaTypeNames.Image.Jpeg);
+          string imgPartUriPath = string.Format("/word/media/image{0}.jpeg", max + 1);
+          if (package.PartExists(new Uri(imgPartUriPath, UriKind.Relative)))
+          {
+            package.DeletePart(new Uri(imgPartUriPath, UriKind.Relative));
+          }
+            PackagePart img = package.CreatePart(new Uri(imgPartUriPath, UriKind.Relative), System.Net.Mime.MediaTypeNames.Image.Jpeg);
 
             // Create a new image relationship
             PackageRelationship rel = mainPart.CreateRelationship(img.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
@@ -2005,6 +2217,161 @@ namespace Novacode
             this.stream = stream;
             Save();
         }
+      
+      /// <summary>
+      /// Add a core property to this document. If a core property already exists with the same name it will be replaced. Core property names are case insensitive.
+      /// </summary>
+      ///<param name="propertyName">The property name.</param>
+      ///<param name="propertyValue">The property value.</param>
+      ///<example>
+      /// Add a core properties of each type to a document.
+      /// <code>
+      /// // Load Example.docx
+      /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
+      /// {
+      ///     // If this document does not contain a core property called 'forename', create one.
+      ///     if (!document.CoreProperties.ContainsKey("forename"))
+      ///     {
+      ///         // Create a new core property called 'forename' and set its value.
+      ///         document.AddCoreProperty("forename", "Cathal");
+      ///     }
+      ///
+      ///     // Get this documents core property called 'forename'.
+      ///     string forenameValue = document.CoreProperties["forename"];
+      ///
+      ///     // Print all of the information about this core property to Console.
+      ///     Console.WriteLine(string.Format("Name: '{0}', Value: '{1}'\nPress any key...", "forename", forenameValue));
+      ///     
+      ///     // Save all changes made to this document.
+      ///     document.Save();
+      /// } // Release this document from memory.
+      ///
+      /// // Wait for the user to press a key before exiting.
+      /// Console.ReadKey();
+      /// </code>
+      /// </example>
+      /// <seealso cref="CoreProperties"/>
+      /// <seealso cref="CustomProperty"/>
+      /// <seealso cref="CustomProperties"/>
+      public void AddCoreProperty(string propertyName, string propertyValue)
+      {
+        string propertyNamespacePrefix = propertyName.Contains(":") ? propertyName.Split(new[] { ':' })[0] : "cp";
+        string propertyLocalName = propertyName.Contains(":") ? propertyName.Split(new[] { ':' })[1] : propertyName;
+
+        // If this document does not contain a coreFilePropertyPart create one.)
+        if (!package.PartExists(new Uri("/docProps/core.xml", UriKind.Relative)))
+          throw new Exception("Core properties part doesn't exist.");
+
+        XDocument corePropDoc;
+        PackagePart corePropPart = package.GetPart(new Uri("/docProps/core.xml", UriKind.Relative));
+        using (TextReader tr = new StreamReader(corePropPart.GetStream(FileMode.Open, FileAccess.Read)))
+        {
+          corePropDoc = XDocument.Load(tr);
+        }
+
+        XElement corePropElement =
+          (from propElement in corePropDoc.Root.Elements()
+           where (propElement.Name.LocalName.Equals(propertyLocalName))
+           select propElement).SingleOrDefault();
+        if (corePropElement != null)
+        {
+          corePropElement.SetValue(propertyValue);
+        }
+        else
+        {
+          var propertyNamespace = corePropDoc.Root.GetNamespaceOfPrefix(propertyNamespacePrefix);
+          corePropDoc.Root.Add(new XElement(XName.Get(propertyLocalName, propertyNamespace.NamespaceName), propertyValue));
+        }
+        
+        using(TextWriter tw = new StreamWriter(corePropPart.GetStream(FileMode.Create, FileAccess.Write)))
+        {
+          corePropDoc.Save(tw);
+        }
+        UpdateCorePropertyValue(this, propertyLocalName, propertyValue);
+      }
+
+      internal static void UpdateCorePropertyValue(DocX document, string corePropertyName, string corePropertyValue)
+      {
+        string matchPattern = string.Format(@"(DOCPROPERTY)?{0}\\\*MERGEFORMAT", corePropertyName).ToLower();
+        foreach (XElement e in document.mainDoc.Descendants(XName.Get("fldSimple", w.NamespaceName)))
+        {
+          string attr_value = e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Replace(" ", string.Empty).Trim().ToLower();
+          
+          if (Regex.IsMatch(attr_value, matchPattern))
+          {
+            XElement firstRun = e.Element(w + "r");
+            XElement firstText = firstRun.Element(w + "t");
+            XElement rPr = firstText.Element(w + "rPr");
+
+            // Delete everything and insert updated text value
+            e.RemoveNodes();
+
+            XElement t = new XElement(w + "t", rPr, corePropertyValue);
+            Novacode.Text.PreserveSpace(t);
+            e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
+          }
+        }
+
+        #region Headers
+
+        IEnumerable<PackagePart> headerParts = from headerPart in document.package.GetParts()
+                                               where (Regex.IsMatch(headerPart.Uri.ToString(), @"/word/header\d?.xml"))
+                                               select headerPart;
+        foreach (PackagePart pp in headerParts)
+        {
+          XDocument header = XDocument.Load(new StreamReader(pp.GetStream()));
+
+          foreach (XElement e in header.Descendants(XName.Get("fldSimple", w.NamespaceName)))
+          {
+            string attr_value = e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Replace(" ", string.Empty).Trim().ToLower();
+            if (Regex.IsMatch(attr_value, matchPattern))
+            {
+              XElement firstRun = e.Element(w + "r");
+
+              // Delete everything and insert updated text value
+              e.RemoveNodes();
+
+              XElement t = new XElement(w + "t", corePropertyValue);
+              Novacode.Text.PreserveSpace(t);
+              e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
+            }
+          }
+
+          using (TextWriter tw = new StreamWriter(pp.GetStream(FileMode.Create, FileAccess.Write)))
+            header.Save(tw);
+        }
+        #endregion
+
+        #region Footers
+        IEnumerable<PackagePart> footerParts = from footerPart in document.package.GetParts()
+                                               where (Regex.IsMatch(footerPart.Uri.ToString(), @"/word/footer\d?.xml"))
+                                               select footerPart;
+        foreach (PackagePart pp in footerParts)
+        {
+          XDocument footer = XDocument.Load(new StreamReader(pp.GetStream()));
+
+          foreach (XElement e in footer.Descendants(XName.Get("fldSimple", w.NamespaceName)))
+          {
+            string attr_value = e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Replace(" ", string.Empty).Trim().ToLower();
+            if (Regex.IsMatch(attr_value, matchPattern))
+            {
+              XElement firstRun = e.Element(w + "r");
+
+              // Delete everything and insert updated text value
+              e.RemoveNodes();
+
+              XElement t = new XElement(w + "t", corePropertyValue);
+              Novacode.Text.PreserveSpace(t);
+              e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
+            }
+          }
+
+          using (TextWriter tw = new StreamWriter(pp.GetStream(FileMode.Create, FileAccess.Write)))
+            footer.Save(tw);
+        }
+        #endregion
+        PopulateDocument(document, document.package);
+      }
 
         /// <summary>
         /// Add a custom property to this document. If a custom property already exists with the same name it will be replace. CustomProperty names are case insensitive.
