@@ -5,6 +5,7 @@ using System.Text;
 
 namespace Novacode
 {
+    public enum Orientation { Portrait, Landscape };
     public enum XmlDocument { Main, HeaderOdd, HeaderEven, HeaderFirst, FooterOdd, FooterEven, FooterFirst };
     public enum MatchFormattingOptions { ExactMatch, SubsetMatch};
     public enum Script { superscript, subscript, none }

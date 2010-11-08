@@ -1891,7 +1891,7 @@ namespace Novacode
             Xml.Add(h.Xml);
             Xml.Elements().Last().SetAttributeValue(DocX.r + "id", rel.Id);
 
-            this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(h.Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Count()).ToList();
+            this.runs = Xml.Elements().Last().Elements(XName.Get("r", DocX.w.NamespaceName)).ToList();
             BuildRunLookup(Xml);
 
             return this;
