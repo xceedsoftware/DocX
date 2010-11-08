@@ -110,7 +110,6 @@
     <None Include="StrongNameKey.pfx" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bin\Debug\DocX.dll" />
     <Content Include="License\License.html" />
   </ItemGroup>
   <ItemGroup>
