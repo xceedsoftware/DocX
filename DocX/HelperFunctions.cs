@@ -13,22 +13,41 @@ namespace Novacode
 {
     internal static class HelperFunctions
     {
-        internal static void GetText(XElement e, StringBuilder sb)
+        internal static int GetSize(XElement Xml)
         {
-            if (e.HasElements)
+            switch (Xml.Name.LocalName)
             {
-                XElement clone = CloneElement(e);
-
-                IEnumerable<XElement> children = clone.Elements();
-                children.Remove();
-
-                sb.Append(ToText(clone));
-                foreach (XElement elem in e.Elements())
-                    GetText(elem, sb);
+                case "tab":
+                    return 1;
+                case "br":
+                    return 0;
+                case "t":
+                    goto case "delText";
+                case "delText":
+                    return Xml.Value.Length;
+                case "tr":
+                    goto case "br";
+                case "tc":
+                    goto case "br";
+                default:
+                    return 0;
             }
+        }
 
-            else
-                sb.Append(ToText(e));
+        internal static string GetText(XElement e)
+        {
+            StringBuilder sb = new StringBuilder();
+            GetTextRecursive(e, ref sb);
+            return sb.ToString();
+        }
+
+        internal static void GetTextRecursive(XElement Xml, ref StringBuilder sb)
+        {
+            sb.Append(ToText(Xml));
+
+            if (Xml.HasElements)
+                foreach (XElement e in Xml.Elements())
+                    GetTextRecursive(e, ref sb);
         }
 
         internal static string ToText(XElement e)

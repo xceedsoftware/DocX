@@ -478,9 +478,7 @@ namespace Novacode
         {
             get
             {
-                StringBuilder sb = new StringBuilder();
-                HelperFunctions.GetText(Xml, sb);
-                return sb.ToString();
+                return HelperFunctions.GetText(Xml);
             }
         }
 

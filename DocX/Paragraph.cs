@@ -1138,9 +1138,7 @@ namespace Novacode
             // Returns the underlying XElement's Value property.
             get
             {
-                StringBuilder sb = new StringBuilder();
-                HelperFunctions.GetText(Xml, sb);
-                return sb.ToString();
+                return HelperFunctions.GetText(Xml);
             }
         }
 
@@ -1278,8 +1276,8 @@ namespace Novacode
         public Picture InsertPicture(int index, string imageID, string name, string description)
         {
             Picture picture = CreatePicture(Document, imageID, name, description);
-            
-            Run run = GetFirstRunEffectedByEdit(index);
+
+            Run run = GetFirstRunEffectedByInsert(index);
 
             if (run == null)
                 Xml.Add(picture.Xml);
@@ -1408,33 +1406,41 @@ namespace Novacode
             );
         }
 
-        internal Run GetFirstRunEffectedByEdit(int index)
-        {
-            foreach (int runEndIndex in runLookup.Keys)
-            {
-                if (runEndIndex > index)
-                    return runLookup[runEndIndex];
-            }
-
-            if (runLookup.Last().Value.EndIndex == index)
-                return runLookup.Last().Value;
-
-            throw new ArgumentOutOfRangeException();
-        }
-
         internal Run GetFirstRunEffectedByInsert(int index)
         {
-            // This paragraph contains no Runs and insertion is at index 0
-            if (runLookup.Keys.Count() == 0 && index == 0)
-                return null;
+            // Make sure we are looking within an acceptable index range.
+            if (index < 0 || index > HelperFunctions.GetText(Xml).Length)
+                throw new ArgumentOutOfRangeException();
 
-            foreach (int runEndIndex in runLookup.Keys)
+            // Need some memory that can be updated by the recursive search for the XElement to Split.
+            int count = 0;
+            Run theOne = null;
+
+            GetFirstRunEffectedByInsertRecursive(Xml, index, ref count, ref theOne);
+
+            return theOne;
+        }
+
+        internal void GetFirstRunEffectedByInsertRecursive(XElement Xml, int index, ref int count, ref Run theOne)
+        {
+            count += HelperFunctions.GetSize(Xml);
+            if (count > 0 && count >= index)
             {
-                if (runEndIndex >= index)
-                    return runLookup[runEndIndex];
+                // We have found the element, now find the run it belongs to.
+                while (Xml.Name.LocalName != "r")
+                {
+                    count -= HelperFunctions.GetSize(Xml);
+                    Xml = Xml.Parent;
+                }
+
+                theOne = new Run(Document, Xml, count);
+                return;
             }
 
-            throw new ArgumentOutOfRangeException();
+            if (Xml.HasElements)
+                foreach (XElement e in Xml.Elements())
+                    if (theOne == null)
+                        GetFirstRunEffectedByInsertRecursive(e, index, ref count, ref theOne);
         }
 
         /// <!-- 
@@ -1466,11 +1472,7 @@ namespace Novacode
 
         internal XElement[] SplitEdit(XElement edit, int index, EditType type)
         {
-            Run run;
-            if(type == EditType.del)
-                run = GetFirstRunEffectedByEdit(index);
-            else
-                run = GetFirstRunEffectedByInsert(index);
+            Run run = GetFirstRunEffectedByInsert(index);
 
             XElement[] splitRun = Run.SplitRun(run, index);
             
@@ -1725,7 +1727,7 @@ namespace Novacode
 
             // Get the first run effected by this Insert
             Run run = GetFirstRunEffectedByInsert(index);
-
+            
             if (run == null)
             {
                 object insert;
@@ -2781,7 +2783,7 @@ namespace Novacode
             do
             {
                 // Get the first run effected by this Remove
-                Run run = GetFirstRunEffectedByEdit(index + processed);
+                Run run = GetFirstRunEffectedByInsert(index + processed);
 
                 // The parent of this Run
                 XElement parentElement = run.Xml.Parent;
@@ -3048,7 +3050,7 @@ namespace Novacode
                     do
                     {
                         // Get the next run effected
-                        Run run = GetFirstRunEffectedByEdit(m.Index + processed);
+                        Run run = GetFirstRunEffectedByInsert(m.Index + processed);
                         
                         // Get this runs properties
                         XElement rPr = run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName));
@@ -3293,7 +3295,9 @@ namespace Novacode
 
         static internal XElement[] SplitRun(Run r, int index)
         {
-            Text t = r.GetFirstTextEffectedByEdit(index);
+            index = index - r.StartIndex;
+
+            Text t = r.GetFirstTextEffectedByInsert(index);
             XElement[] splitText = Text.SplitText(t, index);
 
             XElement splitLeft = new XElement(r.Xml.Name, r.Xml.Attributes(), r.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)), t.Xml.ElementsBeforeSelf().Where(n => n.Name.LocalName != "rPr"), splitText[0]);
@@ -3314,18 +3318,34 @@ namespace Novacode
             );
         }
 
-        internal Text GetFirstTextEffectedByEdit(int index)
+        internal Text GetFirstTextEffectedByInsert(int index)
         {
-            foreach (int textEndIndex in textLookup.Keys)
+            // Make sure we are looking within an acceptable index range.
+            if (index < 0 || index > HelperFunctions.GetText(Xml).Length)
+                throw new ArgumentOutOfRangeException();
+
+            // Need some memory that can be updated by the recursive search for the XElement to Split.
+            int count = 0;
+            Text theOne = null;
+
+            GetFirstTextEffectedByInsertRecursive(Xml, index, ref count, ref theOne);
+
+            return theOne;
+        }
+
+        internal void GetFirstTextEffectedByInsertRecursive(XElement Xml, int index, ref int count, ref Text theOne)
+        {
+            count += HelperFunctions.GetSize(Xml);
+            if (count > 0 && count >= index)
             {
-                if (textEndIndex > index)
-                    return textLookup[textEndIndex];
+                theOne = new Text(Document, Xml, 0);
+                return;
             }
 
-            if (textLookup.Last().Value.EndIndex == index)
-                return textLookup.Last().Value;
-
-            throw new ArgumentOutOfRangeException();
+            if (Xml.HasElements)
+                foreach (XElement e in Xml.Elements())
+                    if (theOne == null)
+                        GetFirstTextEffectedByInsertRecursive(e, index, ref count, ref theOne);
         }
     }
 
