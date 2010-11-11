@@ -13,6 +13,8 @@ namespace Novacode
     /// </summary>
     public class Picture: DocXElement
     {
+        private const int EmusInPixel = 9525;
+
         internal Dictionary<PackagePart, PackageRelationship> picture_rels;
         
         internal Image img;
@@ -59,14 +61,7 @@ namespace Novacode
                 where (a != null)
                 select a.Value
             ).First();
-
-
-            this.fileName =
-            (
-              from e in Xml.Descendants(XName.Get("cNvPr", "http://schemas.openxmlformats.org/drawingml/2006/picture"))
-              select e.Attribute("name").Value
-            ).First();
-
+          
             this.descr =
             (
                 from e in Xml.Descendants()
@@ -288,7 +283,10 @@ namespace Novacode
         ///</summary>
         public string FileName
         {
-          get { return fileName; }
+          get
+          {
+            return img.FileName;
+          }
         }
 
         /// <summary>
@@ -296,14 +294,14 @@ namespace Novacode
         /// </summary>
         public int Width 
         { 
-            get { return cx / 4156; }
+            get { return cx / EmusInPixel; }
             
             set 
             { 
                 cx = value;
 
                 foreach (XAttribute a in Xml.Descendants().Attributes(XName.Get("cx")))
-                    a.Value = (cx * 4156).ToString();
+                    a.Value = (cx * EmusInPixel).ToString();
             } 
         }
 
@@ -312,14 +310,14 @@ namespace Novacode
         /// </summary>
         public int Height 
         { 
-            get { return cy / 4156; }
+            get { return cy / EmusInPixel; }
             
             set 
             { 
                 cy = value;
 
                 foreach (XAttribute a in Xml.Descendants().Attributes(XName.Get("cy")))
-                    a.Value = (cy * 4156).ToString();
+                    a.Value = (cy * EmusInPixel).ToString();
             } 
         }
 

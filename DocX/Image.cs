@@ -81,5 +81,16 @@ namespace Novacode
         {
             return Paragraph.CreatePicture(document, id, string.Empty, string.Empty);
         }
+
+      ///<summary>
+      /// Returns the name of the image file.
+      ///</summary>
+      public string FileName
+      {
+        get
+        {
+          return Path.GetFileName(this.pr.TargetUri.ToString());
+        }
+      }
     }
 }
