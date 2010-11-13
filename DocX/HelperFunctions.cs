@@ -386,7 +386,8 @@ namespace Novacode
 
         static internal XElement[] SplitParagraph(Paragraph p, int index)
         {
-            Run r = p.GetFirstRunEffectedByInsert(index);
+            // In this case edit dosent really matter, you have a choice.
+            Run r = p.GetFirstRunEffectedByEdit(index, EditType.ins);
 
             XElement[] split;
             XElement before, after;

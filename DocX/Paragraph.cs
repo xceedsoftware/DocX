@@ -851,7 +851,7 @@ namespace Novacode
         /// -->
         public Paragraph InsertHyperlink(int index, Hyperlink h) 
         { 
-            Run run = GetFirstRunEffectedByInsert(index); 
+            Run run = GetFirstRunEffectedByEdit(index); 
             
             if (run == null) 
                 return AppendHyperlink(h);
@@ -1277,7 +1277,7 @@ namespace Novacode
         {
             Picture picture = CreatePicture(Document, imageID, name, description);
 
-            Run run = GetFirstRunEffectedByInsert(index);
+            Run run = GetFirstRunEffectedByEdit(index);
 
             if (run == null)
                 Xml.Add(picture.Xml);
@@ -1406,7 +1406,7 @@ namespace Novacode
             );
         }
 
-        internal Run GetFirstRunEffectedByInsert(int index)
+        internal Run GetFirstRunEffectedByEdit(int index, EditType type = EditType.ins)
         {
             // Make sure we are looking within an acceptable index range.
             if (index < 0 || index > HelperFunctions.GetText(Xml).Length)
@@ -1416,22 +1416,27 @@ namespace Novacode
             int count = 0;
             Run theOne = null;
 
-            GetFirstRunEffectedByInsertRecursive(Xml, index, ref count, ref theOne);
+            GetFirstRunEffectedByEditRecursive(Xml, index, ref count, ref theOne, type);
 
             return theOne;
         }
 
-        internal void GetFirstRunEffectedByInsertRecursive(XElement Xml, int index, ref int count, ref Run theOne)
+        internal void GetFirstRunEffectedByEditRecursive(XElement Xml, int index, ref int count, ref Run theOne, EditType type)
         {
             count += HelperFunctions.GetSize(Xml);
-            if (count > 0 && count >= index)
+
+            // If the EditType is deletion then we must return the next blah
+            if (count > 0 && ((type == EditType.del && count > index) || (type == EditType.ins && count >= index)))
             {
+                // Correct the index
+                foreach (XElement e in Xml.ElementsBeforeSelf())
+                    count -= HelperFunctions.GetSize(e);
+
+                count -= HelperFunctions.GetSize(Xml);
+
                 // We have found the element, now find the run it belongs to.
                 while (Xml.Name.LocalName != "r")
-                {
-                    count -= HelperFunctions.GetSize(Xml);
                     Xml = Xml.Parent;
-                }
 
                 theOne = new Run(Document, Xml, count);
                 return;
@@ -1440,7 +1445,7 @@ namespace Novacode
             if (Xml.HasElements)
                 foreach (XElement e in Xml.Elements())
                     if (theOne == null)
-                        GetFirstRunEffectedByInsertRecursive(e, index, ref count, ref theOne);
+                        GetFirstRunEffectedByEditRecursive(e, index, ref count, ref theOne, type);
         }
 
         /// <!-- 
@@ -1472,9 +1477,9 @@ namespace Novacode
 
         internal XElement[] SplitEdit(XElement edit, int index, EditType type)
         {
-            Run run = GetFirstRunEffectedByInsert(index);
+            Run run = GetFirstRunEffectedByEdit(index, type);
 
-            XElement[] splitRun = Run.SplitRun(run, index);
+            XElement[] splitRun = Run.SplitRun(run, index, type);
             
             XElement splitLeft = new XElement(edit.Name, edit.Attributes(), run.Xml.ElementsBeforeSelf(), splitRun[0]);
             if (GetElementTextLength(splitLeft) == 0)
@@ -1539,7 +1544,7 @@ namespace Novacode
         /// <param name="index">The index position of the insertion.</param>
         /// <param name="value">The System.String to insert.</param>
         /// <param name="trackChanges">Flag this insert as a change.</param>
-        public void InsertText(int index, string value, bool trackChanges)
+        public void InsertText(int index, string value, bool trackChanges = false)
         {
             InsertText(index, value, trackChanges, null);
         }
@@ -1726,7 +1731,7 @@ namespace Novacode
             DateTime insert_datetime = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc);
 
             // Get the first run effected by this Insert
-            Run run = GetFirstRunEffectedByInsert(index);
+            Run run = GetFirstRunEffectedByEdit(index);
             
             if (run == null)
             {
@@ -2771,7 +2776,7 @@ namespace Novacode
         /// <param name="index">The position to begin deleting characters.</param>
         /// <param name="count">The number of characters to delete</param>
         /// <param name="trackChanges">Track changes</param>
-        public void RemoveText(int index, int count, bool trackChanges)
+        public void RemoveText(int index, int count, bool trackChanges = false)
         {
             // Timestamp to mark the start of insert
             DateTime now = DateTime.Now;
@@ -2783,7 +2788,7 @@ namespace Novacode
             do
             {
                 // Get the first run effected by this Remove
-                Run run = GetFirstRunEffectedByInsert(index + processed);
+                Run run = GetFirstRunEffectedByEdit(index, EditType.del);
 
                 // The parent of this Run
                 XElement parentElement = run.Xml.Parent;
@@ -2791,11 +2796,11 @@ namespace Novacode
                 {
                     case "ins":
                         {
-                            XElement[] splitEditBefore = SplitEdit(parentElement, index + processed, EditType.del);
+                            XElement[] splitEditBefore = SplitEdit(parentElement, index, EditType.del);
                             int min = Math.Min(count - processed, run.Xml.ElementsAfterSelf().Sum(e => GetElementTextLength(e)));
-                            XElement[] splitEditAfter = SplitEdit(parentElement, index + processed + min, EditType.del);
+                            XElement[] splitEditAfter = SplitEdit(parentElement, index + min, EditType.del);
 
-                            XElement temp = SplitEdit(splitEditBefore[1], index + processed + min, EditType.del)[0];
+                            XElement temp = SplitEdit(splitEditBefore[1], index + min, EditType.del)[0];
                             object middle = CreateEdit(EditType.del, remove_datetime, temp.Elements());
                             processed += GetElementTextLength(middle as XElement);
                             
@@ -2829,11 +2834,11 @@ namespace Novacode
 
                     default:
                         {
-                            XElement[] splitRunBefore = Run.SplitRun(run, index + processed);
+                            XElement[] splitRunBefore = Run.SplitRun(run, index, EditType.del);
                             int min = Math.Min(index + processed + (count - processed), run.EndIndex);
-                            XElement[] splitRunAfter = Run.SplitRun(run, min);
+                            XElement[] splitRunAfter = Run.SplitRun(run, min, EditType.del);
 
-                            object middle = CreateEdit(EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun(new Run(Document, splitRunBefore[1], run.StartIndex + GetElementTextLength(splitRunBefore[0])), min)[0] });
+                            object middle = CreateEdit(EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun(new Run(Document, splitRunBefore[1], run.StartIndex + GetElementTextLength(splitRunBefore[0])), min, EditType.del)[0] });
                             processed += GetElementTextLength(middle as XElement);
                             
                             if (!trackChanges)
@@ -2853,7 +2858,7 @@ namespace Novacode
                 // If after this remove the parent element is empty, remove it.
                 if (GetElementTextLength(parentElement) == 0)
                 {
-                    if (parentElement.Parent != null && parentElement.Parent.Name.LocalName != "tc")
+                     if (parentElement.Parent != null && parentElement.Parent.Name.LocalName != "tc")
                         parentElement.Remove();
                 }
             }
@@ -3050,7 +3055,7 @@ namespace Novacode
                     do
                     {
                         // Get the next run effected
-                        Run run = GetFirstRunEffectedByInsert(m.Index + processed);
+                        Run run = GetFirstRunEffectedByEdit(m.Index + processed);
                         
                         // Get this runs properties
                         XElement rPr = run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName));
@@ -3215,7 +3220,7 @@ namespace Novacode
         /// <param name="newValue">A System.String to replace all occurances of oldValue.</param>
         /// <param name="oldValue">A System.String to be replaced.</param>
         /// <param name="trackChanges">Track changes</param>
-        public void ReplaceText(string oldValue, string newValue, bool trackChanges)
+        public void ReplaceText(string oldValue, string newValue, bool trackChanges = false)
         {
             ReplaceText(oldValue, newValue, trackChanges, RegexOptions.None, null, null, MatchFormattingOptions.SubsetMatch);
         }
@@ -3293,11 +3298,11 @@ namespace Novacode
             endIndex = start;
         }
 
-        static internal XElement[] SplitRun(Run r, int index)
+        static internal XElement[] SplitRun(Run r, int index, EditType type = EditType.ins)
         {
             index = index - r.StartIndex;
 
-            Text t = r.GetFirstTextEffectedByInsert(index);
+            Text t = r.GetFirstTextEffectedByEdit(index, type);
             XElement[] splitText = Text.SplitText(t, index);
 
             XElement splitLeft = new XElement(r.Xml.Name, r.Xml.Attributes(), r.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName)), t.Xml.ElementsBeforeSelf().Where(n => n.Name.LocalName != "rPr"), splitText[0]);
@@ -3318,7 +3323,7 @@ namespace Novacode
             );
         }
 
-        internal Text GetFirstTextEffectedByInsert(int index)
+        internal Text GetFirstTextEffectedByEdit(int index, EditType type = EditType.ins)
         {
             // Make sure we are looking within an acceptable index range.
             if (index < 0 || index > HelperFunctions.GetText(Xml).Length)
@@ -3328,24 +3333,24 @@ namespace Novacode
             int count = 0;
             Text theOne = null;
 
-            GetFirstTextEffectedByInsertRecursive(Xml, index, ref count, ref theOne);
+            GetFirstTextEffectedByEditRecursive(Xml, index, ref count, ref theOne, type);
 
             return theOne;
         }
 
-        internal void GetFirstTextEffectedByInsertRecursive(XElement Xml, int index, ref int count, ref Text theOne)
+        internal void GetFirstTextEffectedByEditRecursive(XElement Xml, int index, ref int count, ref Text theOne, EditType type = EditType.ins)
         {
             count += HelperFunctions.GetSize(Xml);
-            if (count > 0 && count >= index)
+            if (count > 0 && ((type == EditType.del && count > index) || (type == EditType.ins && count >= index)))
             {
-                theOne = new Text(Document, Xml, 0);
+                theOne = new Text(Document, Xml, count - HelperFunctions.GetSize(Xml));
                 return;
             }
 
             if (Xml.HasElements)
                 foreach (XElement e in Xml.Elements())
                     if (theOne == null)
-                        GetFirstTextEffectedByInsertRecursive(e, index, ref count, ref theOne);
+                        GetFirstTextEffectedByEditRecursive(e, index, ref count, ref theOne);
         }
     }
 
@@ -3434,7 +3439,7 @@ namespace Novacode
 
             else
             {
-                if (index == t.StartIndex)
+                if (index == t.EndIndex)
                     splitLeft = t.Xml;
 
                 else
