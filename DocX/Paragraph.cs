@@ -20,13 +20,11 @@ namespace Novacode
         PackagePart mainPart;
         public PackagePart PackagePart { get { return mainPart; } set { mainPart = value; } }
 
+        // The Append family of functions use this List to apply style.
         internal List<XElement> runs;
 
         // This paragraphs text alignment
         private Alignment alignment;
-
-        // A lookup for the runs in this paragraph
-        public Dictionary<int, Run> runLookup = new Dictionary<int, Run>();
 
         internal int startIndex, endIndex;
 
@@ -166,7 +164,6 @@ namespace Novacode
             this.startIndex = startIndex;
             this.endIndex = startIndex + GetElementTextLength(xml);
 
-            BuildRunLookup(xml);
             RebuildDocProperties();
 
             #region It's possible that a Paragraph may have pStyle references
@@ -855,7 +852,6 @@ namespace Novacode
             
             if (run == null) 
                 return AppendHyperlink(h);
-            
             else 
             { 
                 // The parent of this Run 
@@ -865,12 +861,8 @@ namespace Novacode
                 XElement link = h.Xml; 
                 
                 // Replace the origional run 
-                run.Xml.ReplaceWith ( splitRun[0], link, splitRun[1] ); 
+                run.Xml.ReplaceWith( splitRun[0], link, splitRun[1] ); 
             } 
-            
-            // Rebuild the run lookup for this paragraph 
-            runLookup.Clear(); 
-            BuildRunLookup(Xml); 
 
             HelperFunctions.RenumberIDs(Document); 
             
@@ -1092,8 +1084,6 @@ namespace Novacode
 
             else
             {
-                runLookup.Clear();
-
                 if (Xml.Parent.Name.LocalName == "tc")
                     Xml.Value = string.Empty;
 
@@ -1102,30 +1092,6 @@ namespace Novacode
                     // Remove this paragraph from the document
                     Xml.Remove();
                     Xml = null;
-
-                    runLookup = null;
-                }
-            }
-        }
-
-        internal void BuildRunLookup(XElement p)
-        {
-            runLookup.Clear();
-
-            List<XElement> runs = new List<XElement>();
-            p.Flatten("r", runs);
-            
-            int startIndex = 0;
-
-            // Loop through each run in this paragraph
-            foreach (XElement run in runs)
-            {
-                // Only add runs which contain text
-                if (GetElementTextLength(run) > 0)
-                {
-                    Run r = new Run(Document, run, startIndex);
-                    runLookup.Add(r.EndIndex, r);
-                    startIndex = r.EndIndex;
                 }
             }
         }
@@ -1295,9 +1261,6 @@ namespace Novacode
                 );
             }
 
-            // Rebuild the run lookup for this paragraph
-            runLookup.Clear();
-            BuildRunLookup(Xml);
             HelperFunctions.RenumberIDs(Document);
             return picture;
         }
@@ -1598,8 +1561,6 @@ namespace Novacode
             List<XElement> newRuns = HelperFunctions.FormatInput(value, null);
             Xml.Add(newRuns);
 
-            runLookup.Clear();
-            BuildRunLookup(Xml);
             HelperFunctions.RenumberIDs(Document);
         }
 
@@ -1663,8 +1624,6 @@ namespace Novacode
             List<XElement> newRuns = HelperFunctions.FormatInput(value, formatting.Xml);
             Xml.Add(newRuns);
 
-            runLookup.Clear();
-            BuildRunLookup(Xml);
             HelperFunctions.RenumberIDs(Document);
         }
 
@@ -1825,9 +1784,6 @@ namespace Novacode
                 }
             }
 
-            // Rebuild the run lookup for this paragraph
-            runLookup.Clear();
-            BuildRunLookup(Xml);
             HelperFunctions.RenumberIDs(Document);
         }
 
@@ -1856,7 +1812,6 @@ namespace Novacode
             Xml.Add(newRuns);
 
             this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(newRuns.Count()).ToList();
-            BuildRunLookup(Xml);
 
             return this;
         }
@@ -1899,7 +1854,6 @@ namespace Novacode
             Xml.Elements().Last().SetAttributeValue(DocX.r + "id", rel.Id);
 
             this.runs = Xml.Elements().Last().Elements(XName.Get("r", DocX.w.NamespaceName)).ToList();
-            BuildRunLookup(Xml);
 
             return this;
         }     
@@ -1956,7 +1910,6 @@ namespace Novacode
             a_id.SetValue(rel.Id);
 
             this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(p.Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Count()).ToList();
-            BuildRunLookup(Xml);
 
             return this;
         }
@@ -2023,8 +1976,6 @@ namespace Novacode
                 XElement last = rPr.Elements().Last();
                 last.Add(content);
             }
-
-            BuildRunLookup(Xml);
         }
 
         /// <summary>
@@ -2505,8 +2456,6 @@ namespace Novacode
 
                 u.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), underlineColor.ToHex());
             }
-
-            BuildRunLookup(Xml);
             
             return this;
         }
@@ -2864,9 +2813,6 @@ namespace Novacode
             }
             while (processed < count);
 
-            // Rebuild the run lookup
-            runLookup.Clear();
-            BuildRunLookup(Xml);
             HelperFunctions.RenumberIDs(Document);
         }
 

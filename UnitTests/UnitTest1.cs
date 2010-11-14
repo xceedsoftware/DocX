@@ -124,6 +124,37 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void Test_Paragraph_InsertHyperlink()
+        {
+            // Create a new document
+            using (DocX document = DocX.Create("Test.docx"))
+            {
+                // Add a Hyperlink to this document.
+                Hyperlink h = document.AddHyperlink("link", new Uri("http://www.google.com"));
+
+                // Simple
+                Paragraph p1 = document.InsertParagraph("AC");
+                p1.InsertHyperlink(0, h);                    Assert.IsTrue(p1.Text == "linkAC");
+                p1.InsertHyperlink(p1.Text.Length, h);       Assert.IsTrue(p1.Text == "linkAClink");
+                p1.InsertHyperlink(p1.Text.IndexOf("C"), h); Assert.IsTrue(p1.Text == "linkAlinkClink");
+
+                // Difficult
+                Paragraph p2 = document.InsertParagraph("\tA\tC\t");
+                p2.InsertHyperlink(0, h);                    Assert.IsTrue(p2.Text == "link\tA\tC\t");
+                p2.InsertHyperlink(p2.Text.Length, h);       Assert.IsTrue(p2.Text == "link\tA\tC\tlink");
+                p2.InsertHyperlink(p2.Text.IndexOf("C"), h); Assert.IsTrue(p2.Text == "link\tA\tlinkC\tlink");
+
+                // Contrived
+                // Add a contrived Hyperlink to this document.
+                Hyperlink h2 = document.AddHyperlink("\tlink\t", new Uri("http://www.google.com"));
+                Paragraph p3 = document.InsertParagraph("\tA\tC\t");
+                p3.InsertHyperlink(0, h2);                    Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t");
+                p3.InsertHyperlink(p3.Text.Length, h2);       Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t\tlink\t");
+                p3.InsertHyperlink(p3.Text.IndexOf("C"), h2); Assert.IsTrue(p3.Text == "\tlink\t\tA\t\tlink\tC\t\tlink\t");
+            }
+        }
+
+        [TestMethod]
         public void Test_Paragraph_ReplaceText()
         {
             // Create a new document
