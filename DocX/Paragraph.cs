@@ -870,6 +870,69 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Remove the Hyperlink at the provided index. The first hyperlink is at index 0.
+        /// Using a negative index or an index greater than the index of the last hyperlink will cause an ArgumentOutOfRangeException() to be thrown.
+        /// </summary>
+        /// <param name="index">The index of the hyperlink to be removed.</param>
+        /// <example>
+        /// <code>
+        /// // Crete a new document.
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// {
+        ///     // Add a Hyperlink into this document.
+        ///     Hyperlink h = document.AddHyperlink("link", new Uri("http://www.google.com"));
+        ///
+        ///     // Insert a new Paragraph into the document.
+        ///     Paragraph p1 = document.InsertParagraph("AC");
+        ///     
+        ///     // Insert the hyperlink into this Paragraph.
+        ///     p1.InsertHyperlink(1, h);
+        ///     Assert.IsTrue(p1.Text == "AlinkC"); // Make sure the hyperlink was inserted correctly;
+        ///     
+        ///     // Remove the hyperlink
+        ///     p1.RemoveHyperlink(0);
+        ///     Assert.IsTrue(p1.Text == "AC"); // Make sure the hyperlink was removed correctly;
+        /// }
+        /// </code>
+        /// </example>
+        public void RemoveHyperlink(int index)
+        {
+            // Dosen't make sense to remove a Hyperlink at a negative index.
+            if (index < 0)
+                throw new ArgumentOutOfRangeException();
+
+            // Need somewhere to store the count.
+            int count = 0;
+            bool found = false;
+            RemoveHyperlinkRecursive(Xml, index, ref count, ref found);
+
+            // If !found then the user tried to remove a hyperlink at an index greater than the last. 
+            if (!found)
+                throw new ArgumentOutOfRangeException();
+        }
+
+        internal void RemoveHyperlinkRecursive(XElement xml, int index, ref int count, ref bool found)
+        {
+            if (xml.Name.LocalName.Equals("hyperlink", StringComparison.CurrentCultureIgnoreCase))
+            {
+                // This is the hyperlink to be removed.
+                if (count == index)
+                {
+                    found = true;
+                    xml.Remove();
+                }
+
+                else
+                    count++;
+            }
+
+            if (xml.HasElements)
+                foreach (XElement e in xml.Elements())
+                    if (!found)
+                        RemoveHyperlinkRecursive(e, index, ref count, ref found);
+        }
+
+        /// <summary>
         /// Insert a Paragraph after this Paragraph, this Paragraph may have come from the same or another document.
         /// </summary>
         /// <param name="p">The Paragraph to insert.</param>

@@ -155,6 +155,45 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void Test_Paragraph_RemoveHyperlink()
+        { 
+            // Create a new document
+            using (DocX document = DocX.Create("Test.docx"))
+            {
+                // Add a Hyperlink to this document.
+                Hyperlink h = document.AddHyperlink("link", new Uri("http://www.google.com"));
+
+                // Simple
+                Paragraph p1 = document.InsertParagraph("AC");
+                p1.InsertHyperlink(0, h); Assert.IsTrue(p1.Text == "linkAC");
+                p1.InsertHyperlink(p1.Text.Length, h); Assert.IsTrue(p1.Text == "linkAClink");
+                p1.InsertHyperlink(p1.Text.IndexOf("C"), h); Assert.IsTrue(p1.Text == "linkAlinkClink");
+
+                // Try and remove a Hyperlink using a negative index.
+                // This should throw an exception.
+                try
+                {
+                    p1.RemoveHyperlink(-1);
+                    Assert.Fail();
+                }
+                catch (ArgumentException e) { }
+
+                // Try and remove a Hyperlink at an index greater than the last.
+                // This should throw an exception.
+                try 
+                {
+                    p1.RemoveHyperlink(3);
+                    Assert.Fail();
+                }
+                catch (ArgumentException e) {}
+
+                p1.RemoveHyperlink(0); Assert.IsTrue(p1.Text == "AlinkClink");
+                p1.RemoveHyperlink(1); Assert.IsTrue(p1.Text == "AlinkC");
+                p1.RemoveHyperlink(0); Assert.IsTrue(p1.Text == "AC");
+            }
+        }
+
+        [TestMethod]
         public void Test_Paragraph_ReplaceText()
         {
             // Create a new document
