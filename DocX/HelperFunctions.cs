@@ -20,7 +20,7 @@ namespace Novacode
                 case "tab":
                     return 1;
                 case "br":
-                    return 0;
+                    return 1;
                 case "t":
                     goto case "delText";
                 case "delText":
