@@ -177,6 +177,7 @@ namespace UnitTests
                     Assert.Fail();
                 }
                 catch (ArgumentException e) { }
+                catch (Exception e) { Assert.Fail(); }
 
                 // Try and remove a Hyperlink at an index greater than the last.
                 // This should throw an exception.
@@ -186,6 +187,7 @@ namespace UnitTests
                     Assert.Fail();
                 }
                 catch (ArgumentException e) {}
+                catch (Exception e) { Assert.Fail(); }
 
                 p1.RemoveHyperlink(0); Assert.IsTrue(p1.Text == "AlinkClink");
                 p1.RemoveHyperlink(1); Assert.IsTrue(p1.Text == "AlinkC");
@@ -204,6 +206,10 @@ namespace UnitTests
                 p1.ReplaceText("Apple", "Orange"); Assert.IsTrue(p1.Text == "Orange Pear Orange Orange Pear Orange");
                 p1.ReplaceText("Pear", "Apple"); Assert.IsTrue(p1.Text == "Orange Apple Orange Orange Apple Orange");
                 p1.ReplaceText("Orange", "Pear"); Assert.IsTrue(p1.Text == "Pear Apple Pear Pear Apple Pear");
+
+                // Try and replace text that dosen't exist in the Paragraph.
+                string old = p1.Text;
+                p1.ReplaceText("foo", "bar"); Assert.IsTrue(p1.Text.Equals(old));
 
                 // Difficult
                 Paragraph p2 = document.InsertParagraph("Apple Pear Apple Apple Pear Apple");
@@ -228,6 +234,26 @@ namespace UnitTests
                 p1.RemoveText(0, 1); Assert.IsTrue(p1.Text == "elloWorld");
                 p1.RemoveText(p1.Text.Length - 1, 1); Assert.IsTrue(p1.Text == "elloWorl");
                 p1.RemoveText(p1.Text.IndexOf("o"), 1); Assert.IsTrue(p1.Text == "ellWorl");
+
+                // Try and remove text at an index greater than the last.
+                // This should throw an exception.
+                try
+                {
+                    p1.RemoveText(p1.Text.Length, 1);
+                    Assert.Fail();
+                }
+                catch (ArgumentOutOfRangeException e) { }
+                catch (Exception e) { Assert.Fail(); }
+
+                // Try and remove text at a negative index.
+                // This should throw an exception.
+                try
+                {
+                    p1.RemoveText(-1, 1);
+                    Assert.Fail();
+                }
+                catch (ArgumentOutOfRangeException e) { }
+                catch (Exception e) { Assert.Fail(); }
 
                 // Difficult
                 //<p>
@@ -320,6 +346,26 @@ namespace UnitTests
                 p1.InsertText(p1.Text.Length, "-"); Assert.IsTrue(p1.Text == "-HelloWorld-");
                 p1.InsertText(p1.Text.IndexOf("W"), "-"); Assert.IsTrue(p1.Text == "-Hello-World-");
 
+                // Try and insert text at an index greater than the last + 1.
+                // This should throw an exception.
+                try
+                {
+                    p1.InsertText(p1.Text.Length + 1, "-");
+                    Assert.Fail();
+                }
+                catch (ArgumentOutOfRangeException e) { }
+                catch (Exception e) { Assert.Fail(); }
+
+                // Try and insert text at a negative index.
+                // This should throw an exception.
+                try
+                {
+                    p1.InsertText(-1, "-");
+                    Assert.Fail();
+                }
+                catch (ArgumentOutOfRangeException e) { }
+                catch (Exception e) { Assert.Fail(); }
+
                 // Difficult
                 //<p>
                 //    <r><t>A</t></r>
@@ -391,19 +437,6 @@ namespace UnitTests
         [TestMethod]
         public void Test_Document_Paragraphs()
         {
-            // This document contains a run with two text next to each other.
-            // <run>
-            //   <text>Hello World</text>
-            //   <text>foo</text>
-            // </run>
-            using (DocX document = DocX.Load(@"C:\Users\Cathal\Desktop\Bug.docx"))
-            {
-                Paragraph p = document.Paragraphs[0];
-                Assert.IsTrue(p.Text == "Hello worldfoo");
-                p.RemoveText("Hello world".Length, 3, false);
-                Assert.IsTrue(p.Text == "Hello world");
-            }
-
             // Load the document 'Paragraphs.docx'
             using (DocX document = DocX.Load(directory_documents + "Paragraphs.docx"))
             {
@@ -427,27 +460,6 @@ namespace UnitTests
                 Assert.IsTrue(p1_text == "Paragraph 1");
                 Assert.IsTrue(p2_text == "Paragraph 2");
                 Assert.IsTrue(p3_text == "Paragraph 3");
-
-                // Create a string to append to each Paragraph.
-                string appended_text = "foo bar foo";
-
-                // Test the appending of text to each Paragraph.
-                Assert.IsTrue(p1.Append(appended_text).Text == p1_text + appended_text);
-                Assert.IsTrue(p2.Append(appended_text).Text == p2_text + appended_text);
-                Assert.IsTrue(p3.Append(appended_text).Text == p3_text + appended_text);
-
-                // Test FindAll
-                List<int> p1_foos = p1.FindAll("foo");
-                Assert.IsTrue(p1_foos.Count() == 2 && p1_foos[0] == 11 && p1_foos[1] == 19);
-
-                // Test ReplaceText
-                p2.ReplaceText("foo", "bar", false);
-
-                Assert.IsTrue(p2.Text == "Paragraph 2bar bar bar");
-
-                // Test RemoveText
-                p3.RemoveText(1, 3, false);
-                Assert.IsTrue(p3.Text == "Pgraph 3foo bar foo");
 
                 // Its important that each Paragraph knows the PackagePart it belongs to.
                 document.Paragraphs.ForEach(p => Assert.IsTrue(p.PackagePart.Uri.ToString() == package_part_document));

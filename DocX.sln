@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocX", "DocX\DocX.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{03479485-7974-4F61-95D2-22648055C4AD}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 3
@@ -57,6 +59,16 @@ Global
 		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{3EA73F1C-9E0B-4ED5-B04B-6C043D14D1AA}.Release|x86.ActiveCfg = Release|Any CPU
+		{03479485-7974-4F61-95D2-22648055C4AD}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{03479485-7974-4F61-95D2-22648055C4AD}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{03479485-7974-4F61-95D2-22648055C4AD}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{03479485-7974-4F61-95D2-22648055C4AD}.Debug|x86.ActiveCfg = Debug|x86
+		{03479485-7974-4F61-95D2-22648055C4AD}.Debug|x86.Build.0 = Debug|x86
+		{03479485-7974-4F61-95D2-22648055C4AD}.Release|Any CPU.ActiveCfg = Release|x86
+		{03479485-7974-4F61-95D2-22648055C4AD}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{03479485-7974-4F61-95D2-22648055C4AD}.Release|Mixed Platforms.Build.0 = Release|x86
+		{03479485-7974-4F61-95D2-22648055C4AD}.Release|x86.ActiveCfg = Release|x86
+		{03479485-7974-4F61-95D2-22648055C4AD}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

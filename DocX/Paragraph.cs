@@ -1434,8 +1434,10 @@ namespace Novacode
 
         internal Run GetFirstRunEffectedByEdit(int index, EditType type = EditType.ins)
         {
+            int len = HelperFunctions.GetText(Xml).Length;
+
             // Make sure we are looking within an acceptable index range.
-            if (index < 0 || index > HelperFunctions.GetText(Xml).Length)
+            if (index < 0 || ((type == EditType.ins && index > len) || (type == EditType.del && index >= len)))
                 throw new ArgumentOutOfRangeException();
 
             // Need some memory that can be updated by the recursive search for the XElement to Split.
@@ -1533,108 +1535,6 @@ namespace Novacode
         /// // Create a document using a relative filename.
         /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
         /// {
-        ///     // Iterate through the Paragraphs in this document.
-        ///     foreach (Paragraph p in document.Paragraphs)
-        ///     {
-        ///         // Insert the string "Start: " at the begining of every Paragraph and flag it as a change.
-        ///         p.InsertText(0, "Start: ", true);
-        ///     }
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <example>
-        /// Inserting tabs using the \t switch.
-        /// <code>  
-        /// // Create a document using a relative filename.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Iterate through the paragraphs in this document.
-        ///     foreach (Paragraph p in document.Paragraphs)
-        ///     {
-        ///         // Insert the string "\tStart:\t" at the begining of every paragraph and flag it as a change.
-        ///         p.InsertText(0, "\tStart:\t", true);
-        ///     }
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
-        /// <param name="index">The index position of the insertion.</param>
-        /// <param name="value">The System.String to insert.</param>
-        /// <param name="trackChanges">Flag this insert as a change.</param>
-        public void InsertText(int index, string value, bool trackChanges = false)
-        {
-            InsertText(index, value, trackChanges, null);
-        }
-
-        /// <summary>
-        /// Inserts a specified instance of System.String into a Novacode.DocX.Paragraph at a specified index position.
-        /// </summary>
-        /// <example>
-        /// <code> 
-        /// // Create a document using a relative filename.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Iterate through the Paragraphs in this document.
-        ///     foreach (Paragraph p in document.Paragraphs)
-        ///     {
-        ///         // Insert the string "End: " at the end of every Paragraph and flag it as a change.
-        ///         p.InsertText("End: ", true);
-        ///     }
-        ///       
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <example>
-        /// Inserting tabs using the \t switch.
-        /// <code>  
-        /// // Create a document using a relative filename.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Iterate through the paragraphs in this document.
-        ///     foreach (Paragraph p in document.Paragraphs)
-        ///     {
-        ///         // Insert the string "\tEnd" at the end of every paragraph and flag it as a change.
-        ///         p.InsertText("\tEnd", true);
-        ///     }
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
-        /// <param name="value">The System.String to insert.</param>
-        /// <param name="trackChanges">Flag this insert as a change.</param>
-        public void InsertText(string value, bool trackChanges)
-        {
-            List<XElement> newRuns = HelperFunctions.FormatInput(value, null);
-            Xml.Add(newRuns);
-
-            HelperFunctions.RenumberIDs(Document);
-        }
-
-        /// <summary>
-        /// Inserts a specified instance of System.String into a Novacode.DocX.Paragraph at a specified index position.
-        /// </summary>
-        /// <example>
-        /// <code> 
-        /// // Create a document using a relative filename.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
         ///     // Create a text formatting.
         ///     Formatting f = new Formatting();
         ///     f.FontColor = Color.Red;
@@ -1682,7 +1582,7 @@ namespace Novacode
         /// <param name="value">The System.String to insert.</param>
         /// <param name="trackChanges">Flag this insert as a change.</param>
         /// <param name="formatting">The text formatting.</param>
-        public void InsertText(string value, bool trackChanges, Formatting formatting)
+        public void InsertText(string value, bool trackChanges = false, Formatting formatting = null)
         {
             List<XElement> newRuns = HelperFunctions.FormatInput(value, formatting.Xml);
             Xml.Add(newRuns);
@@ -1746,7 +1646,7 @@ namespace Novacode
         /// <param name="value">The System.String to insert.</param>
         /// <param name="trackChanges">Flag this insert as a change.</param>
         /// <param name="formatting">The text formatting.</param>
-        public void InsertText(int index, string value, bool trackChanges, Formatting formatting)
+        public void InsertText(int index, string value, bool trackChanges=false, Formatting formatting = null)
         {
             // Timestamp to mark the start of insert
             DateTime now = DateTime.Now;
@@ -2625,45 +2525,6 @@ namespace Novacode
         ///     // Insert a new paragraph.
         ///     Paragraph p = document.InsertParagraph("Author: ", false, f);
         ///
-        ///     // Insert a field of type document property to display the custom property name
-        ///     p.InsertDocProperty(name, f);
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        public DocProperty InsertDocProperty(CustomProperty cp, Formatting f)
-        {
-            return InsertDocProperty(cp, false, f);
-        }
-
-        /// <summary>
-        /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
-        /// </summary>
-        /// <param name="cp">The custom property to display.</param>
-        /// <param name="f">The formatting to use for this text.</param>
-        /// <example>
-        /// Create, add and display a custom property in a document.
-        /// <code>
-        /// // Load a document
-        /// using (DocX document = DocX.Create(@"Test.docx"))
-        /// {
-        ///     // Create a custom property.
-        ///     CustomProperty name = new CustomProperty("name", "Cathal Coffey");
-        ///        
-        ///     // Add this custom property to this document.
-        ///     document.AddCustomProperty(name);
-        ///
-        ///     // Create a text formatting.
-        ///     Formatting f = new Formatting();
-        ///     f.Bold = true;
-        ///     f.Size = 14;
-        ///     f.StrikeThrough = StrickThrough.strike;
-        ///
-        ///     // Insert a new paragraph.
-        ///     Paragraph p = document.InsertParagraph("Author: ", false, f);
-        ///
         ///     // Insert a field of type document property to display the custom property name and track this change.
         ///     p.InsertDocProperty(name, true, f);
         ///
@@ -2672,7 +2533,7 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public DocProperty InsertDocProperty(CustomProperty cp, bool trackChanges, Formatting f)
+        public DocProperty InsertDocProperty(CustomProperty cp, bool trackChanges = false, Formatting f = null)
         {
             XElement e = new XElement
             (
@@ -2693,70 +2554,6 @@ namespace Novacode
             Xml.Add(e);
 
             return new DocProperty(Document, xml);
-        }
-
-        /// <summary>
-        /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
-        /// </summary>
-        /// <param name="cp">The custom property to display.</param>
-        /// <example>
-        /// Create, add and display a custom property in a document.
-        /// <code>
-        /// // Load a document
-        /// using (DocX document = DocX.Create(@"Test.docx"))
-        /// {
-        ///     // Create a custom property.
-        ///     CustomProperty name = new CustomProperty("name", "Cathal Coffey");
-        ///        
-        ///     // Add this custom property to this document.
-        ///     document.AddCustomProperty(name);
-        ///
-        ///     // Insert a new paragraph.
-        ///     Paragraph p = document.InsertParagraph("Author: ", false);
-        ///        
-        ///     // Insert a field of type document property to display the custom property name
-        ///     p.InsertDocProperty(name);
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        public DocProperty InsertDocProperty(CustomProperty cp)
-        {
-            return InsertDocProperty(cp, false, new Formatting());
-        }
-
-        /// <summary>
-        /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
-        /// </summary>
-        /// <param name="cp">The custom property to display.</param>
-        /// <example>
-        /// Create, add and display a custom property in a document.
-        /// <code>
-        /// // Load a document
-        /// using (DocX document = DocX.Create(@"Test.docx"))
-        /// {
-        ///     // Create a custom property.
-        ///     CustomProperty name = new CustomProperty("name", "Cathal Coffey");
-        ///        
-        ///     // Add this custom property to this document.
-        ///     document.AddCustomProperty(name);
-        ///
-        ///     // Insert a new paragraph.
-        ///     Paragraph p = document.InsertParagraph("Author: ", false);
-        ///        
-        ///     // Insert a field of type document property to display the custom property name and track this change.
-        ///     p.InsertDocProperty(name, true);
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        public DocProperty InsertDocProperty(CustomProperty cp, bool trackChanges)
-        {
-            return InsertDocProperty(cp, trackChanges, new Formatting());
         }
 
         /// <summary>
@@ -2902,95 +2699,13 @@ namespace Novacode
         /// </example>
         /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
         /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
-        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
         /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
         /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
         /// <param name="index">The position to begin deleting characters.</param>
         /// <param name="trackChanges">Track changes</param>
-        public void RemoveText(int index, bool trackChanges)
+        public void RemoveText(int index, bool trackChanges = false)
         {
             RemoveText(index, Text.Length - index, trackChanges);
-        }
-
-        /// <summary>
-        /// Replaces all occurrences of a specified System.String in this instance, with another specified System.String.
-        /// </summary>
-        /// <example>
-        /// <code>
-        /// // Create a document using a relative filename.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Iterate through the paragraphs in this document.
-        ///     foreach (Paragraph p in document.Paragraphs)
-        ///     {
-        ///         // Replace all instances of the string "wrong" with the string "right" and ignore case.
-        ///         p.ReplaceText("wrong", "right", false, RegexOptions.IgnoreCase);
-        ///     }
-        ///        
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
-        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
-        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
-        /// <param name="newValue">A System.String to replace all occurances of oldValue.</param>
-        /// <param name="oldValue">A System.String to be replaced.</param>
-        /// <param name="options">A bitwise OR combination of RegexOption enumeration options.</param>
-        /// <param name="trackChanges">Track changes</param>
-        public void ReplaceText(string oldValue, string newValue, bool trackChanges, RegexOptions options)
-        {
-            ReplaceText(oldValue, newValue, trackChanges, options, null, null, MatchFormattingOptions.SubsetMatch);
-        }
-
-        /// <summary>
-        /// Replaces all occurrences of a specified System.String in this instance, with another specified System.String.
-        /// </summary>
-        /// <example>
-        /// <code>
-        /// // Create a document using a relative filename.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // The formatting to apply to the inserted text.
-        ///     Formatting newFormatting = new Formatting();
-        ///     newFormatting.Size = 22;
-        ///     newFormatting.UnderlineStyle = UnderlineStyle.dotted;
-        ///     newFormatting.Bold = true;
-        ///
-        ///     // Iterate through the paragraphs in this document.
-        ///     foreach (Paragraph p in document.Paragraphs)
-        ///     {
-        ///         /* 
-        ///          * Replace all instances of the string "wrong" with the string "right" and ignore case.
-        ///          * Each inserted instance of "wrong" should use the Formatting newFormatting.
-        ///          */ 
-        ///         p.ReplaceText("wrong", "right", false, RegexOptions.IgnoreCase, newFormatting);
-        ///     }
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
-        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
-        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
-        /// <param name="newValue">A System.String to replace all occurances of oldValue.</param>
-        /// <param name="oldValue">A System.String to be replaced.</param>
-        /// <param name="options">A bitwise OR combination of RegexOption enumeration options.</param>
-        /// <param name="trackChanges">Track changes</param>
-        /// <param name="newFormatting">The formatting to apply to the text being inserted.</param>
-        public void ReplaceText(string oldValue, string newValue, bool trackChanges, RegexOptions options, Formatting newFormatting)
-        {
-            ReplaceText(oldValue, newValue, trackChanges, options, null, null, MatchFormattingOptions.SubsetMatch);
         }
 
         /// <summary>
@@ -3045,7 +2760,7 @@ namespace Novacode
         /// <param name="newFormatting">The formatting to apply to the text being inserted.</param>
         /// <param name="matchFormatting">The formatting that the text must match in order to be replaced.</param>
         /// <param name="fo">How should formatting be matched?</param>
-        public void ReplaceText(string oldValue, string newValue, bool trackChanges, RegexOptions options, Formatting newFormatting, Formatting matchFormatting, MatchFormattingOptions fo)
+        public void ReplaceText(string oldValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch)
         {
             MatchCollection mc = Regex.Matches(this.Text, Regex.Escape(oldValue), options);
 
@@ -3198,40 +2913,6 @@ namespace Novacode
             ).ToList();
 
             return query;
-        }
-
-        /// <summary>
-        /// Replaces all occurrences of a specified System.String in this instance, with another specified System.String.
-        /// </summary>
-        /// <example>
-        /// <code>
-        /// // Create a document using a relative filename.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Iterate through the paragraphs in this document.
-        ///     foreach (Paragraph p in document.Paragraphs)
-        ///     {
-        ///         // Replace all instances of the string "wrong" with the string "right".
-        ///         p.ReplaceText("wrong", "right", false);
-        ///     }
-        ///       
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
-        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
-        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
-        /// <param name="newValue">A System.String to replace all occurances of oldValue.</param>
-        /// <param name="oldValue">A System.String to be replaced.</param>
-        /// <param name="trackChanges">Track changes</param>
-        public void ReplaceText(string oldValue, string newValue, bool trackChanges = false)
-        {
-            ReplaceText(oldValue, newValue, trackChanges, RegexOptions.None, null, null, MatchFormattingOptions.SubsetMatch);
         }
     }
 
