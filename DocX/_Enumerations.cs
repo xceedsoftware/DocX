@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Novacode
 {
+    // Patch 7398 added by lckuiper on Nov 16th 2010 @ 2:23 PM
+    public enum VerticalAlignment { Top, Center, Bottom };
+
     public enum Orientation { Portrait, Landscape };
     public enum XmlDocument { Main, HeaderOdd, HeaderEven, HeaderFirst, FooterOdd, FooterEven, FooterFirst };
     public enum MatchFormattingOptions { ExactMatch, SubsetMatch};

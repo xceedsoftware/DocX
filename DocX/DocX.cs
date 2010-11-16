@@ -1436,7 +1436,22 @@ namespace Novacode
         /// <seealso cref="Paragraph.InsertPicture"/>
         public Image AddImage(string filename)
         {
-            return AddImage(filename as object);
+            string contentType = "";
+
+            // The extension this file has will be taken to be its format.
+            switch (Path.GetExtension(filename))
+            {
+                case ".tiff": contentType = "image/tif"; break;
+                case ".tif": contentType = "image/tif"; break;
+                case ".png": contentType = "image/png"; break;
+                case ".bmp": contentType = "image/png"; break;
+                case ".gif": contentType = "image/gif"; break;
+                case ".jpg": contentType = "image/jpg"; break;
+                case ".jpeg": contentType = "image/jpeg"; break;
+                default: contentType = "image/jpg"; break;
+            }
+
+            return AddImage(filename as object, contentType);
         }
 
         /// <summary>
@@ -1783,7 +1798,7 @@ namespace Novacode
             }
         }
 
-        internal Image AddImage(object o)
+        internal Image AddImage(object o, string contentType = "image/jpeg")
         {
             // Open a Stream to the new image being added.
             Stream newImageStream;
@@ -1795,33 +1810,34 @@ namespace Novacode
             // Get all image parts in word\document.xml
             List<PackagePart> imageParts = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image").Select(ir => package.GetParts().Where(p => p.Uri.ToString().EndsWith(ir.TargetUri.ToString())).First()).ToList();
             foreach (PackagePart relsPart in package.GetParts().Where(part => part.Uri.ToString().Contains("/word/")).Where(part => part.ContentType.Equals("application/vnd.openxmlformats-package.relationships+xml")))
-          {
-            XDocument relsPartContent;
-            using (TextReader tr = new StreamReader(relsPart.GetStream(FileMode.Open, FileAccess.Read)))
             {
-              relsPartContent = XDocument.Load(tr);
-            }
-            IEnumerable<XElement> imageRelationships =
-              relsPartContent.Root.Elements().Where(
-                imageRel =>
-                imageRel.Attribute(XName.Get("Type")).Value.Equals(
-                  "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"));
-            foreach (XElement imageRelationship in imageRelationships)
-            {
-              if (imageRelationship.Attribute(XName.Get("Target")) != null)
-              {
-                string imagePartUri = Path.Combine(Path.GetDirectoryName(relsPart.Uri.ToString()), imageRelationship.Attribute(XName.Get("Target")).Value);
-                imagePartUri = Path.GetFullPath(imagePartUri.Replace("\\_rels", string.Empty));
-                imagePartUri = imagePartUri.Replace(Path.GetFullPath("\\"), string.Empty).Replace("\\", "/");
-                if (!imagePartUri.StartsWith("/"))
+                XDocument relsPartContent;
+                using (TextReader tr = new StreamReader(relsPart.GetStream(FileMode.Open, FileAccess.Read)))
+                  relsPartContent = XDocument.Load(tr);
+
+                IEnumerable<XElement> imageRelationships =
+                relsPartContent.Root.Elements().Where
+                (
+                    imageRel =>
+                    imageRel.Attribute(XName.Get("Type")).Value.Equals("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
+                );
+
+                foreach (XElement imageRelationship in imageRelationships)
                 {
-                  imagePartUri = "/" + imagePartUri;
+                    if (imageRelationship.Attribute(XName.Get("Target")) != null)
+                    {
+                        string imagePartUri = Path.Combine(Path.GetDirectoryName(relsPart.Uri.ToString()), imageRelationship.Attribute(XName.Get("Target")).Value);
+                        imagePartUri = Path.GetFullPath(imagePartUri.Replace("\\_rels", string.Empty));
+                        imagePartUri = imagePartUri.Replace(Path.GetFullPath("\\"), string.Empty).Replace("\\", "/");
+
+                        if (!imagePartUri.StartsWith("/"))
+                            imagePartUri = "/" + imagePartUri;
+
+                        PackagePart imagePart = package.GetPart(new Uri(imagePartUri, UriKind.Relative));
+                        imageParts.Add(imagePart);
+                    }
                 }
-                PackagePart imagePart = package.GetPart(new Uri(imagePartUri, UriKind.Relative));
-                imageParts.Add(imagePart);
-              }
             }
-          }
             
             // Loop through each image part in this document.
             foreach (PackagePart pp in imageParts)
@@ -1843,30 +1859,22 @@ namespace Novacode
                 }
             }
 
-            /* 
-             * This Image being added is infact a new Image,
-             * we need to generate a unique name for this image of the format imageN.ext,
-             * where n is an integer that has not been used before.
-             * This could probabily be replace by a Guid.
-             */
-            int max = 0;
-            var values =
-            (
-                from ip in imageParts
-                let Name = Path.GetFileNameWithoutExtension(ip.Uri.ToString())
-                let Number = Regex.Match(Name, @"\d+$").Value
-                select Number != string.Empty ? int.Parse(Number) : 0
-            );
-            if (values.Count() > 0)
-                max = Math.Max(max, values.Max());
+            string imgPartUriPath = string.Empty;
+            string extension = contentType.Substring(contentType.LastIndexOf("/") + 1);
+            do
+            {
+                // Create a new image part.
+                imgPartUriPath = string.Format
+                (
+                    "/word/media/{0}.{1}", 
+                    Guid.NewGuid().ToString(), // The unique part.
+                    extension
+                );
 
-            // Create a new image part.
-          string imgPartUriPath = string.Format("/word/media/image{0}.jpeg", max + 1);
-          if (package.PartExists(new Uri(imgPartUriPath, UriKind.Relative)))
-          {
-            package.DeletePart(new Uri(imgPartUriPath, UriKind.Relative));
-          }
-            PackagePart img = package.CreatePart(new Uri(imgPartUriPath, UriKind.Relative), System.Net.Mime.MediaTypeNames.Image.Jpeg);
+            } while (package.PartExists(new Uri(imgPartUriPath, UriKind.Relative)));
+
+            // We are now guareenteed that imgPartUriPath is unique.
+            PackagePart img = package.CreatePart(new Uri(imgPartUriPath, UriKind.Relative), contentType);
 
             // Create a new image relationship
             PackageRelationship rel = mainPart.CreateRelationship(img.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");

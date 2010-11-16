@@ -1504,6 +1504,119 @@ namespace Novacode
             }
         }
 
+        /// <summary>
+        /// Gets or Sets this Cells vertical alignment.
+        /// </summary>
+        /// <!--Patch 7398 added by lckuiper on Nov 16th 2010 @ 2:23 PM-->
+        /// <example>
+        /// Creates a table with 3 cells and sets the vertical alignment of each to 1 of the 3 available options.
+        /// <code>
+        ///// Create a new document.
+        ///using(DocX document = DocX.Create("Test.docx"))
+        ///{
+        ///    // Insert a Table into this document.
+        ///    Table t = document.InsertTable(3, 1);
+        ///
+        ///    // Set the design of the Table such that we can easily identify cell boundaries.
+        ///    t.Design = TableDesign.TableGrid;
+        ///
+        ///    // Set the height of the row bigger than default.
+        ///    // We need to be able to see the difference in vertical cell alignment options.
+        ///    t.Rows[0].Height = 100;
+        ///
+        ///    // Set the vertical alignment of cell0 to top.
+        ///    Cell c0 = t.Rows[0].Cells[0];
+        ///    c0.InsertParagraph("VerticalAlignment.Top");
+        ///    c0.VerticalAlignment = VerticalAlignment.Top;
+        ///
+        ///    // Set the vertical alignment of cell1 to center.
+        ///    Cell c1 = t.Rows[0].Cells[1];
+        ///    c1.InsertParagraph("VerticalAlignment.Center");
+        ///    c1.VerticalAlignment = VerticalAlignment.Center;
+        ///
+        ///    // Set the vertical alignment of cell2 to bottom.
+        ///    Cell c2 = t.Rows[0].Cells[2];
+        ///    c2.InsertParagraph("VerticalAlignment.Bottom");
+        ///    c2.VerticalAlignment = VerticalAlignment.Bottom;
+        ///
+        ///    // Save the document.
+        ///    document.Save();
+        ///}
+        /// </code>
+        /// </example>
+        public VerticalAlignment VerticalAlignment
+        {
+            get
+            {
+                /*
+                 * Get the tcPr (table cell properties) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+
+                // If tcPr is null, this cell contains no width information.
+                if (tcPr == null)
+                    return VerticalAlignment.Center;
+
+                /*
+                 * Get the vAlign (table cell vertical alignment) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement vAlign = tcPr.Element(XName.Get("vAlign", DocX.w.NamespaceName));
+
+                // If vAlign is null, this cell contains no vertical alignment information.
+                if (vAlign == null)
+                    return VerticalAlignment.Center;
+
+                // Get the val attribute of the vAlign element.
+                XAttribute val = vAlign.Attribute(XName.Get("val", DocX.w.NamespaceName));
+
+                // If val is null, this cell contains no vAlign information.
+                if (val == null)
+                    return VerticalAlignment.Center;
+
+                // If val is not a VerticalAlign enum, something is wrong with this attributes value, so remove it and return VerticalAlignment.Center;
+                try
+                {
+                    return (VerticalAlignment)Enum.Parse(typeof(VerticalAlignment), val.Value, true);
+                }
+
+                catch
+                {
+                    val.Remove();
+                    return VerticalAlignment.Center;
+                }
+            }
+
+            set
+            {
+                /*
+                 * Get the tcPr (table cell properties) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                if (tcPr == null)
+                {
+                    Xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                    tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                }
+
+                /*
+                 * Get the vAlign (table cell vertical alignment) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement vAlign = tcPr.Element(XName.Get("vAlign", DocX.w.NamespaceName));
+                if (vAlign == null)
+                {
+                    tcPr.SetElementValue(XName.Get("vAlign", DocX.w.NamespaceName), string.Empty);
+                    vAlign = tcPr.Element(XName.Get("vAlign", DocX.w.NamespaceName));
+                }
+
+                // Set the VerticalAlignment in 'val'
+                vAlign.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), value.ToString().ToLower());
+            }
+        }
+
         public Color Shading
         {
             get
