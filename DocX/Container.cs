@@ -61,17 +61,45 @@ namespace Novacode
         {
             get 
             {
-              List<Paragraph> paragraphs = new List<Paragraph>();
-              foreach (var p in this.Xml.Elements(DocX.w + "p"))
-              {
-                var paragraph = new Paragraph(this.Document, p, 0);
-                if ((p.ElementsAfterSelf().FirstOrDefault() != null) &&(p.ElementsAfterSelf().First().Name.Equals(DocX.w + "tbl")))
+                List<Paragraph> paragraphs = GetParagraphs();
+
+                foreach (var p in paragraphs)
                 {
-                  paragraph.FollowingTable = new Table(this.Document, p.ElementsAfterSelf().First());
+                    if ((p.Xml.ElementsAfterSelf().FirstOrDefault() != null) && (p.Xml.ElementsAfterSelf().First().Name.Equals(DocX.w + "tbl")))
+                    {
+                        p.FollowingTable = new Table(this.Document, p.Xml.ElementsAfterSelf().First());
+                    }
                 }
-                paragraphs.Add(paragraph);
-              }
-              return paragraphs;
+                
+                return paragraphs;
+            }
+        }
+
+        internal List<Paragraph> GetParagraphs()
+        {
+            // Need some memory that can be updated by the recursive search.
+            int index = 0;
+            List<Paragraph> paragraphs = new List<Paragraph>();
+
+            GetParagraphsRecursive(Xml, ref index, ref paragraphs);
+
+            return paragraphs;
+        }
+
+        internal void GetParagraphsRecursive(XElement Xml, ref int index, ref List<Paragraph> paragraphs)
+        {
+            if (Xml.Name.LocalName == "p")
+            {
+                paragraphs.Add(new Paragraph(Document, Xml, index));
+
+                index += HelperFunctions.GetText(Xml).Length;
+            }
+
+            else
+            {
+                if (Xml.HasElements)
+                    foreach (XElement e in Xml.Elements())
+                        GetParagraphsRecursive(e, ref index, ref paragraphs);
             }
         }
 
@@ -177,30 +205,27 @@ namespace Novacode
             return list;
         }
 
-        public virtual void ReplaceText(string oldValue, string newValue, bool trackChanges, RegexOptions options)
+        public virtual void ReplaceText(string oldValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch)
         {
-            ReplaceText(oldValue, newValue, false, false, trackChanges, options, null, null, MatchFormattingOptions.SubsetMatch);
-        }
+            // ReplaceText in Headers of the document.
+            Headers headers = Document.Headers;
+            List<Header> headerList = new List<Header> { headers.first, headers.even, headers.odd };
+            foreach (Header h in headerList)
+                if (h != null)
+                    foreach (Paragraph p in h.Paragraphs)
+                        p.ReplaceText(oldValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo);
 
-        public virtual void ReplaceText(string oldValue, string newValue, bool includeHeaders, bool includeFooters, bool trackChanges, RegexOptions options)
-        {
-            ReplaceText(oldValue, newValue, includeHeaders, includeFooters, trackChanges, options, null, null, MatchFormattingOptions.SubsetMatch);
-        }
-
-        public virtual void ReplaceText(string oldValue, string newValue, bool includeHeaders, bool includeFooters, bool trackChanges, RegexOptions options, Formatting newFormatting, Formatting matchFormatting, MatchFormattingOptions fo)
-        {
+            // ReplaceText int main body of document.
             foreach (Paragraph p in Paragraphs)
                 p.ReplaceText(oldValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo);
-        }
 
-        public virtual void ReplaceText(string oldValue, string newValue, bool trackChanges)
-        {
-            ReplaceText(oldValue, newValue, false, false, trackChanges, RegexOptions.None);
-        }
-
-        public virtual void ReplaceText(string oldValue, string newValue, bool includeHeaders, bool includeFooters, bool trackChanges)
-        {
-            ReplaceText(oldValue, newValue, includeHeaders, includeFooters, trackChanges, RegexOptions.None, null, null, MatchFormattingOptions.SubsetMatch);
+            // ReplaceText in Footers of the document.
+            Footers footers = Document.Footers;
+            List<Footer> footerList = new List<Footer> { footers.first, footers.even, footers.odd };
+            foreach (Footer f in footerList)
+                if (f != null)
+                    foreach (Paragraph p in f.Paragraphs)
+                        p.ReplaceText(oldValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo);
         }
 
         public virtual Paragraph InsertParagraph(int index, string text, bool trackChanges)
