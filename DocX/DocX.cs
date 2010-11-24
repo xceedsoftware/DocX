@@ -1928,174 +1928,177 @@ namespace Novacode
                 mainDoc.Save(tw, SaveOptions.DisableFormatting);
 
             XElement body = mainDoc.Root.Element(w + "body");
-            XElement sectPr = body.Element(w + "sectPr");
-            
-            var evenHeaderRef = 
-            (
-                from e in sectPr.Elements(w + "headerReference")
-                let type = e.Attribute(w + "type")
-                where type != null && type.Value.Equals("even", StringComparison.CurrentCultureIgnoreCase)
-                select e.Attribute(r + "id").Value
-             ).SingleOrDefault();
+            XElement sectPr = body.Descendants(w + "sectPr").FirstOrDefault();
 
-            if(evenHeaderRef != null)
+            if (sectPr != null)
             {
-                XElement even = headers.even.Xml;
-
-                Uri target = PackUriHelper.ResolvePartUri
+                var evenHeaderRef =
                 (
-                    mainPart.Uri,
-                    mainPart.GetRelationship(evenHeaderRef).TargetUri
-                );
-                
-                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    from e in sectPr.Elements(w + "headerReference")
+                    let type = e.Attribute(w + "type")
+                    where type != null && type.Value.Equals("even", StringComparison.CurrentCultureIgnoreCase)
+                    select e.Attribute(r + "id").Value
+                 ).SingleOrDefault();
+
+                if (evenHeaderRef != null)
                 {
-                    new XDocument
+                    XElement even = headers.even.Xml;
+
+                    Uri target = PackUriHelper.ResolvePartUri
                     (
-                        new XDeclaration("1.0", "UTF-8", "yes"),
-                        even
-                    ).Save(tw, SaveOptions.DisableFormatting);
+                        mainPart.Uri,
+                        mainPart.GetRelationship(evenHeaderRef).TargetUri
+                    );
+
+                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    {
+                        new XDocument
+                        (
+                            new XDeclaration("1.0", "UTF-8", "yes"),
+                            even
+                        ).Save(tw, SaveOptions.DisableFormatting);
+                    }
                 }
-            }
 
-            var oddHeaderRef = 
-            (
-                from e in sectPr.Elements(w + "headerReference")
-                let type = e.Attribute(w + "type")
-                where type != null && type.Value.Equals("default", StringComparison.CurrentCultureIgnoreCase)
-                select e.Attribute(r + "id").Value
-             ).SingleOrDefault();
-
-            if(oddHeaderRef != null)
-            {
-                XElement odd = headers.odd.Xml;
-
-                Uri target = PackUriHelper.ResolvePartUri
+                var oddHeaderRef =
                 (
-                    mainPart.Uri,
-                    mainPart.GetRelationship(oddHeaderRef).TargetUri
-                );
+                    from e in sectPr.Elements(w + "headerReference")
+                    let type = e.Attribute(w + "type")
+                    where type != null && type.Value.Equals("default", StringComparison.CurrentCultureIgnoreCase)
+                    select e.Attribute(r + "id").Value
+                 ).SingleOrDefault();
 
-                // Save header1
-                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                if (oddHeaderRef != null)
                 {
-                    new XDocument
+                    XElement odd = headers.odd.Xml;
+
+                    Uri target = PackUriHelper.ResolvePartUri
                     (
-                        new XDeclaration("1.0", "UTF-8", "yes"),
-                        odd
-                    ).Save(tw, SaveOptions.DisableFormatting);
+                        mainPart.Uri,
+                        mainPart.GetRelationship(oddHeaderRef).TargetUri
+                    );
+
+                    // Save header1
+                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    {
+                        new XDocument
+                        (
+                            new XDeclaration("1.0", "UTF-8", "yes"),
+                            odd
+                        ).Save(tw, SaveOptions.DisableFormatting);
+                    }
                 }
-            }
 
-            var firstHeaderRef =
-            (
-                from e in sectPr.Elements(w + "headerReference")
-                let type = e.Attribute(w + "type")
-                where type != null && type.Value.Equals("first", StringComparison.CurrentCultureIgnoreCase)
-                select e.Attribute(r + "id").Value
-             ).SingleOrDefault();
-
-            if(firstHeaderRef != null)
-            {
-                XElement first = headers.first.Xml;
-                Uri target = PackUriHelper.ResolvePartUri
+                var firstHeaderRef =
                 (
-                    mainPart.Uri,
-                    mainPart.GetRelationship(firstHeaderRef).TargetUri
-                );
-               
-                // Save header3
-                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    from e in sectPr.Elements(w + "headerReference")
+                    let type = e.Attribute(w + "type")
+                    where type != null && type.Value.Equals("first", StringComparison.CurrentCultureIgnoreCase)
+                    select e.Attribute(r + "id").Value
+                 ).SingleOrDefault();
+
+                if (firstHeaderRef != null)
                 {
-                    new XDocument
+                    XElement first = headers.first.Xml;
+                    Uri target = PackUriHelper.ResolvePartUri
                     (
-                        new XDeclaration("1.0", "UTF-8", "yes"),
-                        first
-                    ).Save(tw, SaveOptions.DisableFormatting);
+                        mainPart.Uri,
+                        mainPart.GetRelationship(firstHeaderRef).TargetUri
+                    );
+
+                    // Save header3
+                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    {
+                        new XDocument
+                        (
+                            new XDeclaration("1.0", "UTF-8", "yes"),
+                            first
+                        ).Save(tw, SaveOptions.DisableFormatting);
+                    }
                 }
-            }
 
-            var oddFooterRef =
-            (
-                from e in sectPr.Elements(w + "footerReference")
-                let type = e.Attribute(w + "type")
-                where type != null && type.Value.Equals("default", StringComparison.CurrentCultureIgnoreCase)
-                select e.Attribute(r + "id").Value
-             ).SingleOrDefault();
-
-            if(oddFooterRef != null)
-            {
-                XElement odd = footers.odd.Xml;
-                Uri target = PackUriHelper.ResolvePartUri
+                var oddFooterRef =
                 (
-                    mainPart.Uri,
-                    mainPart.GetRelationship(oddFooterRef).TargetUri
-                );
-             
-                // Save header1
-                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    from e in sectPr.Elements(w + "footerReference")
+                    let type = e.Attribute(w + "type")
+                    where type != null && type.Value.Equals("default", StringComparison.CurrentCultureIgnoreCase)
+                    select e.Attribute(r + "id").Value
+                 ).SingleOrDefault();
+
+                if (oddFooterRef != null)
                 {
-                    new XDocument
+                    XElement odd = footers.odd.Xml;
+                    Uri target = PackUriHelper.ResolvePartUri
                     (
-                        new XDeclaration("1.0", "UTF-8", "yes"),
-                        odd
-                    ).Save(tw, SaveOptions.DisableFormatting);
+                        mainPart.Uri,
+                        mainPart.GetRelationship(oddFooterRef).TargetUri
+                    );
+
+                    // Save header1
+                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    {
+                        new XDocument
+                        (
+                            new XDeclaration("1.0", "UTF-8", "yes"),
+                            odd
+                        ).Save(tw, SaveOptions.DisableFormatting);
+                    }
                 }
-            }
 
-            var evenFooterRef =
-            (
-                from e in sectPr.Elements(w + "footerReference")
-                let type = e.Attribute(w + "type")
-                where type != null && type.Value.Equals("even", StringComparison.CurrentCultureIgnoreCase)
-                select e.Attribute(r + "id").Value
-             ).SingleOrDefault();
-
-            if (evenFooterRef != null)
-            {
-                XElement even = footers.even.Xml;
-                Uri target = PackUriHelper.ResolvePartUri
+                var evenFooterRef =
                 (
-                    mainPart.Uri,
-                    mainPart.GetRelationship(evenFooterRef).TargetUri
-                );
-             
-                // Save header2
-                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    from e in sectPr.Elements(w + "footerReference")
+                    let type = e.Attribute(w + "type")
+                    where type != null && type.Value.Equals("even", StringComparison.CurrentCultureIgnoreCase)
+                    select e.Attribute(r + "id").Value
+                 ).SingleOrDefault();
+
+                if (evenFooterRef != null)
                 {
-                    new XDocument
+                    XElement even = footers.even.Xml;
+                    Uri target = PackUriHelper.ResolvePartUri
                     (
-                        new XDeclaration("1.0", "UTF-8", "yes"),
-                        even
-                    ).Save(tw, SaveOptions.DisableFormatting);
+                        mainPart.Uri,
+                        mainPart.GetRelationship(evenFooterRef).TargetUri
+                    );
+
+                    // Save header2
+                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    {
+                        new XDocument
+                        (
+                            new XDeclaration("1.0", "UTF-8", "yes"),
+                            even
+                        ).Save(tw, SaveOptions.DisableFormatting);
+                    }
                 }
-            }
 
-            var firstFooterRef =
-            (
-                 from e in sectPr.Elements(w + "footerReference")
-                 let type = e.Attribute(w + "type")
-                 where type != null && type.Value.Equals("first", StringComparison.CurrentCultureIgnoreCase)
-                 select e.Attribute(r + "id").Value
-            ).SingleOrDefault();
-
-            if (firstFooterRef != null)
-            {         
-                XElement first = footers.first.Xml;
-                Uri target = PackUriHelper.ResolvePartUri
+                var firstFooterRef =
                 (
-                    mainPart.Uri,
-                    mainPart.GetRelationship(firstFooterRef).TargetUri
-                );
+                     from e in sectPr.Elements(w + "footerReference")
+                     let type = e.Attribute(w + "type")
+                     where type != null && type.Value.Equals("first", StringComparison.CurrentCultureIgnoreCase)
+                     select e.Attribute(r + "id").Value
+                ).SingleOrDefault();
 
-                // Save header3
-                using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                if (firstFooterRef != null)
                 {
-                    new XDocument
+                    XElement first = footers.first.Xml;
+                    Uri target = PackUriHelper.ResolvePartUri
                     (
-                        new XDeclaration("1.0", "UTF-8", "yes"),
-                        first
-                    ).Save(tw, SaveOptions.DisableFormatting);
+                        mainPart.Uri,
+                        mainPart.GetRelationship(firstFooterRef).TargetUri
+                    );
+
+                    // Save header3
+                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    {
+                        new XDocument
+                        (
+                            new XDeclaration("1.0", "UTF-8", "yes"),
+                            first
+                        ).Save(tw, SaveOptions.DisableFormatting);
+                    }
                 }
             }
 
