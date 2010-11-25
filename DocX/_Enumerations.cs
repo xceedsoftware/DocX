@@ -5,6 +5,86 @@ using System.Text;
 
 namespace Novacode
 {
+    public enum BorderSize
+    {
+        one,
+        two,
+        three,
+        four,
+        five,
+        six,
+        seven,
+        eight,
+        nine
+    }
+
+    /// <summary>
+    /// Table Cell Border styles
+    /// Added by lckuiper @ 20101117
+    /// source: http://msdn.microsoft.com/en-us/library/documentformat.openxml.wordprocessing.tablecellborders.aspx
+    /// </summary>
+    public enum BorderStyle
+    {
+        Tcbs_none = 0,
+        Tcbs_single,
+        Tcbs_thick,
+        Tcbs_double,
+        Tcbs_dotted,
+        Tcbs_dashed,
+        Tcbs_dotDash,
+        Tcbs_dotDotDash,
+        Tcbs_triple,
+        Tcbs_thinThickSmallGap,
+        Tcbs_thickThinSmallGap,
+        Tcbs_thinThickThinSmallGap,
+        Tcbs_thinThickMediumGap,
+        Tcbs_thickThinMediumGap,
+        Tcbs_thinThickThinMediumGap,
+        Tcbs_thinThickLargeGap,
+        Tcbs_thickThinLargeGap,
+        Tcbs_thinThickThinLargeGap,
+        Tcbs_wave,
+        Tcbs_doubleWave,
+        Tcbs_dashSmallGap,
+        Tcbs_dashDotStroked,
+        Tcbs_threeDEmboss,
+        Tcbs_threeDEngrave,
+        Tcbs_outset,
+        Tcbs_inset
+    }
+
+    /// <summary>
+    /// Table Cell Border Types
+    /// Added by lckuiper @ 20101117
+    /// source: http://msdn.microsoft.com/en-us/library/documentformat.openxml.wordprocessing.tablecellborders.aspx
+    /// </summary>
+    public enum TableCellBorderType
+    {
+        Top,
+        Bottom,
+        Left,
+        Right,
+        InsideH,
+        InsideV,
+        TopLeftToBottomRight,
+        TopRightToBottomLeft
+    }
+
+    /// <summary>
+    /// Table Border Types
+    /// Added by lckuiper @ 20101117
+    /// source: http://msdn.microsoft.com/en-us/library/documentformat.openxml.wordprocessing.tableborders.aspx
+    /// </summary>
+    public enum TableBorderType
+    {
+        Top,
+        Bottom,
+        Left,
+        Right,
+        InsideH,
+        InsideV
+    }
+
     // Patch 7398 added by lckuiper on Nov 16th 2010 @ 2:23 PM
     public enum VerticalAlignment { Top, Center, Bottom };
 

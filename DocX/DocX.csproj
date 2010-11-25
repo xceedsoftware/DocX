@@ -81,6 +81,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Border.cs" />
     <Compile Include="Container.cs" />
     <Compile Include="Footers.cs" />
     <Compile Include="Footer.cs" />
