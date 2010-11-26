@@ -8,6 +8,7 @@ using System.IO.Packaging;
 using System.IO;
 using System.Reflection;
 using System.Drawing;
+using System.Globalization;
 
 namespace Novacode
 {   
@@ -2749,6 +2750,89 @@ namespace Novacode
                 }
             }
             return b;
+        }
+
+        /// <summary>
+        /// Gets or Sets the fill color of this Cell.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// {
+        ///    // Insert a table into this document.
+        ///    Table t = document.InsertTable(3, 3);
+        ///
+        ///    // Fill the first cell as Blue.
+        ///    t.Rows[0].Cells[0].FillColor = Color.Blue;
+        ///    // Fill the middle cell as Red.
+        ///    t.Rows[1].Cells[1].FillColor = Color.Red;
+        ///    // Fill the last cell as Green.
+        ///    t.Rows[2].Cells[2].FillColor = Color.Green;
+        ///
+        ///    // Save the document.
+        ///    document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public Color FillColor 
+        { 
+            get
+            {
+                /*
+                 * Get the tcPr (table cell properties) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                if (tcPr == null)
+                    return Color.Empty;
+                else
+                {
+                    XElement shd = tcPr.Element(XName.Get("shd", DocX.w.NamespaceName));
+                    if (shd == null)
+                        return Color.Empty;
+                    else
+                    {
+                        XAttribute fill = shd.Attribute(XName.Get("fill", DocX.w.NamespaceName));
+                        if (fill == null)
+                            return Color.Empty;
+                        else
+                        {
+                            int argb = Int32.Parse(fill.Value.Replace("#", ""), NumberStyles.HexNumber);
+                            return Color.FromArgb(argb);
+                        }
+                    }
+                }
+            }
+
+            set
+            {
+                /*
+                 * Get the tcPr (table cell properties) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                if (tcPr == null)
+                {
+                    Xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                    tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                }
+
+                /*
+                 * Get the tcW (table cell width) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement shd = tcPr.Element(XName.Get("shd", DocX.w.NamespaceName));
+                if (shd == null)
+                {
+                    tcPr.SetElementValue(XName.Get("shd", DocX.w.NamespaceName), string.Empty);
+                    shd = tcPr.Element(XName.Get("shd", DocX.w.NamespaceName));
+                }
+
+                shd.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), "clear");
+                shd.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), "auto");
+                shd.SetAttributeValue(XName.Get("fill", DocX.w.NamespaceName), value.ToHex());
+            }
         }
     }
 }
