@@ -25,6 +25,21 @@ namespace Novacode
         static internal XNamespace customVTypesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
         #endregion
 
+        public PageLayout PageLayout 
+        {
+            get
+            {
+                XElement sectPr = Xml.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+                if (sectPr == null)
+                {
+                    Xml.SetElementValue(XName.Get("sectPr", DocX.w.NamespaceName), string.Empty);
+                    sectPr = Xml.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+                }
+
+                return new PageLayout(this, sectPr);
+            }
+        }
+
         /// <summary>
         /// Returns a collection of Headers in this Document.
         /// A document typically contains three Headers.

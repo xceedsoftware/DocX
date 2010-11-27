@@ -91,6 +91,7 @@
     <Compile Include="Headers.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="Hyperlink.cs" />
+    <Compile Include="PageLayout.cs" />
     <Compile Include="_BaseClasses.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="_Enumerations.cs" />

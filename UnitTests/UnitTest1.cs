@@ -37,12 +37,80 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void Test_Document_AddImage_FromDisk()
+        {
+            using (DocX document = DocX.Create(directory_documents + "test_add_images.docx"))
+            {
+                // Add a png to into this document
+                Novacode.Image png = document.AddImage(directory_documents + "purple.png");
+                Assert.IsTrue(document.Images.Count == 1);
+                Assert.IsTrue(Path.GetExtension(png.pr.TargetUri.OriginalString) == ".png");
+
+                // Add a tiff into to this document
+                Novacode.Image tif = document.AddImage(directory_documents + "yellow.tif");
+                Assert.IsTrue(document.Images.Count == 2);
+                Assert.IsTrue(Path.GetExtension(tif.pr.TargetUri.OriginalString) == ".tif");
+
+                // Add a gif into to this document
+                Novacode.Image gif = document.AddImage(directory_documents + "orange.gif");
+                Assert.IsTrue(document.Images.Count == 3);
+                Assert.IsTrue(Path.GetExtension(gif.pr.TargetUri.OriginalString) == ".gif");
+
+                // Add a jpg into to this document
+                Novacode.Image jpg = document.AddImage(directory_documents + "green.jpg");
+                Assert.IsTrue(document.Images.Count == 4);
+                Assert.IsTrue(Path.GetExtension(jpg.pr.TargetUri.OriginalString) == ".jpg");
+
+                // Add a bitmap to this document
+                Novacode.Image bitmap = document.AddImage(directory_documents + "red.bmp");
+                Assert.IsTrue(document.Images.Count == 5);
+                // Word does not allow bmp make sure it was inserted as a png.
+                Assert.IsTrue(Path.GetExtension(bitmap.pr.TargetUri.OriginalString) == ".png");
+            }
+        }
+
+        [TestMethod]
+        public void Test_Document_AddImage_FromStream()
+        {
+            using (DocX document = DocX.Create(directory_documents + "test_add_images.docx"))
+            {
+                // DocX will always insert Images that come from Streams as jpeg.
+
+                // Add a png to into this document
+                Novacode.Image png = document.AddImage(new FileStream(directory_documents + "purple.png", FileMode.Open));
+                Assert.IsTrue(document.Images.Count == 1);
+                Assert.IsTrue(Path.GetExtension(png.pr.TargetUri.OriginalString) == ".jpeg");
+
+                // Add a tiff into to this document
+                Novacode.Image tif = document.AddImage(new FileStream(directory_documents + "yellow.tif", FileMode.Open));
+                Assert.IsTrue(document.Images.Count == 2);
+                Assert.IsTrue(Path.GetExtension(tif.pr.TargetUri.OriginalString) == ".jpeg");
+
+                // Add a gif into to this document
+                Novacode.Image gif = document.AddImage(new FileStream(directory_documents + "orange.gif", FileMode.Open));
+                Assert.IsTrue(document.Images.Count == 3);
+                Assert.IsTrue(Path.GetExtension(gif.pr.TargetUri.OriginalString) == ".jpeg");
+
+                // Add a jpg into to this document
+                Novacode.Image jpg = document.AddImage(new FileStream(directory_documents + "green.jpg", FileMode.Open));
+                Assert.IsTrue(document.Images.Count == 4);
+                Assert.IsTrue(Path.GetExtension(jpg.pr.TargetUri.OriginalString) == ".jpeg");
+
+                // Add a bitmap to this document
+                Novacode.Image bitmap = document.AddImage(new FileStream(directory_documents + "red.bmp", FileMode.Open));
+                Assert.IsTrue(document.Images.Count == 5);
+                // Word does not allow bmp make sure it was inserted as a png.
+                Assert.IsTrue(Path.GetExtension(bitmap.pr.TargetUri.OriginalString) == ".jpeg");
+            }
+        }
+
+        [TestMethod]
         public void Test_Tables()
         {
             using (DocX document = DocX.Load(directory_documents + "Tables.docx"))
             {
                 // There is only one Paragraph at the document level.
-                Assert.IsTrue(document.Paragraphs.Count() == 1);
+                Assert.IsTrue(document.Paragraphs.Count() == 13);
 
                 // There is only one Table in this document.
                 Assert.IsTrue(document.Tables.Count() == 1);
