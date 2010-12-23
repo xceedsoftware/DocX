@@ -36,6 +36,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>StrongNameKey.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
@@ -60,16 +66,17 @@
     <Compile Include="UnitTest1.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DocX\DocX.csproj">
-      <Project>{E863D072-AA8B-4108-B5F1-785241B37F67}</Project>
-      <Name>DocX</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="documents\Images.docx" />
     <None Include="documents\Paragraphs.docx" />
     <None Include="documents\Tables.docx" />
     <None Include="documents\Template.dotx" />
+    <None Include="StrongNameKey.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DocX\DocX.csproj">
+      <Project>{E863D072-AA8B-4108-B5F1-785241B37F67}</Project>
+      <Name>DocX</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

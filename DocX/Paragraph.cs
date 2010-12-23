@@ -721,7 +721,7 @@ namespace Novacode
         /// </example>
         public Paragraph InsertParagraphBeforeSelf(string text)
         {
-            return InsertParagraphBeforeSelf(text, false, new Formatting());
+            return InsertParagraphBeforeSelf(text, false, null);
         }
 
         /// <summary>
@@ -1584,6 +1584,10 @@ namespace Novacode
         /// <param name="formatting">The text formatting.</param>
         public void InsertText(string value, bool trackChanges = false, Formatting formatting = null)
         {
+            // Default values for optional parameters must be compile time constants.
+            // Would have like to write 'public void InsertText(string value, bool trackChanges = false, Formatting formatting = new Formatting())
+            if (formatting == null) formatting = new Formatting();
+
             List<XElement> newRuns = HelperFunctions.FormatInput(value, formatting.Xml);
             Xml.Add(newRuns);
 
@@ -1648,6 +1652,11 @@ namespace Novacode
         /// <param name="formatting">The text formatting.</param>
         public void InsertText(int index, string value, bool trackChanges=false, Formatting formatting = null)
         {
+            #region Default values for optional parameters must be compile time constants.
+            // Would like to have written 'Formatting formatting = new Formatting())
+            if (formatting == null) formatting = new Formatting(); 
+            #endregion
+
             // Timestamp to mark the start of insert
             DateTime now = DateTime.Now;
             DateTime insert_datetime = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc);
