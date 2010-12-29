@@ -9,6 +9,7 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Xml.Linq;
+using System.IO.Packaging;
 
 namespace UnitTests
 {
@@ -23,7 +24,6 @@ namespace UnitTests
         string directory_documents;
         string file_temp = "temp.docx";
 
-
         const string package_part_document = "/word/document.xml";
 
         public UnitTest1()
@@ -34,6 +34,194 @@ namespace UnitTests
             List<string> steps = directory_executing_assembly.Split('\\').ToList();
             steps.RemoveRange(steps.Count() - 3, 3);
             directory_documents = String.Join("\\", steps) + "\\documents\\";
+        }
+
+        [TestMethod]
+        public void Test_EverybodyHasAHome_Loaded()
+        {
+            // Load a document.
+            using (DocX document = DocX.Load(directory_documents + "EverybodyHasAHome.docx"))
+            {
+                // Main document tests.
+                string document_xml_file = document.mainPart.Uri.OriginalString;
+                Assert.IsTrue(document.Paragraphs[0].mainPart.Uri.OriginalString.Equals(document_xml_file));
+                Assert.IsTrue(document.Tables[0].mainPart.Uri.OriginalString.Equals(document_xml_file));
+                Assert.IsTrue(document.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(document_xml_file));
+                Assert.IsTrue(document.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(document_xml_file));
+                Assert.IsTrue(document.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(document_xml_file));
+
+                // header first
+                Header header_first = document.Headers.first;
+                string header_first_xml_file = header_first.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(header_first.Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_first_xml_file));
+                Assert.IsTrue(header_first.Tables[0].mainPart.Uri.OriginalString.Equals(header_first_xml_file));
+                Assert.IsTrue(header_first.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(header_first_xml_file));
+                Assert.IsTrue(header_first.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(header_first_xml_file));
+                Assert.IsTrue(header_first.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_first_xml_file));
+
+                // header odd
+                Header header_odd = document.Headers.odd;
+                string header_odd_xml_file = header_odd.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(header_odd.mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+                Assert.IsTrue(header_odd.Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+                Assert.IsTrue(header_odd.Tables[0].mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+                Assert.IsTrue(header_odd.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+                Assert.IsTrue(header_odd.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+                Assert.IsTrue(header_odd.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+
+                // header even
+                Header header_even = document.Headers.even;
+                string header_even_xml_file = header_even.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(header_even.mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+                Assert.IsTrue(header_even.Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+                Assert.IsTrue(header_even.Tables[0].mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+                Assert.IsTrue(header_even.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+                Assert.IsTrue(header_even.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+                Assert.IsTrue(header_even.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+
+                // footer first
+                Footer footer_first = document.Footers.first;
+                string footer_first_xml_file = footer_first.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(footer_first.mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+                Assert.IsTrue(footer_first.Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+                Assert.IsTrue(footer_first.Tables[0].mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+                Assert.IsTrue(footer_first.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+                Assert.IsTrue(footer_first.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+                Assert.IsTrue(footer_first.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+
+                // footer odd
+                Footer footer_odd = document.Footers.odd;
+                string footer_odd_xml_file = footer_odd.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(footer_odd.mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+                Assert.IsTrue(footer_odd.Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+                Assert.IsTrue(footer_odd.Tables[0].mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+                Assert.IsTrue(footer_odd.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+                Assert.IsTrue(footer_odd.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+                Assert.IsTrue(footer_odd.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+
+                // footer even
+                Footer footer_even = document.Footers.even;
+                string footer_even_xml_file = footer_even.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(footer_even.mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+                Assert.IsTrue(footer_even.Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+                Assert.IsTrue(footer_even.Tables[0].mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+                Assert.IsTrue(footer_even.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+                Assert.IsTrue(footer_even.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+                Assert.IsTrue(footer_even.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+            }
+        }
+
+        [TestMethod]
+        public void Test_EverybodyHasAHome_Created()
+        {
+            // Create a new document.
+            using (DocX document = DocX.Create("Test.docx"))
+            {
+                // Create a Table.
+                Table t = document.AddTable(3, 3);
+                t.Design = TableDesign.TableGrid;
+
+                // Insert a Paragraph and a Table into the main document.
+                document.InsertParagraph();
+                document.InsertTable(t);
+
+                // Insert a Paragraph and a Table into every Header.
+                document.AddHeaders();
+                document.Headers.odd.InsertParagraph();
+                document.Headers.odd.InsertTable(t);
+                document.Headers.even.InsertParagraph();
+                document.Headers.even.InsertTable(t);
+                document.Headers.first.InsertParagraph();
+                document.Headers.first.InsertTable(t);
+
+                // Insert a Paragraph and a Table into every Footer.
+                document.AddFooters();
+                document.Footers.odd.InsertParagraph();
+                document.Footers.odd.InsertTable(t);
+                document.Footers.even.InsertParagraph();
+                document.Footers.even.InsertTable(t);
+                document.Footers.first.InsertParagraph();
+                document.Footers.first.InsertTable(t);
+
+                // Main document tests.
+                string document_xml_file = document.mainPart.Uri.OriginalString;
+                Assert.IsTrue(document.Paragraphs[0].mainPart.Uri.OriginalString.Equals(document_xml_file));
+                Assert.IsTrue(document.Tables[0].mainPart.Uri.OriginalString.Equals(document_xml_file));
+                Assert.IsTrue(document.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(document_xml_file));
+                Assert.IsTrue(document.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(document_xml_file));
+                Assert.IsTrue(document.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(document_xml_file));
+
+                // header first
+                Header header_first = document.Headers.first;
+                string header_first_xml_file = header_first.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(header_first.Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_first_xml_file));
+                Assert.IsTrue(header_first.Tables[0].mainPart.Uri.OriginalString.Equals(header_first_xml_file));
+                Assert.IsTrue(header_first.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(header_first_xml_file));
+                Assert.IsTrue(header_first.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(header_first_xml_file));
+                Assert.IsTrue(header_first.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_first_xml_file));
+
+                // header odd
+                Header header_odd = document.Headers.odd;
+                string header_odd_xml_file = header_odd.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(header_odd.mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+                Assert.IsTrue(header_odd.Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+                Assert.IsTrue(header_odd.Tables[0].mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+                Assert.IsTrue(header_odd.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+                Assert.IsTrue(header_odd.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+                Assert.IsTrue(header_odd.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_odd_xml_file));
+
+                // header even
+                Header header_even = document.Headers.even;
+                string header_even_xml_file = header_even.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(header_even.mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+                Assert.IsTrue(header_even.Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+                Assert.IsTrue(header_even.Tables[0].mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+                Assert.IsTrue(header_even.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+                Assert.IsTrue(header_even.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+                Assert.IsTrue(header_even.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(header_even_xml_file));
+
+                // footer first
+                Footer footer_first = document.Footers.first;
+                string footer_first_xml_file = footer_first.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(footer_first.mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+                Assert.IsTrue(footer_first.Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+                Assert.IsTrue(footer_first.Tables[0].mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+                Assert.IsTrue(footer_first.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+                Assert.IsTrue(footer_first.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+                Assert.IsTrue(footer_first.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_first_xml_file));
+
+                // footer odd
+                Footer footer_odd = document.Footers.odd;
+                string footer_odd_xml_file = footer_odd.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(footer_odd.mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+                Assert.IsTrue(footer_odd.Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+                Assert.IsTrue(footer_odd.Tables[0].mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+                Assert.IsTrue(footer_odd.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+                Assert.IsTrue(footer_odd.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+                Assert.IsTrue(footer_odd.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_odd_xml_file));
+
+                // footer even
+                Footer footer_even = document.Footers.even;
+                string footer_even_xml_file = footer_even.mainPart.Uri.OriginalString;
+
+                Assert.IsTrue(footer_even.mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+                Assert.IsTrue(footer_even.Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+                Assert.IsTrue(footer_even.Tables[0].mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+                Assert.IsTrue(footer_even.Tables[0].Rows[0].mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+                Assert.IsTrue(footer_even.Tables[0].Rows[0].Cells[0].mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+                Assert.IsTrue(footer_even.Tables[0].Rows[0].Cells[0].Paragraphs[0].mainPart.Uri.OriginalString.Equals(footer_even_xml_file));
+            }
         }
 
         [TestMethod]
@@ -166,29 +354,247 @@ namespace UnitTests
             }
         }
 
-        // Write the string "Hello World" into this Image.
-        private static void CoolExample(Novacode.Image i, Stream s, string str)
+        [TestMethod]
+        public void Test_Insert_Picture()
         {
-            // Write "Hello World" into this Image.
-            Bitmap b = new Bitmap(s);
+            // Load test document.
+            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            {
+                // Add Headers and Footers into this document.
+                document.AddHeaders();
+                document.AddFooters();
+                document.DifferentFirstPage = true;
+                document.DifferentOddAndEvenPages = true;
 
-            /* 
-             * Get the Graphics object for this Bitmap.
-             * The Graphics object provides functions for drawing.
-             */
-            Graphics g = Graphics.FromImage(b);
+                // Add an Image to this document.
+                Novacode.Image img = document.AddImage(directory_documents + "purple.png");
 
-            // Draw the string "Hello World".
-            g.DrawString
-            (
-                str,
-                new Font("Tahoma", 20),
-                Brushes.Blue,
-                new PointF(0, 0)
-            );
+                // Create a Picture from this Image.
+                Picture pic = img.CreatePicture();
 
-            // Save this Bitmap back into the document using a Create\Write stream.
-            b.Save(i.GetStream(FileMode.Create, FileAccess.Write), ImageFormat.Png);
+                // Main document.
+                Paragraph p0 = document.InsertParagraph("Hello");
+                p0.InsertPicture(pic, 3);
+
+                // Header first.
+                Paragraph p1 = document.Headers.first.InsertParagraph("----");
+                p1.InsertPicture(pic, 2);
+
+                // Header odd.
+                Paragraph p2 = document.Headers.odd.InsertParagraph("----");
+                p2.InsertPicture(pic, 2);
+
+                // Header even.
+                Paragraph p3 = document.Headers.even.InsertParagraph("----");
+                p3.InsertPicture(pic, 2);
+
+                // Footer first.
+                Paragraph p4 = document.Footers.first.InsertParagraph("----");
+                p4.InsertPicture(pic, 2);
+
+                // Footer odd.
+                Paragraph p5 = document.Footers.odd.InsertParagraph("----");
+                p5.InsertPicture(pic, 2);
+
+                // Footer even.
+                Paragraph p6 = document.Footers.even.InsertParagraph("----");
+                p6.InsertPicture(pic, 2);
+
+                // Save this document.
+                document.Save();
+            }
+        }
+
+        [TestMethod]
+        public void Test_Insert_Hyperlink()
+        {
+            // Load test document.
+            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            {
+                // Add Headers and Footers into this document.
+                document.AddHeaders();
+                document.AddFooters();
+                document.DifferentFirstPage = true;
+                document.DifferentOddAndEvenPages = true;
+
+                // Add a Hyperlink into this document.
+                Hyperlink h = document.AddHyperlink("google", new Uri("http://www.google.com"));
+
+                // Main document.
+                Paragraph p0 = document.InsertParagraph("Hello");
+                p0.InsertHyperlink(h, 3);
+
+                // Header first.
+                Paragraph p1 = document.Headers.first.InsertParagraph("----");
+                p1.InsertHyperlink(h, 3);
+
+                // Header odd.
+                Paragraph p2 = document.Headers.odd.InsertParagraph("----");
+                p2.InsertHyperlink(h, 3);
+
+                // Header even.
+                Paragraph p3 = document.Headers.even.InsertParagraph("----");
+                p3.InsertHyperlink(h, 3);
+
+                // Footer first.
+                Paragraph p4 = document.Footers.first.InsertParagraph("----");
+                p4.InsertHyperlink(h, 3);
+
+                // Footer odd.
+                Paragraph p5 = document.Footers.odd.InsertParagraph("----");
+                p5.InsertHyperlink(h, 3);
+
+                // Footer even.
+                Paragraph p6 = document.Footers.even.InsertParagraph("----");
+                p6.InsertHyperlink(h, 3);
+
+                // Save this document.
+                document.Save();
+            }
+        }
+
+        [TestMethod]
+        public void Test_Append_Hyperlink()
+        {
+            // Load test document.
+            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            {
+                // Add Headers and Footers into this document.
+                document.AddHeaders();
+                document.AddFooters();
+                document.DifferentFirstPage = true;
+                document.DifferentOddAndEvenPages = true;
+
+                // Add a Hyperlink to this document.
+                Hyperlink h = document.AddHyperlink("google", new Uri("http://www.google.com"));
+
+                // Main document.
+                Paragraph p0 = document.InsertParagraph("----");
+                p0.AppendHyperlink(h);
+                Assert.IsTrue(p0.Text == "----google");
+
+                // Header first.
+                Paragraph p1 = document.Headers.first.InsertParagraph("----");
+                p1.AppendHyperlink(h);
+                Assert.IsTrue(p1.Text == "----google");
+
+                // Header odd.
+                Paragraph p2 = document.Headers.odd.InsertParagraph("----");
+                p2.AppendHyperlink(h);
+                Assert.IsTrue(p2.Text == "----google");
+
+                // Header even.
+                Paragraph p3 = document.Headers.even.InsertParagraph("----");
+                p3.AppendHyperlink(h);
+                Assert.IsTrue(p3.Text == "----google");
+
+                // Footer first.
+                Paragraph p4 = document.Footers.first.InsertParagraph("----");
+                p4.AppendHyperlink(h);
+                Assert.IsTrue(p4.Text == "----google");
+
+                // Footer odd.
+                Paragraph p5 = document.Footers.odd.InsertParagraph("----");
+                p5.AppendHyperlink(h);
+                Assert.IsTrue(p5.Text == "----google");
+
+                // Footer even.
+                Paragraph p6 = document.Footers.even.InsertParagraph("----");
+                p6.AppendHyperlink(h);
+                Assert.IsTrue(p6.Text == "----google");
+
+                // Save the document.
+                document.Save();
+            }
+        }
+
+        [TestMethod]
+        public void Test_Append_Picture()
+        {
+            // Create test document.
+            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            {
+                // Add Headers and Footers into this document.
+                document.AddHeaders();
+                document.AddFooters();
+                document.DifferentFirstPage = true;
+                document.DifferentOddAndEvenPages = true;
+
+                // Add an Image to this document.
+                Novacode.Image img = document.AddImage(directory_documents + "purple.png");
+
+                // Create a Picture from this Image.
+                Picture pic = img.CreatePicture();
+
+                // Main document.
+                Paragraph p0 = document.InsertParagraph();
+                p0.AppendPicture(pic);
+
+                // Header first.
+                Paragraph p1 = document.Headers.first.InsertParagraph();
+                p1.AppendPicture(pic);
+
+                // Header odd.
+                Paragraph p2 = document.Headers.odd.InsertParagraph();
+                p2.AppendPicture(pic);
+
+                // Header even.
+                Paragraph p3 = document.Headers.even.InsertParagraph();
+                p3.AppendPicture(pic);
+
+                // Footer first.
+                Paragraph p4 = document.Footers.first.InsertParagraph();
+                p4.AppendPicture(pic);
+
+                // Footer odd.
+                Paragraph p5 = document.Footers.odd.InsertParagraph();
+                p5.AppendPicture(pic);
+
+                // Footer even.
+                Paragraph p6 = document.Footers.even.InsertParagraph();
+                p6.AppendPicture(pic);
+
+                // Save the document.
+                document.Save();
+            }
+        }
+
+        [TestMethod]
+        public void Test_Move_Picture_Load()
+        {
+            // Load test document.
+            using (DocX document = DocX.Load(directory_documents + "MovePicture.docx"))
+            {
+                // Extract the first Picture from the first Paragraph.
+                Picture picture = document.Paragraphs.First().Pictures.First();
+
+                // Move it into the first Header.
+                Header header_first = document.Headers.first;
+                header_first.Paragraphs.First().AppendPicture(picture);
+
+                // Move it into the even Header.
+                Header header_even = document.Headers.even;
+                header_even.Paragraphs.First().AppendPicture(picture);
+
+                // Move it into the odd Header.
+                Header header_odd = document.Headers.odd;
+                header_odd.Paragraphs.First().AppendPicture(picture);
+
+                // Move it into the first Footer.
+                Footer footer_first = document.Footers.first;
+                footer_first.Paragraphs.First().AppendPicture(picture);
+
+                // Move it into the even Footer.
+                Footer footer_even = document.Footers.even;
+                footer_even.Paragraphs.First().AppendPicture(picture);
+
+                // Move it into the odd Footer.
+                Footer footer_odd = document.Footers.odd;
+                footer_odd.Paragraphs.First().AppendPicture(picture);
+
+                // Save this as MovedPicture.docx
+                document.SaveAs(directory_documents + "MovedPicture.docx");
+            }
         }
 
         [TestMethod]
@@ -202,23 +608,23 @@ namespace UnitTests
 
                 // Simple
                 Paragraph p1 = document.InsertParagraph("AC");
-                p1.InsertHyperlink(0, h);                    Assert.IsTrue(p1.Text == "linkAC");
-                p1.InsertHyperlink(p1.Text.Length, h);       Assert.IsTrue(p1.Text == "linkAClink");
-                p1.InsertHyperlink(p1.Text.IndexOf("C"), h); Assert.IsTrue(p1.Text == "linkAlinkClink");
+                p1.InsertHyperlink(h);                       Assert.IsTrue(p1.Text == "linkAC");
+                p1.InsertHyperlink(h, p1.Text.Length);       Assert.IsTrue(p1.Text == "linkAClink");
+                p1.InsertHyperlink(h, p1.Text.IndexOf("C")); Assert.IsTrue(p1.Text == "linkAlinkClink");
 
                 // Difficult
                 Paragraph p2 = document.InsertParagraph("\tA\tC\t");
-                p2.InsertHyperlink(0, h);                    Assert.IsTrue(p2.Text == "link\tA\tC\t");
-                p2.InsertHyperlink(p2.Text.Length, h);       Assert.IsTrue(p2.Text == "link\tA\tC\tlink");
-                p2.InsertHyperlink(p2.Text.IndexOf("C"), h); Assert.IsTrue(p2.Text == "link\tA\tlinkC\tlink");
+                p2.InsertHyperlink(h);                       Assert.IsTrue(p2.Text == "link\tA\tC\t");
+                p2.InsertHyperlink(h, p2.Text.Length);       Assert.IsTrue(p2.Text == "link\tA\tC\tlink");
+                p2.InsertHyperlink(h, p2.Text.IndexOf("C")); Assert.IsTrue(p2.Text == "link\tA\tlinkC\tlink");
 
                 // Contrived
                 // Add a contrived Hyperlink to this document.
                 Hyperlink h2 = document.AddHyperlink("\tlink\t", new Uri("http://www.google.com"));
                 Paragraph p3 = document.InsertParagraph("\tA\tC\t");
-                p3.InsertHyperlink(0, h2);                    Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t");
-                p3.InsertHyperlink(p3.Text.Length, h2);       Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t\tlink\t");
-                p3.InsertHyperlink(p3.Text.IndexOf("C"), h2); Assert.IsTrue(p3.Text == "\tlink\t\tA\t\tlink\tC\t\tlink\t");
+                p3.InsertHyperlink(h2);                    Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t");
+                p3.InsertHyperlink(h2, p3.Text.Length); Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t\tlink\t");
+                p3.InsertHyperlink(h2, p3.Text.IndexOf("C")); Assert.IsTrue(p3.Text == "\tlink\t\tA\t\tlink\tC\t\tlink\t");
             }
         }
 
@@ -233,9 +639,9 @@ namespace UnitTests
 
                 // Simple
                 Paragraph p1 = document.InsertParagraph("AC");
-                p1.InsertHyperlink(0, h); Assert.IsTrue(p1.Text == "linkAC");
-                p1.InsertHyperlink(p1.Text.Length, h); Assert.IsTrue(p1.Text == "linkAClink");
-                p1.InsertHyperlink(p1.Text.IndexOf("C"), h); Assert.IsTrue(p1.Text == "linkAlinkClink");
+                p1.InsertHyperlink(h); Assert.IsTrue(p1.Text == "linkAC");
+                p1.InsertHyperlink(h, p1.Text.Length); Assert.IsTrue(p1.Text == "linkAClink");
+                p1.InsertHyperlink(h, p1.Text.IndexOf("C")); Assert.IsTrue(p1.Text == "linkAlinkClink");
 
                 // Try and remove a Hyperlink using a negative index.
                 // This should throw an exception.

@@ -515,7 +515,7 @@ namespace Novacode
         /// <returns>A new row.</returns>
         public Row InsertRow()
         {
-            return InsertRow(rows.Count);
+            return InsertRow(Rows.Count);
         }
 
         /// <summary>
@@ -767,32 +767,31 @@ namespace Novacode
         /// <returns>A new Row</returns>
         public Row InsertRow(int index)
         {
-            if (index < 0 || index > rows.Count)
+            if (index < 0 || index > Rows.Count)
                 throw new IndexOutOfRangeException();
 
             List<XElement> content = new List<XElement>();
                         
-            foreach (Cell c in rows[0].Cells)
+            foreach (Cell c in Rows[0].Cells)
                 content.Add(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
 
             XElement e = new XElement(XName.Get("tr", DocX.w.NamespaceName), content);
             Row newRow = new Row(this, Document, e);
 
             XElement rowXml;
-            if (index == rows.Count)
+            if (index == Rows.Count)
             {
-                rowXml = rows.Last().Xml;
+                rowXml = Rows.Last().Xml;
                 rowXml.AddAfterSelf(newRow.Xml);
             }
             
             else
             {
-                rowXml = rows[index].Xml;
+                rowXml = Rows[index].Xml;
                 rowXml.AddBeforeSelf(newRow.Xml);
             }
 
-            rows.Insert(index, newRow);
-            rowCount = rows.Count;
+            rowCount = Rows.Count;
             return newRow;
         }
 

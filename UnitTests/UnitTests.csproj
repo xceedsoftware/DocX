@@ -66,6 +66,7 @@
     <Compile Include="UnitTest1.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="documents\EverybodyHasAHome.docx" />
     <None Include="documents\Images.docx" />
     <None Include="documents\Paragraphs.docx" />
     <None Include="documents\Tables.docx" />

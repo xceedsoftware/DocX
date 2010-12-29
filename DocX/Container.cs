@@ -381,7 +381,7 @@ namespace Novacode
         public Table InsertTable(int coloumnCount, int rowCount)
         {
             XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
-            Xml.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newTable);
+            Xml.Elements().First().Add(newTable);
 
             return new Table(Document, newTable);
         }
@@ -393,7 +393,7 @@ namespace Novacode
             Paragraph p = HelperFunctions.GetFirstParagraphEffectedByInsert(Document, index);
 
             if (p == null)
-                Xml.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().AddFirst(newTable);
+                Xml.Elements().First().AddFirst(newTable);
 
             else
             {

@@ -864,14 +864,21 @@ namespace Novacode
             // Check to see if a rel for this Picture exists, create it if not.
             var Id = GetOrGenerateRel(h);
 
-            if (index == 0) 
-                return AppendHyperlink(h);
+            XElement h_xml;
+            if (index == 0)
+            {
+                // Add this hyperlink as the last element.
+                Xml.AddFirst(h.Xml);
+
+                // Extract the picture back out of the DOM.
+                h_xml = (XElement)Xml.FirstNode;
+            }
+
             else
             {
                 // Get the first run effected by this Insert
                 Run run = GetFirstRunEffectedByEdit(index);
 
-                XElement h_xml;
                 if (run == null)
                 {
                     // Add this hyperlink as the last element.
@@ -1868,8 +1875,8 @@ namespace Novacode
             // Check to see if a rel for this Picture exists, create it if not.
             var Id = GetOrGenerateRel(h);
 
-            Xml.AddFirst(h.Xml);
-            Xml.Elements().First().SetAttributeValue(DocX.r + "id", Id);
+            Xml.Add(h.Xml);
+            Xml.Elements().Last().SetAttributeValue(DocX.r + "id", Id);
 
             this.runs = Xml.Elements().Last().Elements(XName.Get("r", DocX.w.NamespaceName)).ToList();
 
@@ -1921,12 +1928,12 @@ namespace Novacode
             var Id = GetOrGenerateRel(p);
 
             // Add the Picture Xml to the end of the Paragragraph Xml.
-            Xml.AddFirst(p.Xml);
+            Xml.Add(p.Xml);
 
             // Extract the attribute id from the Pictures Xml.
             XAttribute a_id =
             (
-                from e in Xml.Elements().First().Descendants()
+                from e in Xml.Elements().Last().Descendants()
                 where e.Name.LocalName.Equals("blip")
                 select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
             ).Single();
@@ -2054,15 +2061,21 @@ namespace Novacode
             // Check to see if a rel for this Picture exists, create it if not.
             var Id = GetOrGenerateRel(p);
 
+            XElement p_xml;
             if (index == 0)
-                return AppendPicture(p);
+            {
+                // Add this hyperlink as the last element.
+                Xml.AddFirst(p.Xml);
+
+                // Extract the picture back out of the DOM.
+                p_xml = (XElement)Xml.FirstNode;
+            }
 
             else
             {
                 // Get the first run effected by this Insert
                 Run run = GetFirstRunEffectedByEdit(index);
 
-                XElement p_xml;
                 if (run == null)
                 {
                     // Add this picture as the last element.
