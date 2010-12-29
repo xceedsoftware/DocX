@@ -66,9 +66,7 @@ namespace Novacode
                 foreach (var p in paragraphs)
                 {
                     if ((p.Xml.ElementsAfterSelf().FirstOrDefault() != null) && (p.Xml.ElementsAfterSelf().First().Name.Equals(DocX.w + "tbl")))
-                    {
                         p.FollowingTable = new Table(this.Document, p.Xml.ElementsAfterSelf().First());
-                    }
                 }
                 
                 return paragraphs;
@@ -380,6 +378,68 @@ namespace Novacode
             return Paragraphs.Last();
         }
 
+        public Table InsertTable(int coloumnCount, int rowCount)
+        {
+            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
+            Xml.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newTable);
+
+            return new Table(Document, newTable);
+        }
+
+        public Table InsertTable(int index, int coloumnCount, int rowCount)
+        {
+            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
+
+            Paragraph p = HelperFunctions.GetFirstParagraphEffectedByInsert(Document, index);
+
+            if (p == null)
+                Xml.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().AddFirst(newTable);
+
+            else
+            {
+                XElement[] split = HelperFunctions.SplitParagraph(p, index - p.startIndex);
+
+                p.Xml.ReplaceWith
+                (
+                    split[0],
+                    newTable,
+                    split[1]
+                );
+            }
+
+
+            return new Table(Document, newTable);
+        }
+
+        public Table InsertTable(Table t)
+        {
+            XElement newXElement = new XElement(t.Xml);
+            Xml.Add(newXElement);
+
+            Table newTable = new Table(Document, newXElement);
+            newTable.Design = t.Design;
+
+            return newTable;
+        }
+
+        public Table InsertTable(int index, Table t)
+        {
+            Paragraph p = HelperFunctions.GetFirstParagraphEffectedByInsert(Document, index);
+
+            XElement[] split = HelperFunctions.SplitParagraph(p, index - p.startIndex);
+            XElement newXElement = new XElement(t.Xml);
+            p.Xml.ReplaceWith
+            (
+                split[0],
+                newXElement,
+                split[1]
+            );
+
+            Table newTable = new Table(Document, newXElement);
+            newTable.Design = t.Design;
+
+            return newTable;
+        }
         internal Container(DocX document, XElement xml)
             : base(document, xml)
         {

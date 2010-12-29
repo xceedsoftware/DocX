@@ -17,7 +17,7 @@ namespace Novacode
     /// </summary>
     public class Paragraph : InsertBeforeOrAfter
     {
-        PackagePart mainPart;
+        internal PackagePart mainPart;
         public PackagePart PackagePart { get { return mainPart; } set { mainPart = value; } }
 
         // The Append family of functions use this List to apply style.
@@ -62,7 +62,9 @@ namespace Novacode
                         where e.Name.LocalName.Equals("blip")
                         select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
                     ).Single()
-                    let img = new Image(Document, mainPart.GetRelationship(id))
+                    let 
+                    
+                    img = new Image(Document, mainPart.GetRelationship(id))
                     select new Picture(Document, p, img)
                 ).ToList();
 
@@ -1220,17 +1222,19 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Picture InsertPicture(string imageID, string name, string description)
-        {
-            Picture p = CreatePicture(Document, imageID, name, description);
-            Xml.Add(p.Xml);
-            return p;
-        }
+        /// Removed to simplify the API.
+        //public Picture InsertPicture(string imageID, string name, string description)
+        //{
+        //    Picture p = CreatePicture(Document, imageID, name, description);
+        //    Xml.Add(p.Xml);
+        //    return p;
+        //}
 
-        public Picture InsertPicture(string imageID)
-        {
-            return InsertPicture(imageID, string.Empty, string.Empty);
-        }
+        // Removed because it confusses the API.
+        //public Picture InsertPicture(string imageID)
+        //{
+        //    return InsertPicture(imageID, string.Empty, string.Empty);
+        //}
 
         //public Picture InsertPicture(int index, Picture picture)
         //{
@@ -1302,31 +1306,32 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Picture InsertPicture(int index, string imageID, string name, string description)
-        {
-            Picture picture = CreatePicture(Document, imageID, name, description);
+        /// Removed to simplify API.
+        //public Picture InsertPicture(int index, string imageID, string name, string description)
+        //{
+        //    Picture picture = CreatePicture(Document, imageID, name, description);
 
-            Run run = GetFirstRunEffectedByEdit(index);
+        //    Run run = GetFirstRunEffectedByEdit(index);
 
-            if (run == null)
-                Xml.Add(picture.Xml);
-            else
-            {
-                // Split this run at the point you want to insert
-                XElement[] splitRun = Run.SplitRun(run, index);
+        //    if (run == null)
+        //        Xml.Add(picture.Xml);
+        //    else
+        //    {
+        //        // Split this run at the point you want to insert
+        //        XElement[] splitRun = Run.SplitRun(run, index);
 
-                // Replace the origional run
-                run.Xml.ReplaceWith
-                (
-                    splitRun[0],
-                    picture.Xml,
-                    splitRun[1]
-                );
-            }
+        //        // Replace the origional run
+        //        run.Xml.ReplaceWith
+        //        (
+        //            splitRun[0],
+        //            picture.Xml,
+        //            splitRun[1]
+        //        );
+        //    }
 
-            HelperFunctions.RenumberIDs(Document);
-            return picture;
-        }
+        //    HelperFunctions.RenumberIDs(Document);
+        //    return picture;
+        //}
 
         /// <summary>
         /// Create a new Picture.
@@ -1390,10 +1395,11 @@ namespace Novacode
             return new Picture(document, xml, new Image(document, document.mainPart.GetRelationship(id)));
         }
 
-        public Picture InsertPicture(int index, string imageID)
-        {
-            return InsertPicture(index, imageID, string.Empty, string.Empty);
-        }
+        // Removed because it confusses the API.
+        //public Picture InsertPicture(int index, string imageID)
+        //{
+        //    return InsertPicture(index, imageID, string.Empty, string.Empty);
+        //}
 
         /// <summary>
         /// Creates an Edit either a ins or a del with the specified content and date
@@ -1863,25 +1869,197 @@ namespace Novacode
         /// </example>
         public Paragraph AppendPicture(Picture p)
         {
-            if (!p.picture_rels.ContainsKey(mainPart))
+            // Convert the path of this mainPart to its equilivant rels file path.
+            string path = mainPart.Uri.OriginalString.Replace("/word/", "");
+            Uri rels_path = new Uri("/word/_rels/" + path + ".rels", UriKind.Relative);
+
+            // Check to see if the rels file exists and create it if not.
+            if (!Document.package.PartExists(rels_path))
+                HelperFunctions.CreateRelsPackagePart(Document, rels_path);
+
+            string image_uri_string = p.img.pr.TargetUri.OriginalString;
+
+            // Search for a relationship with a TargetUri that points at this Image.
+            var Id =
+            (
+                from r in mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
+                where r.TargetUri.OriginalString == image_uri_string
+                select r.Id
+            ).SingleOrDefault();
+
+            // If such a relation dosen't exist, create one.
+            if (Id == null)
             {
+                // Check to see if a relationship for this Picture exists and create it if not.
                 PackageRelationship pr = mainPart.CreateRelationship(p.img.pr.TargetUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
-                p.picture_rels.Add(mainPart, pr);
+                Id = pr.Id;
             }
 
-            PackageRelationship rel = p.picture_rels[mainPart];
+            // Add the Picture Xml to the end of the Paragragraph Xml.
             Xml.Add(p.Xml);
 
-            XAttribute a_id = 
+            // Extract the attribute id from the Pictures Xml.
+            XAttribute a_id =
             (
                 from e in Xml.Elements().Last().Descendants()
                 where e.Name.LocalName.Equals("blip")
                 select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
             ).Single();
 
-            a_id.SetValue(rel.Id);
+            // Set its value to the Pictures relationships id.
+            a_id.SetValue(Id);
 
+            // For formatting such as .Bold()
             this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(p.Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Count()).ToList();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Insert a Picture into a Paragraph at the given text index.
+        /// If not index is provided defaults to 0.
+        /// </summary>
+        /// <param name="p">The Picture to insert.</param>
+        /// <param name="index">The text index to insert at.</param>
+        /// <returns>The modified Paragraph.</returns>
+        /// <example>
+        /// <code>
+        ///Load test document.
+        ///using (DocX document = DocX.Create("Test.docx"))
+        ///{
+        ///    // Add Headers and Footers into this document.
+        ///    document.AddHeaders();
+        ///    document.AddFooters();
+        ///    document.DifferentFirstPage = true;
+        ///    document.DifferentOddAndEvenPages = true;
+        ///
+        ///    // Add an Image to this document.
+        ///    Novacode.Image img = document.AddImage(directory_documents + "purple.png");
+        ///
+        ///    // Create a Picture from this Image.
+        ///    Picture pic = img.CreatePicture();
+        ///
+        ///    // Main document.
+        ///    Paragraph p0 = document.InsertParagraph("Hello");
+        ///    p0.InsertPicture(pic, 3);
+        ///
+        ///    // Header first.
+        ///    Paragraph p1 = document.Headers.first.InsertParagraph("----");
+        ///    p1.InsertPicture(pic, 2);
+        ///
+        ///    // Header odd.
+        ///    Paragraph p2 = document.Headers.odd.InsertParagraph("----");
+        ///    p2.InsertPicture(pic, 2);
+        ///
+        ///    // Header even.
+        ///    Paragraph p3 = document.Headers.even.InsertParagraph("----");
+        ///    p3.InsertPicture(pic, 2);
+        ///
+        ///    // Footer first.
+        ///    Paragraph p4 = document.Footers.first.InsertParagraph("----");
+        ///    p4.InsertPicture(pic, 2);
+        ///
+        ///    // Footer odd.
+        ///    Paragraph p5 = document.Footers.odd.InsertParagraph("----");
+        ///    p5.InsertPicture(pic, 2);
+        ///
+        ///    // Footer even.
+        ///    Paragraph p6 = document.Footers.even.InsertParagraph("----");
+        ///    p6.InsertPicture(pic, 2);
+        ///
+        ///    // Save this document.
+        ///    document.Save();
+        ///}
+        /// </code>
+        /// </example>
+        public Paragraph InsertPicture(Picture p, int index = 0)
+        {
+            // Convert the path of this mainPart to its equilivant rels file path.
+            string path = mainPart.Uri.OriginalString.Replace("/word/", "");
+            Uri rels_path = new Uri("/word/_rels/" + path + ".rels", UriKind.Relative);
+
+            // Check to see if the rels file exists and create it if not.
+            if (!Document.package.PartExists(rels_path))
+                HelperFunctions.CreateRelsPackagePart(Document, rels_path);
+
+            string image_uri_string = p.img.pr.TargetUri.OriginalString;
+
+            // Search for a relationship with a TargetUri that points at this Image.
+            var Id =
+            (
+                from r in mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
+                where r.TargetUri.OriginalString == image_uri_string
+                select r.Id
+            ).SingleOrDefault();
+
+            // If such a relation dosen't exist, create one.
+            if (Id == null)
+            {
+                // Check to see if a relationship for this Picture exists and create it if not.
+                PackageRelationship pr = mainPart.CreateRelationship(p.img.pr.TargetUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+                Id = pr.Id;
+            }
+
+            XAttribute a_id;
+            if (index == 0)
+            {
+                // Add the Picture Xml to the start of the Paragragraph Xml.
+                Xml.AddFirst(p.Xml);
+
+                a_id =
+                (
+                    from e in Xml.Elements().First().Descendants()
+                    where e.Name.LocalName.Equals("blip")
+                    select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
+                ).Single();
+            }
+
+            else
+            {
+                // Get the first run effected by this Insert
+                Run run = GetFirstRunEffectedByEdit(index);
+
+                XElement p_xml;
+                if (run == null)
+                {
+                    // Add this picture as the last element.
+                    Xml.Add(p.Xml);
+
+                    // Extract the picture back out of the DOM.
+                    p_xml = (XElement)Xml.LastNode;
+                }
+
+                else
+                {
+                    // Split this run at the point you want to insert
+                    XElement[] splitRun = Run.SplitRun(run, index);
+
+                    // Replace the origional run.
+                    run.Xml.ReplaceWith
+                    (
+                        splitRun[0],
+                        p.Xml,
+                        splitRun[1]
+                    );
+
+                    // Get the first run effected by this Insert
+                    run = GetFirstRunEffectedByEdit(index);
+
+                    // The picture has to be the next element, extract it back out of the DOM.
+                    p_xml = (XElement)run.Xml.NextNode;
+                }
+
+                // Extract the attribute id from the Pictures Xml.
+                a_id =
+                (
+                    from e in p_xml.Descendants()
+                    where e.Name.LocalName.Equals("blip")
+                    select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
+                ).Single();
+            }
+
+            // Set its value to the Pictures relationships id.
+            a_id.SetValue(Id);
 
             return this;
         }

@@ -9,7 +9,7 @@ namespace Novacode
 {
     public class Footer : Container
     {
-        PackagePart mainPart;
+        internal PackagePart mainPart;
         internal Footer(DocX document, XElement xml, PackagePart mainPart): base(document, xml)
         {
             this.mainPart = mainPart;
@@ -75,7 +75,17 @@ namespace Novacode
             get
             {
                 List<Paragraph> l = base.Paragraphs;
-                l.ForEach(x => x.PackagePart = mainPart);
+                l.ForEach(x => x.mainPart = mainPart);
+                return l;
+            }
+        }
+
+        public override List<Table> Tables
+        {
+            get
+            {
+                List<Table> l = base.Tables;
+                l.ForEach(x => x.mainPart = mainPart);
                 return l;
             }
         }

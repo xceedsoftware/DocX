@@ -168,7 +168,26 @@ namespace Novacode
         /// <summary>
         /// Returns a list of rows in this table.
         /// </summary>
-        public List<Row> Rows { get { return rows; } }
+        public List<Row> Rows 
+        { 
+            get 
+            {
+                List<Row> rows = 
+                (
+                    from r in Xml.Elements(XName.Get("tr", DocX.w.NamespaceName))
+                    select new Row(this, Document, r)
+                ).ToList();
+
+                rowCount = rows.Count;
+
+                if (rows.Count > 0)
+                    if (rows[0].Cells.Count > 0)
+                        columnCount = rows[0].Cells.Count;
+
+                return rows;
+            } 
+        }
+
         private TableDesign design;
 
         internal PackagePart mainPart;
@@ -179,15 +198,6 @@ namespace Novacode
             this.Xml = xml;
 
             XElement properties = xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
-            
-            rows = (from r in xml.Elements(XName.Get("tr", DocX.w.NamespaceName))
-                       select new Row(this, document, r)).ToList();
-
-            rowCount = rows.Count;
-
-            if (rows.Count > 0)
-                if (rows[0].Cells.Count > 0)
-                    columnCount = rows[0].Cells.Count;
 
             XElement style = properties.Element(XName.Get("tblStyle", DocX.w.NamespaceName));
             if (style != null)
@@ -1567,9 +1577,11 @@ namespace Novacode
         }
 
         internal Table table;
+        internal PackagePart mainPart;
         internal Row(Table table, DocX document, XElement xml):base(document, xml)
         {
             this.table = table;
+            this.mainPart = table.mainPart;
         }
 
         /// <summary>
@@ -1728,9 +1740,11 @@ namespace Novacode
     public class Cell:Container
     {
         internal Row row;
+        internal PackagePart mainPart;
         internal Cell(Row row, DocX document, XElement xml):base(document, xml)
         {
             this.row = row;
+            this.mainPart = row.mainPart;
         }
 
         public override List<Paragraph> Paragraphs

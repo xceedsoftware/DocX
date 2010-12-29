@@ -13,6 +13,21 @@ namespace Novacode
 {
     internal static class HelperFunctions
     {
+        internal static void CreateRelsPackagePart(DocX Document, Uri uri)
+        {
+            PackagePart pp = Document.package.CreatePart(uri, "application/vnd.openxmlformats-package.relationships+xml");
+            using (TextWriter tw = new StreamWriter(pp.GetStream()))
+            {
+                XDocument d = new XDocument
+                (
+                    new XDeclaration("1.0", "UTF-8", "yes"),
+                    new XElement(XName.Get("Relationships", DocX.rel.NamespaceName))
+                );
+                var root = d.Root;
+                d.Save(tw);
+            }
+        }
+
         internal static int GetSize(XElement Xml)
         {
             switch (Xml.Name.LocalName)

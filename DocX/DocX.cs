@@ -20,6 +20,8 @@ namespace Novacode
     {
         #region Namespaces
         static internal XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+        static internal XNamespace rel = "http://schemas.openxmlformats.org/package/2006/relationships";
+
         static internal XNamespace r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
         static internal XNamespace customPropertiesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
         static internal XNamespace customVTypesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
@@ -259,12 +261,14 @@ namespace Novacode
             return (Footer)GetHeaderOrFooterByType(type, false);
         }
 
-        private object GetHeaderOrFooterByType(string type, bool b)
+        private object GetHeaderOrFooterByType(string type, bool isHeader)
         {
+            // Switch which handles either case Header\Footer, this just cuts down on code duplication.
             string reference = "footerReference";
-            if (b)
+            if (isHeader)
                 reference = "headerReference";
 
+            // Get the Id of the [default, even or first] [Header or Footer]
             string Id =
             (
                 from e in mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).Descendants()
@@ -274,22 +278,33 @@ namespace Novacode
 
             if (Id != null)
             {
+                // Get the Xml file for this Header or Footer.
                 Uri partUri = mainPart.GetRelationship(Id).TargetUri;
+                
+                // Weird problem with PackaePart API.
                 if (!partUri.OriginalString.StartsWith("/word/"))
                     partUri = new Uri("/word/" + partUri.OriginalString, UriKind.Relative);
 
+                // Get the Part and open a stream to get the Xml file.
                 PackagePart part = package.GetPart(partUri);
+
                 XDocument doc;
                 using (TextReader tr = new StreamReader(part.GetStream()))
                 {
                     doc = XDocument.Load(tr);
-                    if(b)
-                        return new Header(this, doc.Element(w + "hdr"), part);
+
+                    // Header and Footer extend Container.
+                    Container c;
+                    if (isHeader)
+                        c = new Header(this, doc.Element(w + "hdr"), part);
                     else
-                        return new Footer(this, doc.Element(w + "ftr"), part);
+                        c = new Footer(this, doc.Element(w + "ftr"), part);
+
+                    return c;
                 }
             }
 
+            // If we got this far something went wrong.
             return null;
         }
 
@@ -302,6 +317,7 @@ namespace Novacode
         #region Internal variables defined foreach DocX object
         // Object representation of the .docx
         internal Package package;
+
         // The mainDocument is loaded into a XDocument object for easy querying and editing
         internal XDocument mainDoc;
         internal XDocument header1;
@@ -320,6 +336,7 @@ namespace Novacode
 
         internal DocX(DocX document, XElement xml): base(document, xml)
         {      
+
         }
 
         /// <summary>
@@ -784,10 +801,9 @@ namespace Novacode
         /// </example>
         public Table InsertTable(int coloumnCount, int rowCount)
         {
-            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
-            mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newTable);
-
-            return new Table(this, newTable);
+            Table t = base.InsertTable(coloumnCount, rowCount);
+            t.mainPart = mainPart;
+            return t;
         }
 
         public Table AddTable(int rowCount, int coloumnCount)
@@ -830,21 +846,9 @@ namespace Novacode
         /// </example>
         public Table InsertTable(int index, Table t)
         {
-            Paragraph p = HelperFunctions.GetFirstParagraphEffectedByInsert(this, index);
-
-            XElement[] split = HelperFunctions.SplitParagraph(p, index - p.startIndex);
-            XElement newXElement = new XElement(t.Xml);
-            p.Xml.ReplaceWith
-            (
-                split[0],
-                newXElement,
-                split[1]
-            );
-
-            Table newTable = new Table(this, newXElement);
-            newTable.Design = t.Design;
-
-            return newTable;
+            Table t2 = base.InsertTable(index, t);
+            t2.mainPart = mainPart;
+            return t2;
         }
 
         /// <summary>
@@ -881,13 +885,8 @@ namespace Novacode
         /// </example>
         public Table InsertTable(Table t)
         {
-            XElement newXElement = new XElement(t.Xml);
-            mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().Add(newXElement);
-
-            Table newTable = new Table(this, newXElement);
-            newTable.Design = t.Design;
-
-            return newTable;
+            t.mainPart = mainPart;
+            return base.InsertTable(t);
         }
 
         /// <summary>
@@ -928,27 +927,9 @@ namespace Novacode
         /// </example>
         public Table InsertTable(int index, int coloumnCount, int rowCount)
         {
-            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
-
-            Paragraph p = HelperFunctions.GetFirstParagraphEffectedByInsert(this, index);
-
-            if (p == null)
-                mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).First().AddFirst(newTable);
-
-            else
-            {
-                XElement[] split = HelperFunctions.SplitParagraph(p, index - p.startIndex);
-
-                p.Xml.ReplaceWith
-                (
-                    split[0],
-                    newTable,
-                    split[1]
-                );
-            }
-
-
-            return new Table(this, newTable);
+            Table t = InsertTable(index, coloumnCount, rowCount);
+            t.mainPart = mainPart;
+            return t;
         }
         
         /// <summary>
@@ -1128,23 +1109,75 @@ namespace Novacode
           return document;
         }
 
-      private static void PopulateDocument(DocX document, Package package)
-      {
-        Headers headers = new Headers();
-        headers.odd = document.GetHeaderByType("default");
-        headers.even = document.GetHeaderByType("even");
-        headers.first = document.GetHeaderByType("first");
+        private static void PopulateDocument(DocX document, Package package)
+        {
+            Headers headers = new Headers();
+            headers.odd = document.GetHeaderByType("default");
+            headers.even = document.GetHeaderByType("even");
+            headers.first = document.GetHeaderByType("first");
+            
+            Footers footers = new Footers();
+            footers.odd = document.GetFooterByType("default");
+            footers.even = document.GetFooterByType("even");
+            footers.first = document.GetFooterByType("first");
 
-        Footers footers = new Footers();
-        footers.odd = document.GetFooterByType("default");
-        footers.even = document.GetFooterByType("even");
-        footers.first = document.GetFooterByType("first");
+            //// Get the sectPr for this document.
+            //XElement sectPr = document.mainDoc.Descendants(XName.Get("sectPr", DocX.w.NamespaceName)).Single();
 
-        document.Xml = document.mainDoc.Root.Element(w + "body");
-        document.headers = headers;
-        document.footers = footers;
-        document.settingsPart = HelperFunctions.CreateOrGetSettingsPart(package);
-      }
+            //if (sectPr != null)
+            //{
+            //    // Extract the even header reference
+            //    var header_even_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "headerReference" && x.Attribute(XName.Get("type", DocX.w.NamespaceName)) != null && x.Attribute(XName.Get("type", DocX.w.NamespaceName)).Value == "even");
+            //    string id = header_even_ref.Attribute(XName.Get("id", DocX.r.NamespaceName)).Value;
+            //    var res = document.mainPart.GetRelationship(id);
+            //    string ans = res.SourceUri.OriginalString;
+            //    headers.even.xml_filename = ans;
+
+            //    // Extract the odd header reference
+            //    var header_odd_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "headerReference" && x.Attribute(XName.Get("type", DocX.w.NamespaceName)) != null && x.Attribute(XName.Get("type", DocX.w.NamespaceName)).Value == "default");
+            //    string id2 = header_odd_ref.Attribute(XName.Get("id", DocX.r.NamespaceName)).Value;
+            //    var res2 = document.mainPart.GetRelationship(id2);
+            //    string ans2 = res2.SourceUri.OriginalString;
+            //    headers.odd.xml_filename = ans2;
+
+            //    // Extract the first header reference
+            //    var header_first_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "h
+            //eaderReference" && x.Attribute(XName.Get("type", DocX.w.NamespaceName)) != null && x.Attribute(XName.Get("type", DocX.w.NamespaceName)).Value == "first");
+            //    string id3 = header_first_ref.Attribute(XName.Get("id", DocX.r.NamespaceName)).Value;
+            //    var res3 = document.mainPart.GetRelationship(id3);
+            //    string ans3 = res3.SourceUri.OriginalString;
+            //    headers.first.xml_filename = ans3;
+
+            //    // Extract the even footer reference
+            //    var footer_even_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "footerReference" && x.Attribute(XName.Get("type", DocX.w.NamespaceName)) != null && x.Attribute(XName.Get("type", DocX.w.NamespaceName)).Value == "even");
+            //    string id4 = footer_even_ref.Attribute(XName.Get("id", DocX.r.NamespaceName)).Value;
+            //    var res4 = document.mainPart.GetRelationship(id4);
+            //    string ans4 = res4.SourceUri.OriginalString;
+            //    footers.even.xml_filename = ans4;
+
+            //    // Extract the odd footer reference
+            //    var footer_odd_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "footerReference" && x.Attribute(XName.Get("type", DocX.w.NamespaceName)) != null && x.Attribute(XName.Get("type", DocX.w.NamespaceName)).Value == "default");
+            //    string id5 = footer_odd_ref.Attribute(XName.Get("id", DocX.r.NamespaceName)).Value;
+            //    var res5 = document.mainPart.GetRelationship(id5);
+            //    string ans5 = res5.SourceUri.OriginalString;
+            //    footers.odd.xml_filename = ans5;
+
+            //    // Extract the first footer reference
+            //    var footer_first_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "footerReference" && x.Attribute(XName.Get("type", DocX.w.NamespaceName)) != null && x.Attribute(XName.Get("type", DocX.w.NamespaceName)).Value == "first");
+            //    string id6 = footer_first_ref.Attribute(XName.Get("id", DocX.r.NamespaceName)).Value;
+            //    var res6 = document.mainPart.GetRelationship(id6);
+            //    string ans6 = res6.SourceUri.OriginalString;
+            //    footers.first.xml_filename = ans6;
+
+            //}
+
+            
+
+            document.Xml = document.mainDoc.Root.Element(w + "body");
+            document.headers = headers;
+            document.footers = footers;
+            document.settingsPart = HelperFunctions.CreateOrGetSettingsPart(package);
+        }
 
       /// <summary>
         /// Loads a document into a DocX object using a Stream.
@@ -2630,6 +2663,16 @@ namespace Novacode
             {
                 List<Paragraph> l = base.Paragraphs;
                 l.ForEach(x => x.PackagePart = mainPart);
+                return l;
+            }
+        }
+
+        public override List<Table> Tables
+        {
+            get
+            {
+                List<Table> l = base.Tables;
+                l.ForEach(x => x.mainPart = mainPart);
                 return l;
             }
         }
