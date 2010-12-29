@@ -838,6 +838,9 @@ namespace Novacode
             base.InsertPageBreakAfterSelf();
         }
 
+        [Obsolete("Instead use: InsertHyperlink(Hyperlink h, int index)")]
+        public Paragraph InsertHyperlink(int index, Hyperlink h) { return InsertHyperlink(h, index); }
+
         /// <summary>
         /// This function inserts a hyperlink into a Paragraph at a specified character index.
         /// </summary>
@@ -848,26 +851,59 @@ namespace Novacode
         /// This function was added by Brian Campbell aka chickendelicious on Jun 16 2010
         /// Thank you Brian.
         /// -->
-        public Paragraph InsertHyperlink(int index, Hyperlink h) 
-        { 
-            Run run = GetFirstRunEffectedByEdit(index); 
-            
-            if (run == null) 
-                return AppendHyperlink(h);
-            else 
-            { 
-                // The parent of this Run 
-                XElement parentElement = run.Xml.Parent; 
-                // Split this run at the point you want to insert 
-                XElement[] splitRun = Run.SplitRun(run, index); 
-                XElement link = h.Xml; 
-                
-                // Replace the origional run 
-                run.Xml.ReplaceWith( splitRun[0], link, splitRun[1] ); 
-            } 
+        public Paragraph InsertHyperlink(Hyperlink h, int index = 0) 
+        {
+            // Convert the path of this mainPart to its equilivant rels file path.
+            string path = mainPart.Uri.OriginalString.Replace("/word/", "");
+            Uri rels_path = new Uri("/word/_rels/" + path + ".rels", UriKind.Relative);
 
-            HelperFunctions.RenumberIDs(Document); 
-            
+            // Check to see if the rels file exists and create it if not.
+            if (!Document.package.PartExists(rels_path))
+                HelperFunctions.CreateRelsPackagePart(Document, rels_path);
+
+            // Check to see if a rel for this Picture exists, create it if not.
+            var Id = GetOrGenerateRel(h);
+
+            if (index == 0) 
+                return AppendHyperlink(h);
+            else
+            {
+                // Get the first run effected by this Insert
+                Run run = GetFirstRunEffectedByEdit(index);
+
+                XElement h_xml;
+                if (run == null)
+                {
+                    // Add this hyperlink as the last element.
+                    Xml.Add(h.Xml);
+
+                    // Extract the picture back out of the DOM.
+                    h_xml = (XElement)Xml.LastNode;
+                }
+
+                else
+                {
+                    // Split this run at the point you want to insert
+                    XElement[] splitRun = Run.SplitRun(run, index);
+
+                    // Replace the origional run.
+                    run.Xml.ReplaceWith
+                    (
+                        splitRun[0],
+                        h.Xml,
+                        splitRun[1]
+                    );
+
+                    // Get the first run effected by this Insert
+                    run = GetFirstRunEffectedByEdit(index);
+
+                    // The picture has to be the next element, extract it back out of the DOM.
+                    h_xml = (XElement)run.Xml.NextNode;
+                }
+
+                h_xml.SetAttributeValue(DocX.r + "id", Id);
+            }
+
             return this; 
         }
 
@@ -1821,15 +1857,19 @@ namespace Novacode
         /// </example>
         public Paragraph AppendHyperlink(Hyperlink h)
         {
-            if(!h.hyperlink_rels.ContainsKey(mainPart))
-            {
-                PackageRelationship pr = mainPart.CreateRelationship(h.Uri, TargetMode.External, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink");
-                h.hyperlink_rels.Add(mainPart, pr);
-            }
+            // Convert the path of this mainPart to its equilivant rels file path.
+            string path = mainPart.Uri.OriginalString.Replace("/word/", "");
+            Uri rels_path = new Uri("/word/_rels/" + path + ".rels", UriKind.Relative);
 
-            PackageRelationship rel = h.hyperlink_rels[mainPart];
-            Xml.Add(h.Xml);
-            Xml.Elements().Last().SetAttributeValue(DocX.r + "id", rel.Id);
+            // Check to see if the rels file exists and create it if not.
+            if (!Document.package.PartExists(rels_path))
+                HelperFunctions.CreateRelsPackagePart(Document, rels_path);
+
+            // Check to see if a rel for this Picture exists, create it if not.
+            var Id = GetOrGenerateRel(h);
+
+            Xml.AddFirst(h.Xml);
+            Xml.Elements().First().SetAttributeValue(DocX.r + "id", Id);
 
             this.runs = Xml.Elements().Last().Elements(XName.Get("r", DocX.w.NamespaceName)).ToList();
 
@@ -1877,6 +1917,31 @@ namespace Novacode
             if (!Document.package.PartExists(rels_path))
                 HelperFunctions.CreateRelsPackagePart(Document, rels_path);
 
+            // Check to see if a rel for this Picture exists, create it if not.
+            var Id = GetOrGenerateRel(p);
+
+            // Add the Picture Xml to the end of the Paragragraph Xml.
+            Xml.AddFirst(p.Xml);
+
+            // Extract the attribute id from the Pictures Xml.
+            XAttribute a_id =
+            (
+                from e in Xml.Elements().First().Descendants()
+                where e.Name.LocalName.Equals("blip")
+                select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
+            ).Single();
+
+            // Set its value to the Pictures relationships id.
+            a_id.SetValue(Id);
+
+            // For formatting such as .Bold()
+            this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(p.Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Count()).ToList();
+
+            return this;
+        }
+
+        internal string GetOrGenerateRel(Picture p)
+        {
             string image_uri_string = p.img.pr.TargetUri.OriginalString;
 
             // Search for a relationship with a TargetUri that points at this Image.
@@ -1894,25 +1959,29 @@ namespace Novacode
                 PackageRelationship pr = mainPart.CreateRelationship(p.img.pr.TargetUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
                 Id = pr.Id;
             }
+            return Id;
+        }
 
-            // Add the Picture Xml to the end of the Paragragraph Xml.
-            Xml.Add(p.Xml);
+        internal string GetOrGenerateRel(Hyperlink h)
+        {
+            string image_uri_string = h.Uri.OriginalString;
 
-            // Extract the attribute id from the Pictures Xml.
-            XAttribute a_id =
+            // Search for a relationship with a TargetUri that points at this Image.
+            var Id =
             (
-                from e in Xml.Elements().Last().Descendants()
-                where e.Name.LocalName.Equals("blip")
-                select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
-            ).Single();
+                from r in mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")
+                where r.TargetUri.OriginalString == image_uri_string
+                select r.Id
+            ).SingleOrDefault();
 
-            // Set its value to the Pictures relationships id.
-            a_id.SetValue(Id);
-
-            // For formatting such as .Bold()
-            this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Reverse().Take(p.Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).Count()).ToList();
-
-            return this;
+            // If such a relation dosen't exist, create one.
+            if (Id == null)
+            {
+                // Check to see if a relationship for this Picture exists and create it if not.
+                PackageRelationship pr = mainPart.CreateRelationship(h.Uri, TargetMode.External, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink");
+                Id = pr.Id;
+            }
+            return Id;
         }
 
         /// <summary>
@@ -1982,37 +2051,11 @@ namespace Novacode
             if (!Document.package.PartExists(rels_path))
                 HelperFunctions.CreateRelsPackagePart(Document, rels_path);
 
-            string image_uri_string = p.img.pr.TargetUri.OriginalString;
+            // Check to see if a rel for this Picture exists, create it if not.
+            var Id = GetOrGenerateRel(p);
 
-            // Search for a relationship with a TargetUri that points at this Image.
-            var Id =
-            (
-                from r in mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
-                where r.TargetUri.OriginalString == image_uri_string
-                select r.Id
-            ).SingleOrDefault();
-
-            // If such a relation dosen't exist, create one.
-            if (Id == null)
-            {
-                // Check to see if a relationship for this Picture exists and create it if not.
-                PackageRelationship pr = mainPart.CreateRelationship(p.img.pr.TargetUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
-                Id = pr.Id;
-            }
-
-            XAttribute a_id;
             if (index == 0)
-            {
-                // Add the Picture Xml to the start of the Paragragraph Xml.
-                Xml.AddFirst(p.Xml);
-
-                a_id =
-                (
-                    from e in Xml.Elements().First().Descendants()
-                    where e.Name.LocalName.Equals("blip")
-                    select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
-                ).Single();
-            }
+                return AppendPicture(p);
 
             else
             {
@@ -2050,16 +2093,16 @@ namespace Novacode
                 }
 
                 // Extract the attribute id from the Pictures Xml.
-                a_id =
+                XAttribute a_id =
                 (
                     from e in p_xml.Descendants()
                     where e.Name.LocalName.Equals("blip")
                     select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
                 ).Single();
-            }
 
-            // Set its value to the Pictures relationships id.
-            a_id.SetValue(Id);
+                // Set its value to the Pictures relationships id.
+                a_id.SetValue(Id);
+            }
 
             return this;
         }
