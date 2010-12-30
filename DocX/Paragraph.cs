@@ -2910,8 +2910,13 @@ namespace Novacode
                 // If after this remove the parent element is empty, remove it.
                 if (GetElementTextLength(parentElement) == 0)
                 {
-                     if (parentElement.Parent != null && parentElement.Parent.Name.LocalName != "tc")
-                        parentElement.Remove();
+                    if (parentElement.Parent != null && parentElement.Parent.Name.LocalName != "tc")
+                    {
+                        // Need to make sure there is no drawing element within the parent element.
+                        // Picture elements contain no text length but they are still content.
+                        if (parentElement.Descendants(XName.Get("drawing", DocX.w.NamespaceName)).Count() == 0)
+                            parentElement.Remove();
+                    }
                 }
             }
             while (processed < count);
