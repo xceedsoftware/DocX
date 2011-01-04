@@ -27,6 +27,20 @@ namespace Novacode
         static internal XNamespace customVTypesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
         #endregion
 
+        public bool isProtected 
+        {
+            get
+            {
+                return settings.Descendants(XName.Get("documentProtection", DocX.w.NamespaceName)).Count() > 0;
+            }
+        }
+
+        public void RemoveProtection()
+        {
+            // Remove every node of type documentProtection.
+            settings.Descendants(XName.Get("documentProtection", DocX.w.NamespaceName)).Remove();
+        }
+
         public PageLayout PageLayout 
         {
             get
@@ -320,6 +334,7 @@ namespace Novacode
 
         // The mainDocument is loaded into a XDocument object for easy querying and editing
         internal XDocument mainDoc;
+        internal XDocument settings;
         internal XDocument header1;
         internal XDocument header2;
         internal XDocument header3;
@@ -1106,7 +1121,10 @@ namespace Novacode
 
             PopulateDocument(document, package);
 
-          return document;
+            using (TextReader tr = new StreamReader(document.settingsPart.GetStream()))
+                document.settings = XDocument.Load(tr);
+
+            return document;
         }
 
         private static void PopulateDocument(DocX document, Package package)
@@ -2148,6 +2166,10 @@ namespace Novacode
                         ).Save(tw, SaveOptions.DisableFormatting);
                     }
                 }
+
+                // Save the settings document.
+                using (TextWriter tw = new StreamWriter(settingsPart.GetStream(FileMode.Create, FileAccess.Write)))
+                    settings.Save(tw, SaveOptions.DisableFormatting);
             }
 
             // Close the document so that it can be saved.
