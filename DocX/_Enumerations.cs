@@ -18,6 +18,15 @@ namespace Novacode
         nine
     }
 
+    public enum EditRestrictions
+    {
+        none,
+        readOnly,
+        forms,
+        comments,
+        trackedChanges
+    }
+
     /// <summary>
     /// Table Cell Border styles
     /// Added by lckuiper @ 20101117

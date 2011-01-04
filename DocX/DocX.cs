@@ -27,12 +27,36 @@ namespace Novacode
         static internal XNamespace customVTypesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
         #endregion
 
-        public bool isProtected 
+        public bool isProtected
         {
             get
             {
                 return settings.Descendants(XName.Get("documentProtection", DocX.w.NamespaceName)).Count() > 0;
             }
+        }
+
+        public EditRestrictions GetProtectionType()
+        {
+            if (isProtected)
+            {
+                XElement documentProtection = settings.Descendants(XName.Get("documentProtection", DocX.w.NamespaceName)).FirstOrDefault();
+                string edit_type = documentProtection.Attribute(XName.Get("edit", DocX.w.NamespaceName)).Value;
+                return (EditRestrictions)Enum.Parse(typeof(EditRestrictions), edit_type);
+            }
+
+            return EditRestrictions.none;
+        }
+
+        public void AddProtection(EditRestrictions er)
+        {
+            if (er == EditRestrictions.none)
+                return;
+
+            XElement documentProtection = new XElement(XName.Get("documentProtection", DocX.w.NamespaceName));
+            documentProtection.Add(new XAttribute(XName.Get("edit", DocX.w.NamespaceName), er.ToString()));
+            documentProtection.Add(new XAttribute(XName.Get("enforcement", DocX.w.NamespaceName), "1"));
+
+            settings.Root.AddFirst(documentProtection);
         }
 
         public void RemoveProtection()
