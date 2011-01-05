@@ -49,6 +49,9 @@ namespace Novacode
 
         public void AddProtection(EditRestrictions er)
         {
+            // Call remove protection before adding a new protection element.
+            RemoveProtection();
+
             if (er == EditRestrictions.none)
                 return;
 
