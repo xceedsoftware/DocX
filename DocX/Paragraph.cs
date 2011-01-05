@@ -1789,16 +1789,23 @@ namespace Novacode
                             if (trackChanges && !parentElement.Name.LocalName.Equals("ins"))
                                 insert = CreateEdit(EditType.ins, insert_datetime, newRuns);
 
-                            // Split this run at the point you want to insert
-                            XElement[] splitRun = Run.SplitRun(run, index);
+                            // Special case to deal with Page Number elements.
+                            if (parentElement.Name.LocalName.Equals("fldSimple"))
+                                parentElement.AddBeforeSelf(insert);
 
-                            // Replace the origional run
-                            run.Xml.ReplaceWith
-                            (
-                                splitRun[0],
-                                insert,
-                                splitRun[1]
-                            );
+                            else
+                            {
+                                // Split this run at the point you want to insert
+                                XElement[] splitRun = Run.SplitRun(run, index);
+
+                                // Replace the origional run
+                                run.Xml.ReplaceWith
+                                (
+                                    splitRun[0],
+                                    insert,
+                                    splitRun[1]
+                                );
+                            }
 
                             break;
                         }
@@ -3161,6 +3168,260 @@ namespace Novacode
             ).ToList();
 
             return query;
+        }
+
+        /// <summary>
+        /// Insert a PageNumber place holder into a Paragraph.
+        /// This place holder should only be inserted into a Header or Footer Paragraph.
+        /// Word will not automatically update this field if it is inserted into a document level Paragraph.
+        /// </summary>
+        /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
+        /// <param name="index">The text index to insert this PageNumber place holder at.</param>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Add Headers to the document.
+        ///     document.AddHeaders();
+        ///
+        ///     // Get the default Header.
+        ///     Header header = document.Headers.odd;
+        ///
+        ///     // Insert a Paragraph into the Header.
+        ///     Paragraph p0 = header.InsertParagraph("Page ( of )");
+        ///
+        ///     // Insert place holders for PageNumber and PageCount into the Header.
+        ///     // Word will replace these with the correct value for each Page.
+        ///     p0.InsertPageNumber(PageNumberFormat.normal, 6);
+        ///     p0.InsertPageCount(PageNumberFormat.normal, 11);
+        ///
+        ///     // Save the document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// <seealso cref="AppendPageCount"/>
+        /// <seealso cref="AppendPageNumber"/>
+        /// <seealso cref="InsertPageCount"/>
+        public void InsertPageNumber(PageNumberFormat pnf, int index = 0)
+        {
+            XElement fldSimple = new XElement(XName.Get("fldSimple", DocX.w.NamespaceName));
+
+            if (pnf == PageNumberFormat.normal)
+                fldSimple.Add(new XAttribute(XName.Get("instr", DocX.w.NamespaceName), @" PAGE   \* MERGEFORMAT "));
+            else
+                fldSimple.Add(new XAttribute(XName.Get("instr", DocX.w.NamespaceName), @" PAGE  \* ROMAN  \* MERGEFORMAT "));
+
+            XElement content = XElement.Parse
+            (
+             @"<w:r w:rsidR='001D0226' xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                   <w:rPr>
+                       <w:noProof /> 
+                   </w:rPr>
+                   <w:t>1</w:t> 
+               </w:r>"
+            );
+
+            fldSimple.Add(content);
+
+            if (index == 0)
+                Xml.AddFirst(fldSimple);
+            else
+            {
+                Run r = GetFirstRunEffectedByEdit(index, EditType.ins);
+                XElement[] splitEdit = SplitEdit(r.Xml, index, EditType.ins);
+                r.Xml.ReplaceWith
+                (
+                    splitEdit[0],
+                    fldSimple,
+                    splitEdit[1]
+                );
+            }
+        }
+
+        /// <summary>
+        /// Append a PageNumber place holder onto the end of a Paragraph.
+        /// </summary>
+        /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Add Headers to the document.
+        ///     document.AddHeaders();
+        ///
+        ///     // Get the default Header.
+        ///     Header header = document.Headers.odd;
+        ///
+        ///     // Insert a Paragraph into the Header.
+        ///     Paragraph p0 = header.InsertParagraph();
+        ///
+        ///     // Appemd place holders for PageNumber and PageCount into the Header.
+        ///     // Word will replace these with the correct value for each Page.
+        ///     p0.Append("Page (");
+        ///     p0.AppendPageNumber(PageNumberFormat.normal);
+        ///     p0.Append(" of ");
+        ///     p0.AppendPageCount(PageNumberFormat.normal);
+        ///     p0.Append(")");
+        /// 
+        ///     // Save the document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// <seealso cref="AppendPageCount"/>
+        /// <seealso cref="InsertPageNumber"/>
+        /// <seealso cref="InsertPageCount"/>
+        public void AppendPageNumber(PageNumberFormat pnf)
+        {
+            XElement fldSimple = new XElement(XName.Get("fldSimple", DocX.w.NamespaceName));
+            
+            if(pnf == PageNumberFormat.normal)
+                fldSimple.Add(new XAttribute(XName.Get("instr", DocX.w.NamespaceName), @" PAGE   \* MERGEFORMAT "));
+            else
+                fldSimple.Add(new XAttribute(XName.Get("instr", DocX.w.NamespaceName), @" PAGE  \* ROMAN  \* MERGEFORMAT "));
+
+            XElement content = XElement.Parse
+            (
+             @"<w:r w:rsidR='001D0226' xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                   <w:rPr>
+                       <w:noProof /> 
+                   </w:rPr>
+                   <w:t>1</w:t> 
+               </w:r>"
+            );
+
+            fldSimple.Add(content);
+            Xml.Add(fldSimple);
+        }
+
+        /// <summary>
+        /// Insert a PageCount place holder into a Paragraph.
+        /// This place holder should only be inserted into a Header or Footer Paragraph.
+        /// Word will not automatically update this field if it is inserted into a document level Paragraph.
+        /// </summary>
+        /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
+        /// <param name="index">The text index to insert this PageCount place holder at.</param>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Add Headers to the document.
+        ///     document.AddHeaders();
+        ///
+        ///     // Get the default Header.
+        ///     Header header = document.Headers.odd;
+        ///
+        ///     // Insert a Paragraph into the Header.
+        ///     Paragraph p0 = header.InsertParagraph("Page ( of )");
+        ///
+        ///     // Insert place holders for PageNumber and PageCount into the Header.
+        ///     // Word will replace these with the correct value for each Page.
+        ///     p0.InsertPageNumber(PageNumberFormat.normal, 6);
+        ///     p0.InsertPageCount(PageNumberFormat.normal, 11);
+        ///
+        ///     // Save the document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// <seealso cref="AppendPageCount"/>
+        /// <seealso cref="AppendPageNumber"/>
+        /// <seealso cref="InsertPageNumber"/>
+        public void InsertPageCount(PageNumberFormat pnf, int index = 0)
+        {
+            XElement fldSimple = new XElement(XName.Get("fldSimple", DocX.w.NamespaceName));
+
+            if (pnf == PageNumberFormat.normal)
+                fldSimple.Add(new XAttribute(XName.Get("instr", DocX.w.NamespaceName), @" NUMPAGES   \* MERGEFORMAT "));
+            else
+                fldSimple.Add(new XAttribute(XName.Get("instr", DocX.w.NamespaceName), @" NUMPAGES  \* ROMAN  \* MERGEFORMAT "));
+
+            XElement content = XElement.Parse
+            (
+             @"<w:r w:rsidR='001D0226' xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                   <w:rPr>
+                       <w:noProof /> 
+                   </w:rPr>
+                   <w:t>1</w:t> 
+               </w:r>"
+            );
+
+            fldSimple.Add(content);
+
+            if (index == 0)
+                Xml.AddFirst(fldSimple);
+            else
+            {
+                Run r = GetFirstRunEffectedByEdit(index, EditType.ins);
+                XElement[] splitEdit = SplitEdit(r.Xml, index, EditType.ins);
+                r.Xml.ReplaceWith
+                (
+                    splitEdit[0],
+                    fldSimple,
+                    splitEdit[1]
+                );
+            }
+        }
+
+        /// <summary>
+        /// Append a PageCount place holder onto the end of a Paragraph.
+        /// </summary>
+        /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Add Headers to the document.
+        ///     document.AddHeaders();
+        ///
+        ///     // Get the default Header.
+        ///     Header header = document.Headers.odd;
+        ///
+        ///     // Insert a Paragraph into the Header.
+        ///     Paragraph p0 = header.InsertParagraph();
+        ///
+        ///     // Appemd place holders for PageNumber and PageCount into the Header.
+        ///     // Word will replace these with the correct value for each Page.
+        ///     p0.Append("Page (");
+        ///     p0.AppendPageNumber(PageNumberFormat.normal);
+        ///     p0.Append(" of ");
+        ///     p0.AppendPageCount(PageNumberFormat.normal);
+        ///     p0.Append(")");
+        /// 
+        ///     // Save the document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// <seealso cref="AppendPageNumber"/>
+        /// <seealso cref="InsertPageNumber"/>
+        /// <seealso cref="InsertPageCount"/>
+        public void AppendPageCount(PageNumberFormat pnf)
+        {
+            XElement fldSimple = new XElement(XName.Get("fldSimple", DocX.w.NamespaceName));
+
+            if (pnf == PageNumberFormat.normal)
+                fldSimple.Add(new XAttribute(XName.Get("instr", DocX.w.NamespaceName), @" NUMPAGES   \* MERGEFORMAT "));
+            else
+                fldSimple.Add(new XAttribute(XName.Get("instr", DocX.w.NamespaceName), @" NUMPAGES  \* ROMAN  \* MERGEFORMAT "));
+
+            XElement content = XElement.Parse
+            (
+             @"<w:r w:rsidR='001D0226' xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                   <w:rPr>
+                       <w:noProof /> 
+                   </w:rPr>
+                   <w:t>1</w:t> 
+               </w:r>"
+            );
+
+            fldSimple.Add(content);
+            Xml.Add(fldSimple);
         }
     }
 

@@ -5,6 +5,12 @@ using System.Text;
 
 namespace Novacode
 {
+    public enum PageNumberFormat
+    {
+        normal,
+        roman
+    }
+
     public enum BorderSize
     {
         one,

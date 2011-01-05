@@ -86,6 +86,10 @@ namespace Novacode
 
         internal void GetParagraphsRecursive(XElement Xml, ref int index, ref List<Paragraph> paragraphs)
         {
+            // sdtContent are for PageNumbers inside Headers or Footers, don't go any deeper.
+            if (Xml.Name.LocalName == "sdtContent")
+                return;
+
             if (Xml.Name.LocalName == "p")
             {
                 paragraphs.Add(new Paragraph(Document, Xml, index));

@@ -27,6 +27,27 @@ namespace Novacode
         static internal XNamespace customVTypesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
         #endregion
 
+        /// <summary>
+        /// Returns true if any editing restrictions are imposed on this document.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     if(document.isProtected)
+        ///         Console.WriteLine("Protected");
+        ///     else
+        ///         Console.WriteLine("Not protected");
+        ///         
+        ///     // Save the document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// <seealso cref="AddProtection"/>
+        /// <seealso cref="RemoveProtection"/>
+        /// <seealso cref="GetProtectionType"/>
         public bool isProtected
         {
             get
@@ -35,6 +56,33 @@ namespace Novacode
             }
         }
 
+        /// <summary>
+        /// Returns the type of editing protection imposed on this document.
+        /// </summary>
+        /// <returns>The type of editing protection imposed on this document.</returns>
+        /// <example>
+        /// <code>
+        /// Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Make sure the document is protected before checking the protection type.
+        ///     if (document.isProtected)
+        ///     {
+        ///         EditRestrictions protection = document.GetProtectionType();
+        ///         Console.WriteLine("Document is protected using " + protection.ToString());
+        ///     }
+        ///
+        ///     else
+        ///         Console.WriteLine("Document is not protected.");
+        ///
+        ///     // Save the document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// <seealso cref="AddProtection"/>
+        /// <seealso cref="RemoveProtection"/>
+        /// <seealso cref="isProtected"/>
         public EditRestrictions GetProtectionType()
         {
             if (isProtected)
@@ -47,6 +95,26 @@ namespace Novacode
             return EditRestrictions.none;
         }
 
+        /// <summary>
+        /// Add editing protection to this document. 
+        /// </summary>
+        /// <param name="er">The type of protection to add to this document.</param>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Allow no editing, only the adding of comment.
+        ///     document.AddProtection(EditRestrictions.comments);
+        ///     
+        ///     // Save the document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// <seealso cref="RemoveProtection"/>
+        /// <seealso cref="GetProtectionType"/>
+        /// <seealso cref="isProtected"/>
         public void AddProtection(EditRestrictions er)
         {
             // Call remove protection before adding a new protection element.
@@ -61,7 +129,26 @@ namespace Novacode
 
             settings.Root.AddFirst(documentProtection);
         }
-
+       
+        /// <summary>
+        /// Remove editing protection from this document.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Remove any editing restrictions that are imposed on this document.
+        ///     document.RemoveProtection();
+        ///
+        ///     // Save the document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// <seealso cref="AddProtection"/>
+        /// <seealso cref="GetProtectionType"/>
+        /// <seealso cref="isProtected"/>
         public void RemoveProtection()
         {
             // Remove every node of type documentProtection.
