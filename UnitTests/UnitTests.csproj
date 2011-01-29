@@ -68,6 +68,7 @@
   <ItemGroup>
     <None Include="documents\EverybodyHasAHome.docx" />
     <None Include="documents\Images.docx" />
+    <None Include="documents\MovePicture.docx" />
     <None Include="documents\Paragraphs.docx" />
     <None Include="documents\Tables.docx" />
     <None Include="documents\Template.dotx" />
@@ -78,6 +79,13 @@
       <Project>{E863D072-AA8B-4108-B5F1-785241B37F67}</Project>
       <Name>DocX</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="documents\green.jpg" />
+    <Content Include="documents\orange.gif" />
+    <Content Include="documents\purple.png" />
+    <Content Include="documents\red.bmp" />
+    <Content Include="documents\yellow.tif" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
