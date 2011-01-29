@@ -836,9 +836,9 @@ namespace Novacode
         /// </example>
         public void InsertColumn(int index)
         {
-            if (rows.Count > 0)
+            if (Rows.Count > 0)
             {
-                foreach (Row r in rows)
+                foreach (Row r in Rows)
                 {
                     if(columnCount == index)
                         r.Cells[index - 1].Xml.AddAfterSelf(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));

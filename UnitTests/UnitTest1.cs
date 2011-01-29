@@ -992,6 +992,25 @@ namespace UnitTests
             File.Delete(file_temp);
         }
 
+        [TestMethod]
+        public void Test_Table_InsertRow()
+        {
+            using (DocX document = DocX.Create(directory_documents + "Tables2.docx"))
+            {
+                // Add a Table to a document.
+                Table t = document.AddTable(2, 2);
+                t.Design = TableDesign.TableGrid;
+
+                // Insert the Table into the main section of the document.
+                Table t1 = document.InsertTable(t);
+                t1.InsertRow();
+                t1.InsertColumn();
+
+                // Save the document.
+                document.Save();
+            }
+        }
+
       [TestMethod]
       public void Test_Document_ApplyTemplate()
       {
