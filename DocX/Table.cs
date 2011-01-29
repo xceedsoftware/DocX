@@ -771,8 +771,7 @@ namespace Novacode
                 throw new IndexOutOfRangeException();
 
             List<XElement> content = new List<XElement>();
-                        
-            foreach (Cell c in Rows[0].Cells)
+            for (int i = 0; i < columnCount; i++ )
                 content.Add(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
 
             XElement e = new XElement(XName.Get("tr", DocX.w.NamespaceName), content);

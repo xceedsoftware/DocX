@@ -930,6 +930,9 @@ namespace Novacode
         /// </example>
         public Table InsertTable(int coloumnCount, int rowCount)
         {
+            if (rowCount < 1 || coloumnCount < 1)
+                throw new ArgumentOutOfRangeException("Row and Coloumn count must be greater than zero.");
+
             Table t = base.InsertTable(coloumnCount, rowCount);
             t.mainPart = mainPart;
             return t;
@@ -937,6 +940,9 @@ namespace Novacode
 
         public Table AddTable(int rowCount, int coloumnCount)
         {
+            if (rowCount < 1 || coloumnCount < 1)
+                throw new ArgumentOutOfRangeException("Row and Coloumn count must be greater than zero.");
+
             return (new Table(this, HelperFunctions.CreateTable(rowCount, coloumnCount)));
         }
 
@@ -1056,6 +1062,9 @@ namespace Novacode
         /// </example>
         public Table InsertTable(int index, int coloumnCount, int rowCount)
         {
+            if (rowCount < 1 || coloumnCount < 1)
+                throw new ArgumentOutOfRangeException("Row and Coloumn count must be greater than zero.");
+
             Table t = InsertTable(index, coloumnCount, rowCount);
             t.mainPart = mainPart;
             return t;
