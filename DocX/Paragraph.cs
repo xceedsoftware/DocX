@@ -697,7 +697,9 @@ namespace Novacode
         /// </example>
         public override Paragraph InsertParagraphBeforeSelf(Paragraph p)
         {
-            return base.InsertParagraphBeforeSelf(p);
+            Paragraph p2 = base.InsertParagraphBeforeSelf(p);
+            p2.PackagePart = mainPart;
+            return p2;
         }
 
         /// <summary>
@@ -723,7 +725,9 @@ namespace Novacode
         /// </example>
         public Paragraph InsertParagraphBeforeSelf(string text)
         {
-            return InsertParagraphBeforeSelf(text, false, null);
+            Paragraph p = base.InsertParagraphBeforeSelf(text);
+            p.PackagePart = mainPart;
+            return p;
         }
 
         /// <summary>
@@ -750,7 +754,9 @@ namespace Novacode
         /// </example>
         public override Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges)
         {
-            return base.InsertParagraphBeforeSelf(text, trackChanges);
+            Paragraph p = base.InsertParagraphBeforeSelf(text, trackChanges);
+            p.PackagePart = mainPart;
+            return p;
         }
 
         /// <summary>
@@ -781,7 +787,9 @@ namespace Novacode
         /// </example>
         public override Paragraph InsertParagraphBeforeSelf(string text, bool trackChanges, Formatting formatting)
         {
-            return base.InsertParagraphBeforeSelf(text, trackChanges, formatting);
+            Paragraph p = base.InsertParagraphBeforeSelf(text, trackChanges, formatting);
+            p.PackagePart = mainPart;
+            return p;
         }
 
         /// <summary>
@@ -1011,7 +1019,9 @@ namespace Novacode
         /// </example>
         public override Paragraph InsertParagraphAfterSelf(Paragraph p)
         {
-            return base.InsertParagraphAfterSelf(p);
+            Paragraph p2 = base.InsertParagraphAfterSelf(p);
+            p2.PackagePart = mainPart;
+            return p2;
         }
 
         /// <summary>
@@ -1042,7 +1052,9 @@ namespace Novacode
         /// </example>
         public override Paragraph InsertParagraphAfterSelf(string text, bool trackChanges, Formatting formatting)
         {
-            return base.InsertParagraphAfterSelf(text, trackChanges, formatting);
+            Paragraph p = base.InsertParagraphAfterSelf(text, trackChanges, formatting);
+            p.PackagePart = mainPart;
+            return p;
         }
 
         /// <summary>
@@ -1069,7 +1081,9 @@ namespace Novacode
         /// </example>
         public override Paragraph InsertParagraphAfterSelf(string text, bool trackChanges)
         {
-            return base.InsertParagraphAfterSelf(text, trackChanges);
+            Paragraph p = base.InsertParagraphAfterSelf(text, trackChanges);
+            p.PackagePart = mainPart;
+            return p;
         }
 
         /// <summary>
@@ -1095,7 +1109,9 @@ namespace Novacode
         /// </example>
         public override Paragraph InsertParagraphAfterSelf(string text)
         {
-            return base.InsertParagraphAfterSelf(text);
+            Paragraph p = base.InsertParagraphAfterSelf(text);
+            p.PackagePart = mainPart;
+            return p;
         }
 
         private void RebuildDocProperties()

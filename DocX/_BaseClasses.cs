@@ -139,7 +139,7 @@ namespace Novacode
                 newParagraph = Paragraph.CreateEdit(EditType.ins, DateTime.Now, newParagraph);
 
             Xml.AddBeforeSelf(newParagraph);
-            XElement newlyInserted = Xml.ElementsBeforeSelf().First();
+            XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
             Paragraph p = new Paragraph(Document, newlyInserted, -1);
 

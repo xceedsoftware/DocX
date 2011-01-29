@@ -118,6 +118,52 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void Test_Insert_Picture_ParagraphBeforeSelf()
+        {
+            // Create test document.
+            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            {
+                // Add an Image to this document.
+                Novacode.Image img = document.AddImage(directory_documents + "purple.png");
+
+                // Create a Picture from this Image.
+                Picture pic = img.CreatePicture();
+                Assert.IsNotNull(pic);
+
+                // Main document.
+                Paragraph p0 = document.InsertParagraph("Hello");
+                Paragraph p1 = p0.InsertParagraphBeforeSelf("again");
+                p1.InsertPicture(pic, 3);
+
+                // Save this document.
+                document.Save();
+            }
+        }
+
+        [TestMethod]
+        public void Test_Insert_Picture_ParagraphAfterSelf()
+        {
+            // Create test document.
+            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            {
+                // Add an Image to this document.
+                Novacode.Image img = document.AddImage(directory_documents + "purple.png");
+
+                // Create a Picture from this Image.
+                Picture pic = img.CreatePicture();
+                Assert.IsNotNull(pic);
+
+                // Main document.
+                Paragraph p0 = document.InsertParagraph("Hello");
+                Paragraph p1 = p0.InsertParagraphAfterSelf("again");
+                p1.InsertPicture(pic, 3);
+
+                // Save this document.
+                document.Save();
+            }
+        }
+
+        [TestMethod]
         public void Test_EverybodyHasAHome_Created()
         {
             // Create a new document.

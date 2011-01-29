@@ -1583,7 +1583,7 @@ namespace Novacode
           }
           finally
           {
-            this.package.Flush();
+              this.package.Flush();
             var documentRelsPart = this.package.GetPart(new Uri("/word/_rels/document.xml.rels", UriKind.Relative));
             using (TextReader tr = new StreamReader(documentRelsPart.GetStream(FileMode.Open, FileAccess.Read)))
             {
