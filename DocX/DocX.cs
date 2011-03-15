@@ -928,7 +928,7 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTable(int coloumnCount, int rowCount)
+        public new Table InsertTable(int coloumnCount, int rowCount)
         {
             if (rowCount < 1 || coloumnCount < 1)
                 throw new ArgumentOutOfRangeException("Row and Coloumn count must be greater than zero.");
@@ -979,7 +979,7 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTable(int index, Table t)
+        public new Table InsertTable(int index, Table t)
         {
             Table t2 = base.InsertTable(index, t);
             t2.mainPart = mainPart;
@@ -1018,7 +1018,7 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTable(Table t)
+        public new Table InsertTable(Table t)
         {
             t.mainPart = mainPart;
             return base.InsertTable(t);
@@ -1060,10 +1060,10 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Table InsertTable(int index, int coloumnCount, int rowCount)
+        public new Table InsertTable(int index, int coloumnCount, int rowCount)
         {
             if (rowCount < 1 || coloumnCount < 1)
-                throw new ArgumentOutOfRangeException("Row and Coloumn count must be greater than zero.");
+                throw new ArgumentOutOfRangeException("Row and Column count must be greater than zero.");
 
             Table t = InsertTable(index, coloumnCount, rowCount);
             t.mainPart = mainPart;

@@ -723,7 +723,7 @@ namespace Novacode
         ///    }// Release this new document form memory.
         /// </code>
         /// </example>
-        public Paragraph InsertParagraphBeforeSelf(string text)
+        public override Paragraph InsertParagraphBeforeSelf(string text)
         {
             Paragraph p = base.InsertParagraphBeforeSelf(text);
             p.PackagePart = mainPart;

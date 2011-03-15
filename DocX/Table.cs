@@ -211,7 +211,7 @@ namespace Novacode
                         design = (TableDesign)Enum.Parse(typeof(TableDesign), val.Value.Replace("-", string.Empty));
                     }
 
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         design = TableDesign.Custom;
                     }

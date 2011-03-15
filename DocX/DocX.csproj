@@ -18,8 +18,6 @@
     <SccProvider>SAK</SccProvider>
     <StartupObject>
     </StartupObject>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>StrongNameKey.pfx</AssemblyOriginatorKeyFile>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
@@ -109,7 +107,6 @@
     <None Include="Help\Changes in this version 1.0.0.10.docx" />
     <None Include="Help\DocX v1.0.0.10 - Documentation.chm" />
     <None Include="Help\Read Me.docx" />
-    <None Include="StrongNameKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="License\License.html" />

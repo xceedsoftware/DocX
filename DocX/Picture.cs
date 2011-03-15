@@ -22,7 +22,7 @@ namespace Novacode
         private string name;
         private string descr;
         private int cx, cy;
-        private string fileName;
+        //private string fileName;
         private uint rotation;
         private bool hFlip, vFlip;
         private object pictureShape;

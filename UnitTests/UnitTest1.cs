@@ -696,8 +696,8 @@ namespace UnitTests
                     p1.RemoveHyperlink(-1);
                     Assert.Fail();
                 }
-                catch (ArgumentException e) { }
-                catch (Exception e) { Assert.Fail(); }
+                catch (ArgumentException) { }
+                catch (Exception) { Assert.Fail(); }
 
                 // Try and remove a Hyperlink at an index greater than the last.
                 // This should throw an exception.
@@ -706,8 +706,8 @@ namespace UnitTests
                     p1.RemoveHyperlink(3);
                     Assert.Fail();
                 }
-                catch (ArgumentException e) {}
-                catch (Exception e) { Assert.Fail(); }
+                catch (ArgumentException) {}
+                catch (Exception) { Assert.Fail(); }
 
                 p1.RemoveHyperlink(0); Assert.IsTrue(p1.Text == "AlinkClink");
                 p1.RemoveHyperlink(1); Assert.IsTrue(p1.Text == "AlinkC");
@@ -762,8 +762,8 @@ namespace UnitTests
                     p1.RemoveText(p1.Text.Length, 1);
                     Assert.Fail();
                 }
-                catch (ArgumentOutOfRangeException e) { }
-                catch (Exception e) { Assert.Fail(); }
+                catch (ArgumentOutOfRangeException) { }
+                catch (Exception) { Assert.Fail(); }
 
                 // Try and remove text at a negative index.
                 // This should throw an exception.
@@ -772,8 +772,8 @@ namespace UnitTests
                     p1.RemoveText(-1, 1);
                     Assert.Fail();
                 }
-                catch (ArgumentOutOfRangeException e) { }
-                catch (Exception e) { Assert.Fail(); }
+                catch (ArgumentOutOfRangeException) { }
+                catch (Exception) { Assert.Fail(); }
 
                 // Difficult
                 //<p>
@@ -873,8 +873,8 @@ namespace UnitTests
                     p1.InsertText(p1.Text.Length + 1, "-");
                     Assert.Fail();
                 }
-                catch (ArgumentOutOfRangeException e) { }
-                catch (Exception e) { Assert.Fail(); }
+                catch (ArgumentOutOfRangeException) { }
+                catch (Exception) { Assert.Fail(); }
 
                 // Try and insert text at a negative index.
                 // This should throw an exception.
@@ -883,8 +883,8 @@ namespace UnitTests
                     p1.InsertText(-1, "-");
                     Assert.Fail();
                 }
-                catch (ArgumentOutOfRangeException e) { }
-                catch (Exception e) { Assert.Fail(); }
+                catch (ArgumentOutOfRangeException) { }
+                catch (Exception) { Assert.Fail(); }
 
                 // Difficult
                 //<p>
