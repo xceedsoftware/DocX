@@ -207,6 +207,37 @@ namespace Novacode
             return list;
         }
 
+        /// <summary>
+        /// Find all unique instances of the given Regex Pattern,
+        /// returning the list of the unique strings found
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public virtual List<string> FindUniqueByPattern(string pattern, RegexOptions options)
+        {
+            List<string> rawResults = new List<string>();
+
+            foreach (Paragraph p in Paragraphs)
+            {   // accumulate the search results from all paragraphs
+                List<string> partials = p.FindAllByPattern(pattern, options);
+                rawResults.AddRange(partials);
+            }
+
+            // this dictionary is used to collect results and test for uniqueness
+            Dictionary<string, int> uniqueResults = new Dictionary<string, int>();
+            
+            foreach (string currValue in rawResults)
+            {
+                if (!uniqueResults.ContainsKey(currValue))
+                {   // if the dictionary doesn't have it, add it
+                    uniqueResults.Add(currValue, 0);
+                }
+            }
+
+            return uniqueResults.Keys.ToList();  // return the unique list of results
+        }
+
         public virtual void ReplaceText(string oldValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch)
         {
             // ReplaceText in Headers of the document.

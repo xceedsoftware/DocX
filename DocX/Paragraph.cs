@@ -3187,6 +3187,25 @@ namespace Novacode
         }
 
         /// <summary>
+        ///  Find all unique instances of the given Regex Pattern
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public List<string> FindAllByPattern(string str, RegexOptions options)
+        {
+            MatchCollection mc = Regex.Matches(this.Text, str, options);
+
+            var query =
+            (
+                from m in mc.Cast<Match>()
+                select m.Value
+            ).ToList();
+
+            return query;
+        }
+
+        /// <summary>
         /// Insert a PageNumber place holder into a Paragraph.
         /// This place holder should only be inserted into a Header or Footer Paragraph.
         /// Word will not automatically update this field if it is inserted into a document level Paragraph.

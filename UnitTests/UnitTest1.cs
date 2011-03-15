@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Xml.Linq;
 using System.IO.Packaging;
+using System.Text.RegularExpressions;
 
 namespace UnitTests
 {
@@ -34,6 +35,27 @@ namespace UnitTests
             List<string> steps = directory_executing_assembly.Split('\\').ToList();
             steps.RemoveRange(steps.Count() - 3, 3);
             directory_documents = String.Join("\\", steps) + "\\documents\\";
+        }
+
+        [TestMethod]
+        public void PatternReplacement()
+        {
+            Dictionary<string, string> testPatterns = new Dictionary<string, string>()
+            {
+                {"COURT NAME","Fred Frump"}, 
+                {"Case Number","cr-md-2011-1234567"}
+            };
+        
+            using (DocX replaceDoc = DocX.Load(directory_documents + "ReplaceTests.docx"))
+            {
+                foreach (var p in testPatterns)
+                {
+                    replaceDoc.ReplaceText("<" + p.Key + ">", p.Value, false, RegexOptions.IgnoreCase);
+                }
+
+                replaceDoc.SaveAs(directory_documents + "ReplaceResults.docx");
+            }
+            
         }
 
         [TestMethod]
