@@ -12,14 +12,10 @@ namespace ConsoleApplication3
         static void Main(string[] args)
         {
             // Create a document.
-            using (DocX document = DocX.Load(@"C:\Users\cathal\Downloads\foo.docx"))
+            using (DocX document = DocX.Load(@"Test.docx"))
             {
-                List<Picture> pictures = document.Pictures;
-
-                List<Novacode.Table> imageTable = (from table in document.Tables
-                                                   where table.Pictures.Count > 0
-                                                   select table).ToList();
-
+                document.ReplaceText("Hio", "World");
+                document.SaveAs("Test2.docx");
             }// Release this document from memory.
         }
     }

@@ -1720,11 +1720,6 @@ namespace Novacode
         /// <param name="formatting">The text formatting.</param>
         public void InsertText(int index, string value, bool trackChanges=false, Formatting formatting = null)
         {
-            #region Default values for optional parameters must be compile time constants.
-            // Would like to have written 'Formatting formatting = new Formatting())
-            if (formatting == null) formatting = new Formatting(); 
-            #endregion
-
             // Timestamp to mark the start of insert
             DateTime now = DateTime.Now;
             DateTime insert_datetime = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc);
