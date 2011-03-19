@@ -64,7 +64,8 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>StrongNameKey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -114,7 +115,6 @@
     <None Include="Help\Changes in this version 1.0.0.10.docx" />
     <None Include="Help\DocX v1.0.0.10 - Documentation.chm" />
     <None Include="Help\Read Me.docx" />
-    <None Include="StrongNameKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="License\License.html" />
