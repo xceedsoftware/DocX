@@ -61,10 +61,9 @@ namespace Novacode
                         from e in p.Descendants()
                         where e.Name.LocalName.Equals("blip")
                         select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
-                    ).Single()
-                    let 
-                    
-                    img = new Image(Document, mainPart.GetRelationship(id))
+                    ).SingleOrDefault()
+                    where id != null
+                    let img = new Image(Document, mainPart.GetRelationship(id))
                     select new Picture(Document, p, img)
                 ).ToList();
 
