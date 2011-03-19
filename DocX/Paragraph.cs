@@ -237,7 +237,9 @@ namespace Novacode
         /// </example>
         public override Table InsertTableBeforeSelf(Table t)
         {
-            return base.InsertTableBeforeSelf(t);
+            t = base.InsertTableBeforeSelf(t);
+            t.mainPart = mainPart;
+            return t;
         }
 
         private Direction direction;
@@ -631,7 +633,9 @@ namespace Novacode
         /// </example>
         public override Table InsertTableAfterSelf(Table t)
         {
-            return base.InsertTableAfterSelf(t);
+            t = base.InsertTableAfterSelf(t);
+            t.mainPart = mainPart;
+            return t;
         }
 
         /// <summary>

@@ -1020,8 +1020,9 @@ namespace Novacode
         /// </example>
         public new Table InsertTable(Table t)
         {
+            t = base.InsertTable(t);
             t.mainPart = mainPart;
-            return base.InsertTable(t);
+            return t;
         }
 
         /// <summary>
@@ -1714,6 +1715,7 @@ namespace Novacode
             );
 
             Hyperlink h = new Hyperlink(this, i);
+            
             h.Text = text;
             h.Uri = uri;
 
