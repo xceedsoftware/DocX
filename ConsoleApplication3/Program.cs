@@ -14,9 +14,7 @@ namespace ConsoleApplication3
             // Create a new document.
             using (DocX document = DocX.Create(@"Test.docx"))
             {
-                // Add Headers to the document.
-                document.AddHeaders();
-                document.AddHeaders();
+                document.InsertParagraph("I cant believe this took so long.");
 
                 // Save the document.
                 document.Save();
