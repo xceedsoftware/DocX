@@ -71,6 +71,7 @@
     <None Include="documents\Images.docx" />
     <None Include="documents\MovePicture.docx" />
     <None Include="documents\Paragraphs.docx" />
+    <None Include="documents\ReplaceTests.docx" />
     <None Include="documents\Tables.docx" />
     <None Include="documents\Template.dotx" />
   </ItemGroup>
