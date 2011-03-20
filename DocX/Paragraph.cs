@@ -1719,7 +1719,7 @@ namespace Novacode
         /// <param name="trackChanges">Flag this insert as a change.</param>
         /// <param name="formatting">The text formatting.</param>
         public void InsertText(int index, string value, bool trackChanges=false, Formatting formatting = null)
-        {
+        {                
             // Timestamp to mark the start of insert
             DateTime now = DateTime.Now;
             DateTime insert_datetime = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc);
@@ -1804,8 +1804,8 @@ namespace Novacode
                                 insert = CreateEdit(EditType.ins, insert_datetime, newRuns);
 
                             // Special case to deal with Page Number elements.
-                            if (parentElement.Name.LocalName.Equals("fldSimple"))
-                                parentElement.AddBeforeSelf(insert);
+                            //if (parentElement.Name.LocalName.Equals("fldSimple"))
+                            //    parentElement.AddBeforeSelf(insert);
 
                             else
                             {
@@ -3075,6 +3075,7 @@ namespace Novacode
                 // If the formatting matches, do the replace.
                 if(formattingMatch)
                 {
+                    var temp = Xml;
                     InsertText(m.Index + oldValue.Length, newValue, trackChanges, newFormatting);
                     RemoveText(m.Index, m.Length, trackChanges);
                 }

@@ -76,7 +76,22 @@ namespace Novacode
                 case "t":
                     goto case "delText";
                 case "delText":
-                    return e.Value;
+                    {
+                        if (e.Parent != null && e.Parent.Name.LocalName == "r")
+                        {
+                            XElement run = e.Parent;
+                            var rPr = run.Elements().FirstOrDefault(a => a.Name.LocalName == "rPr");
+                            if (rPr != null)
+                            {
+                                var caps = rPr.Elements().FirstOrDefault(a => a.Name.LocalName == "caps");
+
+                                if (caps != null)
+                                    return e.Value.ToUpper();
+                            }
+                        }
+
+                        return e.Value;
+                    }
                 case "tr":
                     goto case "br";
                 case "tc":
