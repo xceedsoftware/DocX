@@ -48,10 +48,21 @@ namespace UnitTests
         
             using (DocX replaceDoc = DocX.Load(directory_documents + "ReplaceTests.docx"))
             {
-                // Make sure the origional string are the document.
+                foreach (var t in replaceDoc.Tables)
+                {   // each table has 1 row and 3 columns
+                    Assert.IsTrue(t.Rows[0].Cells.Count == 3);
+                    Assert.IsTrue(t.ColumnCount == 3);
+                    Assert.IsTrue(t.Rows.Count == 1);
+                    Assert.IsTrue(t.RowCount == 1);
+                }
+                
+                // Make sure the origional strings are in the document.
                 Assert.IsTrue(replaceDoc.FindAll("<COURT NAME>").Count == 2);
                 Assert.IsTrue(replaceDoc.FindAll("<Case Number>").Count == 2);
 
+                // There are only two patterns, even though each pattern is used more than once
+                Assert.IsTrue(replaceDoc.FindUniqueByPattern(@"<[\w \=]{4,}>", RegexOptions.IgnoreCase).Count == 2);
+                
                 // Make sure the new strings are not in the document.
                 Assert.IsTrue(replaceDoc.FindAll("Fred Frump").Count == 0);
                 Assert.IsTrue(replaceDoc.FindAll("cr-md-2011-1234567").Count == 0);
