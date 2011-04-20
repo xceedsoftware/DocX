@@ -402,7 +402,7 @@ namespace Novacode
                 from e in mainDoc.Descendants(XName.Get("body", DocX.w.NamespaceName)).Descendants()
                 where (e.Name.LocalName == reference) && (e.Attribute(w + "type").Value == type)
                 select e.Attribute(r + "id").Value
-            ).FirstOrDefault();
+            ).LastOrDefault();
 
             if (Id != null)
             {
@@ -2125,11 +2125,11 @@ namespace Novacode
             {
                 var evenHeaderRef =
                 (
-                    from e in sectPr.Elements(w + "headerReference")
+                    from e in mainDoc.Descendants(w + "headerReference")
                     let type = e.Attribute(w + "type")
                     where type != null && type.Value.Equals("even", StringComparison.CurrentCultureIgnoreCase)
                     select e.Attribute(r + "id").Value
-                 ).SingleOrDefault();
+                 ).LastOrDefault();
 
                 if (evenHeaderRef != null)
                 {
@@ -2153,11 +2153,11 @@ namespace Novacode
 
                 var oddHeaderRef =
                 (
-                    from e in sectPr.Elements(w + "headerReference")
+                    from e in mainDoc.Descendants(w + "headerReference")
                     let type = e.Attribute(w + "type")
                     where type != null && type.Value.Equals("default", StringComparison.CurrentCultureIgnoreCase)
                     select e.Attribute(r + "id").Value
-                 ).SingleOrDefault();
+                 ).LastOrDefault();
 
                 if (oddHeaderRef != null)
                 {
@@ -2182,11 +2182,11 @@ namespace Novacode
 
                 var firstHeaderRef =
                 (
-                    from e in sectPr.Elements(w + "headerReference")
+                    from e in mainDoc.Descendants(w + "headerReference")
                     let type = e.Attribute(w + "type")
                     where type != null && type.Value.Equals("first", StringComparison.CurrentCultureIgnoreCase)
                     select e.Attribute(r + "id").Value
-                 ).SingleOrDefault();
+                 ).LastOrDefault();
 
                 if (firstHeaderRef != null)
                 {
@@ -2210,11 +2210,11 @@ namespace Novacode
 
                 var oddFooterRef =
                 (
-                    from e in sectPr.Elements(w + "footerReference")
+                    from e in mainDoc.Descendants(w + "footerReference")
                     let type = e.Attribute(w + "type")
                     where type != null && type.Value.Equals("default", StringComparison.CurrentCultureIgnoreCase)
                     select e.Attribute(r + "id").Value
-                 ).SingleOrDefault();
+                 ).LastOrDefault();
 
                 if (oddFooterRef != null)
                 {
@@ -2238,11 +2238,11 @@ namespace Novacode
 
                 var evenFooterRef =
                 (
-                    from e in sectPr.Elements(w + "footerReference")
+                    from e in mainDoc.Descendants(w + "footerReference")
                     let type = e.Attribute(w + "type")
                     where type != null && type.Value.Equals("even", StringComparison.CurrentCultureIgnoreCase)
                     select e.Attribute(r + "id").Value
-                 ).SingleOrDefault();
+                 ).LastOrDefault();
 
                 if (evenFooterRef != null)
                 {
@@ -2266,11 +2266,11 @@ namespace Novacode
 
                 var firstFooterRef =
                 (
-                     from e in sectPr.Elements(w + "footerReference")
+                     from e in mainDoc.Descendants(w + "footerReference")
                      let type = e.Attribute(w + "type")
                      where type != null && type.Value.Equals("first", StringComparison.CurrentCultureIgnoreCase)
                      select e.Attribute(r + "id").Value
-                ).SingleOrDefault();
+                ).LastOrDefault();
 
                 if (firstFooterRef != null)
                 {

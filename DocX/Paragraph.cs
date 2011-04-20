@@ -1211,7 +1211,8 @@ namespace Novacode
 
             else
             {
-                if (Xml.Parent.Name.LocalName == "tc")
+                // If this is the only Paragraph in the Cell then we cannot remove it.
+                if (Xml.Parent.Name.LocalName == "tc" && Xml.Parent.Elements(XName.Get("p", DocX.w.NamespaceName)).Count() == 1)
                     Xml.Value = string.Empty;
 
                 else
@@ -3075,7 +3076,6 @@ namespace Novacode
                 // If the formatting matches, do the replace.
                 if(formattingMatch)
                 {
-                    var temp = Xml;
                     InsertText(m.Index + oldValue.Length, newValue, trackChanges, newFormatting);
                     RemoveText(m.Index, m.Length, trackChanges);
                 }

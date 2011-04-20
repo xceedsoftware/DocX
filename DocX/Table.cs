@@ -676,10 +676,13 @@ namespace Novacode
         /// </example>
         public void RemoveRow(int index)
         {
-            if (index < 0 || index > rows.Count)
+            if (index < 0 || index > Rows.Count)
                 throw new IndexOutOfRangeException();
 
-            rows[index].Xml.Remove();
+            Rows[index].Xml.Remove();
+
+            if (Rows.Count == 0)
+                Remove();
         }
 
         /// <summary>
@@ -1555,6 +1558,15 @@ namespace Novacode
 
                 return cells;
             } 
+        }
+
+        public void Remove()
+        {
+            XElement table = Xml.Parent;
+            
+            Xml.Remove();
+            if (table.Elements(XName.Get("tr", DocX.w.NamespaceName)).Count() == 0)
+                table.Remove();
         }
 
         public override List<Paragraph> Paragraphs
