@@ -1969,6 +1969,51 @@ namespace Novacode
             return this;
         }
 
+        /// <summary>
+        /// Add an equation to a document.
+        /// </summary>
+        /// <param name="equation">The Equation to append.</param>
+        /// <returns>The Paragraph with the Equation now appended.</returns>
+        /// <example>
+        /// Add an equation to a document.
+        /// <code>
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// {
+        ///    // Add an equation to the document. 
+        ///    document.AddEquation("x=y+z");
+        ///    
+        ///    // Save all changes made to this document.
+        ///    document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public Paragraph AppendEquation(String equation)
+        {
+            // Create equation element
+            XElement oMathPara =
+                new XElement
+                (
+                    XName.Get("oMathPara", DocX.m.NamespaceName),
+                    new XElement
+                    (
+                        XName.Get("oMath", DocX.m.NamespaceName),
+                        new XElement
+                        (
+                            XName.Get("r", DocX.w.NamespaceName),
+                            new Formatting() { FontFamily = new System.Drawing.FontFamily("Cambria Math") }.Xml,    // create formatting
+                            new XElement(XName.Get("t", DocX.m.NamespaceName), equation)                            // create equation string
+                        )
+                    )
+                );
+
+            // Add equation element into paragraph xml and update runs collection
+            Xml.Add(oMathPara);
+            runs = Xml.Elements(XName.Get("oMathPara", DocX.m.NamespaceName)).ToList();
+
+            // Return paragraph with equation
+            return this;
+        }
+
         internal string GetOrGenerateRel(Picture p)
         {
             string image_uri_string = p.img.pr.TargetUri.OriginalString;

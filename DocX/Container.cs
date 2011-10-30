@@ -413,6 +413,13 @@ namespace Novacode
             return Paragraphs.Last();
         }
 
+        public virtual Paragraph InsertEquation(string equation)
+        {
+            Paragraph p = InsertParagraph();
+            p.AppendEquation(equation);                        
+            return p;
+        }
+
         public Table InsertTable(int coloumnCount, int rowCount)
         {
             XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);

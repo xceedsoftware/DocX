@@ -24,6 +24,8 @@ namespace Examples
             HeadersAndFooters();
             HyperlinksImagesTables();
 
+            Equations();
+
             // Intermediate
             Console.WriteLine("\nRunning Intermediate Examples");
             CreateInvoice();
@@ -38,12 +40,34 @@ namespace Examples
         }
 
         /// <summary>
+        /// Create a document with two equations.
+        /// </summary>
+        private static void Equations()
+        {
+            Console.WriteLine("\nEquations()");
+
+            // Create a new document.
+            using (DocX document = DocX.Create(@"docs\Equations.docx"))
+            {
+                // Insert first Equation in this document.
+                Paragraph pEquation1 = document.InsertEquation("x = y+z");
+
+                // Insert second Equation in this document and add formatting.
+                Paragraph pEquation2 = document.InsertEquation("x = (y+z)/t").FontSize(18).Color(Color.Blue);                
+
+                // Save this document to disk.
+                document.Save();
+                Console.WriteLine("\tCreated: docs\\Equations.docx\n");
+            }
+        }
+
+        /// <summary>
         /// Create a document with a Paragraph whos first line is indented.
         /// </summary>
         private static void Indentation()
         {
             Console.WriteLine("\tIndentation()");
-            
+
             // Create a new document.
             using (DocX document = DocX.Create(@"docs\Indentation.docx"))
             {
@@ -270,7 +294,7 @@ namespace Examples
 
             // Add the Happy Builders logo to this document.
             Novacode.Image logo = template.AddImage(@"images\logo_the_happy_builder.png");
-            
+
             // Insert the Happy Builders logo into this Paragraph.
             logo_paragraph.InsertPicture(logo.CreatePicture());
             #endregion
@@ -295,7 +319,7 @@ namespace Examples
 
             // Set the value of the custom property 'hired_company_details_line_one' and 'hired_company_details_line_two'.
             template.AddCustomProperty(new CustomProperty("hired_company_details_line_one", "Business Street, Dublin, 12345"));
-            template.AddCustomProperty(new CustomProperty("hired_company_details_line_two", "Phone: 012-345-6789, Fax: 012-345-6789, e-mail: support@thehappybuilder.com"));    
+            template.AddCustomProperty(new CustomProperty("hired_company_details_line_two", "Phone: 012-345-6789, Fax: 012-345-6789, e-mail: support@thehappybuilder.com"));
             #endregion
 
             /* 
@@ -342,7 +366,7 @@ namespace Examples
             CustomProperty company_name = new CustomProperty("company_name", "Company Name");
 
             // Insert a field of type doc property (This will display the custom property 'company_name')
-            layout_table.Rows[0].Cells[0].Paragraphs[0].InsertDocProperty(company_name, f:dark_formatting);
+            layout_table.Rows[0].Cells[0].Paragraphs[0].InsertDocProperty(company_name, f: dark_formatting);
 
             // Force the next text insert to be on a new line.
             upper_left_paragraph.InsertText("\n", false);
@@ -353,7 +377,7 @@ namespace Examples
             CustomProperty company_slogan = new CustomProperty("company_slogan", "Company slogan goes here.");
 
             // Insert a field of type doc property (This will display the custom property 'company_slogan')
-            upper_left_paragraph.InsertDocProperty(company_slogan, f:light_formatting);
+            upper_left_paragraph.InsertDocProperty(company_slogan, f: light_formatting);
             #endregion
 
             #region Company Logo
@@ -362,10 +386,10 @@ namespace Examples
 
             // Add a template logo image to this document.
             Novacode.Image logo = document.AddImage(@"images\logo_template.png");
-            
+
             // Insert this template logo into the upper right Paragraph.
             upper_right_paragraph.InsertPicture(logo.CreatePicture());
-            
+
             upper_right_paragraph.Alignment = Alignment.right;
             #endregion
 
@@ -379,7 +403,7 @@ namespace Examples
             lower_left_paragraph.InsertText("TO:\n", false, dark_formatting);
 
             // Insert a field of type doc property (This will display the custom property 'hired_company_address_line_one')
-            lower_left_paragraph.InsertDocProperty(hired_company_address_line_one, f:light_formatting);
+            lower_left_paragraph.InsertDocProperty(hired_company_address_line_one, f: light_formatting);
 
             // Force the next text insert to be on a new line.
             lower_left_paragraph.InsertText("\n", false);
@@ -388,7 +412,7 @@ namespace Examples
             CustomProperty hired_company_address_line_two = new CustomProperty("hired_company_address_line_two", "City,");
 
             // Insert a field of type doc property (This will display the custom property 'hired_company_address_line_two')
-            lower_left_paragraph.InsertDocProperty(hired_company_address_line_two, f:light_formatting);
+            lower_left_paragraph.InsertDocProperty(hired_company_address_line_two, f: light_formatting);
 
             // Force the next text insert to be on a new line.
             lower_left_paragraph.InsertText("\n", false);
@@ -397,7 +421,7 @@ namespace Examples
             CustomProperty hired_company_address_line_three = new CustomProperty("hired_company_address_line_three", "Zip Code");
 
             // Insert a field of type doc property (This will display the custom property 'hired_company_address_line_three')
-            lower_left_paragraph.InsertDocProperty(hired_company_address_line_three, f:light_formatting);
+            lower_left_paragraph.InsertDocProperty(hired_company_address_line_three, f: light_formatting);
             #endregion
 
             #region Date & Invoice number
@@ -406,12 +430,12 @@ namespace Examples
 
             CustomProperty invoice_date = new CustomProperty("invoice_date", DateTime.Today.Date.ToString("d"));
             lower_right_paragraph.InsertText("Date: ", false, dark_formatting);
-            lower_right_paragraph.InsertDocProperty(invoice_date, f:light_formatting);
+            lower_right_paragraph.InsertDocProperty(invoice_date, f: light_formatting);
 
             CustomProperty invoice_number = new CustomProperty("invoice_number", 1);
             lower_right_paragraph.InsertText("\nInvoice: ", false, dark_formatting);
             lower_right_paragraph.InsertText("#", false, light_formatting);
-            lower_right_paragraph.InsertDocProperty(invoice_number, f:light_formatting);
+            lower_right_paragraph.InsertDocProperty(invoice_number, f: light_formatting);
 
             lower_right_paragraph.Alignment = Alignment.right;
             #endregion
@@ -433,10 +457,10 @@ namespace Examples
             CustomProperty hired_company_details_line_two = new CustomProperty("hired_company_details_line_two", "Phone: 000-000-0000, Fax: 000-000-0000, e-mail: support@companyname.com");
 
             Paragraph companyDetails = document.InsertParagraph(string.Empty, false);
-            companyDetails.InsertDocProperty(hired_company_details_line_one, f:light_formatting);
+            companyDetails.InsertDocProperty(hired_company_details_line_one, f: light_formatting);
             companyDetails.InsertText("\n", false);
-            companyDetails.InsertDocProperty(hired_company_details_line_two, f:light_formatting);
-            companyDetails.Alignment = Alignment.center;        
+            companyDetails.InsertDocProperty(hired_company_details_line_two, f: light_formatting);
+            companyDetails.Alignment = Alignment.center;
             #endregion
 
             // Return the document now that it has been created.
@@ -574,7 +598,7 @@ namespace Examples
 
             return table;
         }
-    
+
         /// <summary>
         /// Creates a simple document with the text Hello World.
         /// </summary>
@@ -648,7 +672,7 @@ namespace Examples
                 Console.WriteLine("\tCreated: docs\\Output.docx\n");
             }
         }
-        
+
         /// <summary>
         /// For each of the documents in the folder 'docs\',
         /// Replace the string a with the string b,

@@ -47,9 +47,9 @@ namespace Novacode
     /// This class provides functions for inserting new DocXElements before or after the current DocXElement.
     /// Only certain DocXElements can support these functions without creating invalid documents, at the moment these are Paragraphs and Table.
     /// </summary>
-    public abstract class InsertBeforeOrAfter:DocXElement
+    public abstract class InsertBeforeOrAfter : DocXElement
     {
-        public InsertBeforeOrAfter(DocX document, XElement xml):base(document, xml) { }
+        public InsertBeforeOrAfter(DocX document, XElement xml) : base(document, xml) { }
 
         public virtual void InsertPageBreakBeforeSelf()
         {

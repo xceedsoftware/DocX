@@ -115,6 +115,14 @@ namespace Novacode
             return p;
         }
 
+        public override Paragraph InsertEquation(String equation)
+        {
+            Paragraph p = base.InsertEquation(equation);
+            p.PackagePart = mainPart;
+            return p;
+        }
+
+
         public override List<Paragraph> Paragraphs
         {
             get
