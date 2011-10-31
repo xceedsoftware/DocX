@@ -635,7 +635,7 @@ namespace Examples
             const string str = "Hello World";
 
             // Open the document Input.docx.
-            using (DocX document = DocX.Load(@"docs\Input.docx"))
+            using (DocX document = DocX.Load(@"Input.docx"))
             {
                 // Make sure this document has at least one Image.
                 if (document.Images.Count() > 0)

@@ -736,7 +736,7 @@ namespace Novacode
             if (index < 0 || index > columnCount - 1)
                 throw new IndexOutOfRangeException();
 
-            foreach (Row r in rows)
+            foreach (Row r in Rows)
                 r.Cells[index].Xml.Remove();
         }
 
@@ -851,7 +851,7 @@ namespace Novacode
                 rows = (from r in Xml.Elements(XName.Get("tr", DocX.w.NamespaceName))
                         select new Row(this, Document, r)).ToList();
 
-                rowCount = rows.Count;
+                rowCount = Rows.Count;
 
                 if (rows.Count > 0)
                     if (rows[0].Cells.Count > 0)
