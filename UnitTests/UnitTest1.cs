@@ -1042,6 +1042,18 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void Test_Table_mainPart_bug9526()
+        {
+            using (DocX document = DocX.Create("test.docx"))
+            {
+                Hyperlink h = document.AddHyperlink("follow me", new Uri("http://www.google.com"));
+                Table t = document.AddTable(2, 2);
+                Paragraph p = t.Rows[0].Cells[0].Paragraphs[0];
+                p.AppendHyperlink(h);
+            }
+        }
+
+        [TestMethod]
         public void Test_Table_InsertRow()
         {
             using (DocX document = DocX.Create(directory_documents + "Tables2.docx"))

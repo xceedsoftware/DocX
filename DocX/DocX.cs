@@ -945,7 +945,9 @@ namespace Novacode
             if (rowCount < 1 || coloumnCount < 1)
                 throw new ArgumentOutOfRangeException("Row and Coloumn count must be greater than zero.");
 
-            return (new Table(this, HelperFunctions.CreateTable(rowCount, coloumnCount)));
+            Table t = new Table(this, HelperFunctions.CreateTable(rowCount, coloumnCount));
+            t.mainPart = mainPart;
+            return t;
         }
 
         /// <summary>
