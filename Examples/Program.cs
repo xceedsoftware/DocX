@@ -77,6 +77,7 @@ namespace Examples
                 // Indent only the first line of the Paragraph.
                 p.IndentationFirstLine = 1.0f;
 
+                
                 // Save all changes made to this document.
                 document.Save();
                 Console.WriteLine("\tCreated: docs\\Indentation.docx\n");

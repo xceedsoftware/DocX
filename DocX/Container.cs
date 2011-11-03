@@ -420,7 +420,7 @@ namespace Novacode
             return p;
         }
 
-        public Table InsertTable(int coloumnCount, int rowCount)
+        public Table InsertTable(int rowCount, int coloumnCount)
         {
             XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
             Xml.Elements().First().Add(newTable);
@@ -428,7 +428,7 @@ namespace Novacode
             return new Table(Document, newTable);
         }
 
-        public Table InsertTable(int index, int coloumnCount, int rowCount)
+        public Table InsertTable(int index, int rowCount, int coloumnCount)
         {
             XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
 

@@ -930,12 +930,12 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public new Table InsertTable(int coloumnCount, int rowCount)
+        public new Table InsertTable(int rowCount, int coloumnCount)
         {
             if (rowCount < 1 || coloumnCount < 1)
                 throw new ArgumentOutOfRangeException("Row and Coloumn count must be greater than zero.");
 
-            Table t = base.InsertTable(coloumnCount, rowCount);
+            Table t = base.InsertTable(rowCount, coloumnCount);
             t.mainPart = mainPart;
             return t;
         }
@@ -1042,8 +1042,8 @@ namespace Novacode
         /// // Create a document.
         /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
         /// {
-        ///     // Create a new Table with 2 coloumns and 3 rows. Insert this Table at index 37.
-        ///     Table newTable = document.InsertTable(37, 2, 3);
+        ///     // Create a new Table with 3 rows and 2 coloumns. Insert this Table at index 37.
+        ///     Table newTable = document.InsertTable(37, 3, 2);
         ///
         ///     // Set the design of this Table.
         ///     newTable.Design = TableDesign.LightShadingAccent3;
@@ -1065,12 +1065,12 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public new Table InsertTable(int index, int coloumnCount, int rowCount)
+        public new Table InsertTable(int index, int rowCount, int coloumnCount)
         {
             if (rowCount < 1 || coloumnCount < 1)
                 throw new ArgumentOutOfRangeException("Row and Column count must be greater than zero.");
 
-            Table t = InsertTable(index, coloumnCount, rowCount);
+            Table t = InsertTable(index, rowCount, coloumnCount);
             t.mainPart = mainPart;
             return t;
         }

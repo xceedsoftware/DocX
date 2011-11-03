@@ -1047,7 +1047,9 @@ namespace UnitTests
             using (DocX document = DocX.Create("test.docx"))
             {
                 Hyperlink h = document.AddHyperlink("follow me", new Uri("http://www.google.com"));
-                Table t = document.AddTable(2, 2);
+                Table t = document.AddTable(2, 3);
+                int cc = t.ColumnCount;
+
                 Paragraph p = t.Rows[0].Cells[0].Paragraphs[0];
                 p.AppendHyperlink(h);
             }
