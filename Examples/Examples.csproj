@@ -62,7 +62,6 @@
     <Content Include="bin\Debug\images\logo_the_happy_builder.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="bin\Debug\docs\Input.docx" />
     <None Include="Input.docx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -323,21 +323,30 @@ namespace Novacode
 
                 for (int j = 0; j < coloumnCount; j++)
                 {
-                    XElement cell =
-                    new XElement
-                    (
-                        XName.Get("tc", DocX.w.NamespaceName),
-                            new XElement(XName.Get("tcPr", DocX.w.NamespaceName),
-                                new XElement(XName.Get("tcW", DocX.w.NamespaceName), new XAttribute(XName.Get("w", DocX.w.NamespaceName), "2310"), new XAttribute(XName.Get("type", DocX.w.NamespaceName), "dxa"))),
-                            new XElement(XName.Get("p", DocX.w.NamespaceName), new XElement(XName.Get("pPr", DocX.w.NamespaceName)))
-                    );
-
+                    XElement cell = CreateTableCell();
                     row.Add(cell);
                 }
 
                 newTable.Add(row);
             }
             return newTable;
+        }
+
+        /// <summary>
+        /// Create and return a cell of a table        
+        /// </summary>        
+        internal static XElement CreateTableCell()
+        {
+            return new XElement
+                    (
+                        XName.Get("tc", DocX.w.NamespaceName),
+                            new XElement(XName.Get("tcPr", DocX.w.NamespaceName),
+                            new XElement(XName.Get("tcW", DocX.w.NamespaceName),
+                                    new XAttribute(XName.Get("w", DocX.w.NamespaceName), "2310"),
+                                    new XAttribute(XName.Get("type", DocX.w.NamespaceName), "dxa"))),
+                            new XElement(XName.Get("p", DocX.w.NamespaceName),
+                                new XElement(XName.Get("pPr", DocX.w.NamespaceName)))
+                    );
         }
 
         internal static void RenumberIDs(DocX document)

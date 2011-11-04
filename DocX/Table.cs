@@ -11,7 +11,7 @@ using System.Drawing;
 using System.Globalization;
 
 namespace Novacode
-{   
+{
     /// <summary>
     /// Represents a Table in a document.
     /// </summary>
@@ -19,8 +19,6 @@ namespace Novacode
     {
         private Alignment alignment;
         private AutoFit autofit;
-        private List<Row> rows;
-        private int rowCount, columnCount;
 
         /// <summary>
         /// Returns a list of all Paragraphs inside this container.
@@ -97,7 +95,7 @@ namespace Novacode
         {
             XElement tblPr = GetOrCreate_tblPr();
             tblPr.Add(new XElement(DocX.w + "bidiVisual"));
-            
+
             foreach (Row r in Rows)
                 r.SetDirection(direction);
         }
@@ -158,41 +156,52 @@ namespace Novacode
         /// <summary>
         /// Returns the number of rows in this table.
         /// </summary>
-        public int RowCount { get { return rowCount; } }
+        public Int32 RowCount
+        {
+            get
+            {
+                return Xml.Elements(XName.Get("tr", DocX.w.NamespaceName)).Count();
+            }
+        }
 
         /// <summary>
         /// Returns the number of coloumns in this table.
         /// </summary>
-        public int ColumnCount { get { return columnCount; } }
+        public Int32 ColumnCount
+        {
+            get
+            {
+                if (RowCount == 0)
+                    return 0;
+                return Xml.Elements(XName.Get("tr", DocX.w.NamespaceName))      // select rows
+                    .First()                                                    // get first row
+                    .Elements(XName.Get("tc", DocX.w.NamespaceName)).Count();   // return column count from first row
+            }
+        }
 
         /// <summary>
         /// Returns a list of rows in this table.
         /// </summary>
-        public List<Row> Rows 
-        { 
-            get 
+        public List<Row> Rows
+        {
+            get
             {
-                List<Row> rows = 
+                List<Row> rows =
                 (
                     from r in Xml.Elements(XName.Get("tr", DocX.w.NamespaceName))
                     select new Row(this, Document, r)
                 ).ToList();
 
-                rowCount = rows.Count;
-
-                if (rows.Count > 0)
-                    if (rows[0].Cells.Count > 0)
-                        columnCount = rows[0].Cells.Count;
-
                 return rows;
-            } 
+            }
         }
 
         private TableDesign design;
 
         internal PackagePart mainPart;
 
-        internal Table(DocX document, XElement xml):base(document, xml)
+        internal Table(DocX document, XElement xml)
+            : base(document, xml)
         {
             autofit = AutoFit.ColoumnWidth;
             this.Xml = xml;
@@ -233,35 +242,35 @@ namespace Novacode
                 switch (value)
                 {
                     case Alignment.left:
-                    {
-                        alignmentString = "left";
-                        break;
-                    }
+                        {
+                            alignmentString = "left";
+                            break;
+                        }
 
                     case Alignment.both:
-                    {
-                        alignmentString = "both";
-                        break;
-                    }
+                        {
+                            alignmentString = "both";
+                            break;
+                        }
 
 
                     case Alignment.right:
-                    {
-                        alignmentString = "right";
-                        break;
-                    }
+                        {
+                            alignmentString = "right";
+                            break;
+                        }
 
                     case Alignment.center:
-                    {
-                        alignmentString = "center";
-                        break;
-                    }
+                        {
+                            alignmentString = "center";
+                            break;
+                        }
                 }
 
                 XElement tblPr = Xml.Descendants(XName.Get("tblPr", DocX.w.NamespaceName)).First();
                 XElement jc = tblPr.Descendants(XName.Get("jc", DocX.w.NamespaceName)).FirstOrDefault();
 
-                if(jc != null)
+                if (jc != null)
                     jc.Remove();
 
                 jc = new XElement(XName.Get("jc", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), alignmentString));
@@ -275,30 +284,30 @@ namespace Novacode
         /// </summary>
         public AutoFit AutoFit
         {
-            get{return autofit;}
-            
+            get { return autofit; }
+
             set
             {
                 string attributeValue = string.Empty;
-                switch(value)
+                switch (value)
                 {
                     case AutoFit.ColoumnWidth:
-                    {
-                        attributeValue = "dxa";
-                        break;
-                    }
+                        {
+                            attributeValue = "dxa";
+                            break;
+                        }
 
                     case AutoFit.Contents:
-                    {
-                        attributeValue = "auto";
-                        break;
-                    }
+                        {
+                            attributeValue = "auto";
+                            break;
+                        }
 
                     case AutoFit.Window:
-                    {
-                        attributeValue = "pct";
-                        break;
-                    }
+                        {
+                            attributeValue = "pct";
+                            break;
+                        }
                 }
 
                 var query = from d in Xml.Descendants()
@@ -315,7 +324,7 @@ namespace Novacode
         /// <summary>
         /// The design\style to apply to this table.
         /// </summary>
-        public TableDesign Design 
+        public TableDesign Design
         {
             get { return design; }
             set
@@ -329,7 +338,7 @@ namespace Novacode
                 }
 
                 XAttribute val = style.Attribute(XName.Get("val", DocX.w.NamespaceName));
-                if(val == null)
+                if (val == null)
                 {
                     style.Add(new XAttribute(XName.Get("val", DocX.w.NamespaceName), ""));
                     val = style.Attribute(XName.Get("val", DocX.w.NamespaceName));
@@ -487,38 +496,6 @@ namespace Novacode
         }
 
         /// <summary>
-        /// Insert a row at the end of this table.
-        /// </summary>
-        /// <example>
-        /// <code>
-        /// // Load a document.
-        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-        /// {
-        ///     // Get the first table in this document.
-        ///     Table table = document.Tables[0];
-        ///        
-        ///     // Insert a new row at the end of this table.
-        ///     Row row = table.InsertRow();
-        ///
-        ///     // Loop through each cell in this new row.
-        ///     foreach (Cell c in row.Cells)
-        ///     {
-        ///         // Set the text of each new cell to "Hello".
-        ///         c.Paragraphs[0].InsertText("Hello", false);
-        ///     }
-        ///
-        ///     // Save the document to a new file.
-        ///     document.SaveAs(@"C:\Example\Test2.docx");
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// <returns>A new row.</returns>
-        public Row InsertRow()
-        {
-            return InsertRow(Rows.Count);
-        }
-
-        /// <summary>
         /// Returns the index of this Table.
         /// </summary>
         /// <example>
@@ -587,6 +564,38 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Insert a row at the end of this table.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
+        /// {
+        ///     // Get the first table in this document.
+        ///     Table table = document.Tables[0];
+        ///        
+        ///     // Insert a new row at the end of this table.
+        ///     Row row = table.InsertRow();
+        ///
+        ///     // Loop through each cell in this new row.
+        ///     foreach (Cell c in row.Cells)
+        ///     {
+        ///         // Set the text of each new cell to "Hello".
+        ///         c.Paragraphs[0].InsertText("Hello", false);
+        ///     }
+        ///
+        ///     // Save the document to a new file.
+        ///     document.SaveAs(@"C:\Example\Test2.docx");
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        /// <returns>A new row.</returns>
+        public Row InsertRow()
+        {
+            return InsertRow(RowCount);
+        }
+
+        /// <summary>
         /// Insert a column to the right of a Table.
         /// </summary>
         /// <example>
@@ -625,7 +634,7 @@ namespace Novacode
         /// </example>
         public void InsertColumn()
         {
-            InsertColumn(columnCount);
+            InsertColumn(ColumnCount);
         }
 
         /// <summary>
@@ -650,7 +659,7 @@ namespace Novacode
         /// </example>
         public void RemoveRow()
         {
-            RemoveRow(rowCount - 1);
+            RemoveRow(RowCount - 1);
         }
 
         /// <summary>
@@ -676,11 +685,10 @@ namespace Novacode
         /// </example>
         public void RemoveRow(int index)
         {
-            if (index < 0 || index > Rows.Count)
+            if (index < 0 || index > RowCount - 1)
                 throw new IndexOutOfRangeException();
 
             Rows[index].Xml.Remove();
-
             if (Rows.Count == 0)
                 Remove();
         }
@@ -707,7 +715,7 @@ namespace Novacode
         /// </example>
         public void RemoveColumn()
         {
-            RemoveColumn(columnCount - 1);
+            RemoveColumn(ColumnCount - 1);
         }
 
         /// <summary>
@@ -733,7 +741,7 @@ namespace Novacode
         /// </example>
         public void RemoveColumn(int index)
         {
-            if (index < 0 || index > columnCount - 1)
+            if (index < 0 || index > ColumnCount - 1)
                 throw new IndexOutOfRangeException();
 
             foreach (Row r in Rows)
@@ -770,12 +778,15 @@ namespace Novacode
         /// <returns>A new Row</returns>
         public Row InsertRow(int index)
         {
-            if (index < 0 || index > Rows.Count)
+            if (index < 0 || index > RowCount)
                 throw new IndexOutOfRangeException();
 
             List<XElement> content = new List<XElement>();
-            for (int i = 0; i < columnCount; i++ )
-                content.Add(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
+            for (int i = 0; i < ColumnCount; i++)
+            {
+                XElement cell = HelperFunctions.CreateTableCell();
+                content.Add(cell);
+            }
 
             XElement e = new XElement(XName.Get("tr", DocX.w.NamespaceName), content);
             Row newRow = new Row(this, Document, e);
@@ -786,14 +797,13 @@ namespace Novacode
                 rowXml = Rows.Last().Xml;
                 rowXml.AddAfterSelf(newRow.Xml);
             }
-            
+
             else
             {
                 rowXml = Rows[index].Xml;
                 rowXml.AddBeforeSelf(newRow.Xml);
             }
 
-            rowCount = Rows.Count;
             return newRow;
         }
 
@@ -838,24 +848,19 @@ namespace Novacode
         /// </example>
         public void InsertColumn(int index)
         {
-            if (Rows.Count > 0)
+            if (RowCount > 0)
             {
                 foreach (Row r in Rows)
                 {
-                    if(columnCount == index)
-                        r.Cells[index - 1].Xml.AddAfterSelf(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
+                    // create cell
+                    XElement cell = HelperFunctions.CreateTableCell();
+
+                    // insert cell 
+                    if (r.Cells.Count == index)
+                        r.Cells[index - 1].Xml.AddAfterSelf(cell);
                     else
-                        r.Cells[index].Xml.AddBeforeSelf(new XElement(XName.Get("tc", DocX.w.NamespaceName), new XElement(XName.Get("p", DocX.w.NamespaceName))));
+                        r.Cells[index].Xml.AddBeforeSelf(cell);
                 }
-
-                rows = (from r in Xml.Elements(XName.Get("tr", DocX.w.NamespaceName))
-                        select new Row(this, Document, r)).ToList();
-
-                rowCount = Rows.Count;
-
-                if (rows.Count > 0)
-                    if (rows[0].Cells.Count > 0)
-                        columnCount = rows[0].Cells.Count;
             }
         }
 
@@ -1302,7 +1307,7 @@ namespace Novacode
         /// </summary>
         /// <example>
         /// <code>
-        ///// Create a new document.
+        /// // Create a new document.
         ///using (DocX document = DocX.Create("Test.docx"))
         ///{
         ///    // Insert a table into this document.
@@ -1546,24 +1551,24 @@ namespace Novacode
         /// <summary>
         /// A list of Cells in this Row.
         /// </summary>
-        public List<Cell> Cells 
-        { 
-            get 
+        public List<Cell> Cells
+        {
+            get
             {
-                List<Cell> cells = 
+                List<Cell> cells =
                 (
                     from c in Xml.Elements(XName.Get("tc", DocX.w.NamespaceName))
                     select new Cell(this, Document, c)
                 ).ToList();
 
                 return cells;
-            } 
+            }
         }
 
         public void Remove()
         {
             XElement table = Xml.Parent;
-            
+
             Xml.Remove();
             if (table.Elements(XName.Get("tr", DocX.w.NamespaceName)).Count() == 0)
                 table.Remove();
@@ -1588,7 +1593,8 @@ namespace Novacode
 
         internal Table table;
         internal PackagePart mainPart;
-        internal Row(Table table, DocX document, XElement xml):base(document, xml)
+        internal Row(Table table, DocX document, XElement xml)
+            : base(document, xml)
         {
             this.table = table;
             this.mainPart = table.mainPart;
@@ -1608,7 +1614,7 @@ namespace Novacode
                 XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
 
                 // If trPr is null, this row contains no height information.
-                if(trPr == null)
+                if (trPr == null)
                     return double.NaN;
 
                 /*
@@ -1616,7 +1622,7 @@ namespace Novacode
                  * null will be return if no such element exists.
                  */
                 XElement trHeight = trPr.Element(XName.Get("trHeight", DocX.w.NamespaceName));
-               
+
                 // If trHeight is null, this row contains no height information.
                 if (trHeight == null)
                     return double.NaN;
@@ -1683,7 +1689,7 @@ namespace Novacode
 
             // The sum of all merged gridSpans.
             int gridSpanSum = 0;
-            
+
             // Foreach each Cell between startIndex and endIndex inclusive.
             foreach (Cell c in Cells.Where((z, i) => i > startIndex && i <= endIndex))
             {
@@ -1704,7 +1710,7 @@ namespace Novacode
 
                 // Add this cells Pragraph to the merge start Cell.
                 Cells[startIndex].Xml.Add(c.Xml.Elements(XName.Get("p", DocX.w.NamespaceName)));
-                
+
                 // Remove this Cell.
                 c.Xml.Remove();
             }
@@ -1747,11 +1753,12 @@ namespace Novacode
         }
     }
 
-    public class Cell:Container
+    public class Cell : Container
     {
         internal Row row;
         internal PackagePart mainPart;
-        internal Cell(Row row, DocX document, XElement xml):base(document, xml)
+        internal Cell(Row row, DocX document, XElement xml)
+            : base(document, xml)
         {
             this.row = row;
             this.mainPart = row.mainPart;
@@ -1906,7 +1913,7 @@ namespace Novacode
                 // If shd is null, this cell contains no Color information.
                 if (shd == null)
                     return Color.White;
-             
+
                 // Get the w attribute of the tcW element.
                 XAttribute fill = shd.Attribute(XName.Get("fill", DocX.w.NamespaceName));
 
@@ -1914,7 +1921,7 @@ namespace Novacode
                 if (fill == null)
                     return Color.White;
 
-               return ColorTranslator.FromHtml(string.Format("#{0}", fill.Value));
+                return ColorTranslator.FromHtml(string.Format("#{0}", fill.Value));
             }
 
             set
@@ -1978,7 +1985,7 @@ namespace Novacode
                 // If tcW is null, this cell contains no width information.
                 if (tcW == null)
                     return double.NaN;
-             
+
                 // Get the w attribute of the tcW element.
                 XAttribute w = tcW.Attribute(XName.Get("w", DocX.w.NamespaceName));
 
@@ -2140,7 +2147,7 @@ namespace Novacode
                     tcMar.SetElementValue(XName.Get("left", DocX.w.NamespaceName), string.Empty);
                     tcMarLeft = tcMar.Element(XName.Get("left", DocX.w.NamespaceName));
                 }
-                
+
                 // The type attribute needs to be set to dxa which represents "twips" or twentieths of a point. In other words, 1/1440th of an inch.
                 tcMarLeft.SetAttributeValue(XName.Get("type", DocX.w.NamespaceName), "dxa");
 
@@ -2600,7 +2607,7 @@ namespace Novacode
             switch (border.Size)
             {
                 case BorderSize.one: size = 2; break;
-                case BorderSize.two: size = 4;  break;
+                case BorderSize.two: size = 4; break;
                 case BorderSize.three: size = 6; break;
                 case BorderSize.four: size = 8; break;
                 case BorderSize.five: size = 12; break;
@@ -2799,8 +2806,8 @@ namespace Novacode
         /// }
         /// </code>
         /// </example>
-        public Color FillColor 
-        { 
+        public Color FillColor
+        {
             get
             {
                 /*

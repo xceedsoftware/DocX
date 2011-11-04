@@ -45,7 +45,7 @@ namespace UnitTests
                 {"COURT NAME","Fred Frump"}, 
                 {"Case Number","cr-md-2011-1234567"}
             };
-        
+
             using (DocX replaceDoc = DocX.Load(directory_documents + "ReplaceTests.docx"))
             {
                 foreach (var t in replaceDoc.Tables)
@@ -55,14 +55,14 @@ namespace UnitTests
                     Assert.IsTrue(t.Rows.Count == 1);
                     Assert.IsTrue(t.RowCount == 1);
                 }
-                
+
                 // Make sure the origional strings are in the document.
                 Assert.IsTrue(replaceDoc.FindAll("<COURT NAME>").Count == 2);
                 Assert.IsTrue(replaceDoc.FindAll("<Case Number>").Count == 2);
 
                 // There are only two patterns, even though each pattern is used more than once
                 Assert.IsTrue(replaceDoc.FindUniqueByPattern(@"<[\w \=]{4,}>", RegexOptions.IgnoreCase).Count == 2);
-                
+
                 // Make sure the new strings are not in the document.
                 Assert.IsTrue(replaceDoc.FindAll("Fred Frump").Count == 0);
                 Assert.IsTrue(replaceDoc.FindAll("cr-md-2011-1234567").Count == 0);
@@ -82,7 +82,7 @@ namespace UnitTests
                 // Make sure the replacement worked.
                 Assert.IsTrue(replaceDoc.Text == "\t\t\t\t\t\t\t\t\t\t\t\t\t\tThese two tables should look identical:\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tSTATE OF IOWA,\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tPlaintiff,\t\t\t\t\t\t\t\t\t\t\t\t\t\tvs.\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tFRED FRUMP,\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tDefendant.\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tCase No.: cr-md-2011-1234567\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tORDER SETTING ASIDE DEFAULT JUDGMENT\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tSTATE OF IOWA,\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tPlaintiff,\t\t\t\t\t\t\t\t\t\t\t\t\t\tvs.\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tFRED FRUMP,\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tDefendant.\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tCase No.: cr-md-2011-1234567\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tORDER SETTING ASIDE DEFAULT JUDGMENT\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t");
             }
-            
+
         }
 
         [TestMethod]
@@ -413,7 +413,7 @@ namespace UnitTests
             {
                 // Extract Images from Document.
                 List<Novacode.Image> document_images = document.Images;
-                
+
                 // Make sure there are 3 Images in this document.
                 Assert.IsTrue(document_images.Count() == 3);
 
@@ -703,21 +703,21 @@ namespace UnitTests
 
                 // Simple
                 Paragraph p1 = document.InsertParagraph("AC");
-                p1.InsertHyperlink(h);                       Assert.IsTrue(p1.Text == "linkAC");
-                p1.InsertHyperlink(h, p1.Text.Length);       Assert.IsTrue(p1.Text == "linkAClink");
+                p1.InsertHyperlink(h); Assert.IsTrue(p1.Text == "linkAC");
+                p1.InsertHyperlink(h, p1.Text.Length); Assert.IsTrue(p1.Text == "linkAClink");
                 p1.InsertHyperlink(h, p1.Text.IndexOf("C")); Assert.IsTrue(p1.Text == "linkAlinkClink");
 
                 // Difficult
                 Paragraph p2 = document.InsertParagraph("\tA\tC\t");
-                p2.InsertHyperlink(h);                       Assert.IsTrue(p2.Text == "link\tA\tC\t");
-                p2.InsertHyperlink(h, p2.Text.Length);       Assert.IsTrue(p2.Text == "link\tA\tC\tlink");
+                p2.InsertHyperlink(h); Assert.IsTrue(p2.Text == "link\tA\tC\t");
+                p2.InsertHyperlink(h, p2.Text.Length); Assert.IsTrue(p2.Text == "link\tA\tC\tlink");
                 p2.InsertHyperlink(h, p2.Text.IndexOf("C")); Assert.IsTrue(p2.Text == "link\tA\tlinkC\tlink");
 
                 // Contrived
                 // Add a contrived Hyperlink to this document.
                 Hyperlink h2 = document.AddHyperlink("\tlink\t", new Uri("http://www.google.com"));
                 Paragraph p3 = document.InsertParagraph("\tA\tC\t");
-                p3.InsertHyperlink(h2);                    Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t");
+                p3.InsertHyperlink(h2); Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t");
                 p3.InsertHyperlink(h2, p3.Text.Length); Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t\tlink\t");
                 p3.InsertHyperlink(h2, p3.Text.IndexOf("C")); Assert.IsTrue(p3.Text == "\tlink\t\tA\t\tlink\tC\t\tlink\t");
             }
@@ -725,7 +725,7 @@ namespace UnitTests
 
         [TestMethod]
         public void Test_Paragraph_RemoveHyperlink()
-        { 
+        {
             // Create a new document
             using (DocX document = DocX.Create("Test.docx"))
             {
@@ -750,12 +750,12 @@ namespace UnitTests
 
                 // Try and remove a Hyperlink at an index greater than the last.
                 // This should throw an exception.
-                try 
+                try
                 {
                     p1.RemoveHyperlink(3);
                     Assert.Fail();
                 }
-                catch (ArgumentException) {}
+                catch (ArgumentException) { }
                 catch (Exception) { Assert.Fail(); }
 
                 p1.RemoveHyperlink(0); Assert.IsTrue(p1.Text == "AlinkClink");
@@ -1056,63 +1056,91 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public void Test_Table_InsertRow()
+        public void Test_Table_InsertRowAndColumn()
         {
+            // Create a table
             using (DocX document = DocX.Create(directory_documents + "Tables2.docx"))
             {
                 // Add a Table to a document.
                 Table t = document.AddTable(2, 2);
                 t.Design = TableDesign.TableGrid;
 
+                t.Rows[0].Cells[0].Paragraphs[0].InsertText("X");
+                t.Rows[0].Cells[1].Paragraphs[0].InsertText("X");
+                t.Rows[1].Cells[0].Paragraphs[0].InsertText("X");
+                t.Rows[1].Cells[1].Paragraphs[0].InsertText("X");
+
                 // Insert the Table into the main section of the document.
                 Table t1 = document.InsertTable(t);
-                t1.InsertRow();
-                t1.InsertColumn();
+                // ... and add a column and a row
+                t1.InsertRow(1);
+                t1.InsertColumn(1);
 
                 // Save the document.
                 document.Save();
             }
+
+            // Check table
+            using (DocX document = DocX.Load(directory_documents + "Tables2.docx"))
+            {
+                // Get a table from a document
+                Table t = document.Tables[0];
+
+                // Check that the table is equal this: 
+                // X - X
+                // - - -
+                // X - X
+                Assert.AreEqual("X", t.Rows[0].Cells[0].Paragraphs[0].Text);
+                Assert.AreEqual("X", t.Rows[2].Cells[0].Paragraphs[0].Text);
+                Assert.AreEqual("X", t.Rows[0].Cells[2].Paragraphs[0].Text);
+                Assert.AreEqual("X", t.Rows[2].Cells[2].Paragraphs[0].Text);
+                Assert.IsTrue(String.IsNullOrEmpty(t.Rows[1].Cells[0].Paragraphs[0].Text));
+                Assert.IsTrue(String.IsNullOrEmpty(t.Rows[1].Cells[1].Paragraphs[0].Text));
+                Assert.IsTrue(String.IsNullOrEmpty(t.Rows[1].Cells[2].Paragraphs[0].Text));
+                Assert.IsTrue(String.IsNullOrEmpty(t.Rows[0].Cells[1].Paragraphs[0].Text));
+                Assert.IsTrue(String.IsNullOrEmpty(t.Rows[2].Cells[1].Paragraphs[0].Text));
+            }
         }
 
-      [TestMethod]
-      public void Test_Document_ApplyTemplate()
-      {
-        using (MemoryStream documentStream = new MemoryStream())
+        [TestMethod]
+        public void Test_Document_ApplyTemplate()
         {
-          using (DocX document = DocX.Create(documentStream))
-          {
-            document.ApplyTemplate(directory_documents + "Template.dotx");
-            document.Save();
-            Header firstHeader = document.Headers.first;
-            Header oddHeader = document.Headers.odd;
-            Header evenHeader = document.Headers.even;
+            using (MemoryStream documentStream = new MemoryStream())
+            {
+                using (DocX document = DocX.Create(documentStream))
+                {
+                    document.ApplyTemplate(directory_documents + "Template.dotx");
+                    document.Save();
+                    Header firstHeader = document.Headers.first;
+                    Header oddHeader = document.Headers.odd;
+                    Header evenHeader = document.Headers.even;
 
-            Footer firstFooter = document.Footers.first;
-            Footer oddFooter = document.Footers.odd;
-            Footer evenFooter = document.Footers.even;
+                    Footer firstFooter = document.Footers.first;
+                    Footer oddFooter = document.Footers.odd;
+                    Footer evenFooter = document.Footers.even;
 
-            Assert.IsTrue(firstHeader.Paragraphs.Count==1, "More than one paragraph in header.");
-            Assert.IsTrue(firstHeader.Paragraphs[0].Text.Equals("First page header"), "Header isn't retrieved from template.");
+                    Assert.IsTrue(firstHeader.Paragraphs.Count == 1, "More than one paragraph in header.");
+                    Assert.IsTrue(firstHeader.Paragraphs[0].Text.Equals("First page header"), "Header isn't retrieved from template.");
 
-            Assert.IsTrue(oddHeader.Paragraphs.Count == 1, "More than one paragraph in header.");
-            Assert.IsTrue(oddHeader.Paragraphs[0].Text.Equals("Odd page header"), "Header isn't retrieved from template.");
+                    Assert.IsTrue(oddHeader.Paragraphs.Count == 1, "More than one paragraph in header.");
+                    Assert.IsTrue(oddHeader.Paragraphs[0].Text.Equals("Odd page header"), "Header isn't retrieved from template.");
 
-            Assert.IsTrue(evenHeader.Paragraphs.Count == 1, "More than one paragraph in header.");
-            Assert.IsTrue(evenHeader.Paragraphs[0].Text.Equals("Even page header"), "Header isn't retrieved from template.");
+                    Assert.IsTrue(evenHeader.Paragraphs.Count == 1, "More than one paragraph in header.");
+                    Assert.IsTrue(evenHeader.Paragraphs[0].Text.Equals("Even page header"), "Header isn't retrieved from template.");
 
-            Assert.IsTrue(firstFooter.Paragraphs.Count == 1, "More than one paragraph in footer.");
-            Assert.IsTrue(firstFooter.Paragraphs[0].Text.Equals("First page footer"), "Footer isn't retrieved from template.");
+                    Assert.IsTrue(firstFooter.Paragraphs.Count == 1, "More than one paragraph in footer.");
+                    Assert.IsTrue(firstFooter.Paragraphs[0].Text.Equals("First page footer"), "Footer isn't retrieved from template.");
 
-            Assert.IsTrue(oddFooter.Paragraphs.Count == 1, "More than one paragraph in footer.");
-            Assert.IsTrue(oddFooter.Paragraphs[0].Text.Equals("Odd page footer"), "Footer isn't retrieved from template.");
+                    Assert.IsTrue(oddFooter.Paragraphs.Count == 1, "More than one paragraph in footer.");
+                    Assert.IsTrue(oddFooter.Paragraphs[0].Text.Equals("Odd page footer"), "Footer isn't retrieved from template.");
 
-            Assert.IsTrue(evenFooter.Paragraphs.Count == 1, "More than one paragraph in footer.");
-            Assert.IsTrue(evenFooter.Paragraphs[0].Text.Equals("Even page footer"), "Footer isn't retrieved from template.");
+                    Assert.IsTrue(evenFooter.Paragraphs.Count == 1, "More than one paragraph in footer.");
+                    Assert.IsTrue(evenFooter.Paragraphs[0].Text.Equals("Even page footer"), "Footer isn't retrieved from template.");
 
-            Paragraph firstParagraph = document.Paragraphs[0];
-            Assert.IsTrue(firstParagraph.StyleName.Equals("DocXSample"), "First paragraph isn't of style from template.");
-          }
+                    Paragraph firstParagraph = document.Paragraphs[0];
+                    Assert.IsTrue(firstParagraph.StyleName.Equals("DocXSample"), "First paragraph isn't of style from template.");
+                }
+            }
         }
-      }
     }
 }
