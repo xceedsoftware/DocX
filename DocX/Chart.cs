@@ -5,6 +5,8 @@ using System.Text;
 using System.Xml.Linq;
 using System.IO;
 using System.IO.Packaging;
+using System.Collections;
+using System.Drawing;
 
 namespace Novacode
 {
@@ -13,33 +15,21 @@ namespace Novacode
     /// </summary>
     public class Chart
     {
-        private XElement LegendXml;
         private XElement ChartXml;
         private XElement ChartRootXml;
 
         public XDocument Xml { get; private set; }
 
-        public List<XElement> Series
+        public List<Series> Series
         {
             get
             {
-                List<XElement> series = new List<XElement>();
-                GetSeriesRecursive(Xml.Root, series);
+                List<Series> series = new List<Series>();
+                foreach (XElement element in ChartXml.Elements(XName.Get("ser", DocX.c.NamespaceName)))
+                {
+                    series.Add(new Series(element));
+                }
                 return series;
-            }
-        }
-
-        private void GetSeriesRecursive(XElement element, List<XElement> series)
-        {
-            if (element.Name.LocalName == "ser")
-            {
-                series.Add(element);
-            }
-            else
-            {
-                if (element.HasElements)
-                    foreach (XElement e in element.Elements())
-                        GetSeriesRecursive(e, series);
             }
         }
 
@@ -51,252 +41,90 @@ namespace Novacode
         /// </summary>        
         public Chart()
         {
-            #region Create Bar Chart
+            Xml = XDocument.Parse
+                (@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+                   <c:chartSpace xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"" xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"">  
+                       <c:roundedCorners val=""0""/>
+                       <c:chart>
+                           <c:autoTitleDeleted val=""0""/>
+                           <c:plotVisOnly val=""1""/>
+                           <c:dispBlanksAs val=""gap""/>
+                           <c:showDLblsOverMax val=""0""/>
+                       </c:chart>
+                   </c:chartSpace>");
+
+            ChartRootXml = Xml.Root.Element(XName.Get("chart", DocX.c.NamespaceName));
+            ChartRootXml.Add(CreatePlotArea());
+        }
+
+        private XElement CreatePlotArea()
+        {
+            XElement dLbls = XElement.Parse(
+                @"<c:dLbls xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
+                      <c:showLegendKey val=""0""/>
+                      <c:showVal val=""0""/>
+                      <c:showCatName val=""0""/>
+                      <c:showSerName val=""0""/>
+                      <c:showPercent val=""0""/>
+                      <c:showBubbleSize val=""0""/>
+                    </c:dLbls>");
+
             ChartXml = XElement.Parse(
-   @"<c:barChart xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
-        <c:barDir val=""col""/>
-        <c:grouping val=""clustered""/>
-        <c:ser>
-          <c:idx val=""0""/>
-          <c:order val=""0""/>
-          <c:tx>
-            <c:strRef>
-              <c:f>Лист1!$B$1</c:f>
-              <c:strCache>
-                <c:ptCount val=""1""/>
-                <c:pt idx=""0"">
-                  <c:v>Ряд 1</c:v>
-                </c:pt>
-              </c:strCache>
-            </c:strRef>
-          </c:tx>
-          <c:invertIfNegative val=""0""/>
-          <c:cat>
-            <c:strRef>
-              <c:f>Лист1!$A$2:$A$5</c:f>
-              <c:strCache>
-                <c:ptCount val=""4""/>
-                <c:pt idx=""0"">
-                  <c:v>Категория 1</c:v>
-                </c:pt>
-                <c:pt idx=""1"">
-                  <c:v>Категория 2</c:v>
-                </c:pt>
-                <c:pt idx=""2"">
-                  <c:v>Категория 3</c:v>
-                </c:pt>
-                <c:pt idx=""3"">
-                  <c:v>Категория 4</c:v>
-                </c:pt>
-              </c:strCache>
-            </c:strRef>
-          </c:cat>
-          <c:val>
-            <c:numRef>
-              <c:f>Лист1!$B$2:$B$5</c:f>
-              <c:numCache>
-                <c:formatCode>Основной</c:formatCode>
-                <c:ptCount val=""4""/>
-                <c:pt idx=""0"">
-                  <c:v>4.3</c:v>
-                </c:pt>
-                <c:pt idx=""1"">
-                  <c:v>2.5</c:v>
-                </c:pt>
-                <c:pt idx=""2"">
-                  <c:v>3.5</c:v>
-                </c:pt>
-                <c:pt idx=""3"">
-                  <c:v>4.5</c:v>
-                </c:pt>
-              </c:numCache>
-            </c:numRef>
-          </c:val>
-        </c:ser>
-        <c:ser>
-          <c:idx val=""1""/>
-          <c:order val=""1""/>
-          <c:tx>
-            <c:strRef>
-              <c:f>Лист1!$C$1</c:f>
-              <c:strCache>
-                <c:ptCount val=""1""/>
-                <c:pt idx=""0"">
-                  <c:v>Ряд 2</c:v>
-                </c:pt>
-              </c:strCache>
-            </c:strRef>
-          </c:tx>
-          <c:invertIfNegative val=""0""/>
-          <c:cat>
-            <c:strRef>
-              <c:f>Лист1!$A$2:$A$5</c:f>
-              <c:strCache>
-                <c:ptCount val=""4""/>
-                <c:pt idx=""0"">
-                  <c:v>Категория 1</c:v>
-                </c:pt>
-                <c:pt idx=""1"">
-                  <c:v>Категория 2</c:v>
-                </c:pt>
-                <c:pt idx=""2"">
-                  <c:v>Категория 3</c:v>
-                </c:pt>
-                <c:pt idx=""3"">
-                  <c:v>Категория 4</c:v>
-                </c:pt>
-              </c:strCache>
-            </c:strRef>
-          </c:cat>
-          <c:val>
-            <c:numRef>
-              <c:f>Лист1!$C$2:$C$5</c:f>
-              <c:numCache>
-                <c:formatCode>Основной</c:formatCode>
-                <c:ptCount val=""4""/>
-                <c:pt idx=""0"">
-                  <c:v>2.4</c:v>
-                </c:pt>
-                <c:pt idx=""1"">
-                  <c:v>4.4000000000000004</c:v>
-                </c:pt>
-                <c:pt idx=""2"">
-                  <c:v>1.8</c:v>
-                </c:pt>
-                <c:pt idx=""3"">
-                  <c:v>2.8</c:v>
-                </c:pt>
-              </c:numCache>
-            </c:numRef>
-          </c:val>
-        </c:ser>
-        <c:ser>
-          <c:idx val=""2""/>
-          <c:order val=""2""/>
-          <c:tx>
-            <c:strRef>
-              <c:f>Лист1!$D$1</c:f>
-              <c:strCache>
-                <c:ptCount val=""1""/>
-                <c:pt idx=""0"">
-                  <c:v>Ряд 3</c:v>
-                </c:pt>
-              </c:strCache>
-            </c:strRef>
-          </c:tx>
-          <c:invertIfNegative val=""0""/>
-          <c:cat>
-            <c:strRef>
-              <c:f>Лист1!$A$2:$A$5</c:f>
-              <c:strCache>
-                <c:ptCount val=""4""/>
-                <c:pt idx=""0"">
-                  <c:v>Категория 1</c:v>
-                </c:pt>
-                <c:pt idx=""1"">
-                  <c:v>Категория 2</c:v>
-                </c:pt>
-                <c:pt idx=""2"">
-                  <c:v>Категория 3</c:v>
-                </c:pt>
-                <c:pt idx=""3"">
-                  <c:v>Категория 4</c:v>
-                </c:pt>
-              </c:strCache>
-            </c:strRef>
-          </c:cat>
-          <c:val>
-            <c:numRef>
-              <c:f>Лист1!$D$2:$D$5</c:f>
-              <c:numCache>
-                <c:formatCode>Основной</c:formatCode>
-                <c:ptCount val=""4""/>
-                <c:pt idx=""0"">
-                  <c:v>2</c:v>
-                </c:pt>
-                <c:pt idx=""1"">
-                  <c:v>2</c:v>
-                </c:pt>
-                <c:pt idx=""2"">
-                  <c:v>3</c:v>
-                </c:pt>
-                <c:pt idx=""3"">
-                  <c:v>5</c:v>
-                </c:pt>
-              </c:numCache>
-            </c:numRef>
-          </c:val>
-        </c:ser>
-        <c:dLbls>
-          <c:showLegendKey val=""0""/>
-          <c:showVal val=""0""/>
-          <c:showCatName val=""0""/>
-          <c:showSerName val=""0""/>
-          <c:showPercent val=""0""/>
-          <c:showBubbleSize val=""0""/>
-        </c:dLbls>
-        <c:gapWidth val=""150""/>
-        <c:axId val=""148921728""/>
-        <c:axId val=""154227840""/>
-      </c:barChart>");
-            #endregion
+               @"<c:barChart xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
+                    <c:barDir val=""col""/>
+                    <c:grouping val=""clustered""/>                    
+                    <c:gapWidth val=""150""/>
+                    <c:axId val=""148921728""/>
+                    <c:axId val=""154227840""/>
+                  </c:barChart>");
+            ChartXml.Add(dLbls);
 
             XElement catAx = XElement.Parse(
-      @"<c:catAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""> 
-        <c:axId val=""148921728""/>
-        <c:scaling>
-          <c:orientation val=""minMax""/>
-        </c:scaling>
-        <c:delete val=""0""/>
-        <c:axPos val=""b""/>
-        <c:majorTickMark val=""out""/>
-        <c:minorTickMark val=""none""/>
-        <c:tickLblPos val=""nextTo""/>
-        <c:crossAx val=""154227840""/>
-        <c:crosses val=""autoZero""/>
-        <c:auto val=""1""/>
-        <c:lblAlgn val=""ctr""/>
-        <c:lblOffset val=""100""/>
-        <c:noMultiLvlLbl val=""0""/>
-      </c:catAx>");
+              @"<c:catAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""> 
+                <c:axId val=""148921728""/>
+                <c:scaling>
+                  <c:orientation val=""minMax""/>
+                </c:scaling>
+                <c:delete val=""0""/>
+                <c:axPos val=""b""/>
+                <c:majorTickMark val=""out""/>
+                <c:minorTickMark val=""none""/>
+                <c:tickLblPos val=""nextTo""/>
+                <c:crossAx val=""154227840""/>
+                <c:crosses val=""autoZero""/>
+                <c:auto val=""1""/>
+                <c:lblAlgn val=""ctr""/>
+                <c:lblOffset val=""100""/>
+                <c:noMultiLvlLbl val=""0""/>
+              </c:catAx>");
 
             XElement valAx = XElement.Parse(
-      @"<c:valAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
-        <c:axId val=""154227840""/>
-        <c:scaling>
-          <c:orientation val=""minMax""/>
-        </c:scaling>
-        <c:delete val=""0""/>
-        <c:axPos val=""l""/>
-        <c:majorGridlines/>
-        <c:numFmt formatCode=""Основной"" sourceLinked=""1""/>
-        <c:majorTickMark val=""out""/>
-        <c:minorTickMark val=""none""/>
-        <c:tickLblPos val=""nextTo""/>
-        <c:crossAx val=""148921728""/>
-        <c:crosses val=""autoZero""/>
-        <c:crossBetween val=""between""/>
-      </c:valAx>");
+              @"<c:valAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
+                <c:axId val=""154227840""/>
+                <c:scaling>
+                  <c:orientation val=""minMax""/>
+                </c:scaling>
+                <c:delete val=""0""/>
+                <c:axPos val=""l""/>
+                <c:numFmt sourceLinked=""0"" formatCode=""General""/>
+                <c:majorGridlines/>
+                <c:majorTickMark val=""out""/>
+                <c:minorTickMark val=""none""/>
+                <c:tickLblPos val=""nextTo""/>
+                <c:crossAx val=""148921728""/>
+                <c:crosses val=""autoZero""/>
+                <c:crossBetween val=""between""/>
+              </c:valAx>");
 
-            XElement PlotArea = new XElement(
+            return new XElement(
                 XName.Get("plotArea", DocX.c.NamespaceName),
                 new XElement(XName.Get("layout", DocX.c.NamespaceName)),
                 ChartXml, catAx, valAx);
+        }
 
-            Xml = XDocument.Parse
-                (@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
-<c:chartSpace xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"" xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"">  
-  <c:roundedCorners val=""0""/>
-  <c:chart>
-    <c:autoTitleDeleted val=""0""/>
-    <c:plotVisOnly val=""1""/>
-    <c:dispBlanksAs val=""gap""/>
-    <c:showDLblsOverMax val=""0""/>
-  </c:chart>
-</c:chartSpace>");
-
-            ChartRootXml = Xml.Root.Element(XName.Get("chart", DocX.c.NamespaceName));
-            ChartRootXml.Add(PlotArea);
+        public void AddSeries(Series series)
+        {
+            ChartXml.Add(series.Xml);
         }
 
         public void AddLegend()
@@ -316,6 +144,109 @@ namespace Novacode
         {
             legend.Xml.Remove();
             legend = null;
+        }
+    }
+
+    /// <summary>
+    /// Represents a chart series
+    /// </summary>
+    public class Series
+    {
+        private XElement strCache;
+        private XElement numCache;
+
+        /// <summary>
+        /// Series xml element
+        /// </summary>
+        internal XElement Xml { get; private set; }
+
+        public Color Color
+        {
+            get
+            {
+                XElement colorElement = Xml.Element(XName.Get("spPr", DocX.c.NamespaceName));
+                if (colorElement == null)
+                    return Color.Transparent;
+                else
+                    return Color.FromArgb(Int32.Parse(
+                        colorElement.Element(XName.Get("solidFill", DocX.a.NamespaceName)).Element(XName.Get("srgbClr", DocX.a.NamespaceName)).Attribute(XName.Get("val")).Value,
+                        System.Globalization.NumberStyles.HexNumber));
+            }
+            set
+            {
+                XElement colorElement = Xml.Element(XName.Get("spPr", DocX.c.NamespaceName));
+                if (colorElement != null)
+                    colorElement.Remove();
+                colorElement = new XElement(
+                    XName.Get("spPr", DocX.c.NamespaceName),
+                    new XElement(
+                        XName.Get("solidFill", DocX.a.NamespaceName),
+                        new XElement(
+                            XName.Get("srgbClr", DocX.a.NamespaceName),
+                            new XAttribute(XName.Get("val"), value.ToHex()))));
+                Xml.Add(colorElement);
+            }
+        }
+
+        internal Series(XElement xml)
+        {
+            Xml = xml;
+            strCache = xml.Element(XName.Get("cat", DocX.c.NamespaceName)).Element(XName.Get("strRef", DocX.c.NamespaceName)).Element(XName.Get("strCache", DocX.c.NamespaceName));
+            numCache = xml.Element(XName.Get("val", DocX.c.NamespaceName)).Element(XName.Get("numRef", DocX.c.NamespaceName)).Element(XName.Get("numCache", DocX.c.NamespaceName));
+        }
+
+        public Series(String name)
+        {
+            strCache = new XElement(XName.Get("strCache", DocX.c.NamespaceName));
+            numCache = new XElement(XName.Get("numCache", DocX.c.NamespaceName));
+
+            Xml = new XElement(
+                XName.Get("ser", DocX.c.NamespaceName),
+                new XElement(
+                    XName.Get("tx", DocX.c.NamespaceName),
+                    new XElement(
+                        XName.Get("strRef", DocX.c.NamespaceName),
+                        new XElement(
+                            XName.Get("strCache", DocX.c.NamespaceName),
+                            new XElement(
+                                XName.Get("pt", DocX.c.NamespaceName),
+                                new XAttribute(XName.Get("idx"), "0"),
+                                new XElement(XName.Get("v", DocX.c.NamespaceName), name)
+                                )))),
+                new XElement(XName.Get("invertIfNegative", DocX.c.NamespaceName), "0"),
+                    new XElement(
+                        XName.Get("cat", DocX.c.NamespaceName),
+                        new XElement(XName.Get("strRef", DocX.c.NamespaceName), strCache)),
+                new XElement(
+                        XName.Get("val", DocX.c.NamespaceName),
+                        new XElement(XName.Get("numRef", DocX.c.NamespaceName), numCache))
+                );
+        }
+
+        public void Bind(ICollection list, String categoryPropertyName, String valuePropertyName)
+        {
+            XElement ptCount = new XElement(XName.Get("ptCount", DocX.c.NamespaceName), new XAttribute(XName.Get("val"), list.Count));
+            XElement formatCode = new XElement(XName.Get("formatCode", DocX.c.NamespaceName), "General");
+
+            strCache.RemoveAll();
+            numCache.RemoveAll();
+
+            strCache.Add(ptCount);
+            numCache.Add(ptCount);
+            numCache.Add(formatCode);
+
+            Int32 index = 0;
+            XElement pt;
+            foreach (var item in list)
+            {
+                pt = new XElement(XName.Get("pt", DocX.c.NamespaceName), new XAttribute(XName.Get("idx"), index),
+                    new XElement(XName.Get("v", DocX.c.NamespaceName), item.GetType().GetProperty(categoryPropertyName).GetValue(item, null)));
+                strCache.Add(pt);
+                pt = new XElement(XName.Get("pt", DocX.c.NamespaceName), new XAttribute(XName.Get("idx"), index),
+                    new XElement(XName.Get("v", DocX.c.NamespaceName), item.GetType().GetProperty(valuePropertyName).GetValue(item, null)));
+                numCache.Add(pt);
+                index++;
+            }
         }
     }
 

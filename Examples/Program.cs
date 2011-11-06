@@ -42,22 +42,45 @@ namespace Examples
             Console.ReadKey();
         }
 
+        private class ChartData
+        {
+            public String Mounth { get; set; }
+            public Double Money { get; set; }
+        }
+
         private static void ChartInTheDevelopment()
         {
+            // Create new document. 
             using (DocX document = DocX.Create(@"docs\Chart.docx"))
             {
+                // Create chart.
                 Chart c = new Chart();
                 c.AddLegend(ChartLegendPosition.Bottom, false);
-                c.Legend.Overlay = true;
-                c.Legend.Position = ChartLegendPosition.Top;
-                c.RemoveLegend();
-                c.AddLegend();
-                c.AddLegend(ChartLegendPosition.Left, true);
 
-                document.InsertParagraph("Красивая диаграмма").FontSize(20);
-                document.InsertParagraph("Текст1");                
+                // Create data.
+                List<ChartData> company1 = new List<ChartData>();
+                company1.Add(new ChartData() { Mounth = "January", Money = 100 });
+                company1.Add(new ChartData() { Mounth = "February", Money = 120 });
+                company1.Add(new ChartData() { Mounth = "March", Money = 140 });
+                List<ChartData> company2 = new List<ChartData>();
+                company2.Add(new ChartData() { Mounth = "January", Money = 80 });
+                company2.Add(new ChartData() { Mounth = "February", Money = 160 });
+                company2.Add(new ChartData() { Mounth = "March", Money = 130 });
+
+                // Create and add series
+                Series s1 = new Series("Microsoft");
+                s1.Color = Color.GreenYellow;
+                s1.Bind(company1, "Mounth", "Money");
+                c.AddSeries(s1);
+                Series s2 = new Series("Apple");
+                s2.Bind(company2, "Mounth", "Money");                
+                c.AddSeries(s2);                
+
+                // Insert chart into document
+                document.InsertParagraph("Diagram").FontSize(20);
+                document.InsertParagraph("BeforeText");                
                 document.InsertChartInTheDevelopment(c);
-                document.InsertParagraph("Текст2");
+                document.InsertParagraph("AfterText");
                 document.Save();
             }
         }
