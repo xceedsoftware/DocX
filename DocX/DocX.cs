@@ -26,6 +26,10 @@ namespace Novacode
         static internal XNamespace m = "http://schemas.openxmlformats.org/officeDocument/2006/math";
         static internal XNamespace customPropertiesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
         static internal XNamespace customVTypesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
+
+        static internal XNamespace wp = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
+        static internal XNamespace a = "http://schemas.openxmlformats.org/drawingml/2006/main";
+        static internal XNamespace c = "http://schemas.openxmlformats.org/drawingml/2006/chart";
         #endregion
 
         /// <summary>
@@ -1202,7 +1206,7 @@ namespace Novacode
             {
                 mainDoc = XDocument.Parse
                 (@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
-                   <w:document xmlns:ve=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:wne=""http://schemas.microsoft.com/office/word/2006/wordml"">
+                   <w:document xmlns:ve=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:wne=""http://schemas.microsoft.com/office/word/2006/wordml"" xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
                    <w:body>
                     <w:sectPr w:rsidR=""003E25F4"" w:rsidSect=""00FC3028"">
                         <w:pgSz w:w=""11906"" w:h=""16838""/>
@@ -1799,9 +1803,15 @@ namespace Novacode
             int result;
             if (int.TryParse(newId, out result))
                 return ("rId" + (result + 1));
-
             else
-                return Guid.NewGuid().ToString();
+            {
+                String guid = String.Empty;
+                do
+                {
+                    guid = Guid.NewGuid().ToString();
+                } while (Char.IsDigit(guid[0]));
+                return guid;
+            }
         }
 
         /// <summary>
@@ -2840,7 +2850,7 @@ namespace Novacode
         public override Paragraph InsertEquation(String equation)
         {
             Paragraph p = base.InsertEquation(equation);
-            p.PackagePart = mainPart;        
+            p.PackagePart = mainPart;
             return p;
         }
 
@@ -2848,36 +2858,296 @@ namespace Novacode
         {
             // Magic
             String chartXml =
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><c:chartSpace xmlns:c=\"http://schemas.openxmlformats.org/drawingml/2006/chart\" xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><c:date1904 val=\"0\"/><c:lang val=\"ru-RU\"/><c:roundedCorners val=\"0\"/><mc:AlternateContent xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\"><mc:Choice Requires=\"c14\" xmlns:c14=\"http://schemas.microsoft.com/office/drawing/2007/8/2/chart\"><c14:style val=\"102\"/></mc:Choice><mc:Fallback><c:style val=\"2\"/></mc:Fallback></mc:AlternateContent><c:chart><c:autoTitleDeleted val=\"0\"/><c:plotArea><c:layout/><c:barChart><c:barDir val=\"col\"/><c:grouping val=\"clustered\"/><c:varyColors val=\"0\"/><c:ser><c:idx val=\"0\"/><c:order val=\"0\"/><c:tx><c:strRef><c:f>Лист1!$B$1</c:f><c:strCache><c:ptCount val=\"1\"/><c:pt idx=\"0\"><c:v>Ряд 1</c:v></c:pt></c:strCache></c:strRef></c:tx><c:invertIfNegative val=\"0\"/><c:cat><c:strRef><c:f>Лист1!$A$2:$A$5</c:f><c:strCache><c:ptCount val=\"4\"/><c:pt idx=\"0\"><c:v>Категория 1</c:v></c:pt><c:pt idx=\"1\"><c:v>Категория 2</c:v></c:pt><c:pt idx=\"2\"><c:v>Категория 3</c:v></c:pt><c:pt idx=\"3\"><c:v>Категория 4</c:v></c:pt></c:strCache></c:strRef></c:cat><c:val><c:numRef><c:f>Лист1!$B$2:$B$5</c:f><c:numCache><c:formatCode>Основной</c:formatCode><c:ptCount val=\"4\"/><c:pt idx=\"0\"><c:v>4.3</c:v></c:pt><c:pt idx=\"1\"><c:v>2.5</c:v></c:pt><c:pt idx=\"2\"><c:v>3.5</c:v></c:pt><c:pt idx=\"3\"><c:v>4.5</c:v></c:pt></c:numCache></c:numRef></c:val></c:ser><c:ser><c:idx val=\"1\"/><c:order val=\"1\"/><c:tx><c:strRef><c:f>Лист1!$C$1</c:f><c:strCache><c:ptCount val=\"1\"/><c:pt idx=\"0\"><c:v>Ряд 2</c:v></c:pt></c:strCache></c:strRef></c:tx><c:invertIfNegative val=\"0\"/><c:cat><c:strRef><c:f>Лист1!$A$2:$A$5</c:f><c:strCache><c:ptCount val=\"4\"/><c:pt idx=\"0\"><c:v>Категория 1</c:v></c:pt><c:pt idx=\"1\"><c:v>Категория 2</c:v></c:pt><c:pt idx=\"2\"><c:v>Категория 3</c:v></c:pt><c:pt idx=\"3\"><c:v>Категория 4</c:v></c:pt></c:strCache></c:strRef></c:cat><c:val><c:numRef><c:f>Лист1!$C$2:$C$5</c:f><c:numCache><c:formatCode>Основной</c:formatCode><c:ptCount val=\"4\"/><c:pt idx=\"0\"><c:v>2.4</c:v></c:pt><c:pt idx=\"1\"><c:v>4.4000000000000004</c:v></c:pt><c:pt idx=\"2\"><c:v>1.8</c:v></c:pt><c:pt idx=\"3\"><c:v>2.8</c:v></c:pt></c:numCache></c:numRef></c:val></c:ser><c:ser><c:idx val=\"2\"/><c:order val=\"2\"/><c:tx><c:strRef><c:f>Лист1!$D$1</c:f><c:strCache><c:ptCount val=\"1\"/><c:pt idx=\"0\"><c:v>Ряд 3</c:v></c:pt></c:strCache></c:strRef></c:tx><c:invertIfNegative val=\"0\"/><c:cat><c:strRef><c:f>Лист1!$A$2:$A$5</c:f><c:strCache><c:ptCount val=\"4\"/><c:pt idx=\"0\"><c:v>Категория 1</c:v></c:pt><c:pt idx=\"1\"><c:v>Категория 2</c:v></c:pt><c:pt idx=\"2\"><c:v>Категория 3</c:v></c:pt><c:pt idx=\"3\"><c:v>Категория 4</c:v></c:pt></c:strCache></c:strRef></c:cat><c:val><c:numRef><c:f>Лист1!$D$2:$D$5</c:f><c:numCache><c:formatCode>Основной</c:formatCode><c:ptCount val=\"4\"/><c:pt idx=\"0\"><c:v>2</c:v></c:pt><c:pt idx=\"1\"><c:v>2</c:v></c:pt><c:pt idx=\"2\"><c:v>3</c:v></c:pt><c:pt idx=\"3\"><c:v>5</c:v></c:pt></c:numCache></c:numRef></c:val></c:ser><c:dLbls><c:showLegendKey val=\"0\"/><c:showVal val=\"0\"/><c:showCatName val=\"0\"/><c:showSerName val=\"0\"/><c:showPercent val=\"0\"/><c:showBubbleSize val=\"0\"/></c:dLbls><c:gapWidth val=\"150\"/><c:axId val=\"148921728\"/><c:axId val=\"154227840\"/></c:barChart><c:catAx><c:axId val=\"148921728\"/><c:scaling><c:orientation val=\"minMax\"/></c:scaling><c:delete val=\"0\"/><c:axPos val=\"b\"/><c:majorTickMark val=\"out\"/><c:minorTickMark val=\"none\"/><c:tickLblPos val=\"nextTo\"/><c:crossAx val=\"154227840\"/><c:crosses val=\"autoZero\"/><c:auto val=\"1\"/><c:lblAlgn val=\"ctr\"/><c:lblOffset val=\"100\"/><c:noMultiLvlLbl val=\"0\"/></c:catAx><c:valAx><c:axId val=\"154227840\"/><c:scaling><c:orientation val=\"minMax\"/></c:scaling><c:delete val=\"0\"/><c:axPos val=\"l\"/><c:majorGridlines/><c:numFmt formatCode=\"Основной\" sourceLinked=\"1\"/><c:majorTickMark val=\"out\"/><c:minorTickMark val=\"none\"/><c:tickLblPos val=\"nextTo\"/><c:crossAx val=\"148921728\"/><c:crosses val=\"autoZero\"/><c:crossBetween val=\"between\"/></c:valAx></c:plotArea><c:legend><c:legendPos val=\"r\"/><c:overlay val=\"0\"/></c:legend><c:plotVisOnly val=\"1\"/><c:dispBlanksAs val=\"gap\"/><c:showDLblsOverMax val=\"0\"/></c:chart></c:chartSpace>";
+@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<c:chartSpace xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"" xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"">  
+  <c:roundedCorners val=""0""/>
+  <c:chart>
+    <c:autoTitleDeleted val=""0""/>
+    <c:plotArea>
+      <c:layout/>
+      <c:barChart>
+        <c:barDir val=""col""/>
+        <c:grouping val=""clustered""/>
+        <c:varyColors val=""0""/>
+        <c:ser>
+          <c:idx val=""0""/>
+          <c:order val=""0""/>
+          <c:tx>
+            <c:strRef>
+              <c:f>Лист1!$B$1</c:f>
+              <c:strCache>
+                <c:ptCount val=""1""/>
+                <c:pt idx=""0"">
+                  <c:v>Ряд 1</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:tx>
+          <c:invertIfNegative val=""0""/>
+          <c:cat>
+            <c:strRef>
+              <c:f>Лист1!$A$2:$A$5</c:f>
+              <c:strCache>
+                <c:ptCount val=""4""/>
+                <c:pt idx=""0"">
+                  <c:v>Категория 1</c:v>
+                </c:pt>
+                <c:pt idx=""1"">
+                  <c:v>Категория 2</c:v>
+                </c:pt>
+                <c:pt idx=""2"">
+                  <c:v>Категория 3</c:v>
+                </c:pt>
+                <c:pt idx=""3"">
+                  <c:v>Категория 4</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:cat>
+          <c:val>
+            <c:numRef>
+              <c:f>Лист1!$B$2:$B$5</c:f>
+              <c:numCache>
+                <c:formatCode>Основной</c:formatCode>
+                <c:ptCount val=""4""/>
+                <c:pt idx=""0"">
+                  <c:v>4.3</c:v>
+                </c:pt>
+                <c:pt idx=""1"">
+                  <c:v>2.5</c:v>
+                </c:pt>
+                <c:pt idx=""2"">
+                  <c:v>3.5</c:v>
+                </c:pt>
+                <c:pt idx=""3"">
+                  <c:v>4.5</c:v>
+                </c:pt>
+              </c:numCache>
+            </c:numRef>
+          </c:val>
+        </c:ser>
+        <c:ser>
+          <c:idx val=""1""/>
+          <c:order val=""1""/>
+          <c:tx>
+            <c:strRef>
+              <c:f>Лист1!$C$1</c:f>
+              <c:strCache>
+                <c:ptCount val=""1""/>
+                <c:pt idx=""0"">
+                  <c:v>Ряд 2</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:tx>
+          <c:invertIfNegative val=""0""/>
+          <c:cat>
+            <c:strRef>
+              <c:f>Лист1!$A$2:$A$5</c:f>
+              <c:strCache>
+                <c:ptCount val=""4""/>
+                <c:pt idx=""0"">
+                  <c:v>Категория 1</c:v>
+                </c:pt>
+                <c:pt idx=""1"">
+                  <c:v>Категория 2</c:v>
+                </c:pt>
+                <c:pt idx=""2"">
+                  <c:v>Категория 3</c:v>
+                </c:pt>
+                <c:pt idx=""3"">
+                  <c:v>Категория 4</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:cat>
+          <c:val>
+            <c:numRef>
+              <c:f>Лист1!$C$2:$C$5</c:f>
+              <c:numCache>
+                <c:formatCode>Основной</c:formatCode>
+                <c:ptCount val=""4""/>
+                <c:pt idx=""0"">
+                  <c:v>2.4</c:v>
+                </c:pt>
+                <c:pt idx=""1"">
+                  <c:v>4.4000000000000004</c:v>
+                </c:pt>
+                <c:pt idx=""2"">
+                  <c:v>1.8</c:v>
+                </c:pt>
+                <c:pt idx=""3"">
+                  <c:v>2.8</c:v>
+                </c:pt>
+              </c:numCache>
+            </c:numRef>
+          </c:val>
+        </c:ser>
+        <c:ser>
+          <c:idx val=""2""/>
+          <c:order val=""2""/>
+          <c:tx>
+            <c:strRef>
+              <c:f>Лист1!$D$1</c:f>
+              <c:strCache>
+                <c:ptCount val=""1""/>
+                <c:pt idx=""0"">
+                  <c:v>Ряд 3</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:tx>
+          <c:invertIfNegative val=""0""/>
+          <c:cat>
+            <c:strRef>
+              <c:f>Лист1!$A$2:$A$5</c:f>
+              <c:strCache>
+                <c:ptCount val=""4""/>
+                <c:pt idx=""0"">
+                  <c:v>Категория 1</c:v>
+                </c:pt>
+                <c:pt idx=""1"">
+                  <c:v>Категория 2</c:v>
+                </c:pt>
+                <c:pt idx=""2"">
+                  <c:v>Категория 3</c:v>
+                </c:pt>
+                <c:pt idx=""3"">
+                  <c:v>Категория 4</c:v>
+                </c:pt>
+              </c:strCache>
+            </c:strRef>
+          </c:cat>
+          <c:val>
+            <c:numRef>
+              <c:f>Лист1!$D$2:$D$5</c:f>
+              <c:numCache>
+                <c:formatCode>Основной</c:formatCode>
+                <c:ptCount val=""4""/>
+                <c:pt idx=""0"">
+                  <c:v>2</c:v>
+                </c:pt>
+                <c:pt idx=""1"">
+                  <c:v>2</c:v>
+                </c:pt>
+                <c:pt idx=""2"">
+                  <c:v>3</c:v>
+                </c:pt>
+                <c:pt idx=""3"">
+                  <c:v>5</c:v>
+                </c:pt>
+              </c:numCache>
+            </c:numRef>
+          </c:val>
+        </c:ser>
+        <c:dLbls>
+          <c:showLegendKey val=""0""/>
+          <c:showVal val=""0""/>
+          <c:showCatName val=""0""/>
+          <c:showSerName val=""0""/>
+          <c:showPercent val=""0""/>
+          <c:showBubbleSize val=""0""/>
+        </c:dLbls>
+        <c:gapWidth val=""150""/>
+        <c:axId val=""148921728""/>
+        <c:axId val=""154227840""/>
+      </c:barChart>
+      <c:catAx>
+        <c:axId val=""148921728""/>
+        <c:scaling>
+          <c:orientation val=""minMax""/>
+        </c:scaling>
+        <c:delete val=""0""/>
+        <c:axPos val=""b""/>
+        <c:majorTickMark val=""out""/>
+        <c:minorTickMark val=""none""/>
+        <c:tickLblPos val=""nextTo""/>
+        <c:crossAx val=""154227840""/>
+        <c:crosses val=""autoZero""/>
+        <c:auto val=""1""/>
+        <c:lblAlgn val=""ctr""/>
+        <c:lblOffset val=""100""/>
+        <c:noMultiLvlLbl val=""0""/>
+      </c:catAx>
+      <c:valAx>
+        <c:axId val=""154227840""/>
+        <c:scaling>
+          <c:orientation val=""minMax""/>
+        </c:scaling>
+        <c:delete val=""0""/>
+        <c:axPos val=""l""/>
+        <c:majorGridlines/>
+        <c:numFmt formatCode=""Основной"" sourceLinked=""1""/>
+        <c:majorTickMark val=""out""/>
+        <c:minorTickMark val=""none""/>
+        <c:tickLblPos val=""nextTo""/>
+        <c:crossAx val=""148921728""/>
+        <c:crosses val=""autoZero""/>
+        <c:crossBetween val=""between""/>
+      </c:valAx>
+    </c:plotArea>
+    <c:legend>
+      <c:legendPos val=""r""/>
+      <c:overlay val=""0""/>
+    </c:legend>
+    <c:plotVisOnly val=""1""/>
+    <c:dispBlanksAs val=""gap""/>
+    <c:showDLblsOverMax val=""0""/>
+  </c:chart>
+</c:chartSpace>";
 
             // Create a new chart part uri.
             String chartPartUriPath = String.Empty;
             Int32 chartIndex = 1;
             do
-            {                
+            {
                 chartPartUriPath = String.Format
                 (
                     "/word/charts/chart{0}.xml",
                     chartIndex
                 );
-
+                chartIndex++;
             } while (package.PartExists(new Uri(chartPartUriPath, UriKind.Relative)));
 
             // Create chart part.
             PackagePart chart = package.CreatePart(new Uri(chartPartUriPath, UriKind.Relative), "application/vnd.openxmlformats-officedocument.drawingml.chart+xml");
 
             // Create a new chart relationship
-            PackageRelationship rel = mainPart.CreateRelationship(chart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", "rId5");
+            String relID = GetNextFreeRelationshipID();
+            PackageRelationship rel = mainPart.CreateRelationship(chart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", relID);
 
-            // Open a Stream to the newly created Image part.
+            // Open a Stream to the newly created chart part.
             using (Stream stream = chart.GetStream(FileMode.Create, FileAccess.Write))
             {
                 byte[] byteArray = Encoding.UTF8.GetBytes(chartXml);
                 stream.Write(byteArray, 0, byteArray.Length);
-            } 
+            }
 
+            // Insert a new chart into a paragraph.
             Paragraph p = InsertParagraph();
-            p.Xml.Add(XElement.Parse("<w:r xmlns:wpc=\"http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\" xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:wp14=\"http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" xmlns:w10=\"urn:schemas-microsoft-com:office:word\" xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\" xmlns:wpg=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\" xmlns:wpi=\"http://schemas.microsoft.com/office/word/2010/wordprocessingInk\" xmlns:wne=\"http://schemas.microsoft.com/office/word/2006/wordml\" xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\"><w:rPr><w:noProof/></w:rPr><w:drawing><wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\"><wp:extent cx=\"5486400\" cy=\"3200400\"/><wp:effectExtent l=\"0\" t=\"0\" r=\"19050\" b=\"19050\"/><wp:docPr id=\"1\" name=\"123\"/><wp:cNvGraphicFramePr/><a:graphic xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\"><a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/chart\"><c:chart xmlns:c=\"http://schemas.openxmlformats.org/drawingml/2006/chart\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" r:id=\"rId5\"/></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>"));            
+            XElement chartElement = new XElement(
+                XName.Get("r", DocX.w.NamespaceName),
+                new XElement(
+                    XName.Get("drawing", DocX.w.NamespaceName),
+                    new XElement(
+                        XName.Get("inline", DocX.wp.NamespaceName),
+                        new XElement(XName.Get("extent", DocX.wp.NamespaceName), new XAttribute("cx", "5486400"), new XAttribute("cy", "3200400")),
+                        new XElement(XName.Get("effectExtent", DocX.wp.NamespaceName), new XAttribute("l", "0"), new XAttribute("t", "0"), new XAttribute("r", "19050"), new XAttribute("b", "19050")),
+                        new XElement(XName.Get("docPr", DocX.wp.NamespaceName), new XAttribute("id", "1"), new XAttribute("name", "chart")),
+                        new XElement(
+                            XName.Get("graphic", DocX.a.NamespaceName),
+                            new XElement(
+                                XName.Get("graphicData", DocX.a.NamespaceName),
+                                new XAttribute("uri", DocX.c.NamespaceName),
+                                new XElement(
+                                    XName.Get("chart", DocX.c.NamespaceName),
+                                    new XAttribute(XName.Get("id", DocX.r.NamespaceName), relID)
+                                )
+                            )
+                        )
+                    )
+               ));
+            p.Xml.Add(chartElement);
         }
 
         #region IDisposable Members

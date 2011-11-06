@@ -47,6 +47,9 @@ namespace Examples
             using (DocX document = DocX.Create(@"docs\Chart.docx"))
             {
                 document.InsertParagraph("Красивая диаграмма").FontSize(20);
+                document.InsertParagraph("Текст1");                
+                document.InsertChartInTheDevelopment();
+                document.InsertParagraph("Текст2");
                 document.InsertChartInTheDevelopment();
                 document.Save();
             }
