@@ -46,11 +46,18 @@ namespace Examples
         {
             using (DocX document = DocX.Create(@"docs\Chart.docx"))
             {
+                Chart c = new Chart();
+                c.AddLegend(ChartLegendPosition.Bottom, false);
+                c.Legend.Overlay = true;
+                c.Legend.Position = ChartLegendPosition.Top;
+                c.RemoveLegend();
+                c.AddLegend();
+                c.AddLegend(ChartLegendPosition.Left, true);
+
                 document.InsertParagraph("Красивая диаграмма").FontSize(20);
                 document.InsertParagraph("Текст1");                
-                document.InsertChartInTheDevelopment();
+                document.InsertChartInTheDevelopment(c);
                 document.InsertParagraph("Текст2");
-                document.InsertChartInTheDevelopment();
                 document.Save();
             }
         }
