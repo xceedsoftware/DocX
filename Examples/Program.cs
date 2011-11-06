@@ -15,6 +15,9 @@ namespace Examples
     {
         static void Main(string[] args)
         {
+            // In the development...
+            ChartInTheDevelopment();
+
             // Easy
             Console.WriteLine("\nRunning Easy Examples");
             HelloWorld();
@@ -33,10 +36,20 @@ namespace Examples
             // Advanced
             Console.WriteLine("\nRunning Advanced Examples");
             ProgrammaticallyManipulateImbeddedImage();
-            ReplaceTextParallel();
+            ReplaceTextParallel();            
 
             Console.WriteLine("\nPress any key to exit.");
             Console.ReadKey();
+        }
+
+        private static void ChartInTheDevelopment()
+        {
+            using (DocX document = DocX.Create(@"docs\Chart.docx"))
+            {
+                document.InsertParagraph("Красивая диаграмма").FontSize(20);
+                document.InsertChartInTheDevelopment();
+                document.Save();
+            }
         }
 
         /// <summary>

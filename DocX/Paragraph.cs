@@ -165,7 +165,7 @@ namespace Novacode
             this.startIndex = startIndex;
             this.endIndex = startIndex + GetElementTextLength(xml);
 
-            RebuildDocProperties();
+            RebuildDocProperties();            
 
             #region It's possible that a Paragraph may have pStyle references
             // Check if this Paragraph references any pStyle elements.
@@ -200,6 +200,8 @@ namespace Novacode
                 }
             } 
             #endregion
+
+            this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).ToList();
         }
 
         /// <summary>
