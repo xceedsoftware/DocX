@@ -54,8 +54,17 @@ namespace Examples
             using (DocX document = DocX.Create(@"docs\Chart.docx"))
             {
                 // Create chart.
-                Chart c = new Chart();
+                BarChart c = new BarChart();
+                c.BarDirection = BarDirection.Column;
+                c.BarGrouping = BarGrouping.Standard;
+                c.GapWidth = 400;
                 c.AddLegend(ChartLegendPosition.Bottom, false);
+
+                PieChart cc = new PieChart();
+                cc.AddLegend(ChartLegendPosition.Bottom, false);
+
+                LineChart ccc = new LineChart();
+                ccc.AddLegend(ChartLegendPosition.Bottom, false);
 
                 // Create data.
                 List<ChartData> company1 = new List<ChartData>();
@@ -72,14 +81,19 @@ namespace Examples
                 s1.Color = Color.GreenYellow;
                 s1.Bind(company1, "Mounth", "Money");
                 c.AddSeries(s1);
+                ccc.AddSeries(s1);
                 Series s2 = new Series("Apple");
                 s2.Bind(company2, "Mounth", "Money");                
-                c.AddSeries(s2);                
+                c.AddSeries(s2);
+                cc.AddSeries(s2);
+                ccc.AddSeries(s2);
 
                 // Insert chart into document
                 document.InsertParagraph("Diagram").FontSize(20);
                 document.InsertParagraph("BeforeText");                
                 document.InsertChartInTheDevelopment(c);
+                document.InsertChartInTheDevelopment(cc);
+                document.InsertChartInTheDevelopment(ccc);
                 document.InsertParagraph("AfterText");
                 document.Save();
             }

@@ -7,16 +7,17 @@ using System.IO;
 using System.IO.Packaging;
 using System.Collections;
 using System.Drawing;
+using System.Reflection;
 
 namespace Novacode
 {
     /// <summary>
-    /// Represents a Chart in this document.
+    /// Represents every Chart in this document.
     /// </summary>
-    public class Chart
+    public abstract class Chart
     {
-        private XElement ChartXml;
-        private XElement ChartRootXml;
+        protected XElement ChartXml { get; private set; }
+        protected XElement ChartRootXml { get; private set; }
 
         public XDocument Xml { get; private set; }
 
@@ -33,8 +34,46 @@ namespace Novacode
             }
         }
 
+        public virtual void AddSeries(Series series)
+        {
+            ChartXml.Add(series.Xml);
+        }
+
         private ChartLegend legend;
         public ChartLegend Legend { get { return legend; } }
+
+        /// <summary>
+        /// Specifies how blank cells shall be plotted on a chart
+        /// </summary>
+        public DisplayBlanksAs DisplayBlanksAs
+        {
+            get
+            {
+                String value = ChartRootXml.Element(XName.Get("dispBlanksAs", DocX.c.NamespaceName)).Attribute(XName.Get("val")).Value;
+                switch (value)
+                {
+                    case "gap": return DisplayBlanksAs.Gap;
+                    case "span": return DisplayBlanksAs.Span;
+                    case "zero": return DisplayBlanksAs.Zero;
+                    default: throw new NotImplementedException("This DisplayBlanksAsType was not implement!");
+                }
+            }
+            set
+            {
+                String newValue;
+                switch (value)
+                {
+                    case DisplayBlanksAs.Gap: newValue = "gap";
+                        break;
+                    case DisplayBlanksAs.Span: newValue = "span";
+                        break;
+                    case DisplayBlanksAs.Zero: newValue = "zero";
+                        break;
+                    default: throw new NotImplementedException("This DisplayBlanksAsType was not implement!");
+                }
+                ChartRootXml.Element(XName.Get("dispBlanksAs", DocX.c.NamespaceName)).Attribute(XName.Get("val")).Value = newValue;
+            }
+        }
 
         /// <summary>
         /// Create an Chart for this document
@@ -68,16 +107,15 @@ namespace Novacode
                       <c:showPercent val=""0""/>
                       <c:showBubbleSize val=""0""/>
                     </c:dLbls>");
+            XElement axIDcat = XElement.Parse(
+                @"<c:axId val=""154227840"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>");
+            XElement axIDval = XElement.Parse(
+                @"<c:axId val=""148921728"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>");
 
-            ChartXml = XElement.Parse(
-               @"<c:barChart xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
-                    <c:barDir val=""col""/>
-                    <c:grouping val=""clustered""/>                    
-                    <c:gapWidth val=""150""/>
-                    <c:axId val=""148921728""/>
-                    <c:axId val=""154227840""/>
-                  </c:barChart>");
-            ChartXml.Add(dLbls);
+            ChartXml = CreateChartXml();
+            ChartXml.Add(dLbls);            
+            ChartXml.Add(axIDval);
+            ChartXml.Add(axIDcat);
 
             XElement catAx = XElement.Parse(
               @"<c:catAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""> 
@@ -122,10 +160,8 @@ namespace Novacode
                 ChartXml, catAx, valAx);
         }
 
-        public void AddSeries(Series series)
-        {
-            ChartXml.Add(series.Xml);
-        }
+        protected abstract XElement CreateChartXml();
+
 
         public void AddLegend()
         {
@@ -146,6 +182,8 @@ namespace Novacode
             legend = null;
         }
     }
+
+    
 
     /// <summary>
     /// Represents a chart series
@@ -339,7 +377,8 @@ namespace Novacode
     }
 
     /// <summary>
-    /// Specifies the possible positions for a legend
+    /// Specifies the possible positions for a legend.
+    /// 21.2.3.24 ST_LegendPos (Legend Position)
     /// </summary>
     public enum ChartLegendPosition
     {
@@ -349,4 +388,15 @@ namespace Novacode
         Right,
         TopRight
     }
+
+    /// <summary>
+    /// Specifies the possible ways to display blanks.
+    /// 21.2.3.10 ST_DispBlanksAs (Display Blanks As)
+    /// </summary>
+    public enum DisplayBlanksAs
+    {
+        Gap,
+        Span,
+        Zero
+    }    
 }
