@@ -1133,7 +1133,26 @@ namespace Novacode
         /// </summary>
         public Alignment Alignment 
         { 
-            get { return alignment; }
+            get 
+            { 
+                XElement pPr = GetOrCreate_pPr();
+                XElement jc = pPr.Element(XName.Get("jc", DocX.w.NamespaceName));
+
+                if(jc != null)
+                {
+                    XAttribute a = jc.Attribute(XName.Get("val", DocX.w.NamespaceName));
+
+                    switch (a.Value.ToLower())
+                    {
+                        case "left": return Novacode.Alignment.left;
+                        case "right": return Novacode.Alignment.right;
+                        case "center": return Novacode.Alignment.center;
+                        case "both": return Novacode.Alignment.both;
+                    }
+                }
+                
+                return Novacode.Alignment.left;
+            }
 
             set 
             {
@@ -2764,6 +2783,34 @@ namespace Novacode
             return this;
         }
 
+        public float LineSpacing 
+        {
+            get
+            {
+                XElement pPr = GetOrCreate_pPr();
+                XElement spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
+
+                if(spacing != null)
+                {
+                    XAttribute line = spacing.Attribute(XName.Get("line", DocX.w.NamespaceName));
+                    if(line != null)
+                    {
+                        float f;
+
+                        if (float.TryParse(line.Value, out f))
+                            return f / 20.0f;
+                    }
+                }
+
+                return 1.1f * 20.0f;
+            }
+
+            set
+            {
+                Spacing(value);
+            }
+        }
+
         public Paragraph Spacing(double spacing)
         {
             spacing *= 20;
@@ -2779,6 +2826,42 @@ namespace Novacode
             
             ApplyTextFormattingProperty(XName.Get("spacing", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), spacing));
             
+            return this;
+        }
+
+        public Paragraph SpacingBefore(double spacingBefore)
+        {
+            spacingBefore *= 20;
+
+            if (spacingBefore - (int)spacingBefore == 0)
+            {
+                if (!(spacingBefore > -1585 && spacingBefore < 1585))
+                    throw new ArgumentException("SpacingBefore", "Value must be in the range: -1584 - 1584");
+            }
+
+            else
+                throw new ArgumentException("SpacingBefore", "Value must be either a whole or acurate to one decimal, examples: 32, 32.1, 32.2, 32.9");
+
+            ApplyTextFormattingProperty(XName.Get("before", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), spacingBefore));
+
+            return this;
+        }
+
+        public Paragraph SpacingAfter(double spacingAfter)
+        {
+            spacingAfter *= 20;
+
+            if (spacingAfter - (int)spacingAfter == 0)
+            {
+                if (!(spacingAfter > -1585 && spacingAfter < 1585))
+                    throw new ArgumentException("SpacingAfter", "Value must be in the range: -1584 - 1584");
+            }
+
+            else
+                throw new ArgumentException("SpacingAfter", "Value must be either a whole or acurate to one decimal, examples: 32, 32.1, 32.2, 32.9");
+
+            ApplyTextFormattingProperty(XName.Get("after", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), spacingAfter));
+
             return this;
         }
 
@@ -3503,6 +3586,63 @@ namespace Novacode
 
             fldSimple.Add(content);
             Xml.Add(fldSimple);
+        }
+
+        public float LineSpacingBefore 
+        { 
+            get
+            {
+                XElement pPr = GetOrCreate_pPr();
+                XElement spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
+
+                if (spacing != null)
+                {
+                    XAttribute line = spacing.Attribute(XName.Get("before", DocX.w.NamespaceName));
+                    if (line != null)
+                    {
+                        float f;
+
+                        if (float.TryParse(line.Value, out f))
+                            return f / 20.0f;
+                    }
+                }
+
+                return 0.0f;
+            }
+            
+            set
+            {
+                SpacingBefore(value);
+            } 
+        }
+
+        public float LineSpacingAfter
+        {
+            get
+            {
+                XElement pPr = GetOrCreate_pPr();
+                XElement spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
+
+                if (spacing != null)
+                {
+                    XAttribute line = spacing.Attribute(XName.Get("after", DocX.w.NamespaceName));
+                    if (line != null)
+                    {
+                        float f;
+
+                        if (float.TryParse(line.Value, out f))
+                            return f / 20.0f;
+                    }
+                }
+
+                return 10.0f;
+            }
+
+
+            set
+            {
+                SpacingAfter(value);
+            }
         }
     }
 

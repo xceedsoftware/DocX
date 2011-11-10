@@ -32,6 +32,97 @@ namespace Novacode
         static internal XNamespace c = "http://schemas.openxmlformats.org/drawingml/2006/chart";
         #endregion
 
+        public float PageWidth 
+        { 
+            get
+            {
+                XElement body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
+                XElement sectPr = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+                if (sectPr != null)
+                {
+                    XElement pgSz = sectPr.Element(XName.Get("pgSz", DocX.w.NamespaceName));
+
+                    if(pgSz != null)
+                    {
+                        XAttribute w = pgSz.Attribute(XName.Get("w", DocX.w.NamespaceName));
+                        if(w != null)
+                        {
+                            float f;
+                            if(float.TryParse(w.Value,out f))
+                                return (int)(f / 15.0f);
+                        }
+                    }
+                }
+
+                return (int)(11906.0f / 15.0f);
+            }
+
+            set
+            {
+                XElement body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
+
+                if (body != null)
+                {
+                    XElement sectPr = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+                 
+                    if (sectPr != null)
+                    {
+                        XElement pgSz = sectPr.Element(XName.Get("pgSz", DocX.w.NamespaceName));
+
+                        if (pgSz != null)
+                        {
+                            pgSz.SetAttributeValue(XName.Get("w", DocX.w.NamespaceName), value);
+                        }
+                    }
+                }
+            }
+        }
+
+        public float PageHeight
+        {
+            get
+            {
+                XElement body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
+                XElement sectPr = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+                if (sectPr != null)
+                {
+                    XElement pgSz = sectPr.Element(XName.Get("pgSz", DocX.w.NamespaceName));
+
+                    if (pgSz != null)
+                    {
+                        XAttribute w = pgSz.Attribute(XName.Get("h", DocX.w.NamespaceName));
+                        if (w != null)
+                        {
+                            float f;
+                            if (float.TryParse(w.Value, out f))
+                                return (int)(f / 15.0f);
+                        }
+                    }
+                }
+
+                return (int)(16838.0f / 15.0f);
+            }
+
+            set
+            {
+                XElement body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
+
+                if (body != null)
+                {
+                    XElement sectPr = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+
+                    if (sectPr != null)
+                    {
+                        XElement pgSz = sectPr.Element(XName.Get("pgSz", DocX.w.NamespaceName));
+
+                        if (pgSz != null)
+                        {
+                            pgSz.SetAttributeValue(XName.Get("h", DocX.w.NamespaceName), value);
+                        }
+                    }
+                }
+            }
+        }
         /// <summary>
         /// Returns true if any editing restrictions are imposed on this document.
         /// </summary>
