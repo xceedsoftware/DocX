@@ -16,7 +16,9 @@ namespace Examples
         static void Main(string[] args)
         {
             // In the development...
-            ChartInTheDevelopment();
+            BarChartAlpha();
+            PieChartAlpha();
+            LineChartAlpha();
 
             // Easy
             Console.WriteLine("\nRunning Easy Examples");
@@ -36,7 +38,7 @@ namespace Examples
             // Advanced
             Console.WriteLine("\nRunning Advanced Examples");
             ProgrammaticallyManipulateImbeddedImage();
-            ReplaceTextParallel();            
+            ReplaceTextParallel();
 
             Console.WriteLine("\nPress any key to exit.");
             Console.ReadKey();
@@ -46,12 +48,30 @@ namespace Examples
         {
             public String Mounth { get; set; }
             public Double Money { get; set; }
+
+            public static List<ChartData> CreateCompanyList1()
+            {
+                List<ChartData> company1 = new List<ChartData>();
+                company1.Add(new ChartData() { Mounth = "January", Money = 100 });
+                company1.Add(new ChartData() { Mounth = "February", Money = 120 });
+                company1.Add(new ChartData() { Mounth = "March", Money = 140 });
+                return company1;
+            }
+
+            public static List<ChartData> CreateCompanyList2()
+            {
+                List<ChartData> company2 = new List<ChartData>();
+                company2.Add(new ChartData() { Mounth = "January", Money = 80 });
+                company2.Add(new ChartData() { Mounth = "February", Money = 160 });
+                company2.Add(new ChartData() { Mounth = "March", Money = 130 });
+                return company2;
+            }
         }
 
-        private static void ChartInTheDevelopment()
+        private static void BarChartAlpha()
         {
             // Create new document. 
-            using (DocX document = DocX.Create(@"docs\Chart.docx"))
+            using (DocX document = DocX.Create(@"docs\BarChart.docx"))
             {
                 // Create chart.
                 BarChart c = new BarChart();
@@ -60,41 +80,75 @@ namespace Examples
                 c.GapWidth = 400;
                 c.AddLegend(ChartLegendPosition.Bottom, false);
 
-                PieChart cc = new PieChart();
-                cc.AddLegend(ChartLegendPosition.Bottom, false);
-
-                LineChart ccc = new LineChart();
-                ccc.AddLegend(ChartLegendPosition.Bottom, false);
-
                 // Create data.
-                List<ChartData> company1 = new List<ChartData>();
-                company1.Add(new ChartData() { Mounth = "January", Money = 100 });
-                company1.Add(new ChartData() { Mounth = "February", Money = 120 });
-                company1.Add(new ChartData() { Mounth = "March", Money = 140 });
-                List<ChartData> company2 = new List<ChartData>();
-                company2.Add(new ChartData() { Mounth = "January", Money = 80 });
-                company2.Add(new ChartData() { Mounth = "February", Money = 160 });
-                company2.Add(new ChartData() { Mounth = "March", Money = 130 });
+                List<ChartData> company1 = ChartData.CreateCompanyList1();
+                List<ChartData> company2 = ChartData.CreateCompanyList2();
 
                 // Create and add series
                 Series s1 = new Series("Microsoft");
                 s1.Color = Color.GreenYellow;
                 s1.Bind(company1, "Mounth", "Money");
                 c.AddSeries(s1);
-                ccc.AddSeries(s1);
                 Series s2 = new Series("Apple");
-                s2.Bind(company2, "Mounth", "Money");                
+                s2.Bind(company2, "Mounth", "Money");
                 c.AddSeries(s2);
-                cc.AddSeries(s2);
-                ccc.AddSeries(s2);
 
                 // Insert chart into document
                 document.InsertParagraph("Diagram").FontSize(20);
-                document.InsertParagraph("BeforeText");                
                 document.InsertChartInTheDevelopment(c);
-                document.InsertChartInTheDevelopment(cc);
-                document.InsertChartInTheDevelopment(ccc);
-                document.InsertParagraph("AfterText");
+                document.Save();
+            }
+        }
+
+        private static void PieChartAlpha()
+        {
+            // Create new document. 
+            using (DocX document = DocX.Create(@"docs\PieChart.docx"))
+            {
+                // Create chart.
+                PieChart c = new PieChart();
+                c.AddLegend(ChartLegendPosition.Bottom, false);
+
+                // Create data.
+                List<ChartData> company2 = ChartData.CreateCompanyList2();
+
+                // Create and add series
+                Series s = new Series("Apple");
+                s.Bind(company2, "Mounth", "Money");
+                c.AddSeries(s);
+
+                // Insert chart into document
+                document.InsertParagraph("Diagram").FontSize(20);
+                document.InsertChartInTheDevelopment(c);
+                document.Save();
+            }
+        }
+
+        private static void LineChartAlpha()
+        {
+            // Create new document. 
+            using (DocX document = DocX.Create(@"docs\LineChart.docx"))
+            {
+                // Create chart.
+                LineChart c = new LineChart();
+                c.AddLegend(ChartLegendPosition.Bottom, false);
+
+                // Create data.
+                List<ChartData> company1 = ChartData.CreateCompanyList1();
+                List<ChartData> company2 = ChartData.CreateCompanyList2();
+
+                // Create and add series
+                Series s1 = new Series("Microsoft");
+                s1.Color = Color.GreenYellow;
+                s1.Bind(company1, "Mounth", "Money");
+                c.AddSeries(s1);
+                Series s2 = new Series("Apple");
+                s2.Bind(company2, "Mounth", "Money");
+                c.AddSeries(s2);
+
+                // Insert chart into document
+                document.InsertParagraph("Diagram").FontSize(20);
+                document.InsertChartInTheDevelopment(c);
                 document.Save();
             }
         }
@@ -113,7 +167,7 @@ namespace Examples
                 Paragraph pEquation1 = document.InsertEquation("x = y+z");
 
                 // Insert second Equation in this document and add formatting.
-                Paragraph pEquation2 = document.InsertEquation("x = (y+z)/t").FontSize(18).Color(Color.Blue);                
+                Paragraph pEquation2 = document.InsertEquation("x = (y+z)/t").FontSize(18).Color(Color.Blue);
 
                 // Save this document to disk.
                 document.Save();
@@ -137,7 +191,7 @@ namespace Examples
                 // Indent only the first line of the Paragraph.
                 p.IndentationFirstLine = 1.0f;
 
-                
+
                 // Save all changes made to this document.
                 document.Save();
                 Console.WriteLine("\tCreated: docs\\Indentation.docx\n");
