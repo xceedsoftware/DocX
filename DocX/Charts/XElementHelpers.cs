@@ -37,6 +37,15 @@ namespace Novacode
         {
             if (element == null)
                 throw new ArgumentNullException("element");
+            element.Attribute(XName.Get("val")).Value = GetXmlNameFromEnum<T>(value);
+        }
+
+        /// <summary>
+        /// Return xml string for this value
+        /// </summary>
+        /// <typeparam name="T">Enum type</typeparam> 
+        internal static String GetXmlNameFromEnum<T>(T value)
+        {
             if (value == null)
                 throw new ArgumentNullException("value");
 
@@ -44,7 +53,7 @@ namespace Novacode
             if (fi.GetCustomAttributes(typeof(XmlNameAttribute), false).Count() == 0)
                 throw new Exception(String.Format("Attribute 'XmlNameAttribute' is not assigned to {0} fields!", typeof(T).Name));
             XmlNameAttribute a = (XmlNameAttribute)fi.GetCustomAttributes(typeof(XmlNameAttribute), false).First();
-            element.Attribute(XName.Get("val")).Value = a.XmlName;
+            return a.XmlName;
         }
     }
 

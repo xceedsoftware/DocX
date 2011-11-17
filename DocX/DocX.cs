@@ -2948,7 +2948,7 @@ namespace Novacode
         /// <summary>
         /// Insert a chart in document
         /// </summary>
-        public void InsertChartInTheDevelopment(Chart chart)
+        public void InsertChart(Chart chart)
         {
             // Create a new chart part uri.
             String chartPartUriPath = String.Empty;

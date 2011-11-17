@@ -12,6 +12,9 @@ namespace Novacode
     /// </summary>
     public class PieChart : Chart
     {
+        public override Boolean IsAxisExist { get { return false; } }
+        public override Int16 MaxSeriesCount { get { return 1; } }
+
         protected override XElement CreateChartXml()
         {
             return XElement.Parse(

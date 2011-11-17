@@ -87,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Border.cs" />
+    <Compile Include="Charts\Axis.cs" />
     <Compile Include="Charts\BarChart.cs" />
     <Compile Include="Charts\Chart.cs" />
     <Compile Include="Charts\LineChart.cs" />

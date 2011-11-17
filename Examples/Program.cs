@@ -14,12 +14,7 @@ namespace Examples
     class Program
     {
         static void Main(string[] args)
-        {
-            // In the development...
-            BarChartAlpha();
-            PieChartAlpha();
-            LineChartAlpha();
-
+        {            
             // Easy
             Console.WriteLine("\nRunning Easy Examples");
             HelloWorld();
@@ -30,6 +25,11 @@ namespace Examples
             HyperlinksImagesTables();
 
             Equations();
+
+            BarChart();
+            PieChart();
+            LineChart();
+            Chart3D();
 
             // Intermediate
             Console.WriteLine("\nRunning Intermediate Examples");
@@ -43,6 +43,8 @@ namespace Examples
             Console.WriteLine("\nPress any key to exit.");
             Console.ReadKey();
         }
+
+        #region Charts
 
         private class ChartData
         {
@@ -68,7 +70,7 @@ namespace Examples
             }
         }
 
-        private static void BarChartAlpha()
+        private static void BarChart()
         {
             // Create new document. 
             using (DocX document = DocX.Create(@"docs\BarChart.docx"))
@@ -95,12 +97,12 @@ namespace Examples
 
                 // Insert chart into document
                 document.InsertParagraph("Diagram").FontSize(20);
-                document.InsertChartInTheDevelopment(c);
+                document.InsertChart(c);
                 document.Save();
             }
         }
 
-        private static void PieChartAlpha()
+        private static void PieChart()
         {
             // Create new document. 
             using (DocX document = DocX.Create(@"docs\PieChart.docx"))
@@ -119,12 +121,12 @@ namespace Examples
 
                 // Insert chart into document
                 document.InsertParagraph("Diagram").FontSize(20);
-                document.InsertChartInTheDevelopment(c);
+                document.InsertChart(c);
                 document.Save();
             }
         }
 
-        private static void LineChartAlpha()
+        private static void LineChart()
         {
             // Create new document. 
             using (DocX document = DocX.Create(@"docs\LineChart.docx"))
@@ -148,10 +150,37 @@ namespace Examples
 
                 // Insert chart into document
                 document.InsertParagraph("Diagram").FontSize(20);
-                document.InsertChartInTheDevelopment(c);
+                document.InsertChart(c);
                 document.Save();
             }
         }
+
+        private static void Chart3D()
+        {
+            // Create new document. 
+            using (DocX document = DocX.Create(@"docs\3DChart.docx"))
+            {
+                // Create chart.
+                BarChart c = new BarChart();
+                c.View3D = true;
+
+                // Create data.
+                List<ChartData> company1 = ChartData.CreateCompanyList1();
+
+                // Create and add series
+                Series s = new Series("Microsoft");
+                s.Color = Color.GreenYellow;
+                s.Bind(company1, "Mounth", "Money");
+                c.AddSeries(s);
+
+                // Insert chart into document
+                document.InsertParagraph("3D Diagram").FontSize(20);
+                document.InsertChart(c);
+                document.Save();
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Create a document with two equations.
@@ -728,11 +757,13 @@ namespace Examples
                 Paragraph p = document.InsertParagraph();
 
                 // Append some text and add formatting.
-                p.Append("Hello World")
+                p.Append("Hello World!^011Hello World!")
                 .Font(new FontFamily("Times New Roman"))
                 .FontSize(32)
                 .Color(Color.Blue)
                 .Bold();
+
+
 
                 // Save this document to disk.
                 document.Save();

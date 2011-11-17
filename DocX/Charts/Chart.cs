@@ -19,8 +19,16 @@ namespace Novacode
         protected XElement ChartXml { get; private set; }
         protected XElement ChartRootXml { get; private set; }
 
+        /// <summary>
+        /// The xml representation of this chart
+        /// </summary>
         public XDocument Xml { get; private set; }
 
+        #region Series
+
+        /// <summary>
+        /// Chart's series
+        /// </summary>
         public List<Series> Series
         {
             get
@@ -34,13 +42,109 @@ namespace Novacode
             }
         }
 
-        public virtual void AddSeries(Series series)
+        /// <summary>
+        /// Return maximum count of series
+        /// </summary>
+        public virtual Int16 MaxSeriesCount { get { return Int16.MaxValue; } }
+
+        /// <summary>
+        /// Add a new series to this chart
+        /// </summary>
+        public void AddSeries(Series series)
         {
+            if (ChartXml.Elements(XName.Get("ser", DocX.c.NamespaceName)).Count() == MaxSeriesCount)
+                throw new InvalidOperationException("Maximum series for this chart is" + MaxSeriesCount.ToString() + "and have exceeded!");
             ChartXml.Add(series.Xml);
         }
 
-        private ChartLegend legend;
-        public ChartLegend Legend { get { return legend; } }
+        #endregion
+
+        #region Legend
+
+        /// <summary>
+        /// Chart's legend.
+        /// If legend doesn't exist property is null.
+        /// </summary>
+        public ChartLegend Legend { get; private set; }
+
+        /// <summary>
+        /// Add standart legend to the chart.
+        /// </summary>
+        public void AddLegend()
+        {
+            AddLegend(ChartLegendPosition.Right, false);
+        }
+
+        /// <summary>
+        /// Add a legend with parameters to the chart.
+        /// </summary>
+        public void AddLegend(ChartLegendPosition position, Boolean overlay)
+        {
+            if (Legend != null)
+                RemoveLegend();
+            Legend = new ChartLegend(position, overlay);
+            ChartRootXml.Add(Legend.Xml);
+        }
+
+        /// <summary>
+        /// Remove the legend from the chart.
+        /// </summary>
+        public void RemoveLegend()
+        {
+            Legend.Xml.Remove();
+            Legend = null;
+        }
+
+        #endregion
+
+        #region Axis
+
+        /// <summary>
+        /// Represents the category axis
+        /// </summary>
+        public CategoryAxis CategoryAxis { get; private set; }
+
+        /// <summary>
+        /// Represents the values axis
+        /// </summary>
+        public ValueAxis ValueAxis { get; private set; }
+
+        /// <summary>
+        /// Represents existing the axis
+        /// </summary>
+        public virtual Boolean IsAxisExist { get { return true; } }
+
+        #endregion
+
+        /// <summary>
+        /// Get or set 3D view for this chart
+        /// </summary>
+        public Boolean View3D
+        {
+            get
+            {
+                return ChartXml.Name.LocalName.Contains("3D");
+            }
+            set
+            {
+                if (value)
+                {
+                    if (!View3D)
+                    {
+                        String currentName = ChartXml.Name.LocalName;
+                        ChartXml.Name = XName.Get(currentName.Replace("Chart", "3DChart"), DocX.c.NamespaceName);
+                    }
+                }
+                else
+                {
+                    if (View3D)
+                    {
+                        String currentName = ChartXml.Name.LocalName;
+                        ChartXml.Name = XName.Get(currentName.Replace("3DChart", "Chart"), DocX.c.NamespaceName);
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Specifies how blank cells shall be plotted on a chart
@@ -49,29 +153,13 @@ namespace Novacode
         {
             get
             {
-                String value = ChartRootXml.Element(XName.Get("dispBlanksAs", DocX.c.NamespaceName)).Attribute(XName.Get("val")).Value;
-                switch (value)
-                {
-                    case "gap": return DisplayBlanksAs.Gap;
-                    case "span": return DisplayBlanksAs.Span;
-                    case "zero": return DisplayBlanksAs.Zero;
-                    default: throw new NotImplementedException("This DisplayBlanksAsType was not implement!");
-                }
+                return XElementHelpers.GetValueToEnum<DisplayBlanksAs>(
+                    ChartRootXml.Element(XName.Get("dispBlanksAs", DocX.c.NamespaceName)));
             }
             set
             {
-                String newValue;
-                switch (value)
-                {
-                    case DisplayBlanksAs.Gap: newValue = "gap";
-                        break;
-                    case DisplayBlanksAs.Span: newValue = "span";
-                        break;
-                    case DisplayBlanksAs.Zero: newValue = "zero";
-                        break;
-                    default: throw new NotImplementedException("This DisplayBlanksAsType was not implement!");
-                }
-                ChartRootXml.Element(XName.Get("dispBlanksAs", DocX.c.NamespaceName)).Attribute(XName.Get("val")).Value = newValue;
+                XElementHelpers.SetValueFromEnum<DisplayBlanksAs>(
+                    ChartRootXml.Element(XName.Get("dispBlanksAs", DocX.c.NamespaceName)), value);
             }
         }
 
@@ -80,6 +168,7 @@ namespace Novacode
         /// </summary>        
         public Chart()
         {
+            // Create global xml
             Xml = XDocument.Parse
                 (@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
                    <c:chartSpace xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"" xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"">  
@@ -92,98 +181,57 @@ namespace Novacode
                        </c:chart>
                    </c:chartSpace>");
 
-            ChartRootXml = Xml.Root.Element(XName.Get("chart", DocX.c.NamespaceName));
-            ChartRootXml.Add(CreatePlotArea());
-        }
-
-        private XElement CreatePlotArea()
-        {
-            XElement dLbls = XElement.Parse(
-                @"<c:dLbls xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
-                      <c:showLegendKey val=""0""/>
-                      <c:showVal val=""0""/>
-                      <c:showCatName val=""0""/>
-                      <c:showSerName val=""0""/>
-                      <c:showPercent val=""0""/>
-                      <c:showBubbleSize val=""0""/>
-                    </c:dLbls>");
-            XElement axIDcat = XElement.Parse(
-                @"<c:axId val=""154227840"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>");
-            XElement axIDval = XElement.Parse(
-                @"<c:axId val=""148921728"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>");
-
+            // Create a real chart xml in an inheritor
             ChartXml = CreateChartXml();
-            ChartXml.Add(dLbls);            
-            ChartXml.Add(axIDval);
-            ChartXml.Add(axIDcat);
 
-            XElement catAx = XElement.Parse(
-              @"<c:catAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""> 
-                <c:axId val=""148921728""/>
-                <c:scaling>
-                  <c:orientation val=""minMax""/>
-                </c:scaling>
-                <c:delete val=""0""/>
-                <c:axPos val=""b""/>
-                <c:majorTickMark val=""out""/>
-                <c:minorTickMark val=""none""/>
-                <c:tickLblPos val=""nextTo""/>
-                <c:crossAx val=""154227840""/>
-                <c:crosses val=""autoZero""/>
-                <c:auto val=""1""/>
-                <c:lblAlgn val=""ctr""/>
-                <c:lblOffset val=""100""/>
-                <c:noMultiLvlLbl val=""0""/>
-              </c:catAx>");
-
-            XElement valAx = XElement.Parse(
-              @"<c:valAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
-                <c:axId val=""154227840""/>
-                <c:scaling>
-                  <c:orientation val=""minMax""/>
-                </c:scaling>
-                <c:delete val=""0""/>
-                <c:axPos val=""l""/>
-                <c:numFmt sourceLinked=""0"" formatCode=""General""/>
-                <c:majorGridlines/>
-                <c:majorTickMark val=""out""/>
-                <c:minorTickMark val=""none""/>
-                <c:tickLblPos val=""nextTo""/>
-                <c:crossAx val=""148921728""/>
-                <c:crosses val=""autoZero""/>
-                <c:crossBetween val=""between""/>
-              </c:valAx>");
-
-            return new XElement(
+            // Create result plotarea element
+            XElement plotAreaXml = new XElement(
                 XName.Get("plotArea", DocX.c.NamespaceName),
                 new XElement(XName.Get("layout", DocX.c.NamespaceName)),
-                ChartXml, catAx, valAx);
+                ChartXml);
+
+            // Set labels 
+            XElement dLblsXml = XElement.Parse(
+                @"<c:dLbls xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
+                    <c:showLegendKey val=""0""/>
+                    <c:showVal val=""0""/>
+                    <c:showCatName val=""0""/>
+                    <c:showSerName val=""0""/>
+                    <c:showPercent val=""0""/>
+                    <c:showBubbleSize val=""0""/>
+                    <c:showLeaderLines val=""1""/>
+                </c:dLbls>");
+            ChartXml.Add(dLblsXml);
+
+            // if axes exists, create their
+            if (IsAxisExist)
+            {
+                CategoryAxis = new CategoryAxis("148921728");
+                ValueAxis = new ValueAxis("154227840");
+
+                XElement axIDcatXml = XElement.Parse(String.Format(
+                    @"<c:axId val=""{0}"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>", CategoryAxis.Id));
+                XElement axIDvalXml = XElement.Parse(String.Format(
+                    @"<c:axId val=""{0}"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>", ValueAxis.Id));
+
+                ChartXml.Add(axIDcatXml);
+                ChartXml.Add(axIDvalXml);
+
+                plotAreaXml.Add(CategoryAxis.Xml);
+                plotAreaXml.Add(ValueAxis.Xml);
+            }
+
+            ChartRootXml = Xml.Root.Element(XName.Get("chart", DocX.c.NamespaceName));
+            ChartRootXml.Add(plotAreaXml);
         }
 
+        /// <summary>
+        /// An abstract method which creates the current chart xml
+        /// </summary>
         protected abstract XElement CreateChartXml();
-
-
-        public void AddLegend()
-        {
-            AddLegend(ChartLegendPosition.Right, false);
-        }
-
-        public void AddLegend(ChartLegendPosition position, Boolean overlay)
-        {
-            if (legend != null)
-                RemoveLegend();
-            legend = new ChartLegend(position, overlay);
-            ChartRootXml.Add(legend.Xml);
-        }
-
-        public void RemoveLegend()
-        {
-            legend.Xml.Remove();
-            legend = null;
-        }
     }
 
-    
+
 
     /// <summary>
     /// Represents a chart series
@@ -286,6 +334,34 @@ namespace Novacode
                 index++;
             }
         }
+
+        public void Bind(IList categories, IList values)
+        {
+            if (categories.Count != values.Count)
+                throw new ArgumentException("Categories count must equal to Values count");
+
+            XElement ptCount = new XElement(XName.Get("ptCount", DocX.c.NamespaceName), new XAttribute(XName.Get("val"), categories.Count));
+            XElement formatCode = new XElement(XName.Get("formatCode", DocX.c.NamespaceName), "General");
+
+            strCache.RemoveAll();
+            numCache.RemoveAll();
+
+            strCache.Add(ptCount);
+            numCache.Add(ptCount);
+            numCache.Add(formatCode);
+
+            XElement pt;
+            for (int index = 0; index < categories.Count; index++)
+            {
+                pt = new XElement(XName.Get("pt", DocX.c.NamespaceName), new XAttribute(XName.Get("idx"), index),
+                    new XElement(XName.Get("v", DocX.c.NamespaceName), categories[index].ToString()));
+                strCache.Add(pt);
+                pt = new XElement(XName.Get("pt", DocX.c.NamespaceName), new XAttribute(XName.Get("idx"), index),
+                    new XElement(XName.Get("v", DocX.c.NamespaceName), values[index].ToString()));
+                numCache.Add(pt);
+                index++;
+            }
+        }
     }
 
     /// <summary>
@@ -315,19 +391,13 @@ namespace Novacode
         {
             get
             {
-                switch (Xml.Element(XName.Get("legendPos", DocX.c.NamespaceName)).Attribute("val").Value)
-                {
-                    case "t": return ChartLegendPosition.Top;
-                    case "b": return ChartLegendPosition.Bottom;
-                    case "l": return ChartLegendPosition.Left;
-                    case "r": return ChartLegendPosition.Right;
-                    case "tr": return ChartLegendPosition.TopRight;
-                    default: throw new NotImplementedException();
-                }
+                return XElementHelpers.GetValueToEnum<ChartLegendPosition>(
+                    Xml.Element(XName.Get("legendPos", DocX.c.NamespaceName)));
             }
             set
             {
-                Xml.Element(XName.Get("legendPos", DocX.c.NamespaceName)).Attribute("val").Value = GetPositionValue(value);
+                XElementHelpers.SetValueFromEnum<ChartLegendPosition>(
+                    Xml.Element(XName.Get("legendPos", DocX.c.NamespaceName)), value);
             }
         }
 
@@ -335,7 +405,7 @@ namespace Novacode
         {
             Xml = new XElement(
                 XName.Get("legend", DocX.c.NamespaceName),
-                new XElement(XName.Get("legendPos", DocX.c.NamespaceName), new XAttribute("val", GetPositionValue(position))),
+                new XElement(XName.Get("legendPos", DocX.c.NamespaceName), new XAttribute("val", XElementHelpers.GetXmlNameFromEnum<ChartLegendPosition>(position))),
                 new XElement(XName.Get("overlay", DocX.c.NamespaceName), new XAttribute("val", GetOverlayValue(overlay)))
                 );
         }
@@ -351,29 +421,6 @@ namespace Novacode
             else
                 return "0";
         }
-
-        /// <summary>
-        /// ECMA-376, page 3906
-        /// 21.2.3.24 ST_LegendPos (Legend Position)
-        /// </summary>
-        private String GetPositionValue(ChartLegendPosition position)
-        {
-            switch (position)
-            {
-                case ChartLegendPosition.Top:
-                    return "t";
-                case ChartLegendPosition.Bottom:
-                    return "b";
-                case ChartLegendPosition.Left:
-                    return "l";
-                case ChartLegendPosition.Right:
-                    return "r";
-                case ChartLegendPosition.TopRight:
-                    return "tr";
-                default:
-                    throw new NotImplementedException();
-            }
-        }
     }
 
     /// <summary>
@@ -382,10 +429,15 @@ namespace Novacode
     /// </summary>
     public enum ChartLegendPosition
     {
+        [XmlName("t")]
         Top,
+        [XmlName("b")]
         Bottom,
+        [XmlName("l")]
         Left,
+        [XmlName("r")]
         Right,
+        [XmlName("tr")]
         TopRight
     }
 
@@ -395,8 +447,11 @@ namespace Novacode
     /// </summary>
     public enum DisplayBlanksAs
     {
+        [XmlName("gap")]
         Gap,
+        [XmlName("span")]
         Span,
+        [XmlName("zero")]
         Zero
-    }    
+    }
 }
