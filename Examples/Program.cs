@@ -274,6 +274,8 @@ namespace Examples
                 table.Rows[1].Cells[0].Paragraphs[0].Append("4");
                 table.Rows[1].Cells[1].Paragraphs[0].Append("1");
 
+                table.InsertRow(table.Rows[1]);                
+
                 // Add an image into the document.    
                 Novacode.Image image = document.AddImage(@"images\logo_template.png");
 

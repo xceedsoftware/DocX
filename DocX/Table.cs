@@ -596,6 +596,15 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Insert a copy of a row at the end of this table.
+        /// </summary>      
+        /// <returns>A new row.</returns>
+        public Row InsertRow(Row row)
+        {
+            return InsertRow(row, RowCount);
+        }
+
+        /// <summary>
         /// Insert a column to the right of a Table.
         /// </summary>
         /// <example>
@@ -790,6 +799,35 @@ namespace Novacode
 
             XElement e = new XElement(XName.Get("tr", DocX.w.NamespaceName), content);
             Row newRow = new Row(this, Document, e);
+
+            XElement rowXml;
+            if (index == Rows.Count)
+            {
+                rowXml = Rows.Last().Xml;
+                rowXml.AddAfterSelf(newRow.Xml);
+            }
+
+            else
+            {
+                rowXml = Rows[index].Xml;
+                rowXml.AddBeforeSelf(newRow.Xml);
+            }
+
+            return newRow;
+        }
+
+        /// <summary>
+        /// Insert a copy of a row into this table.
+        /// </summary>
+        /// <param name="row">Row to copy and insert.</param>
+        /// <param name="index">Index to insert row at.</param>
+        /// <returns>A new Row</returns>
+        public Row InsertRow(Row row, int index)
+        {
+            if (index < 0 || index > RowCount)
+                throw new IndexOutOfRangeException();
+
+            Row newRow = new Row(this, Document, row.Xml);
 
             XElement rowXml;
             if (index == Rows.Count)
