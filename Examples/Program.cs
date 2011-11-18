@@ -269,12 +269,13 @@ namespace Examples
                 Table table = document.AddTable(2, 2);
                 table.Design = TableDesign.ColorfulGridAccent2;
                 table.Alignment = Alignment.center;
-                table.Rows[0].Cells[0].Paragraphs[0].Append("3");
-                table.Rows[0].Cells[1].Paragraphs[0].Append("1");
-                table.Rows[1].Cells[0].Paragraphs[0].Append("4");
-                table.Rows[1].Cells[1].Paragraphs[0].Append("1");
+                table.Rows[0].Cells[0].Paragraphs[0].Append("1");
+                table.Rows[0].Cells[1].Paragraphs[0].Append("2");
+                table.Rows[1].Cells[0].Paragraphs[0].Append("3");
+                table.Rows[1].Cells[1].Paragraphs[0].Append("4");
 
-                table.InsertRow(table.Rows[1]);                
+                Row newRow = table.InsertRow(table.Rows[1]);
+                newRow.ReplaceText("4", "5");
 
                 // Add an image into the document.    
                 Novacode.Image image = document.AddImage(@"images\logo_template.png");

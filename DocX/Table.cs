@@ -797,23 +797,7 @@ namespace Novacode
                 content.Add(cell);
             }
 
-            XElement e = new XElement(XName.Get("tr", DocX.w.NamespaceName), content);
-            Row newRow = new Row(this, Document, e);
-
-            XElement rowXml;
-            if (index == Rows.Count)
-            {
-                rowXml = Rows.Last().Xml;
-                rowXml.AddAfterSelf(newRow.Xml);
-            }
-
-            else
-            {
-                rowXml = Rows[index].Xml;
-                rowXml.AddBeforeSelf(newRow.Xml);
-            }
-
-            return newRow;
+            return InsertRow(content, index);
         }
 
         /// <summary>
@@ -824,10 +808,19 @@ namespace Novacode
         /// <returns>A new Row</returns>
         public Row InsertRow(Row row, int index)
         {
+            if (row == null)
+                throw new ArgumentNullException("row");
+
             if (index < 0 || index > RowCount)
                 throw new IndexOutOfRangeException();
 
-            Row newRow = new Row(this, Document, row.Xml);
+            List<XElement> content = row.Xml.Elements(XName.Get("tc", DocX.w.NamespaceName)).Select(element => HelperFunctions.CloneElement(element)).ToList();
+            return InsertRow(content, index);
+        }
+
+        private Row InsertRow(List<XElement> content, Int32 index)
+        {
+            Row newRow = new Row(this, Document, new XElement(XName.Get("tr", DocX.w.NamespaceName), content));
 
             XElement rowXml;
             if (index == Rows.Count)
