@@ -32,8 +32,8 @@ namespace Novacode
         static internal XNamespace c = "http://schemas.openxmlformats.org/drawingml/2006/chart";
         #endregion
 
-        public float PageWidth 
-        { 
+        public float PageWidth
+        {
             get
             {
                 XElement body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
@@ -42,13 +42,13 @@ namespace Novacode
                 {
                     XElement pgSz = sectPr.Element(XName.Get("pgSz", DocX.w.NamespaceName));
 
-                    if(pgSz != null)
+                    if (pgSz != null)
                     {
                         XAttribute w = pgSz.Attribute(XName.Get("w", DocX.w.NamespaceName));
-                        if(w != null)
+                        if (w != null)
                         {
                             float f;
-                            if(float.TryParse(w.Value,out f))
+                            if (float.TryParse(w.Value, out f))
                                 return (int)(f / 15.0f);
                         }
                     }
@@ -64,7 +64,7 @@ namespace Novacode
                 if (body != null)
                 {
                     XElement sectPr = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
-                 
+
                     if (sectPr != null)
                     {
                         XElement pgSz = sectPr.Element(XName.Get("pgSz", DocX.w.NamespaceName));
@@ -2915,6 +2915,19 @@ namespace Novacode
             return p;
         }
 
+        public Paragraph[] InsertParagraphs(string text)
+        {
+            String[] textArray = text.Split('\n');
+            List<Paragraph> paragraphs = new List<Paragraph>();
+            foreach (var textForParagraph in textArray)
+            {
+                Paragraph p = base.InsertParagraph(text);
+                p.PackagePart = mainPart;
+                paragraphs.Add(p);
+            }
+            return paragraphs.ToArray();
+        }
+
         public override List<Paragraph> Paragraphs
         {
             get
@@ -2971,7 +2984,7 @@ namespace Novacode
             PackageRelationship rel = mainPart.CreateRelationship(chartPackagePart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", relID);
 
             // Save a chart info the chartPackagePart
-            chart.Xml.Save(chartPackagePart.GetStream(FileMode.Create, FileAccess.Write));                   
+            chart.Xml.Save(chartPackagePart.GetStream(FileMode.Create, FileAccess.Write));
 
             // Insert a new chart into a paragraph.
             Paragraph p = InsertParagraph();
@@ -2997,7 +3010,7 @@ namespace Novacode
                         )
                     )
                ));
-            p.Xml.Add(chartElement);            
+            p.Xml.Add(chartElement);
         }
 
         #region IDisposable Members
