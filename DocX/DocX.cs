@@ -2984,7 +2984,8 @@ namespace Novacode
             PackageRelationship rel = mainPart.CreateRelationship(chartPackagePart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", relID);
 
             // Save a chart info the chartPackagePart
-            chart.Xml.Save(chartPackagePart.GetStream(FileMode.Create, FileAccess.Write));
+            using (TextWriter tw = new StreamWriter(chartPackagePart.GetStream(FileMode.Create, FileAccess.Write)))
+                chart.Xml.Save(tw);
 
             // Insert a new chart into a paragraph.
             Paragraph p = InsertParagraph();
