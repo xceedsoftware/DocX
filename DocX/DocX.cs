@@ -890,7 +890,7 @@ namespace Novacode
                 if (!uri_string.StartsWith("/"))
                     uri_string = "/" + uri_string;
 
-                PackagePart external_image_part = rel.Package.GetPart(new Uri("/word" + uri_string, UriKind.RelativeOrAbsolute));
+                PackagePart external_image_part = rel.Package.GetPart(new Uri((uri_string.StartsWith("/word") ? "" : "/word") + uri_string, UriKind.RelativeOrAbsolute));
                 PackagePart internal_image_part = package.CreatePart(new Uri(string.Format("/word/media/image{0}.jpeg", max + 1), UriKind.RelativeOrAbsolute), System.Net.Mime.MediaTypeNames.Image.Jpeg);
 
                 PackageRelationship pr = internal_word_document.CreateRelationship(internal_image_part.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
