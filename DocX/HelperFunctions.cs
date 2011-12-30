@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.IO.Compression;
 using System.Security.Principal;
+using System.Globalization;
 
 namespace Novacode
 {
@@ -180,6 +181,9 @@ namespace Novacode
                 </w:settings>"
                 );
 
+                XElement themeFontLang = settings.Root.Element(XName.Get("themeFontLang", DocX.w.NamespaceName));
+                themeFontLang.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), CultureInfo.CurrentCulture);
+
                 // Save the settings document.
                 using (TextWriter tw = new StreamWriter(settingsPart.GetStream()))
                     settings.Save(tw);
@@ -248,7 +252,9 @@ namespace Novacode
             PackagePart word_styles = package.CreatePart(new Uri("/word/styles.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml");
 
             stylesDoc = HelperFunctions.DecompressXMLResource("Novacode.Resources.default_styles.xml.gz");
-
+            XElement lang = stylesDoc.Root.Element(XName.Get("docDefaults", DocX.w.NamespaceName)).Element(XName.Get("rPrDefault", DocX.w.NamespaceName)).Element(XName.Get("rPr", DocX.w.NamespaceName)).Element(XName.Get("lang", DocX.w.NamespaceName));
+            lang.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), CultureInfo.CurrentCulture);
+            
             // Save /word/styles.xml
             using (TextWriter tw = new StreamWriter(word_styles.GetStream(FileMode.Create, FileAccess.Write)))
                 stylesDoc.Save(tw, SaveOptions.DisableFormatting);
