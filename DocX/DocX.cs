@@ -1165,7 +1165,7 @@ namespace Novacode
             if (rowCount < 1 || coloumnCount < 1)
                 throw new ArgumentOutOfRangeException("Row and Column count must be greater than zero.");
 
-            Table t = InsertTable(index, rowCount, coloumnCount);
+            Table t = base.InsertTable(index, rowCount, coloumnCount);
             t.mainPart = mainPart;
             return t;
         }
