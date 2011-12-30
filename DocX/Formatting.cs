@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using System.Drawing;
+using System.Globalization;
 namespace Novacode
 {
     /// <summary>
@@ -30,6 +31,8 @@ namespace Novacode
         private int? position;
         private double? spacing;
 
+        private CultureInfo language;
+
         /// <summary>
         /// A text formatting.
         /// </summary>
@@ -42,7 +45,26 @@ namespace Novacode
             underlineStyle = UnderlineStyle.none;
             misc = Misc.none;
 
+            // Use current culture by default
+            language = CultureInfo.CurrentCulture;
+
             rPr = new XElement(XName.Get("rPr", DocX.w.NamespaceName));
+        }
+
+        /// <summary>
+        /// Text language
+        /// </summary>
+        public CultureInfo Language 
+        { 
+            get 
+            { 
+                return language; 
+            } 
+            
+            set 
+            { 
+                language = value; 
+            } 
         }
 
         internal XElement Xml
@@ -51,6 +73,9 @@ namespace Novacode
             {
                 rPr = new XElement(XName.Get("rPr", DocX.w.NamespaceName));
 
+                if (language != null)
+                    rPr.Add(new XElement(XName.Get("lang", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), language.Name)));
+                
                 if(spacing.HasValue)
                     rPr.Add(new XElement(XName.Get("spacing", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), spacing.Value * 20)));
 

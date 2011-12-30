@@ -9,6 +9,7 @@ using System.Collections;
 using System.IO.Packaging;
 using System.IO;
 using System.Drawing;
+using System.Globalization;
 
 namespace Novacode
 {
@@ -1849,6 +1850,58 @@ namespace Novacode
             }
 
             HelperFunctions.RenumberIDs(Document);
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <returns>This Paragraph in curent culture</returns>
+        /// <example>
+        /// Add a new Paragraph with russian text to this document and then set language of text to local culture.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph with russian text and set curent local culture to it.
+        ///     Paragraph p = document.InsertParagraph("Привет мир!").CurentCulture();
+        ///       
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public Paragraph CurentCulture()
+        {
+            ApplyTextFormattingProperty(XName.Get("lang", DocX.w.NamespaceName),
+                string.Empty,
+                new XAttribute(XName.Get("val", DocX.w.NamespaceName), CultureInfo.CurrentCulture.Name));
+            return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="culture">The CultureInfo for text</param>
+        /// <returns>This Paragraph in curent culture</returns>
+        /// <example>
+        /// Add a new Paragraph with russian text to this document and then set language of text to local culture.
+        /// <code>
+        /// // Load a document.
+        /// using (DocX document = DocX.Create(@"Test.docx"))
+        /// {
+        ///     // Insert a new Paragraph with russian text and set specific culture to it.
+        ///     Paragraph p = document.InsertParagraph("Привет мир").Culture(CultureInfo.CreateSpecificCulture("ru-RU"));
+        ///       
+        ///     // Save this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        public Paragraph Culture(CultureInfo culture)
+        {
+            ApplyTextFormattingProperty(XName.Get("lang", DocX.w.NamespaceName), string.Empty,
+                new XAttribute(XName.Get("val", DocX.w.NamespaceName), culture.Name));
+            return this;
         }
 
         /// <summary>
