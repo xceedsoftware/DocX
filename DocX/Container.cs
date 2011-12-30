@@ -423,7 +423,7 @@ namespace Novacode
         public Table InsertTable(int rowCount, int coloumnCount)
         {
             XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
-            Xml.Elements().First().Add(newTable);
+            Xml.Add(newTable);
 
             return new Table(Document, newTable);
         }
