@@ -549,6 +549,97 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void Test_Get_Set_Hyperlink()
+        {
+            // Load test document.
+            using (DocX document = DocX.Load(directory_documents + "Hyperlinks.docx"))
+            {
+                // Hyperlinks in the document.
+                Assert.IsTrue(document.Hyperlinks.Count == 3);
+                Assert.IsTrue(document.Hyperlinks[0].Text == "page1");
+                Assert.IsTrue(document.Hyperlinks[0].Uri.AbsoluteUri == "http://www.page1.com/");
+                Assert.IsTrue(document.Hyperlinks[1].Text == "page2");
+                Assert.IsTrue(document.Hyperlinks[1].Uri.AbsoluteUri == "http://www.page2.com/");
+                Assert.IsTrue(document.Hyperlinks[2].Text == "page3");
+                Assert.IsTrue(document.Hyperlinks[2].Uri.AbsoluteUri == "http://www.page3.com/");
+
+                // Change the Hyperlinks and check that it has in fact changed.
+                document.Hyperlinks[0].Text = "somethingnew";
+                document.Hyperlinks[0].Uri = new Uri("http://www.google.com/");
+                Assert.IsTrue(document.Hyperlinks[0].Text == "somethingnew");
+                Assert.IsTrue(document.Hyperlinks[0].Uri.AbsoluteUri == "http://www.google.com/");
+                document.Hyperlinks[1].Text = "somethingnew";
+                document.Hyperlinks[1].Uri = new Uri("http://www.google.com/");
+                Assert.IsTrue(document.Hyperlinks[1].Text == "somethingnew");
+                Assert.IsTrue(document.Hyperlinks[1].Uri.AbsoluteUri == "http://www.google.com/");
+                document.Hyperlinks[2].Text = "somethingnew";
+                document.Hyperlinks[2].Uri = new Uri("http://www.google.com/");
+                Assert.IsTrue(document.Hyperlinks[2].Text == "somethingnew");
+                Assert.IsTrue(document.Hyperlinks[2].Uri.AbsoluteUri == "http://www.google.com/");
+
+                Assert.IsTrue(document.Headers.first.Hyperlinks.Count == 1);
+                Assert.IsTrue(document.Headers.first.Hyperlinks[0].Text == "header-first");
+                Assert.IsTrue(document.Headers.first.Hyperlinks[0].Uri.AbsoluteUri == "http://www.header-first.com/");
+                
+                // Change the Hyperlinks and check that it has in fact changed.
+                document.Headers.first.Hyperlinks[0].Text = "somethingnew";
+                document.Headers.first.Hyperlinks[0].Uri = new Uri("http://www.google.com/");
+                Assert.IsTrue(document.Headers.first.Hyperlinks[0].Text == "somethingnew");
+                Assert.IsTrue(document.Headers.first.Hyperlinks[0].Uri.AbsoluteUri == "http://www.google.com/");
+
+                Assert.IsTrue(document.Headers.odd.Hyperlinks.Count == 1);
+                Assert.IsTrue(document.Headers.odd.Hyperlinks[0].Text == "header-odd");
+                Assert.IsTrue(document.Headers.odd.Hyperlinks[0].Uri.AbsoluteUri == "http://www.header-odd.com/");
+
+                // Change the Hyperlinks and check that it has in fact changed.
+                document.Headers.odd.Hyperlinks[0].Text = "somethingnew";
+                document.Headers.odd.Hyperlinks[0].Uri = new Uri("http://www.google.com/");
+                Assert.IsTrue(document.Headers.odd.Hyperlinks[0].Text == "somethingnew");
+                Assert.IsTrue(document.Headers.odd.Hyperlinks[0].Uri.AbsoluteUri == "http://www.google.com/");
+
+                Assert.IsTrue(document.Headers.even.Hyperlinks.Count == 1);
+                Assert.IsTrue(document.Headers.even.Hyperlinks[0].Text == "header-even");
+                Assert.IsTrue(document.Headers.even.Hyperlinks[0].Uri.AbsoluteUri == "http://www.header-even.com/");
+
+                // Change the Hyperlinks and check that it has in fact changed.
+                document.Headers.even.Hyperlinks[0].Text = "somethingnew";
+                document.Headers.even.Hyperlinks[0].Uri = new Uri("http://www.google.com/");
+                Assert.IsTrue(document.Headers.even.Hyperlinks[0].Text == "somethingnew");
+                Assert.IsTrue(document.Headers.even.Hyperlinks[0].Uri.AbsoluteUri == "http://www.google.com/");
+
+                Assert.IsTrue(document.Footers.first.Hyperlinks.Count == 1);
+                Assert.IsTrue(document.Footers.first.Hyperlinks[0].Text == "footer-first");
+                Assert.IsTrue(document.Footers.first.Hyperlinks[0].Uri.AbsoluteUri == "http://www.footer-first.com/");
+
+                // Change the Hyperlinks and check that it has in fact changed.
+                document.Footers.first.Hyperlinks[0].Text = "somethingnew";
+                document.Footers.first.Hyperlinks[0].Uri = new Uri("http://www.google.com/");
+                Assert.IsTrue(document.Footers.first.Hyperlinks[0].Text == "somethingnew");
+                Assert.IsTrue(document.Footers.first.Hyperlinks[0].Uri.AbsoluteUri == "http://www.google.com/");
+
+                Assert.IsTrue(document.Footers.odd.Hyperlinks.Count == 1);
+                Assert.IsTrue(document.Footers.odd.Hyperlinks[0].Text == "footer-odd");
+                Assert.IsTrue(document.Footers.odd.Hyperlinks[0].Uri.AbsoluteUri == "http://www.footer-odd.com/");
+
+                // Change the Hyperlinks and check that it has in fact changed.
+                document.Footers.odd.Hyperlinks[0].Text = "somethingnew";
+                document.Footers.odd.Hyperlinks[0].Uri = new Uri("http://www.google.com/");
+                Assert.IsTrue(document.Footers.odd.Hyperlinks[0].Text == "somethingnew");
+                Assert.IsTrue(document.Footers.odd.Hyperlinks[0].Uri.AbsoluteUri == "http://www.google.com/");
+
+                Assert.IsTrue(document.Footers.even.Hyperlinks.Count == 1);
+                Assert.IsTrue(document.Footers.even.Hyperlinks[0].Text == "footer-even");
+                Assert.IsTrue(document.Footers.even.Hyperlinks[0].Uri.AbsoluteUri == "http://www.footer-even.com/");
+
+                // Change the Hyperlinks and check that it has in fact changed.
+                document.Footers.even.Hyperlinks[0].Text = "somethingnew";
+                document.Footers.even.Hyperlinks[0].Uri = new Uri("http://www.google.com/");
+                Assert.IsTrue(document.Footers.even.Hyperlinks[0].Text == "somethingnew");
+                Assert.IsTrue(document.Footers.even.Hyperlinks[0].Uri.AbsoluteUri == "http://www.google.com/");
+            }
+        }
+
+        [TestMethod]
         public void Test_Append_Hyperlink()
         {
             // Load test document.

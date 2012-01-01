@@ -1819,10 +1819,10 @@ namespace Novacode
                 new XElement(XName.Get("t", DocX.w.NamespaceName), text))
             );
 
-            Hyperlink h = new Hyperlink(this, i);
+            Hyperlink h = new Hyperlink(this, mainPart, i);
 
-            h.Text = text;
-            h.Uri = uri;
+            h.text = text;
+            h.uri = uri;
 
             AddHyperlinkStyleIfNotPresent();
 

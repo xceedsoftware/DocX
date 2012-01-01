@@ -13,7 +13,13 @@ namespace Novacode
     public class Hyperlink: DocXElement
     {
         internal Uri uri;
+        internal String text;
+
         internal Dictionary<PackagePart, PackageRelationship> hyperlink_rels;
+        public PackagePart mainPart;
+        internal int type;
+        internal String id;
+        internal XElement instrText;
 
         /// <summary>
         /// Remove a Hyperlink from this Paragraph only.
@@ -75,46 +81,45 @@ namespace Novacode
         { 
             get
             {
-                // Create a string builder.
-                StringBuilder sb = new StringBuilder();
-
-                // Get all the runs in this Text.
-                var runs = from r in Xml.Elements()
-                           where r.Name.LocalName == "r"
-                           select new Run(Document, r, 0);
-
-                // Remove each run.
-                foreach (Run r in runs)
-                    sb.Append(r.Value);
-
-                return sb.ToString();
+                return this.text;
             } 
 
             set
             {
-                // Get all the runs in this Text.
-                var runs = from r in Xml.Elements()
-                           where r.Name.LocalName == "r"
-                           select r;
-
-                // Remove each run.
-                for (int i = 0; i < runs.Count(); i++)
-                    runs.Remove();
-
-                XElement rPr = 
-                new XElement
-                (
-                    DocX.w + "rPr",
+                XElement rPr =
                     new XElement
                     (
-                        DocX.w + "rStyle",
-                        new XAttribute(DocX.w + "val", "Hyperlink")
-                    )
-                );
+                        DocX.w + "rPr",
+                        new XElement
+                        (
+                            DocX.w + "rStyle",
+                            new XAttribute(DocX.w + "val", "Hyperlink")
+                        )
+                    );
 
                 // Format and add the new text.
                 List<XElement> newRuns = HelperFunctions.FormatInput(value, rPr);
-                Xml.Add(newRuns);
+
+                if (type == 0)
+                {
+                    // Get all the runs in this Text.
+                    var runs = from r in Xml.Elements()
+                               where r.Name.LocalName == "r"
+                               select r;
+
+                    // Remove each run.
+                    for (int i = 0; i < runs.Count(); i++)
+                        runs.Remove();
+
+                    Xml.Add(newRuns);
+                }
+
+                else
+                {
+                    Xml.ReplaceWith(newRuns);
+                }
+
+                this.text = value;
             } 
         }
 
@@ -143,34 +148,71 @@ namespace Novacode
         public Uri Uri 
         { 
             get
-            {                
-                // Return the Hyperlinks Uri.
-                return uri;
+            {
+                if (type == 0 && id != String.Empty)
+                {
+                    PackageRelationship r = mainPart.GetRelationship(id);
+                    return r.TargetUri;
+                }
+
+                return this.uri;
             } 
 
             set
             {
-                foreach (PackagePart p in hyperlink_rels.Keys)
+                if (type == 0)
                 {
-                    PackageRelationship r = hyperlink_rels[p];
-
+                    PackageRelationship r = mainPart.GetRelationship(id);
+                    
                     // Get all of the information about this relationship.
                     TargetMode r_tm = r.TargetMode;
                     string r_rt = r.RelationshipType;
                     string r_id = r.Id;
 
                     // Delete the relationship
-                    p.DeleteRelationship(r_id);
-                    p.CreateRelationship(value, r_tm, r_rt, r_id);
+                    mainPart.DeleteRelationship(r_id);
+                    mainPart.CreateRelationship(value, r_tm, r_rt, r_id);
                 }
 
-                uri = value;
+                else
+                {
+                    instrText.Value = "HYPERLINK " + "\"" + value + "\"";
+                }
+
+                this.uri = value;
             } 
         }
 
-        internal Hyperlink(DocX document, XElement i): base(document, i)
+        internal Hyperlink(DocX document, PackagePart mainPart, XElement i): base(document, i)
         {
-            hyperlink_rels = new Dictionary<PackagePart, PackageRelationship>();
+            this.type = 0;
+            this.id = i.Attribute(XName.Get("id", DocX.r.NamespaceName)).Value;
+
+            StringBuilder sb = new StringBuilder();
+            HelperFunctions.GetTextRecursive(i, ref sb);
+            this.text = sb.ToString();
+        }
+
+        internal Hyperlink(DocX document, XElement instrText, XElement r) : base(document, r)
+        {
+            this.type = 1;
+            this.instrText = instrText;
+
+            try
+            {
+                int start = instrText.Value.IndexOf("HYPERLINK \"") + "HYPERLINK \"".Length;
+                int end = instrText.Value.IndexOf("\"", start);
+                if (start != -1 && end != -1)
+                {
+                    this.uri = new Uri(instrText.Value.Substring(start, end - start), UriKind.Absolute);
+
+                    StringBuilder sb = new StringBuilder();
+                    HelperFunctions.GetTextRecursive(r, ref sb);
+                    this.text = sb.ToString();
+                }
+            }
+
+            catch (Exception e){throw e;}
         }
     }
 }

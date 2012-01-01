@@ -101,13 +101,58 @@ namespace Novacode
         {
             get 
             {  
-                List<Hyperlink> hyperlinks =
+                List<Hyperlink> hyperlinks = new List<Hyperlink>();
+
+                List<XElement> hyperlink_elements =
                 (
-                    from h in Xml.Elements()
-                    where (h.Name.LocalName == "hyperlink")
-                    select new Hyperlink(Document, h)
+                    from h in Xml.Descendants()
+                    where (h.Name.LocalName == "hyperlink" || h.Name.LocalName == "instrText")
+                    select h
                 ).ToList();
-                
+
+                foreach (XElement he in hyperlink_elements)
+                {
+                    if (he.Name.LocalName == "hyperlink")
+                    {
+                        try
+                        {
+                            Hyperlink h = new Hyperlink(Document, mainPart, he);
+                            h.mainPart = mainPart;
+                            hyperlinks.Add(h);
+                        }
+
+                        catch (Exception) { }
+                    }
+
+                    else
+                    {
+                        // Find the parent run, no matter how deeply nested we are.
+                        XElement e = he;
+                        while (e.Name.LocalName != "r")
+                            e = e.Parent;
+
+                        foreach (XElement r in e.ElementsAfterSelf(XName.Get("r", DocX.w.NamespaceName)))
+                        {
+                            XElement rStyle = r.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)).SingleOrDefault<XElement>();
+                            if (rStyle != null)
+                            {
+                                XAttribute a = rStyle.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                                if (a != null && a.Value.Equals("Hyperlink", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    try
+                                    {
+                                        Hyperlink h = new Hyperlink(Document, he, r);
+                                        h.mainPart = mainPart;
+                                        hyperlinks.Add(h);
+                                    }
+
+                                    catch(Exception){}
+                                }
+                            }
+                        }
+                    }
+                }
+
                 return hyperlinks;
             }
         }
@@ -1968,7 +2013,7 @@ namespace Novacode
             if (!Document.package.PartExists(rels_path))
                 HelperFunctions.CreateRelsPackagePart(Document, rels_path);
 
-            // Check to see if a rel for this Picture exists, create it if not.
+            // Check to see if a rel for this Hyperlink exists, create it if not.
             var Id = GetOrGenerateRel(h);
 
             Xml.Add(h.Xml);
