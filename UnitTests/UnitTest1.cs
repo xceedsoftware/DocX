@@ -86,6 +86,46 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void Test_CustomProperty_Add()
+        {
+            // Load a document.
+            using (DocX document = DocX.Create("CustomProperty_Add.docx"))
+            {
+                Assert.IsTrue(document.CustomProperties.Count == 0);
+
+                document.AddCustomProperty(new CustomProperty("fname", "cathal"));
+
+                Assert.IsTrue(document.CustomProperties.Count == 1);
+                Assert.IsTrue(document.CustomProperties.ContainsKey("fname"));
+                Assert.IsTrue((String)document.CustomProperties["fname"].Value == "cathal");
+
+                document.AddCustomProperty(new CustomProperty("age", 24));
+
+                Assert.IsTrue(document.CustomProperties.Count == 2);
+                Assert.IsTrue(document.CustomProperties.ContainsKey("age"));
+                Assert.IsTrue((int)document.CustomProperties["age"].Value == 24);
+
+                document.AddCustomProperty(new CustomProperty("male", true));
+
+                Assert.IsTrue(document.CustomProperties.Count == 3);
+                Assert.IsTrue(document.CustomProperties.ContainsKey("male"));
+                Assert.IsTrue((bool)document.CustomProperties["male"].Value == true);
+
+                document.AddCustomProperty(new CustomProperty("newyear2012", new DateTime(2012, 1, 1)));
+
+                Assert.IsTrue(document.CustomProperties.Count == 4);
+                Assert.IsTrue(document.CustomProperties.ContainsKey("newyear2012"));
+                Assert.IsTrue((DateTime)document.CustomProperties["newyear2012"].Value == new DateTime(2012, 1, 1));
+
+                document.AddCustomProperty(new CustomProperty("fav_num", 3.141592));
+
+                Assert.IsTrue(document.CustomProperties.Count == 5);
+                Assert.IsTrue(document.CustomProperties.ContainsKey("fav_num"));
+                Assert.IsTrue((double)document.CustomProperties["fav_num"].Value == 3.141592);
+            }
+        }
+
+        [TestMethod]
         public void Test_EverybodyHasAHome_Loaded()
         {
             // Load a document.

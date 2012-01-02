@@ -20,6 +20,7 @@ namespace Novacode
         internal int type;
         internal String id;
         internal XElement instrText;
+        internal List<XElement> runs;
 
         /// <summary>
         /// Remove a Hyperlink from this Paragraph only.
@@ -116,7 +117,18 @@ namespace Novacode
 
                 else
                 {
-                    Xml.ReplaceWith(newRuns);
+                    XElement separate = XElement.Parse(@"
+                    <w:r xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+                        <w:fldChar w:fldCharType='separate'/> 
+                    </w:r>");
+
+                    XElement end = XElement.Parse(@"
+                    <w:r xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+                        <w:fldChar w:fldCharType='end' /> 
+                    </w:r>");
+
+                    runs.Last().AddAfterSelf(separate, newRuns, end);
+                    runs.ForEach(r => r.Remove());
                 }
 
                 this.text = value;
@@ -193,10 +205,11 @@ namespace Novacode
             this.text = sb.ToString();
         }
 
-        internal Hyperlink(DocX document, XElement instrText, XElement r) : base(document, r)
+        internal Hyperlink(DocX document, XElement instrText, List<XElement> runs) : base(document, null)
         {
             this.type = 1;
             this.instrText = instrText;
+            this.runs = runs;
 
             try
             {
@@ -207,7 +220,7 @@ namespace Novacode
                     this.uri = new Uri(instrText.Value.Substring(start, end - start), UriKind.Absolute);
 
                     StringBuilder sb = new StringBuilder();
-                    HelperFunctions.GetTextRecursive(r, ref sb);
+                    HelperFunctions.GetTextRecursive(new XElement(XName.Get("temp", DocX.w.NamespaceName), runs), ref sb);
                     this.text = sb.ToString();
                 }
             }

@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples", "Examples\Exampl
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 4
+		SccNumberOfProjects = 5
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs08
 		SccLocalPath0 = .
@@ -29,6 +29,9 @@ Global
 		SccProjectUniqueName3 = Examples\\Examples.csproj
 		SccProjectName3 = Examples
 		SccLocalPath3 = Examples
+		SccProjectUniqueName4 = ConsoleApplication4\\ConsoleApplication4.csproj
+		SccProjectName4 = ConsoleApplication4
+		SccLocalPath4 = ConsoleApplication4
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = DocX.vsmdi

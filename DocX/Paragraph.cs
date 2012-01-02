@@ -131,22 +131,29 @@ namespace Novacode
                         while (e.Name.LocalName != "r")
                             e = e.Parent;
 
+                        // Take every element until we reach w:fldCharType="end"
+                        List<XElement> hyperlink_runs = new List<XElement>();
                         foreach (XElement r in e.ElementsAfterSelf(XName.Get("r", DocX.w.NamespaceName)))
                         {
-                            XElement rStyle = r.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)).SingleOrDefault<XElement>();
-                            if (rStyle != null)
+                            // Add this run to the list.
+                            hyperlink_runs.Add(r);
+
+                            XElement fldChar = r.Descendants(XName.Get("fldChar", DocX.w.NamespaceName)).SingleOrDefault<XElement>();
+                            if (fldChar != null)
                             {
-                                XAttribute a = rStyle.Attribute(XName.Get("val", DocX.w.NamespaceName));
-                                if (a != null && a.Value.Equals("Hyperlink", StringComparison.CurrentCultureIgnoreCase))
+                                XAttribute fldCharType = fldChar.Attribute(XName.Get("fldCharType", DocX.w.NamespaceName));
+                                if (fldCharType != null && fldCharType.Value.Equals("end", StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     try
                                     {
-                                        Hyperlink h = new Hyperlink(Document, he, r);
+                                        Hyperlink h = new Hyperlink(Document, he, hyperlink_runs);
                                         h.mainPart = mainPart;
                                         hyperlinks.Add(h);
                                     }
 
                                     catch(Exception){}
+
+                                    break;
                                 }
                             }
                         }
@@ -2993,6 +3000,47 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Append a field of type document property, this field will display the custom property cp, at the end of this paragraph.
+        /// </summary>
+        /// <param name="cp">The custom property to display.</param>
+        /// <param name="f">The formatting to use for this text.</param>
+        /// <example>
+        /// Create, add and display a custom property in a document.
+        /// <code>
+        ///// Load a document.
+        ///using (DocX document = DocX.Create("CustomProperty_Add.docx"))
+        ///{
+        ///    // Add a few Custom Properties to this document.
+        ///    document.AddCustomProperty(new CustomProperty("fname", "cathal"));
+        ///    document.AddCustomProperty(new CustomProperty("age", 24));
+        ///    document.AddCustomProperty(new CustomProperty("male", true));
+        ///    document.AddCustomProperty(new CustomProperty("newyear2012", new DateTime(2012, 1, 1)));
+        ///    document.AddCustomProperty(new CustomProperty("fav_num", 3.141592));
+        ///
+        ///    // Insert a new Paragraph and append a load of DocProperties.
+        ///    Paragraph p = document.InsertParagraph("fname: ")
+        ///        .AppendDocProperty(document.CustomProperties["fname"])
+        ///        .Append(", age: ")
+        ///        .AppendDocProperty(document.CustomProperties["age"])
+        ///        .Append(", male: ")
+        ///        .AppendDocProperty(document.CustomProperties["male"])
+        ///        .Append(", newyear2012: ")
+        ///        .AppendDocProperty(document.CustomProperties["newyear2012"])
+        ///        .Append(", fav_num: ")
+        ///        .AppendDocProperty(document.CustomProperties["fav_num"]);
+        ///    
+        ///    // Save the changes to the document.
+        ///    document.Save();
+        ///}
+        /// </code>
+        /// </example>
+        public Paragraph AppendDocProperty(CustomProperty cp, bool trackChanges = false, Formatting f = null)
+        {
+            this.InsertDocProperty(cp, trackChanges, f);
+            return this;
+        }
+
+        /// <summary>
         /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
         /// </summary>
         /// <param name="cp">The custom property to display.</param>
@@ -3028,12 +3076,16 @@ namespace Novacode
         /// </example>
         public DocProperty InsertDocProperty(CustomProperty cp, bool trackChanges = false, Formatting f = null)
         {
+            XElement f_xml = null;
+            if (f != null)
+                f_xml = f.Xml;
+
             XElement e = new XElement
             (
                 XName.Get("fldSimple", DocX.w.NamespaceName),
                 new XAttribute(XName.Get("instr", DocX.w.NamespaceName), string.Format(@"DOCPROPERTY {0} \* MERGEFORMAT", cp.Name)),
                     new XElement(XName.Get("r", DocX.w.NamespaceName),
-                        new XElement(XName.Get("t", DocX.w.NamespaceName), f.Xml, cp.Value))
+                        new XElement(XName.Get("t", DocX.w.NamespaceName), f_xml, cp.Value))
             );
 
             XElement xml = e;
