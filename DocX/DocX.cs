@@ -2785,79 +2785,101 @@ namespace Novacode
             UpdateCustomPropertyValue(this, cp.Name, cp.Value.ToString());
         }
 
-
-
         internal static void UpdateCustomPropertyValue(DocX document, string customPropertyName, string customPropertyValue)
         {
-            foreach (XElement e in document.mainDoc.Descendants(XName.Get("fldSimple", w.NamespaceName)))
+            // A list of documents, which will contain, The Main Document and if they exist: header1, header2, header3, footer1, footer2, footer3.
+            List<XElement> documents = new List<XElement>{ document.mainDoc.Root };
+
+            // Check if each header exists and add if if so.
+            #region Headers
+            Headers headers = document.Headers;
+            if (headers.first != null)
+                documents.Add(headers.first.Xml);
+            if (headers.odd != null)
+                documents.Add(headers.odd.Xml);
+            if (headers.even != null)
+                documents.Add(headers.even.Xml); 
+            #endregion
+
+            // Check if each footer exists and add if if so.
+            #region Footers
+            Footers footers = document.Footers;
+            if (footers.first != null)
+                documents.Add(footers.first.Xml);
+            if (footers.odd != null)
+                documents.Add(footers.odd.Xml);
+            if (footers.even != null)
+                documents.Add(footers.even.Xml);
+            #endregion
+
+            // Process each document in the list.
+            foreach (XElement doc in documents)
             {
-                string attr_value = e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Replace(" ", string.Empty).Trim();
-                string match_value = string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName).Replace(" ", string.Empty);
-
-                if (attr_value.Equals(match_value, StringComparison.CurrentCultureIgnoreCase))
+                foreach (XElement e in doc.Descendants(XName.Get("instrText", w.NamespaceName)))
                 {
-                    XElement firstRun = e.Element(w + "r");
-                    XElement firstText = firstRun.Element(w + "t");
-                    XElement rPr = firstText.Element(w + "rPr");
+                    string attr_value = e.Value.Replace(" ", string.Empty).Trim();
+                    string match_value = string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName).Replace(" ", string.Empty);
 
-                    // Delete everything and insert updated text value
-                    e.RemoveNodes();
+                    if (attr_value.Equals(match_value, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        XNode node = e.Parent.NextNode;
+                        bool found = false;
+                        while (true)
+                        {
+                            if (node.NodeType == XmlNodeType.Element)
+                            {
+                                var ele = node as XElement;
+                                var match = ele.Descendants(XName.Get("t", w.NamespaceName));
+                                if (match.Count() > 0)
+                                {
+                                    if (!found)
+                                    {
+                                        match.First().Value = customPropertyValue;
+                                        found = true;
+                                    }
+                                    else
+                                    {
+                                        ele.RemoveNodes();
+                                    }
+                                }
+                                else
+                                {
+                                    match = ele.Descendants(XName.Get("fldChar", w.NamespaceName));
+                                    if (match.Count() > 0)
+                                    {
+                                        var endMatch = match.First().Attribute(XName.Get("fldCharType", w.NamespaceName));
+                                        if (endMatch != null && endMatch.Value == "end")
+                                        {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            node = node.NextNode;
+                        }
+                    }
+                }
 
-                    XElement t = new XElement(w + "t", rPr, customPropertyValue);
-                    Novacode.Text.PreserveSpace(t);
-                    e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
+                foreach (XElement e in doc.Descendants(XName.Get("fldSimple", w.NamespaceName)))
+                {
+                    string attr_value = e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Replace(" ", string.Empty).Trim();
+                    string match_value = string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName).Replace(" ", string.Empty);
+
+                    if (attr_value.Equals(match_value, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        XElement firstRun = e.Element(w + "r");
+                        XElement firstText = firstRun.Element(w + "t");
+                        XElement rPr = firstText.Element(w + "rPr");
+
+                        // Delete everything and insert updated text value
+                        e.RemoveNodes();
+
+                        XElement t = new XElement(w + "t", rPr, customPropertyValue);
+                        Novacode.Text.PreserveSpace(t);
+                        e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
+                    }
                 }
             }
-
-            //#region Headers
-            //foreach(PackagePart pp in document.headers)
-            //{
-            //    XDocument header = XDocument.Load(new StreamReader(pp.GetStream()));
-
-            //    foreach (XElement e in header.Descendants(XName.Get("fldSimple", w.NamespaceName)))
-            //    {
-            //        if (e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Trim().Equals(string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName), StringComparison.CurrentCultureIgnoreCase))
-            //        {
-            //            XElement firstRun = e.Element(w + "r");
-
-            //            // Delete everything and insert updated text value
-            //            e.RemoveNodes();
-
-            //            XElement t = new XElement(w + "t", customPropertyValue);
-            //            Novacode.Text.PreserveSpace(t);
-            //            e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
-            //        }
-            //    }
-
-            //    using (TextWriter tw = new StreamWriter(pp.GetStream()))
-            //        header.Save(tw);
-            //} 
-            //#endregion
-
-            //#region Footers
-            //foreach (PackagePart pp in document.footers)
-            //{
-            //    XDocument footer = XDocument.Load(new StreamReader(pp.GetStream()));
-
-            //    foreach (XElement e in footer.Descendants(XName.Get("fldSimple", w.NamespaceName)))
-            //    {
-            //        if (e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Trim().Equals(string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName), StringComparison.CurrentCultureIgnoreCase))
-            //        {
-            //            XElement firstRun = e.Element(w + "r");
-
-            //            // Delete everything and insert updated text value
-            //            e.RemoveNodes();
-
-            //            XElement t = new XElement(w + "t", customPropertyValue);
-            //            Novacode.Text.PreserveSpace(t);
-            //            e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
-            //        }
-            //    }
-
-            //    using (TextWriter tw = new StreamWriter(pp.GetStream()))
-            //        footer.Save(tw);
-            //}
-            //#endregion
         }
 
         public override Paragraph InsertParagraph()

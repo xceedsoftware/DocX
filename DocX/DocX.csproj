@@ -48,8 +48,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile>bin\Debug\DocX.XML</DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -118,9 +117,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Help\Changes in this version 1.0.0.10.docx" />
-    <None Include="Help\DocX v1.0.0.10 - Documentation.chm" />
-    <None Include="Help\Read Me.docx" />
     <None Include="StrongNameFile.pfx" />
   </ItemGroup>
   <ItemGroup>
