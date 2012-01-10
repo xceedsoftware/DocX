@@ -2785,10 +2785,17 @@ namespace Novacode
             UpdateCustomPropertyValue(this, cp.Name, cp.Value.ToString());
         }
 
+        /// <summary>
+        /// Update the custom properties inside the document
+        /// </summary>
+        /// <param name="document">The DocX document</param>
+        /// <param name="customPropertyName">The property used inside the document</param>
+        /// <param name="customPropertyValue">The new value for the property</param>
+        /// <remarks>Different version of Word create different Document XML.</remarks>
         internal static void UpdateCustomPropertyValue(DocX document, string customPropertyName, string customPropertyValue)
         {
             // A list of documents, which will contain, The Main Document and if they exist: header1, header2, header3, footer1, footer2, footer3.
-            List<XElement> documents = new List<XElement>{ document.mainDoc.Root };
+            List<XElement> documents = new List<XElement> { document.mainDoc.Root };
 
             // Check if each header exists and add if if so.
             #region Headers
@@ -2798,7 +2805,7 @@ namespace Novacode
             if (headers.odd != null)
                 documents.Add(headers.odd.Xml);
             if (headers.even != null)
-                documents.Add(headers.even.Xml); 
+                documents.Add(headers.even.Xml);
             #endregion
 
             // Check if each footer exists and add if if so.
@@ -2815,6 +2822,7 @@ namespace Novacode
             // Process each document in the list.
             foreach (XElement doc in documents)
             {
+                #region Word 2010+
                 foreach (XElement e in doc.Descendants(XName.Get("instrText", w.NamespaceName)))
                 {
                     string attr_value = e.Value.Replace(" ", string.Empty).Trim();
@@ -2859,7 +2867,9 @@ namespace Novacode
                         }
                     }
                 }
+            #endregion
 
+                #region < Word 2010
                 foreach (XElement e in doc.Descendants(XName.Get("fldSimple", w.NamespaceName)))
                 {
                     string attr_value = e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Replace(" ", string.Empty).Trim();
@@ -2879,6 +2889,7 @@ namespace Novacode
                         e.Add(new XElement(firstRun.Name, firstRun.Attributes(), firstRun.Element(XName.Get("rPr", w.NamespaceName)), t));
                     }
                 }
+                #endregion
             }
         }
 
