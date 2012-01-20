@@ -187,7 +187,7 @@ namespace Novacode
         {
             XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
             Xml.AddBeforeSelf(newTable);
-            XElement newlyInserted = Xml.ElementsBeforeSelf().First();
+            XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
             return new Table(Document, newlyInserted);
         }
@@ -195,7 +195,7 @@ namespace Novacode
         public virtual Table InsertTableBeforeSelf(Table t)
         {
             Xml.AddBeforeSelf(t.Xml);
-            XElement newlyInserted = Xml.ElementsBeforeSelf().First();
+            XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
             t.Xml = newlyInserted;
 
