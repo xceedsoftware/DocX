@@ -11,6 +11,7 @@ using System.IO;
 using System.Drawing;
 using System.Globalization;
 
+
 namespace Novacode
 {
     /// <summary>
@@ -1307,6 +1308,18 @@ namespace Novacode
             get
             {
                 return HelperFunctions.GetText(Xml);
+            }
+        }
+
+        /// <summary>
+        /// Gets the formatted text value of this Paragraph.
+        /// </summary>
+        public List<FormattedText> MagicText
+        {
+            // Returns the underlying XElement's Value property.
+            get
+            {
+                return HelperFunctions.GetFormattedText(Xml);
             }
         }
 

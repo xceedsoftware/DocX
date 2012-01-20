@@ -10,7 +10,7 @@ namespace Novacode
     /// <summary>
     /// A text formatting.
     /// </summary>
-    public class Formatting
+    public class Formatting : IComparable
     {
         private XElement rPr;
         private bool hidden;
@@ -65,6 +65,32 @@ namespace Novacode
             { 
                 language = value; 
             } 
+        }
+
+        public static Formatting Parse(XElement rPr)
+        {
+            Formatting formatting = new Formatting();
+
+            // Build up the Formatting object.
+            foreach (XElement option in rPr.Elements())
+            {
+                switch (option.Name.LocalName)
+                {
+                    case "lang": formatting.Language = new CultureInfo(option.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value); break;
+                    case "spacing": formatting.Spacing = Double.Parse(option.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value) / 20.0; break;
+                    case "position": formatting.Position = Int32.Parse(option.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value) / 2; break;
+                    case "kern": formatting.Position = Int32.Parse(option.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value) / 2; break;
+                    case "w": formatting.PercentageScale = Int32.Parse(option.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value); break;
+                    case "rFonts": break;
+                    case "vanish": formatting.hidden = true; break;
+                    case "b": formatting.Bold = true; break;
+                    case "i": formatting.Italic = true; break;
+
+                    default: break;
+                }
+            }
+
+            return formatting;
         }
 
         internal XElement Xml
@@ -217,7 +243,7 @@ namespace Novacode
         /// <summary>
         /// This formatting will apply Italic.
         /// </summary>
-        public bool Italic { get { return Italic; } set { italic = value; } }
+        public bool Italic { get { return italic; } set { italic = value; } }
 
         /// <summary>
         /// This formatting will apply StrickThrough.
@@ -369,5 +395,65 @@ namespace Novacode
         /// -->
         public FontFamily FontFamily { get { return fontFamily; } set { fontFamily = value; } }
 
+        public int CompareTo(object obj)
+        {
+            Formatting other = (Formatting)obj;
+
+            if(other.hidden != this.hidden)
+                return -1;
+
+            if(other.bold != this.bold)
+                return -1;
+
+            if(other.italic != this.italic)
+                return -1;
+
+            if(other.strikethrough != this.strikethrough)
+                return -1;
+
+            if(other.script != this.script)
+                return -1;
+
+            if(other.highlight != this.highlight)
+                return -1;
+
+            if(other.size != this.size)
+                return -1;
+
+            if(other.fontColor != this.fontColor)
+                return -1;
+
+            if(other.underlineColor != this.underlineColor)
+                return -1;
+
+            if(other.underlineStyle != this.underlineStyle)
+                return -1;
+
+            if(other.misc != this.misc)
+                return -1;
+
+            if(other.capsStyle != this.capsStyle)
+                return -1;
+
+            if(other.fontFamily != this.fontFamily)
+                return -1;
+
+            if(other.percentageScale != this.percentageScale)
+                return -1;
+
+            if(other.kerning != this.kerning)
+                return -1;
+
+            if(other.position != this.position)
+                return -1;
+
+            if(other.spacing != this.spacing)
+                return -1;
+
+            if(other.language != this.language)
+                return -1;
+
+            return 0;
+        }
     }
 }

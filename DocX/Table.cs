@@ -203,7 +203,7 @@ namespace Novacode
         internal Table(DocX document, XElement xml)
             : base(document, xml)
         {
-            autofit = AutoFit.ColoumnWidth;
+            autofit = AutoFit.ColumnWidth;
             this.Xml = xml;
 
             XElement properties = xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
@@ -291,7 +291,7 @@ namespace Novacode
                 string attributeValue = string.Empty;
                 switch (value)
                 {
-                    case AutoFit.ColoumnWidth:
+                    case AutoFit.ColumnWidth:
                         {
                             attributeValue = "dxa";
                             break;

@@ -98,6 +98,7 @@
     <Compile Include="Footer.cs" />
     <Compile Include="CustomProperty.cs" />
     <Compile Include="DocProperty.cs" />
+    <Compile Include="FormattedText.cs" />
     <Compile Include="Header.cs" />
     <Compile Include="Headers.cs" />
     <Compile Include="HelperFunctions.cs" />

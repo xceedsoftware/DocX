@@ -66,6 +66,69 @@ namespace Novacode
                     GetTextRecursive(e, ref sb);
         }
 
+        internal static List<FormattedText> GetFormattedText(XElement e)
+        {
+            List<FormattedText> alist = new List<FormattedText>();
+            GetFormattedTextRecursive(e, ref alist);
+            return alist;
+        }
+
+        internal static void GetFormattedTextRecursive(XElement Xml, ref List<FormattedText> alist)
+        {
+            FormattedText ft = ToFormattedText(Xml);
+            FormattedText last = null;
+
+            if (ft != null)
+            {
+                if (alist.Count() > 0)
+                    last = alist.Last();
+
+                if (last != null && last.CompareTo(ft) == 0)
+                {
+                    // Update text of last entry.
+                    last.text += ft.text;
+                }
+
+                else
+                {
+                    if (last != null)
+                        ft.index = last.index + last.text.Length;
+
+                    alist.Add(ft);
+                }
+            }
+
+            if (Xml.HasElements)
+                foreach (XElement e in Xml.Elements())
+                    GetFormattedTextRecursive(e, ref alist);
+        }
+
+        internal static FormattedText ToFormattedText(XElement e)
+        {
+            // The text representation of e.
+            String text = ToText(e);
+            if (text == String.Empty)
+                return null;
+
+            // e is a w:t element, it must exist inside a w:r element, lets climb until we find it.
+            while (!e.Name.Equals(XName.Get("r", DocX.w.NamespaceName)))
+                e = e.Parent;
+
+            // e is a w:r element, lets find the rPr element.
+            XElement rPr = e.Element(XName.Get("rPr", DocX.w.NamespaceName));
+            
+            FormattedText ft = new FormattedText();
+            ft.text = text;
+            ft.index = 0;
+            ft.formatting = null;
+
+            // Return text with formatting.
+            if (rPr != null)
+                ft.formatting = Formatting.Parse(rPr);
+
+            return ft;
+        }
+
         internal static string ToText(XElement e)
         {
             switch (e.Name.LocalName)
