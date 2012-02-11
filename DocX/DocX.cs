@@ -32,6 +32,98 @@ namespace Novacode
         static internal XNamespace c = "http://schemas.openxmlformats.org/drawingml/2006/chart";
         #endregion
 
+        internal float getMarginAttribute(XName name)
+        {
+            XElement body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
+            XElement sectPr = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+            if (sectPr != null)
+            {
+                XElement pgMar = sectPr.Element(XName.Get("pgMar", DocX.w.NamespaceName));
+                if (pgMar != null)
+                {
+                    XAttribute top = pgMar.Attribute(name);
+                    if (top != null)
+                    {
+                        float f;
+                        if (float.TryParse(top.Value, out f))
+                            return (int)(f / 15.0f);
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        internal void setMarginAttribute(XName xName, float value)
+        {
+            XElement body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
+            XElement sectPr = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+            if (sectPr != null)
+            {
+                XElement pgMar = sectPr.Element(XName.Get("pgMar", DocX.w.NamespaceName));
+                if (pgMar != null)
+                {
+                    XAttribute top = pgMar.Attribute(xName);
+                    if (top != null)
+                    {
+                        top.SetValue(value * 15);
+                    }
+                }
+            }
+        }
+
+        public float MarginTop
+        {
+            get
+            {
+               return getMarginAttribute(XName.Get("top", DocX.w.NamespaceName));
+            }
+
+            set
+            {
+                setMarginAttribute(XName.Get("top", DocX.w.NamespaceName), value);
+            }
+        }
+
+        public float MarginBottom
+        {
+            get
+            {
+                return getMarginAttribute(XName.Get("bottom", DocX.w.NamespaceName));
+            }
+
+            set
+            {
+                setMarginAttribute(XName.Get("bottom", DocX.w.NamespaceName), value);
+            }
+        }
+
+        public float MarginLeft
+        {
+            get
+            {
+                return getMarginAttribute(XName.Get("left", DocX.w.NamespaceName));
+            }
+
+            set
+            {
+                setMarginAttribute(XName.Get("left", DocX.w.NamespaceName), value);
+            }
+        }
+
+        public float MarginRight
+        {
+            get
+            {
+                return getMarginAttribute(XName.Get("right", DocX.w.NamespaceName));
+            }
+
+            set
+            {
+                setMarginAttribute(XName.Get("right", DocX.w.NamespaceName), value);
+            }
+        }
+
         public float PageWidth
         {
             get
@@ -71,7 +163,7 @@ namespace Novacode
 
                         if (pgSz != null)
                         {
-                            pgSz.SetAttributeValue(XName.Get("w", DocX.w.NamespaceName), value);
+                            pgSz.SetAttributeValue(XName.Get("w", DocX.w.NamespaceName), value * 15);
                         }
                     }
                 }
@@ -117,7 +209,7 @@ namespace Novacode
 
                         if (pgSz != null)
                         {
-                            pgSz.SetAttributeValue(XName.Get("h", DocX.w.NamespaceName), value);
+                            pgSz.SetAttributeValue(XName.Get("h", DocX.w.NamespaceName), value*15);
                         }
                     }
                 }

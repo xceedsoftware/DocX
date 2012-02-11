@@ -13,6 +13,7 @@ namespace Novacode
         
         }
 
+        
         public Orientation Orientation 
         {
             get
