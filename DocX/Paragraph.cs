@@ -2375,9 +2375,31 @@ namespace Novacode
 
         internal void ApplyTextFormattingProperty(XName textFormatPropName, string value, object content)
         {
+            XElement rPr = null;
+
+            if (runs.Count == 0)
+            {
+                XElement pPr = Xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
+                if (pPr == null)
+                {
+                    Xml.AddFirst(new XElement(XName.Get("pPr", DocX.w.NamespaceName)));
+                    pPr = Xml.Element(XName.Get("pPr", DocX.w.NamespaceName));
+                }
+
+                rPr = pPr.Element(XName.Get("rPr", DocX.w.NamespaceName));
+                if (rPr == null)
+                {
+                    pPr.AddFirst(new XElement(XName.Get("rPr", DocX.w.NamespaceName)));
+                    rPr = pPr.Element(XName.Get("rPr", DocX.w.NamespaceName));
+                }
+
+                rPr.SetElementValue(textFormatPropName, value);
+                return;
+            }
+
             foreach (XElement run in runs)
             {
-                XElement rPr = run.Element(XName.Get("rPr", DocX.w.NamespaceName));
+                rPr = run.Element(XName.Get("rPr", DocX.w.NamespaceName));
                 if (rPr == null)
                 {
                     run.AddFirst(new XElement(XName.Get("rPr", DocX.w.NamespaceName)));
