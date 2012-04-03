@@ -10,6 +10,7 @@ using System.IO.Packaging;
 using System.Security.Principal;
 using System.Reflection;
 using System.IO.Compression;
+using System.Security.Cryptography;
 
 namespace Novacode
 {
@@ -629,6 +630,12 @@ namespace Novacode
 
         // Get the word\settings.xml part
         internal PackagePart settingsPart;
+        internal PackagePart endnotesPart;
+        internal PackagePart footnotesPart;
+        internal PackagePart stylesPart;
+        internal PackagePart stylesWithEffectsPart;
+        internal PackagePart numberingPart;
+        internal PackagePart fontTablePart;
 
         #region Internal variables defined foreach DocX object
         // Object representation of the .docx
@@ -637,6 +644,12 @@ namespace Novacode
         // The mainDocument is loaded into a XDocument object for easy querying and editing
         internal XDocument mainDoc;
         internal XDocument settings;
+        internal XDocument endnotes;
+        internal XDocument footnotes;
+        internal XDocument styles;
+        internal XDocument stylesWithEffects;
+        internal XDocument numbering;
+        internal XDocument fontTable;
         internal XDocument header1;
         internal XDocument header2;
         internal XDocument header3;
@@ -896,191 +909,642 @@ namespace Novacode
         /// If the document being inserted contains Images, CustomProperties and or custom styles, these will be correctly inserted into the new document. In the case of Images, new ID's are generated for the Images being inserted to avoid ID conflicts. CustomProperties with the same name will be ignored not replaced.
         /// </remarks>
         /// </example>
-        public void InsertDocument(DocX document)
+        public void InsertDocument(DocX remote_document)
         {
-            #region /word/document.xml
-            // Get the external elements that are going to be inserted.
-            IEnumerable<XElement> external_elements = document.mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName)).Elements();
+            // We don't want to effect the origional XDocument, so create a new one from the old one.
+            XDocument remote_mainDoc = new XDocument(remote_document.mainDoc);
 
-            // Get the body element of the internal document.
-            XElement internal_body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
+            XDocument remote_footnotes = null ;
+            if(remote_document.footnotes != null)
+                remote_footnotes = new XDocument(remote_document.footnotes);
 
-            // Insert the elements
-            internal_body.Add(external_elements);
+            XDocument remote_endnotes = null;
+            if (remote_document.endnotes != null)
+                remote_endnotes = new XDocument(remote_document.endnotes);
 
-            // A moment of genius
-            int count = external_elements.Count();
-            external_elements = internal_body.Elements().Reverse().TakeWhile((i, j) => j < count);
-            #endregion
+            // Remove all header and footer references.
+            remote_mainDoc.Descendants(XName.Get("headerReference", DocX.w.NamespaceName)).Remove();
+            remote_mainDoc.Descendants(XName.Get("footerReference", DocX.w.NamespaceName)).Remove();
 
-            #region /word/styles.xml
-            Uri word_styles_Uri = new Uri("/word/styles.xml", UriKind.Relative);
+            // Get the body of the remote document.
+            XElement remote_body = remote_mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
 
-            // If the external document has a styles.xml, we need to insert its elements into the internal documents styles.xml.
-            if (document.package.PartExists(word_styles_Uri))
+            // Every file that is missing from the local document will have to be copied, every file that already exists will have to be merged.
+            PackagePartCollection ppc = remote_document.package.GetParts();
+
+            List<String> ignoreContentTypes = new List<string>
             {
-                // Load the external documents styles.xml into memory.
-                XDocument external_word_styles;
-                using (TextReader tr = new StreamReader(document.package.GetPart(word_styles_Uri).GetStream()))
-                    external_word_styles = XDocument.Load(tr);
-
-                // If the internal document contains no /word/styles.xml create one.
-                if (!package.PartExists(word_styles_Uri))
-                    HelperFunctions.AddDefaultStylesXml(package);
-
-                // Load the internal documents styles.xml into memory.
-                XDocument internal_word_styles;
-                using (TextReader tr = new StreamReader(package.GetPart(word_styles_Uri).GetStream()))
-                    internal_word_styles = XDocument.Load(tr);
-
-                // Create a list of internal and external style elements for easy iteration.
-                var internal_style_list = internal_word_styles.Root.Elements(XName.Get("style", DocX.w.NamespaceName));
-                var external_style_list = external_word_styles.Root.Elements(XName.Get("style", DocX.w.NamespaceName));
-
-                // Loop through the external style elements
-                foreach (XElement style in external_style_list)
-                {
-                    // If the internal styles document does not contain this element, add it.
-                    if (!internal_style_list.Contains(style))
-                        internal_word_styles.Root.Add(style);
-                }
-
-                // Save the internal styles document.
-                using (TextWriter tw = new StreamWriter(package.GetPart(word_styles_Uri).GetStream()))
-                    internal_word_styles.Save(tw);
-            }
-            #endregion
-
-            #region Images
-            PackagePart internal_word_document = mainPart;
-            PackagePart external_word_document = document.mainPart;
-
-            // Get all Image relationships in the external document.
-            var external_image_rels = external_word_document.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
-
-            // Get all Image relationships in the internal document.
-            var internal_image_rels = internal_word_document.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
-
-            var internal_image_parts = internal_image_rels.Select(ir => package.GetParts().Where(p => p.Uri.ToString().EndsWith(ir.TargetUri.ToString())).First());
-
-            int max = 0;
-            var values =
-            (
-                from ip in internal_image_parts
-                let Name = Path.GetFileNameWithoutExtension(ip.Uri.ToString())
-                let Number = Regex.Match(Name, @"\d+$").Value
-                select Number != string.Empty ? int.Parse(Number) : 0
-            );
-
-            if (values.Count() > 0)
-                max = Math.Max(max, values.Max());
-
-            // Foreach external image relationship
-            foreach (var rel in external_image_rels)
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml",
+                "application/vnd.openxmlformats-package.core-properties+xml",
+                "application/vnd.openxmlformats-officedocument.extended-properties+xml",
+                "application/vnd.openxmlformats-package.relationships+xml",
+            };
+            
+            List<String> imageContentTypes = new List<string>
             {
-                string uri_string = rel.TargetUri.ToString();
-                if (!uri_string.StartsWith("/"))
-                    uri_string = "/" + uri_string;
+                "image/jpeg",
+                "image/png",
+                "image/bmp",
+                "image/gif",
+                "image/tiff",
+                "image/icon",
+                "image/pcx",
+                "image/emf",
+                "image/wmf"
+            };
+            // Check if each PackagePart pp exists in this document.
+            foreach (PackagePart remote_pp in ppc)
+            {
+                if (ignoreContentTypes.Contains(remote_pp.ContentType) || imageContentTypes.Contains(remote_pp.ContentType))
+                    continue;
 
-                PackagePart external_image_part = rel.Package.GetPart(new Uri((uri_string.StartsWith("/word") ? "" : "/word") + uri_string, UriKind.RelativeOrAbsolute));
-                PackagePart internal_image_part = package.CreatePart(new Uri(string.Format("/word/media/image{0}.jpeg", max + 1), UriKind.RelativeOrAbsolute), System.Net.Mime.MediaTypeNames.Image.Jpeg);
-
-                PackageRelationship pr = internal_word_document.CreateRelationship(internal_image_part.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
-
-                var query = from e in external_elements.DescendantsAndSelf()
-                            let embed = e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
-                            where embed != null && embed.Value == rel.Id
-                            select embed;
-
-                foreach (XAttribute a in query)
-                    a.Value = pr.Id;
-
-                using (Stream stream = internal_image_part.GetStream(FileMode.Create, FileAccess.Write))
+                // If this external PackagePart already exits then we must merge them.
+                if (package.PartExists(remote_pp.Uri))
                 {
-                    using (Stream s = external_image_part.GetStream())
+                    PackagePart local_pp = package.GetPart(remote_pp.Uri);
+                    switch (remote_pp.ContentType)
                     {
-                        byte[] bytes = new byte[s.Length];
-                        s.Read(bytes, 0, (int)s.Length);
-                        stream.Write(bytes, 0, (int)s.Length);
+                        case "application/vnd.openxmlformats-officedocument.custom-properties+xml":
+                            merge_customs(remote_pp, local_pp, remote_mainDoc);
+                            break;
+
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml":
+                            merge_styles(remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes, remote_endnotes);
+                            break;
+
+                        case "application/vnd.ms-word.stylesWithEffects+xml":
+                            merge_styles(remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes, remote_endnotes);
+                            break;
+
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml":
+                            merge_fonts(remote_pp, local_pp, remote_mainDoc, remote_document);
+                            break;
+
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml":
+                            merge_numbering(remote_pp, local_pp, remote_mainDoc, remote_document);
+                            break;
+
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml":
+                            merge_footnotes(remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes);
+                            break;
+
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml":
+                            merge_endnotes(remote_pp, local_pp, remote_mainDoc, remote_document, remote_endnotes);
+                            break;
+
+                        default:
+                            break;
                     }
                 }
 
-                max++;
-            }
-            #endregion
-
-            #region CustomProperties
-
-            // Check if the external document contains custom properties.
-            if (document.package.PartExists(new Uri("/docProps/custom.xml", UriKind.Relative)))
-            {
-                PackagePart external_docProps_custom = document.package.GetPart(new Uri("/docProps/custom.xml", UriKind.Relative));
-                XDocument external_customPropDoc;
-                using (TextReader tr = new StreamReader(external_docProps_custom.GetStream(FileMode.Open, FileAccess.Read)))
-                    external_customPropDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
-
-                // Get all of the custom properties in this document.
-                IEnumerable<XElement> external_customProperties =
-                (
-                    from cp in external_customPropDoc.Descendants(XName.Get("property", customPropertiesSchema.NamespaceName))
-                    select cp
-                );
-
-                // If the internal document does not contain a customFilePropertyPart, create one.
-                if (!package.PartExists(new Uri("/docProps/custom.xml", UriKind.Relative)))
-                    HelperFunctions.CreateCustomPropertiesPart(this);
-
-
-                PackagePart internal_docProps_custom = package.GetPart(new Uri("/docProps/custom.xml", UriKind.Relative));
-                XDocument internal_customPropDoc;
-                using (TextReader tr = new StreamReader(internal_docProps_custom.GetStream(FileMode.Open, FileAccess.Read)))
-                    internal_customPropDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
-
-                foreach (XElement cp in external_customProperties)
+                // If this external PackagePart does not exits in the internal document then we can simply copy it.
+                else
                 {
-                    // Does the internal document already have a custom property with this name?
-                    XElement conflict =
-                    (
-                        from d in internal_customPropDoc.Descendants(XName.Get("property", customPropertiesSchema.NamespaceName))
-                        let ExternalName = d.Attribute(XName.Get("name", customPropertiesSchema.NamespaceName))
-                        let InternalName = cp.Attribute(XName.Get("name", customPropertiesSchema.NamespaceName))
-                        where ExternalName != null && InternalName != null && ExternalName == InternalName
-                        select d
-                    ).FirstOrDefault();
-
-                    // Same name
-                    if (conflict != null)
+                    var packagePart = clonePackagePart(remote_pp);
+                    switch (remote_pp.ContentType)
                     {
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml":
+                            endnotesPart = packagePart;
+                            endnotes = remote_endnotes;
+                            break;
+
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml":
+                            footnotesPart = packagePart;
+                            footnotes = remote_footnotes;
+                            break;
+                        
+                        case "application/vnd.openxmlformats-officedocument.custom-properties+xml":
+                            break;
+
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml":
+                            stylesPart = packagePart;
+                            using (TextReader tr = new StreamReader(stylesPart.GetStream()))
+                                styles = XDocument.Load(tr);
+                            break;
+
+                        case "application/vnd.ms-word.stylesWithEffects+xml":
+                            stylesWithEffectsPart = packagePart;
+                            using (TextReader tr = new StreamReader(stylesWithEffectsPart.GetStream()))
+                                stylesWithEffects = XDocument.Load(tr);
+                            break;
+
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml":
+                            fontTablePart = packagePart;
+                            using (TextReader tr = new StreamReader(fontTablePart.GetStream()))
+                                fontTable = XDocument.Load(tr);
+                            break;
+
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml":
+                            numberingPart = packagePart;
+                            using (TextReader tr = new StreamReader(numberingPart.GetStream()))
+                                numbering = XDocument.Load(tr);
+                            break;
 
                     }
 
-                    // There is no conflict, just add the Custom Property.
-                    else
-                        internal_customPropDoc.Root.Add(cp);
+                    clonePackageRelationship(remote_document, remote_pp, remote_mainDoc);
                 }
-
-                using (TextWriter tw = new StreamWriter(internal_docProps_custom.GetStream(FileMode.Open, FileAccess.Write)))
-                    internal_customPropDoc.Save(tw);
-
-
             }
-            #endregion
 
-            // A document can only have one header and one footer.
-            #region Remove external (header & footer) references
-            var externalHeaderAndFooterReferences =
-            (
-                from d in external_elements.Descendants()
-                where d.Name.LocalName == "headerReference" || d.Name.LocalName == "footerReference"
-                select d
-            );
+            foreach (var hyperlink_rel in remote_document.mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"))
+            {
+                var old_rel_Id = hyperlink_rel.Id;
+                var new_rel_Id = mainPart.CreateRelationship(hyperlink_rel.TargetUri, hyperlink_rel.TargetMode, hyperlink_rel.RelationshipType).Id;
+                var hyperlink_refs = remote_mainDoc.Descendants(XName.Get("hyperlink", DocX.w.NamespaceName));
+                foreach (var hyperlink_ref in hyperlink_refs)
+                {
+                    XAttribute a0 = hyperlink_ref.Attribute(XName.Get("id", DocX.r.NamespaceName));
+                    if (a0 != null && a0.Value == old_rel_Id)
+                    {
+                        a0.SetValue(new_rel_Id);
+                    }
+                }
+            }
 
-            foreach (var r in externalHeaderAndFooterReferences.ToList())
-                r.Remove();
-            #endregion
+
+            foreach (PackagePart remote_pp in ppc)
+            {
+                if (imageContentTypes.Contains(remote_pp.ContentType))
+                {
+                    merge_images(remote_pp, remote_document, remote_mainDoc, remote_pp.ContentType);
+                }
+            }
+
+            // Add the remote documents contents to this document.
+            XElement local_body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
+            local_body.Add(remote_body.Elements());
+
+            // Copy any missing root attributes to the local document.
+            foreach (XAttribute a in remote_mainDoc.Root.Attributes())
+            {
+                if (mainDoc.Root.Attribute(a.Name) == null)
+                {
+                    mainDoc.Root.SetAttributeValue(a.Name, a.Value);
+                }
+            }
+
         }
 
+        private void merge_images(PackagePart remote_pp, DocX remote_document, XDocument remote_mainDoc, String contentType)
+        {
+            // Before doing any other work, check to see if this image is actually referenced in the document.
+            // In my testing I have found cases of Images inside documents that are not refer
+            var remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString.Replace("/word/", ""))).FirstOrDefault();
+            if (remote_rel == null)
+                return;
 
+            String remote_Id = remote_rel.Id;
+
+            String remote_hash = ComputeMD5HashString(remote_pp.GetStream());
+            var image_parts = package.GetParts().Where(pp => pp.ContentType.Equals(contentType));
+
+            bool found = false; 
+            foreach (var part in image_parts)
+            {
+                String local_hash = ComputeMD5HashString(part.GetStream());
+                if (local_hash.Equals(remote_hash))
+                {
+                    // This image already exists in this document.
+                    found = true;
+
+                    var local_rel = mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(part.Uri.OriginalString.Replace("/word/", ""))).FirstOrDefault();
+                    if (local_rel != null)
+                    {
+                        String new_Id = local_rel.Id;
+
+                        // Replace all instances of remote_Id in the local document with local_Id
+                        var elems = remote_mainDoc.Descendants(XName.Get("blip", DocX.a.NamespaceName));
+                        foreach (var elem in elems)
+                        {
+                            XAttribute embed = elem.Attribute(XName.Get("embed", DocX.r.NamespaceName));
+                            if (embed != null && embed.Value == remote_Id)
+                            {
+                                embed.SetValue(new_Id);
+                            }
+                        }
+                    }
+
+                    break;
+                }
+            }
+
+            // This image does not exist in this document.
+            if (!found)
+            {
+                String new_uri = remote_pp.Uri.OriginalString;
+                new_uri = new_uri.Remove(new_uri.LastIndexOf("/"));
+                new_uri = new_uri.Replace("word/", "");
+                new_uri += "/" + Guid.NewGuid().ToString() + contentType.Replace("image/", ".");
+                if (!new_uri.StartsWith("/"))
+                    new_uri = "/" + new_uri;
+
+                PackagePart new_pp = package.CreatePart(new Uri(new_uri, UriKind.Relative), remote_pp.ContentType);
+
+                using (Stream s_read = remote_pp.GetStream())
+                {
+                    using (Stream s_write = new_pp.GetStream(FileMode.Create))
+                    {
+                        byte[] buffer = new byte[32768];
+                        int read;
+                        while ((read = s_read.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            s_write.Write(buffer, 0, read);
+                        }
+                    }
+                }
+
+                PackageRelationship pr = mainPart.CreateRelationship(new Uri(new_uri, UriKind.Relative), TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+
+                String new_Id = pr.Id;
+
+                // Replace all instances of remote_Id in the local document with local_Id
+                var elems = remote_mainDoc.Descendants(XName.Get("blip", DocX.a.NamespaceName));
+                foreach (var elem in elems)
+                {
+                    XAttribute embed = elem.Attribute(XName.Get("embed", DocX.r.NamespaceName));
+                    if (embed != null && embed.Value == remote_Id)
+                    {
+                        embed.SetValue(new_Id);
+                    }
+                }
+            }
+        }
+
+        private string ComputeMD5HashString(Stream stream)
+        {
+            MD5 md5 = MD5.Create();
+            byte[] hash = md5.ComputeHash(stream);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hash.Length; i++)
+                sb.Append(hash[i].ToString("X2"));
+            return sb.ToString();
+        }
+
+        private void merge_endnotes(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote, XDocument remote_endnotes)
+        {
+            IEnumerable<int> ids =
+            (
+                from d in endnotes.Root.Descendants()
+                where d.Name.LocalName == "endnote"
+                select int.Parse(d.Attribute(XName.Get("id", DocX.w.NamespaceName)).Value)
+            );
+
+            int max_id = ids.Max() + 1;
+            var endnoteReferences = remote_mainDoc.Descendants(XName.Get("endnoteReference", DocX.w.NamespaceName));
+
+            foreach (var endnote in remote_endnotes.Root.Elements().OrderBy(fr => fr.Attribute(XName.Get("id", DocX.r.NamespaceName))).Reverse())
+            {
+                XAttribute id = endnote.Attribute(XName.Get("id", DocX.w.NamespaceName));
+                int i;
+                if (id != null && int.TryParse(id.Value, out i))
+                {
+                    if (i > 0)
+                    {
+                        foreach (var endnoteRef in endnoteReferences)
+                        {
+                            XAttribute a = endnoteRef.Attribute(XName.Get("id", DocX.w.NamespaceName));
+                            if (a != null && int.Parse(a.Value).Equals(i))
+                            {
+                                a.SetValue(max_id);
+                            }
+                        }
+
+                        // We care about copying this footnote.
+                        endnote.SetAttributeValue(XName.Get("id", DocX.w.NamespaceName), max_id);
+                        endnotes.Root.Add(endnote);
+                        max_id++;
+                    }
+                }
+            }
+        }
+
+        private void merge_footnotes(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote, XDocument remote_footnotes)
+        {
+            IEnumerable<int> ids =
+            (
+                from d in footnotes.Root.Descendants()
+                where d.Name.LocalName == "footnote"
+                select int.Parse(d.Attribute(XName.Get("id", DocX.w.NamespaceName)).Value)
+            );
+
+            int max_id = ids.Max() + 1;
+            var footnoteReferences = remote_mainDoc.Descendants(XName.Get("footnoteReference", DocX.w.NamespaceName));
+
+            foreach (var footnote in remote_footnotes.Root.Elements().OrderBy(fr => fr.Attribute(XName.Get("id", DocX.r.NamespaceName))).Reverse())
+            {
+                XAttribute id = footnote.Attribute(XName.Get("id", DocX.w.NamespaceName));
+                int i;
+                if (id != null && int.TryParse(id.Value, out i))
+                {
+                    if (i > 0)
+                    {
+                        foreach (var footnoteRef in footnoteReferences)
+                        {
+                            XAttribute a = footnoteRef.Attribute(XName.Get("id", DocX.w.NamespaceName));
+                            if (a != null && int.Parse(a.Value).Equals(i))
+                            {
+                                a.SetValue(max_id);
+                            }
+                        }
+
+                        // We care about copying this footnote.
+                        footnote.SetAttributeValue(XName.Get("id", DocX.w.NamespaceName), max_id);
+                        footnotes.Root.Add(footnote);
+                        max_id++;
+                    }
+                }
+            }
+        }
+
+        private void merge_customs(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc)
+        {
+            // Get the remote documents custom.xml file.
+            XDocument remote_custom_document;
+            using (TextReader tr = new StreamReader(remote_pp.GetStream()))
+                remote_custom_document = XDocument.Load(tr);
+
+            // Get the local documents custom.xml file.
+            XDocument local_custom_document;
+            using (TextReader tr = new StreamReader(local_pp.GetStream()))
+                local_custom_document = XDocument.Load(tr);
+
+            IEnumerable<int> pids =
+            (
+                from d in remote_custom_document.Root.Descendants()
+                where d.Name.LocalName == "property"
+                select int.Parse(d.Attribute(XName.Get("pid")).Value)
+            );
+
+            int pid = pids.Max() + 1;
+
+            foreach (XElement remote_property in remote_custom_document.Root.Elements())
+            {
+                bool found = false;
+                foreach (XElement local_property in local_custom_document.Root.Elements())
+                {
+                    XAttribute remote_property_name = remote_property.Attribute(XName.Get("name"));
+                    XAttribute local_property_name = local_property.Attribute(XName.Get("name"));
+
+                    if(remote_property != null && local_property_name != null && remote_property_name.Value.Equals(local_property_name.Value))
+                        found = true;
+                }
+
+                if (!found)
+                {
+                    remote_property.SetAttributeValue(XName.Get("pid"), pid);
+                    local_custom_document.Root.Add(remote_property);
+
+                    pid++;
+                }
+            }
+
+            // Save the modified local custom styles.xml file.
+            using (TextWriter tw = new StreamWriter(local_pp.GetStream(FileMode.Create, FileAccess.Write)))
+                local_custom_document.Save(tw, SaveOptions.DisableFormatting);
+        }
+
+        private void merge_numbering(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote)
+        {
+            // Add each remote numbering to this document.
+            IEnumerable<XElement> remote_abstractNums = remote.numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName));
+            int guidd = 0;
+            foreach (var an in remote_abstractNums)
+            {
+                XAttribute a = an.Attribute(XName.Get("abstractNumId", DocX.w.NamespaceName));
+                if(a != null)
+                {
+                    int i;
+                    if (int.TryParse(a.Value, out i))
+                    {
+                        if (i > guidd)
+                            guidd = i;
+                    }
+                }
+            }
+            guidd++;
+
+            IEnumerable<XElement> remote_nums = remote.numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName));
+            int guidd2 = 0;
+            foreach (var an in remote_nums)
+            {
+                XAttribute a = an.Attribute(XName.Get("numId", DocX.w.NamespaceName));
+                if (a != null)
+                {
+                    int i;
+                    if (int.TryParse(a.Value, out i))
+                    {
+                        if (i > guidd2)
+                            guidd2 = i;
+                    }
+                }
+            }
+            guidd2++;
+
+            foreach (XElement remote_abstractNum in remote_abstractNums)
+            {
+                XAttribute abstractNumId = remote_abstractNum.Attribute(XName.Get("abstractNumId", DocX.w.NamespaceName));
+                if (abstractNumId != null)
+                {
+                    String abstractNumIdValue = abstractNumId.Value;
+                    abstractNumId.SetValue(guidd);
+
+                    foreach (XElement remote_num in remote_nums)
+                    {
+                        var numIds = remote_mainDoc.Descendants(XName.Get("numId", DocX.w.NamespaceName));
+                        foreach (var numId in numIds)
+                        {
+                            XAttribute attr = numId.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                            if (attr != null && attr.Value.Equals(remote_num.Attribute(XName.Get("numId", DocX.w.NamespaceName)).Value))
+                            {
+                                attr.SetValue(guidd2);
+                            }
+
+                        }
+                        remote_num.SetAttributeValue(XName.Get("numId", DocX.w.NamespaceName), guidd2);
+
+                        XElement e = remote_num.Element(XName.Get("abstractNumId", DocX.w.NamespaceName));
+                        if (e != null)
+                        {
+                            XAttribute a2 = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                            if (a2 != null && a2.Value.Equals(abstractNumIdValue))
+                                a2.SetValue(guidd);
+                        }
+
+                        guidd2++;
+                    }
+                }
+
+                guidd++;
+            }
+
+            numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_abstractNums);
+            numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_nums);
+        }
+
+        private void merge_fonts(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote)
+        {
+            // Add each remote font to this document.
+            IEnumerable<XElement> remote_fonts = remote.fontTable.Root.Elements(XName.Get("font", DocX.w.NamespaceName));
+            IEnumerable<XElement> local_fonts = fontTable.Root.Elements(XName.Get("font", DocX.w.NamespaceName));
+
+            foreach (XElement remote_font in remote_fonts)
+            {
+                bool flag_addFont = true;
+                foreach (XElement local_font in local_fonts)
+                {
+                    if (local_font.Attribute(XName.Get("name", DocX.w.NamespaceName)).Value == remote_font.Attribute(XName.Get("name", DocX.w.NamespaceName)).Value)
+                    {
+                        flag_addFont = false;
+                        break;
+                    }
+                }
+                
+                if (flag_addFont)
+                {
+                    fontTable.Root.Add(remote_font);
+                }
+            }
+        }
+
+        private void merge_styles(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote, XDocument remote_footnotes, XDocument remote_endnotes)
+        {
+            // Add each remote style to this document.
+            IEnumerable<XElement> remote_styles = remote.styles.Root.Elements(XName.Get("style", DocX.w.NamespaceName));
+            String guuid = Guid.NewGuid().ToString();
+
+            foreach (XElement remote_style in remote_styles)
+            {
+                // Need to rename the styleId incase they clash.
+                XAttribute styleId = remote_style.Attribute(XName.Get("styleId", DocX.w.NamespaceName));
+                if (styleId != null)
+                {
+                    foreach(XElement e in remote_mainDoc.Root.Descendants(XName.Get("pStyle", DocX.w.NamespaceName)))
+                    {
+                        XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                        if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                        {
+                            e_styleId.SetValue(styleId.Value + "_" + guuid);
+                        }
+                    }
+
+                    foreach (XElement e in remote_mainDoc.Root.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)))
+                    {
+                        XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                        if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                        {
+                            e_styleId.SetValue(styleId.Value + "_" + guuid);
+                        }
+                    }
+
+                    if (remote_endnotes != null)
+                    {
+                        foreach (XElement e in remote_endnotes.Root.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)))
+                        {
+                            XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                            if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                            {
+                                e_styleId.SetValue(styleId.Value + "_" + guuid);
+                            }
+                        }
+
+                        foreach (XElement e in remote_endnotes.Root.Descendants(XName.Get("pStyle", DocX.w.NamespaceName)))
+                        {
+                            XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                            if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                            {
+                                e_styleId.SetValue(styleId.Value + "_" + guuid);
+                            }
+                        }
+                    }
+
+                    if (remote_footnotes != null)
+                    {
+                        foreach (XElement e in remote_footnotes.Root.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)))
+                        {
+                            XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                            if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                            {
+                                e_styleId.SetValue(styleId.Value + "_" + guuid);
+                            }
+                        }
+
+                        foreach (XElement e in remote_footnotes.Root.Descendants(XName.Get("pStyle", DocX.w.NamespaceName)))
+                        {
+                            XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                            if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                            {
+                                e_styleId.SetValue(styleId.Value + "_" + guuid);
+                            }
+                        }
+                    }
+
+                    // Make sure they don't clash by using a uuid.
+                    styleId.SetValue(styleId.Value + "_" + guuid);
+                    styles.Root.Add(remote_style);
+                }
+            }
+        }
+
+        protected void clonePackageRelationship(DocX remote_document, PackagePart pp, XDocument remote_mainDoc)
+        {
+            string url = pp.Uri.OriginalString.Replace("/", "");
+            var remote_rels = remote_document.mainPart.GetRelationships();
+            foreach (var remote_rel in remote_rels)
+            {
+                if (url.Equals("word" + remote_rel.TargetUri.OriginalString.Replace("/", "")))
+                {
+                    String remote_Id = remote_rel.Id;
+                    String local_Id = mainPart.CreateRelationship(remote_rel.TargetUri, remote_rel.TargetMode, remote_rel.RelationshipType).Id;
+
+                    // Replace all instances of remote_Id in the local document with local_Id
+                    var elems = remote_mainDoc.Descendants(XName.Get("blip", DocX.a.NamespaceName));
+                    foreach(var elem in elems)
+                    {
+                        XAttribute embed = elem.Attribute(XName.Get("embed", DocX.r.NamespaceName));
+                        if (embed != null && embed.Value == remote_Id)
+                        {
+                            embed.SetValue(local_Id);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        protected PackagePart clonePackagePart(PackagePart pp)
+        {
+            PackagePart new_pp = package.CreatePart(pp.Uri, pp.ContentType);
+
+            using (Stream s_read = pp.GetStream())
+            {
+                using (Stream s_write = new_pp.GetStream(FileMode.Create))
+                {
+                    byte[] buffer = new byte[32768];
+                    int read;
+                    while ((read = s_read.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        s_write.Write(buffer, 0, read);
+                    }
+                }
+            }
+
+            return new_pp;
+        }
+
+        protected string GetMD5HashFromStream(Stream stream)
+        {
+            MD5 md5 = new MD5CryptoServiceProvider();
+            byte[] retVal = md5.ComputeHash(stream);
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < retVal.Length; i++)
+            {
+                sb.Append(retVal[i].ToString("x2"));
+            }
+            return sb.ToString();
+        }
 
         /// <summary>
         /// Insert a new Table at the end of this document.
@@ -1504,12 +1968,58 @@ namespace Novacode
 
             //}
 
-
-
             document.Xml = document.mainDoc.Root.Element(w + "body");
             document.headers = headers;
             document.footers = footers;
             document.settingsPart = HelperFunctions.CreateOrGetSettingsPart(package);
+
+            var ps = package.GetParts();
+
+            //document.endnotesPart = HelperFunctions.GetPart();
+            foreach (var rel in document.mainPart.GetRelationships())
+            {
+                switch (rel.RelationshipType)
+                {
+                    case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes":
+                        document.endnotesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        using (TextReader tr = new StreamReader(document.endnotesPart.GetStream()))
+                            document.endnotes= XDocument.Load(tr);
+                        break;
+
+                    case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes":
+                        document.footnotesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        using (TextReader tr = new StreamReader(document.footnotesPart.GetStream()))
+                            document.footnotes= XDocument.Load(tr);
+                        break;
+
+                    case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles":
+                        document.stylesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        using (TextReader tr = new StreamReader(document.stylesPart.GetStream()))
+                            document.styles = XDocument.Load(tr);
+                        break;
+
+                    case "http://schemas.microsoft.com/office/2007/relationships/stylesWithEffects":
+                        document.stylesWithEffectsPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        using (TextReader tr = new StreamReader(document.stylesWithEffectsPart.GetStream()))
+                            document.stylesWithEffects = XDocument.Load(tr);
+                        break;
+
+                    case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable":
+                        document.fontTablePart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        using (TextReader tr = new StreamReader(document.fontTablePart.GetStream()))
+                            document.fontTable = XDocument.Load(tr);
+                        break;
+
+                    case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering":
+                        document.numberingPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        using (TextReader tr = new StreamReader(document.numberingPart.GetStream()))
+                            document.numbering = XDocument.Load(tr);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
         }
 
         /// <summary>
@@ -2498,6 +3008,42 @@ namespace Novacode
                 // Save the settings document.
                 using (TextWriter tw = new StreamWriter(settingsPart.GetStream(FileMode.Create, FileAccess.Write)))
                     settings.Save(tw, SaveOptions.DisableFormatting);
+
+                if (endnotesPart != null)
+                {
+                    using (TextWriter tw = new StreamWriter(endnotesPart.GetStream(FileMode.Create, FileAccess.Write)))
+                        endnotes.Save(tw, SaveOptions.DisableFormatting);
+                }
+
+                if (footnotesPart != null)
+                {
+                    using (TextWriter tw = new StreamWriter(footnotesPart.GetStream(FileMode.Create, FileAccess.Write)))
+                        footnotes.Save(tw, SaveOptions.DisableFormatting);
+                }
+
+                if (stylesPart != null)
+                {
+                    using (TextWriter tw = new StreamWriter(stylesPart.GetStream(FileMode.Create, FileAccess.Write)))
+                        styles.Save(tw, SaveOptions.DisableFormatting);
+                }
+
+                if (stylesWithEffectsPart != null)
+                {
+                    using (TextWriter tw = new StreamWriter(stylesWithEffectsPart.GetStream(FileMode.Create, FileAccess.Write)))
+                        stylesWithEffects.Save(tw, SaveOptions.DisableFormatting);
+                }
+
+                if (numberingPart != null)
+                {
+                    using (TextWriter tw = new StreamWriter(numberingPart.GetStream(FileMode.Create, FileAccess.Write)))
+                        numbering.Save(tw, SaveOptions.DisableFormatting);
+                }
+
+                if (fontTablePart != null)
+                {
+                    using (TextWriter tw = new StreamWriter(fontTablePart.GetStream(FileMode.Create, FileAccess.Write)))
+                        fontTable.Save(tw, SaveOptions.DisableFormatting);
+                }
             }
 
             // Close the document so that it can be saved.
