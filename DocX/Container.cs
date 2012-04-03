@@ -420,17 +420,17 @@ namespace Novacode
             return p;
         }
 
-        public Table InsertTable(int rowCount, int coloumnCount)
+        public virtual Table InsertTable(int rowCount, int columnCount) //Dmitchern, changed to virtual, and overrided in Table.Cell
         {
-            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
+            XElement newTable = HelperFunctions.CreateTable(rowCount, columnCount);
             Xml.Add(newTable);
 
             return new Table(Document, newTable);
         }
 
-        public Table InsertTable(int index, int rowCount, int coloumnCount)
+        public Table InsertTable(int index, int rowCount, int columnCount)
         {
-            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
+            XElement newTable = HelperFunctions.CreateTable(rowCount, columnCount);
 
             Paragraph p = HelperFunctions.GetFirstParagraphEffectedByInsert(Document, index);
 

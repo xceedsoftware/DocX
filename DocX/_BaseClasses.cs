@@ -104,8 +104,16 @@ namespace Novacode
             Xml.AddAfterSelf(p.Xml);
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
-            p.Xml = newlyInserted;
-            return p;
+            //Dmitchern
+            if (this as Paragraph != null)
+            {
+                return new Paragraph(Document, newlyInserted, (this as Paragraph).endIndex);
+            }
+            else
+            {
+                p.Xml = newlyInserted; //IMPORTANT: I think we have return new paragraph in any case, but I dont know what to put as startIndex parameter into Paragraph constructor
+                return p;
+            }
         }
 
         public virtual Paragraph InsertParagraphBeforeSelf(string text)
@@ -164,9 +172,9 @@ namespace Novacode
             return p;
         }
 
-        public virtual Table InsertTableAfterSelf(int rowCount, int coloumnCount)
+        public virtual Table InsertTableAfterSelf(int rowCount, int columnCount)
         {
-            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
+            XElement newTable = HelperFunctions.CreateTable(rowCount, columnCount);
             Xml.AddAfterSelf(newTable);
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
@@ -177,15 +185,16 @@ namespace Novacode
         {
             Xml.AddAfterSelf(t.Xml);
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
+            //Dmitchern
+            return new Table(Document, newlyInserted); //return new table, dont affect parameter table
 
-            t.Xml = newlyInserted;
-
-            return t;
+            //t.Xml = newlyInserted;
+            //return t;
         }
 
-        public virtual Table InsertTableBeforeSelf(int rowCount, int coloumnCount)
+        public virtual Table InsertTableBeforeSelf(int rowCount, int columnCount)
         {
-            XElement newTable = HelperFunctions.CreateTable(rowCount, coloumnCount);
+            XElement newTable = HelperFunctions.CreateTable(rowCount, columnCount);
             Xml.AddBeforeSelf(newTable);
             XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
@@ -197,9 +206,11 @@ namespace Novacode
             Xml.AddBeforeSelf(t.Xml);
             XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
-            t.Xml = newlyInserted;
+            //Dmitchern
+            return new Table(Document, newlyInserted); //return new table, dont affect parameter table
 
-            return t;
+            //t.Xml = newlyInserted;
+            //return t;
         }
     }
 }

@@ -629,7 +629,7 @@ namespace Novacode
         /// Insert a new Table into this document before this Paragraph.
         /// </summary>
         /// <param name="rowCount">The number of rows this Table should have.</param>
-        /// <param name="coloumnCount">The number of coloumns this Table should have.</param>
+        /// <param name="columnCount">The number of columns this Table should have.</param>
         /// <returns>A new Table inserted before this Paragraph.</returns>
         /// <example>
         /// <code>
@@ -649,9 +649,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public override Table InsertTableBeforeSelf(int rowCount, int coloumnCount)
+        public override Table InsertTableBeforeSelf(int rowCount, int columnCount)
         {
-            return base.InsertTableBeforeSelf(rowCount, coloumnCount);
+            return base.InsertTableBeforeSelf(rowCount, columnCount);
         }
 
         /// <summary>
@@ -697,7 +697,7 @@ namespace Novacode
         /// Insert a new Table into this document after this Paragraph.
         /// </summary>
         /// <param name="rowCount">The number of rows this Table should have.</param>
-        /// <param name="coloumnCount">The number of coloumns this Table should have.</param>
+        /// <param name="columnCount">The number of columns this Table should have.</param>
         /// <returns>A new Table inserted after this Paragraph.</returns>
         /// <example>
         /// <code>
@@ -717,9 +717,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public override Table InsertTableAfterSelf(int rowCount, int coloumnCount)
+        public override Table InsertTableAfterSelf(int rowCount, int columnCount)
         {
-            return base.InsertTableAfterSelf(rowCount, coloumnCount);
+            return base.InsertTableAfterSelf(rowCount, columnCount);
         }
 
         /// <summary>
@@ -2408,7 +2408,23 @@ namespace Novacode
 
                 rPr.SetElementValue(textFormatPropName, value);
                 XElement last = rPr.Elements().Last();
-                last.Add(content);
+
+                if (content as System.Xml.Linq.XAttribute != null)//If content is an attribute
+                {
+                    if (last.Attribute(((System.Xml.Linq.XAttribute)(content)).Name) == null)
+                    {
+                        last.Add(content); //Add this attribute if element doesn't have it
+                    }
+                    else
+                    {
+                        last.Attribute(((System.Xml.Linq.XAttribute)(content)).Name).Value = ((System.Xml.Linq.XAttribute)(content)).Value; //Apply value only if element already has it
+                    }
+                }
+                else
+                {
+                    //IMPORTANT
+                    //But what to do if it is not?
+                }
             }
         }
 

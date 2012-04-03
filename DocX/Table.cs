@@ -165,7 +165,7 @@ namespace Novacode
         }
 
         /// <summary>
-        /// Returns the number of coloumns in this table.
+        /// Returns the number of columns in this table.
         /// </summary>
         public Int32 ColumnCount
         {
@@ -618,7 +618,7 @@ namespace Novacode
         ///     // Insert a new column to this right of this table.
         ///     table.InsertColumn();
         ///
-        ///     // Set the new coloumns text to "Row no."
+        ///     // Set the new columns text to "Row no."
         ///     table.Rows[0].Cells[table.ColumnCount - 1].Paragraph.InsertText("Row no.", false);
         ///
         ///     // Loop through each row in the table.
@@ -627,7 +627,7 @@ namespace Novacode
         ///         // The current row.
         ///         Row row = table.Rows[i];
         ///
-        ///         // The cell in this row that belongs to the new coloumn.
+        ///         // The cell in this row that belongs to the new column.
         ///         Cell cell = row.Cells[table.ColumnCount - 1];
         ///
         ///         // The first Paragraph that this cell houses.
@@ -728,9 +728,9 @@ namespace Novacode
         }
 
         /// <summary>
-        /// Remove a coloumn from this Table.
+        /// Remove a column from this Table.
         /// </summary>
-        /// <param name="index">The coloumn to remove.</param>
+        /// <param name="index">The column to remove.</param>
         /// <example>
         /// Remove the first column from a Table.
         /// <code>
@@ -854,7 +854,7 @@ namespace Novacode
         ///     // Insert a new column to this left of this table.
         ///     table.InsertColumn(0);
         ///
-        ///     // Set the new coloumns text to "Row no."
+        ///     // Set the new columns text to "Row no."
         ///     table.Rows[0].Cells[table.ColumnCount - 1].Paragraph.InsertText("Row no.", false);
         ///
         ///     // Loop through each row in the table.
@@ -863,7 +863,7 @@ namespace Novacode
         ///         // The current row.
         ///         Row row = table.Rows[i];
         ///
-        ///         // The cell in this row that belongs to the new coloumn.
+        ///         // The cell in this row that belongs to the new column.
         ///         Cell cell = row.Cells[table.ColumnCount - 1];
         ///
         ///         // The first Paragraph that this cell houses.
@@ -995,7 +995,7 @@ namespace Novacode
         /// Insert a new Table into this document before this Table.
         /// </summary>
         /// <param name="rowCount">The number of rows this Table should have.</param>
-        /// <param name="coloumnCount">The number of coloumns this Table should have.</param>
+        /// <param name="columnCount">The number of columns this Table should have.</param>
         /// <returns>A new Table inserted before this Table.</returns>
         /// <example>
         /// <code>
@@ -1017,9 +1017,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public override Table InsertTableBeforeSelf(int rowCount, int coloumnCount)
+        public override Table InsertTableBeforeSelf(int rowCount, int columnCount)
         {
-            return base.InsertTableBeforeSelf(rowCount, coloumnCount);
+            return base.InsertTableBeforeSelf(rowCount, columnCount);
         }
 
         /// <summary>
@@ -1063,7 +1063,7 @@ namespace Novacode
         /// Insert a new Table into this document after this Table.
         /// </summary>
         /// <param name="rowCount">The number of rows this Table should have.</param>
-        /// <param name="coloumnCount">The number of coloumns this Table should have.</param>
+        /// <param name="columnCount">The number of columns this Table should have.</param>
         /// <returns>A new Table inserted before this Table.</returns>
         /// <example>
         /// <code>
@@ -1085,9 +1085,9 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public override Table InsertTableAfterSelf(int rowCount, int coloumnCount)
+        public override Table InsertTableAfterSelf(int rowCount, int columnCount)
         {
-            return base.InsertTableAfterSelf(rowCount, coloumnCount);
+            return base.InsertTableAfterSelf(rowCount, columnCount);
         }
 
         /// <summary>
@@ -2895,6 +2895,14 @@ namespace Novacode
                 shd.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), "auto");
                 shd.SetAttributeValue(XName.Get("fill", DocX.w.NamespaceName), value.ToHex());
             }
+        }
+
+        public override Table InsertTable(int rowCount, int columnCount)
+        {
+            Table table = base.InsertTable(rowCount, columnCount);
+            InsertParagraph(); //Dmitchern, It is necessary to put paragraph in the end of the cell, without it MS-Word will say that the document is corrupted
+            //IMPORTANT: It will be better to check all methods that work with adding anything to cells
+            return table;
         }
     }
 }

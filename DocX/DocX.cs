@@ -1549,22 +1549,22 @@ namespace Novacode
         /// <summary>
         /// Insert a new Table at the end of this document.
         /// </summary>
-        /// <param name="coloumnCount">The number of coloumns to create.</param>
+        /// <param name="columnCount">The number of columns to create.</param>
         /// <param name="rowCount">The number of rows to create.</param>
         /// <returns>A new Table.</returns>
         /// <example>
-        /// Insert a new Table with 2 coloumns and 3 rows, at the end of a document.
+        /// Insert a new Table with 2 columns and 3 rows, at the end of a document.
         /// <code>
         /// // Create a document.
         /// using (DocX document = DocX.Create(@"C:\Example\Test.docx"))
         /// {
-        ///     // Create a new Table with 2 coloumns and 3 rows.
+        ///     // Create a new Table with 2 columns and 3 rows.
         ///     Table newTable = document.InsertTable(2, 3);
         ///
         ///     // Set the design of this Table.
         ///     newTable.Design = TableDesign.LightShadingAccent2;
         ///
-        ///     // Set the coloumn names.
+        ///     // Set the column names.
         ///     newTable.Rows[0].Cells[0].Paragraph.InsertText("Ice Cream", false);
         ///     newTable.Rows[0].Cells[1].Paragraph.InsertText("Price", false);
         ///
@@ -1581,22 +1581,22 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public new Table InsertTable(int rowCount, int coloumnCount)
+        public new Table InsertTable(int rowCount, int columnCount)
         {
-            if (rowCount < 1 || coloumnCount < 1)
-                throw new ArgumentOutOfRangeException("Row and Coloumn count must be greater than zero.");
+            if (rowCount < 1 || columnCount < 1)
+                throw new ArgumentOutOfRangeException("Row and Column count must be greater than zero.");
 
-            Table t = base.InsertTable(rowCount, coloumnCount);
+            Table t = base.InsertTable(rowCount, columnCount);
             t.mainPart = mainPart;
             return t;
         }
 
-        public Table AddTable(int rowCount, int coloumnCount)
+        public Table AddTable(int rowCount, int columnCount)
         {
-            if (rowCount < 1 || coloumnCount < 1)
-                throw new ArgumentOutOfRangeException("Row and Coloumn count must be greater than zero.");
+            if (rowCount < 1 || columnCount < 1)
+                throw new ArgumentOutOfRangeException("Row and Column count must be greater than zero.");
 
-            Table t = new Table(this, HelperFunctions.CreateTable(rowCount, coloumnCount));
+            Table t = new Table(this, HelperFunctions.CreateTable(rowCount, columnCount));
             t.mainPart = mainPart;
             return t;
         }
@@ -1683,23 +1683,23 @@ namespace Novacode
         /// <summary>
         /// Insert a new Table at the end of this document.
         /// </summary>
-        /// <param name="coloumnCount">The number of coloumns to create.</param>
+        /// <param name="columnCount">The number of columns to create.</param>
         /// <param name="rowCount">The number of rows to create.</param>
         /// <param name="index">The index to insert this Table at.</param>
         /// <returns>A new Table.</returns>
         /// <example>
-        /// Insert a new Table with 2 coloumns and 3 rows, at index 37 in this document.
+        /// Insert a new Table with 2 columns and 3 rows, at index 37 in this document.
         /// <code>
         /// // Create a document.
         /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
         /// {
-        ///     // Create a new Table with 3 rows and 2 coloumns. Insert this Table at index 37.
+        ///     // Create a new Table with 3 rows and 2 columns. Insert this Table at index 37.
         ///     Table newTable = document.InsertTable(37, 3, 2);
         ///
         ///     // Set the design of this Table.
         ///     newTable.Design = TableDesign.LightShadingAccent3;
         ///
-        ///     // Set the coloumn names.
+        ///     // Set the column names.
         ///     newTable.Rows[0].Cells[0].Paragraph.InsertText("Ice Cream", false);
         ///     newTable.Rows[0].Cells[1].Paragraph.InsertText("Price", false);
         ///
@@ -1716,12 +1716,12 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public new Table InsertTable(int index, int rowCount, int coloumnCount)
+        public new Table InsertTable(int index, int rowCount, int columnCount)
         {
-            if (rowCount < 1 || coloumnCount < 1)
+            if (rowCount < 1 || columnCount < 1)
                 throw new ArgumentOutOfRangeException("Row and Column count must be greater than zero.");
 
-            Table t = base.InsertTable(index, rowCount, coloumnCount);
+            Table t = base.InsertTable(index, rowCount, columnCount);
             t.mainPart = mainPart;
             return t;
         }

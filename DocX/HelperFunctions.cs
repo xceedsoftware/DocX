@@ -365,7 +365,7 @@ namespace Novacode
             );
         }
 
-        internal static XElement CreateTable(int rowCount, int coloumnCount)
+        internal static XElement CreateTable(int rowCount, int columnCount)
         {
             XElement newTable =
             new XElement
@@ -381,7 +381,7 @@ namespace Novacode
             );
 
             XElement tableGrid = new XElement(XName.Get("tblGrid", DocX.w.NamespaceName));
-            for (int i = 0; i < coloumnCount; i++)
+            for (int i = 0; i < columnCount; i++)
                 tableGrid.Add(new XElement(XName.Get("gridCol", DocX.w.NamespaceName), new XAttribute(XName.Get("w", DocX.w.NamespaceName), "2310")));
 
             newTable.Add(tableGrid);
@@ -390,7 +390,7 @@ namespace Novacode
             {
                 XElement row = new XElement(XName.Get("tr", DocX.w.NamespaceName));
 
-                for (int j = 0; j < coloumnCount; j++)
+                for (int j = 0; j < columnCount; j++)
                 {
                     XElement cell = CreateTableCell();
                     row.Add(cell);
@@ -451,6 +451,12 @@ namespace Novacode
             XElement breakRun = new XElement(DocX.w + "br");
 
             StringBuilder sb = new StringBuilder();
+
+            if (string.IsNullOrEmpty(text))
+            {
+                return newRuns; //I dont wanna get an exception if text == null, so just return empy list
+            }
+
             foreach (char c in text)
             {
                 switch (c)

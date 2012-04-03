@@ -36,19 +36,19 @@ namespace Novacode
 
                 case "i4":
                 {
-                    realValue = int.Parse(value);
+                    realValue = int.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
                     break;
                 }
 
                 case "r8":
                 {
-                    realValue = double.Parse(value);
+                    realValue = Double.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
                     break;
                 }
 
                 case "filetime":
                 {
-                    realValue = DateTime.Parse(value);
+                    realValue = DateTime.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
                     break;
                 }
 

@@ -651,7 +651,7 @@ namespace Examples
                 }
             }
 
-            // We want to fill in the total by suming the values from the amount coloumn.
+            // We want to fill in the total by suming the values from the amount column.
             Row total = invoice_table.InsertRow();
             total.Cells[0].Paragraphs[0].InsertText("Total:", false);
             Paragraph total_paragraph = total.Cells[invoice_table.ColumnCount - 1].Paragraphs[0];
@@ -679,7 +679,7 @@ namespace Examples
             // Insert the total calculated above using LINQ into the total Paragraph.
             total_paragraph.InsertText(string.Format("€{0}", totalCost), false);
 
-            // Let the tables coloumns expand to fit its contents.
+            // Let the tables columns expand to fit its contents.
             invoice_table.AutoFit = AutoFit.Contents;
 
             // Center the Table
