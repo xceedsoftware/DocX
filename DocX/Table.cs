@@ -282,41 +282,76 @@ namespace Novacode
         /// <summary>
         /// Auto size this table according to some rule.
         /// </summary>
+        /// <remarks>Added by Roger Saele, April 2012. Thank you for your contribution Roger.</remarks>
         public AutoFit AutoFit
         {
             get { return autofit; }
 
             set
             {
-                string attributeValue = string.Empty;
+                string tableAttributeValue = string.Empty;
+                string columnAttributeValue = string.Empty;
                 switch (value)
                 {
                     case AutoFit.ColumnWidth:
                         {
-                            attributeValue = "dxa";
+                            tableAttributeValue = "auto";
+                            columnAttributeValue = "dxa";
+
+                            // Disable "Automatically resize to fit contents" option
+                            XElement tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
+                            if (tblPr != null)
+                            {
+                                XElement layout = tblPr.Element(XName.Get("tblLayout", DocX.w.NamespaceName));
+                                if (layout == null)
+                                {
+                                    tblPr.Add(new XElement(XName.Get("tblLayout", DocX.w.NamespaceName)));
+                                    layout = tblPr.Element(XName.Get("tblLayout", DocX.w.NamespaceName));
+                                }
+
+                                XAttribute type = layout.Attribute(XName.Get("type", DocX.w.NamespaceName));
+                                if (type == null)
+                                {
+                                    layout.Add(new XAttribute(XName.Get("type", DocX.w.NamespaceName), String.Empty));
+                                    type = layout.Attribute(XName.Get("type", DocX.w.NamespaceName));
+                                }
+
+                                type.Value = "fixed";
+                            }
+
                             break;
                         }
 
                     case AutoFit.Contents:
                         {
-                            attributeValue = "auto";
+                            tableAttributeValue = columnAttributeValue = "auto";
                             break;
                         }
 
                     case AutoFit.Window:
                         {
-                            attributeValue = "pct";
+                            tableAttributeValue = columnAttributeValue = "pct";
                             break;
                         }
                 }
 
+                // Set table attributes
                 var query = from d in Xml.Descendants()
                             let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
-                            where (d.Name.LocalName == "tcW" || d.Name.LocalName == "tblW") && type != null
+                            where (d.Name.LocalName == "tblW") && type != null
                             select type;
 
                 foreach (XAttribute type in query)
-                    type.Value = attributeValue;
+                    type.Value = tableAttributeValue;
+
+                // Set column attributes
+                query = from d in Xml.Descendants()
+                        let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
+                        where (d.Name.LocalName == "tcW") && type != null
+                        select type;
+
+                foreach (XAttribute type in query)
+                    type.Value = columnAttributeValue;
 
                 autofit = value;
             }
