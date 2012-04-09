@@ -21,6 +21,64 @@ namespace Novacode
         private AutoFit autofit;
 
         /// <summary>
+        /// Merge cells in given column starting with startRow and ending with endRow.
+        /// </summary>
+        /// <remarks>
+        /// Added by arudoy patch: 11608
+        /// </remarks>
+        public void MergeCellsInColumn(int columnIndex, int startRow, int endRow)
+        {
+            // Check for valid start and end indexes.
+            if (columnIndex < 0 || columnIndex >= ColumnCount)
+                throw new IndexOutOfRangeException();
+
+            if (startRow < 0 || endRow <= startRow || endRow >= Rows.Count)
+                throw new IndexOutOfRangeException();
+            // Foreach each Cell between startIndex and endIndex inclusive.
+            foreach (Row row in Rows.Where((z, i) => i > startRow && i <= endRow))
+            {
+                Cell c = row.Cells[columnIndex];
+                XElement tcPr = c.Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                if (tcPr == null)
+                {
+                    c.Xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                    tcPr = c.Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                }
+
+                XElement vMerge = tcPr.Element(XName.Get("vMerge", DocX.w.NamespaceName));
+                if (vMerge == null)
+                {
+                    tcPr.SetElementValue(XName.Get("vMerge", DocX.w.NamespaceName), string.Empty);
+                    vMerge = tcPr.Element(XName.Get("vMerge", DocX.w.NamespaceName));
+                }
+            }
+
+            /* 
+             * Get the tcPr (table cell properties) element for the first cell in this merge,
+            * null will be returned if no such element exists.
+             */
+            XElement start_tcPr = Rows[startRow].Cells[columnIndex].Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+            if (start_tcPr == null)
+            {
+                Rows[startRow].Cells[columnIndex].Xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                start_tcPr = Rows[startRow].Cells[columnIndex].Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+            }
+
+            /* 
+              * Get the gridSpan element of this row,
+              * null will be returned if no such element exists.
+              */
+            XElement start_vMerge = start_tcPr.Element(XName.Get("vMerge", DocX.w.NamespaceName));
+            if (start_vMerge == null)
+            {
+                start_tcPr.SetElementValue(XName.Get("vMerge", DocX.w.NamespaceName), string.Empty);
+                start_vMerge = start_tcPr.Element(XName.Get("vMerge", DocX.w.NamespaceName));
+            }
+
+            start_vMerge.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), "restart");
+        }
+
+        /// <summary>
         /// Returns a list of all Paragraphs inside this container.
         /// </summary>
         /// 
