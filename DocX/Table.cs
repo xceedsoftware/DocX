@@ -173,9 +173,7 @@ namespace Novacode
             {
                 if (RowCount == 0)
                     return 0;
-                return Xml.Elements(XName.Get("tr", DocX.w.NamespaceName))      // select rows
-                    .First()                                                    // get first row
-                    .Elements(XName.Get("tc", DocX.w.NamespaceName)).Count();   // return column count from first row
+                return Rows.First().ColumnCount;
             }
         }
 
@@ -1614,6 +1612,39 @@ namespace Novacode
     /// </summary>
     public class Row : Container
     {
+        /// <summary>
+        /// Calculates columns count in the row, taking spanned cells into account
+        /// </summary>
+        public Int32 ColumnCount
+        {
+            get
+            {
+                int gridSpanSum = 0;
+
+                // Foreach each Cell between startIndex and endIndex inclusive.
+                foreach (Cell c in Cells)
+                {
+                    XElement tcPr = c.Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                    if (tcPr != null)
+                    {
+                        XElement gridSpan = tcPr.Element(XName.Get("gridSpan", DocX.w.NamespaceName));
+                        if (gridSpan != null)
+                        {
+                            XAttribute val = gridSpan.Attribute(XName.Get("val", DocX.w.NamespaceName));
+
+                            int value = 0;
+                            if (val != null)
+                                if (int.TryParse(val.Value, out value))
+                                    gridSpanSum += value - 1;
+                        }
+                    }
+                }
+
+                // return cells count + count of spanned cells
+                return Cells.Count + gridSpanSum;
+            }
+        }
+
         /// <summary>
         /// A list of Cells in this Row.
         /// </summary>
