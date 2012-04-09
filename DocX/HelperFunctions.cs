@@ -272,7 +272,7 @@ namespace Novacode
             );
 
             using (TextWriter tw = new StreamWriter(customPropertiesPart.GetStream(FileMode.Create, FileAccess.Write)))
-                customPropDoc.Save(tw, SaveOptions.DisableFormatting);
+                customPropDoc.Save(tw, SaveOptions.None);
 
             document.package.CreateRelationship(customPropertiesPart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties");
         }
@@ -320,7 +320,7 @@ namespace Novacode
             
             // Save /word/styles.xml
             using (TextWriter tw = new StreamWriter(word_styles.GetStream(FileMode.Create, FileAccess.Write)))
-                stylesDoc.Save(tw, SaveOptions.DisableFormatting);
+                stylesDoc.Save(tw, SaveOptions.None);
 
             PackagePart mainDocumentPart = package.GetParts().Where
             (

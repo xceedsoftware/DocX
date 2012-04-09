@@ -1072,6 +1072,26 @@ namespace Novacode
                 }
             }
 
+            int id = 0;
+            var local_docPrs = mainDoc.Root.Descendants(XName.Get("docPr", DocX.wp.NamespaceName));
+            foreach (var local_docPr in local_docPrs)
+            {
+                XAttribute a_id = local_docPr.Attribute(XName.Get("id"));
+                int a_id_value;
+                if (a_id != null && int.TryParse(a_id.Value, out a_id_value))
+                    if (a_id_value > id)
+                        id = a_id_value;
+            }
+            id++;
+
+            // docPr must be sequential
+            var docPrs = remote_body.Descendants(XName.Get("docPr", DocX.wp.NamespaceName));
+            foreach (var docPr in docPrs)
+            {
+                docPr.SetAttributeValue(XName.Get("id"), id);
+                id++;
+            }
+
             // Add the remote documents contents to this document.
             XElement local_body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
             local_body.Add(remote_body.Elements());
@@ -1302,7 +1322,7 @@ namespace Novacode
 
             // Save the modified local custom styles.xml file.
             using (TextWriter tw = new StreamWriter(local_pp.GetStream(FileMode.Create, FileAccess.Write)))
-                local_custom_document.Save(tw, SaveOptions.DisableFormatting);
+                local_custom_document.Save(tw, SaveOptions.None);
         }
 
         private void merge_numbering(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote)
@@ -1430,6 +1450,15 @@ namespace Novacode
                     }
 
                     foreach (XElement e in remote_mainDoc.Root.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)))
+                    {
+                        XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                        if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                        {
+                            e_styleId.SetValue(styleId.Value + "_" + guuid);
+                        }
+                    }
+
+                    foreach(XElement e in remote_mainDoc.Root.Descendants(XName.Get("tblStyle", DocX.w.NamespaceName)))
                     {
                         XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
                         if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
@@ -1868,7 +1897,7 @@ namespace Novacode
 
             // Save the main document
             using (TextWriter tw = new StreamWriter(mainDocumentPart.GetStream(FileMode.Create, FileAccess.Write)))
-                mainDoc.Save(tw, SaveOptions.DisableFormatting);
+                mainDoc.Save(tw, SaveOptions.None);
             #endregion
 
             #region StylePart
@@ -2638,7 +2667,7 @@ namespace Novacode
 
                 // Save the main document
                 using (TextWriter tw = new StreamWriter(headerPart.GetStream(FileMode.Create, FileAccess.Write)))
-                    header.Save(tw, SaveOptions.DisableFormatting);
+                    header.Save(tw, SaveOptions.None);
 
                 string type;
                 switch (i)
@@ -2829,7 +2858,7 @@ namespace Novacode
 
             // Save the main document
             using (TextWriter tw = new StreamWriter(mainPart.GetStream(FileMode.Create, FileAccess.Write)))
-                mainDoc.Save(tw, SaveOptions.DisableFormatting);
+                mainDoc.Save(tw, SaveOptions.None);
 
             XElement body = mainDoc.Root.Element(w + "body");
             XElement sectPr = body.Descendants(w + "sectPr").FirstOrDefault();
@@ -2860,7 +2889,7 @@ namespace Novacode
                         (
                             new XDeclaration("1.0", "UTF-8", "yes"),
                             even
-                        ).Save(tw, SaveOptions.DisableFormatting);
+                        ).Save(tw, SaveOptions.None);
                     }
                 }
 
@@ -2889,7 +2918,7 @@ namespace Novacode
                         (
                             new XDeclaration("1.0", "UTF-8", "yes"),
                             odd
-                        ).Save(tw, SaveOptions.DisableFormatting);
+                        ).Save(tw, SaveOptions.None);
                     }
                 }
 
@@ -2917,7 +2946,7 @@ namespace Novacode
                         (
                             new XDeclaration("1.0", "UTF-8", "yes"),
                             first
-                        ).Save(tw, SaveOptions.DisableFormatting);
+                        ).Save(tw, SaveOptions.None);
                     }
                 }
 
@@ -2945,7 +2974,7 @@ namespace Novacode
                         (
                             new XDeclaration("1.0", "UTF-8", "yes"),
                             odd
-                        ).Save(tw, SaveOptions.DisableFormatting);
+                        ).Save(tw, SaveOptions.None);
                     }
                 }
 
@@ -2973,7 +3002,7 @@ namespace Novacode
                         (
                             new XDeclaration("1.0", "UTF-8", "yes"),
                             even
-                        ).Save(tw, SaveOptions.DisableFormatting);
+                        ).Save(tw, SaveOptions.None);
                     }
                 }
 
@@ -3001,60 +3030,63 @@ namespace Novacode
                         (
                             new XDeclaration("1.0", "UTF-8", "yes"),
                             first
-                        ).Save(tw, SaveOptions.DisableFormatting);
+                        ).Save(tw, SaveOptions.None);
                     }
                 }
 
                 // Save the settings document.
                 using (TextWriter tw = new StreamWriter(settingsPart.GetStream(FileMode.Create, FileAccess.Write)))
-                    settings.Save(tw, SaveOptions.DisableFormatting);
+                    settings.Save(tw, SaveOptions.None);
 
                 if (endnotesPart != null)
                 {
                     using (TextWriter tw = new StreamWriter(endnotesPart.GetStream(FileMode.Create, FileAccess.Write)))
-                        endnotes.Save(tw, SaveOptions.DisableFormatting);
+                        endnotes.Save(tw, SaveOptions.None);
                 }
 
                 if (footnotesPart != null)
                 {
                     using (TextWriter tw = new StreamWriter(footnotesPart.GetStream(FileMode.Create, FileAccess.Write)))
-                        footnotes.Save(tw, SaveOptions.DisableFormatting);
+                        footnotes.Save(tw, SaveOptions.None);
                 }
 
                 if (stylesPart != null)
                 {
                     using (TextWriter tw = new StreamWriter(stylesPart.GetStream(FileMode.Create, FileAccess.Write)))
-                        styles.Save(tw, SaveOptions.DisableFormatting);
+                        styles.Save(tw, SaveOptions.None);
                 }
 
                 if (stylesWithEffectsPart != null)
                 {
                     using (TextWriter tw = new StreamWriter(stylesWithEffectsPart.GetStream(FileMode.Create, FileAccess.Write)))
-                        stylesWithEffects.Save(tw, SaveOptions.DisableFormatting);
+                        stylesWithEffects.Save(tw, SaveOptions.None);
                 }
 
                 if (numberingPart != null)
                 {
                     using (TextWriter tw = new StreamWriter(numberingPart.GetStream(FileMode.Create, FileAccess.Write)))
-                        numbering.Save(tw, SaveOptions.DisableFormatting);
+                        numbering.Save(tw, SaveOptions.None);
                 }
 
                 if (fontTablePart != null)
                 {
                     using (TextWriter tw = new StreamWriter(fontTablePart.GetStream(FileMode.Create, FileAccess.Write)))
-                        fontTable.Save(tw, SaveOptions.DisableFormatting);
+                        fontTable.Save(tw, SaveOptions.None);
                 }
             }
 
             // Close the document so that it can be saved.
             package.Flush();
-
+            
             #region Save this document back to a file or stream, that was specified by the user at save time.
             if (filename != null)
             {
                 using (FileStream fs = new FileStream(filename, FileMode.Create))
+                {
                     fs.Write(memoryStream.ToArray(), 0, (int)memoryStream.Length);
+                }
             }
+
 
             else
             {
@@ -3417,7 +3449,7 @@ namespace Novacode
 
             // Save the custom properties
             using (TextWriter tw = new StreamWriter(customPropPart.GetStream(FileMode.Create, FileAccess.Write)))
-                customPropDoc.Save(tw, SaveOptions.DisableFormatting);
+                customPropDoc.Save(tw, SaveOptions.None);
 
             // Refresh all fields in this document which display this custom property.
             UpdateCustomPropertyValue(this, cp.Name, cp.Value.ToString());
