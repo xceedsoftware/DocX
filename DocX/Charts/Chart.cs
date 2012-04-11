@@ -359,7 +359,6 @@ namespace Novacode
                 pt = new XElement(XName.Get("pt", DocX.c.NamespaceName), new XAttribute(XName.Get("idx"), index),
                     new XElement(XName.Get("v", DocX.c.NamespaceName), values[index].ToString()));
                 numCache.Add(pt);
-                index++;
             }
         }
     }
