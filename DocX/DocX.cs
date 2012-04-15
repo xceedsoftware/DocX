@@ -1430,89 +1430,120 @@ namespace Novacode
 
         private void merge_styles(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote, XDocument remote_footnotes, XDocument remote_endnotes)
         {
+            Dictionary<String, String> local_styles = new Dictionary<string, string>();
+            foreach (XElement local_style in styles.Root.Elements(XName.Get("style", DocX.w.NamespaceName)))
+            {
+                XElement temp = new XElement(local_style);
+                XAttribute styleId = temp.Attribute(XName.Get("styleId", DocX.w.NamespaceName));
+                String value = styleId.Value;
+                styleId.Remove();
+                String key = Regex.Replace(temp.ToString(), @"\s+", "");
+                local_styles.Add(key, value);
+            }
+
             // Add each remote style to this document.
             IEnumerable<XElement> remote_styles = remote.styles.Root.Elements(XName.Get("style", DocX.w.NamespaceName));
-            String guuid = Guid.NewGuid().ToString();
-
             foreach (XElement remote_style in remote_styles)
             {
-                // Need to rename the styleId incase they clash.
-                XAttribute styleId = remote_style.Attribute(XName.Get("styleId", DocX.w.NamespaceName));
-                if (styleId != null)
+                XElement temp = new XElement(remote_style);
+                XAttribute styleId = temp.Attribute(XName.Get("styleId", DocX.w.NamespaceName));
+                String value = styleId.Value;
+                styleId.Remove();
+                String key = Regex.Replace(temp.ToString(), @"\s+", "");
+                String guuid;
+
+                // Check to see if the local document already contains the remote style.
+                if (local_styles.ContainsKey(key))
                 {
-                    foreach(XElement e in remote_mainDoc.Root.Descendants(XName.Get("pStyle", DocX.w.NamespaceName)))
+                    String local_value;
+                    local_styles.TryGetValue(key, out local_value);
+
+                    // If the styleIds are the same then nothing needs to be done.
+                    if (local_value == value)
+                        continue;
+
+                    // All we need to do is update the styleId.
+                    else
                     {
-                        XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
-                        if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
-                        {
-                            e_styleId.SetValue(styleId.Value + "_" + guuid);
-                        }
+                        guuid = local_value;
                     }
-
-                    foreach (XElement e in remote_mainDoc.Root.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)))
-                    {
-                        XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
-                        if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
-                        {
-                            e_styleId.SetValue(styleId.Value + "_" + guuid);
-                        }
-                    }
-
-                    foreach(XElement e in remote_mainDoc.Root.Descendants(XName.Get("tblStyle", DocX.w.NamespaceName)))
-                    {
-                        XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
-                        if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
-                        {
-                            e_styleId.SetValue(styleId.Value + "_" + guuid);
-                        }
-                    }
-
-                    if (remote_endnotes != null)
-                    {
-                        foreach (XElement e in remote_endnotes.Root.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)))
-                        {
-                            XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
-                            if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
-                            {
-                                e_styleId.SetValue(styleId.Value + "_" + guuid);
-                            }
-                        }
-
-                        foreach (XElement e in remote_endnotes.Root.Descendants(XName.Get("pStyle", DocX.w.NamespaceName)))
-                        {
-                            XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
-                            if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
-                            {
-                                e_styleId.SetValue(styleId.Value + "_" + guuid);
-                            }
-                        }
-                    }
-
-                    if (remote_footnotes != null)
-                    {
-                        foreach (XElement e in remote_footnotes.Root.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)))
-                        {
-                            XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
-                            if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
-                            {
-                                e_styleId.SetValue(styleId.Value + "_" + guuid);
-                            }
-                        }
-
-                        foreach (XElement e in remote_footnotes.Root.Descendants(XName.Get("pStyle", DocX.w.NamespaceName)))
-                        {
-                            XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
-                            if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
-                            {
-                                e_styleId.SetValue(styleId.Value + "_" + guuid);
-                            }
-                        }
-                    }
-
-                    // Make sure they don't clash by using a uuid.
-                    styleId.SetValue(styleId.Value + "_" + guuid);
-                    styles.Root.Add(remote_style);
                 }
+
+                else
+                    guuid = Guid.NewGuid().ToString();
+
+                foreach(XElement e in remote_mainDoc.Root.Descendants(XName.Get("pStyle", DocX.w.NamespaceName)))
+                {
+                    XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                    if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                    {
+                        e_styleId.SetValue(guuid);
+                    }
+                }
+
+                foreach (XElement e in remote_mainDoc.Root.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)))
+                {
+                    XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                    if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                    {
+                        e_styleId.SetValue(guuid);
+                    }
+                }
+
+                foreach(XElement e in remote_mainDoc.Root.Descendants(XName.Get("tblStyle", DocX.w.NamespaceName)))
+                {
+                    XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                    if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                    {
+                        e_styleId.SetValue(guuid);
+                    }
+                }
+
+                if (remote_endnotes != null)
+                {
+                    foreach (XElement e in remote_endnotes.Root.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)))
+                    {
+                        XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                        if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                        {
+                            e_styleId.SetValue(guuid);
+                        }
+                    }
+
+                    foreach (XElement e in remote_endnotes.Root.Descendants(XName.Get("pStyle", DocX.w.NamespaceName)))
+                    {
+                        XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                        if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                        {
+                            e_styleId.SetValue(guuid);
+                        }
+                    }
+                }
+
+                if (remote_footnotes != null)
+                {
+                    foreach (XElement e in remote_footnotes.Root.Descendants(XName.Get("rStyle", DocX.w.NamespaceName)))
+                    {
+                        XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                        if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                        {
+                            e_styleId.SetValue(guuid);
+                        }
+                    }
+
+                    foreach (XElement e in remote_footnotes.Root.Descendants(XName.Get("pStyle", DocX.w.NamespaceName)))
+                    {
+                        XAttribute e_styleId = e.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                        if (e_styleId != null && e_styleId.Value.Equals(styleId.Value))
+                        {
+                            e_styleId.SetValue(guuid);
+                        }
+                    }
+                }
+
+                // Make sure they don't clash by using a uuid.
+                styleId.SetValue(guuid);
+                styles.Root.Add(remote_style);  
             }
         }
 
