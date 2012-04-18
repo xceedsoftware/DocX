@@ -553,14 +553,16 @@ namespace Novacode
                     default: break;
                 }
 
-                XDocument style_doc;
-                PackagePart word_styles = Document.package.GetPart(new Uri("/word/styles.xml", UriKind.Relative));
-                using (TextReader tr = new StreamReader(word_styles.GetStream()))
-                    style_doc = XDocument.Load(tr);
+                if (Document.styles == null)
+                {
+                    PackagePart word_styles = Document.package.GetPart(new Uri("/word/styles.xml", UriKind.Relative));
+                    using (TextReader tr = new StreamReader(word_styles.GetStream()))
+                        Document.styles = XDocument.Load(tr);
+                }
 
                 var tableStyle =
                 (
-                    from e in style_doc.Descendants()
+                    from e in Document.styles.Descendants()
                     let styleId = e.Attribute(XName.Get("styleId", DocX.w.NamespaceName))
                     where (styleId != null && styleId.Value == val.Value)
                     select e
@@ -578,10 +580,7 @@ namespace Novacode
                         select e
                     ).First();
 
-                    style_doc.Element(XName.Get("styles", DocX.w.NamespaceName)).Add(styleElement);
-
-                    using (TextWriter tw = new StreamWriter(word_styles.GetStream(FileMode.Create)))
-                        style_doc.Save(tw, SaveOptions.None);
+                    Document.styles.Element(XName.Get("styles", DocX.w.NamespaceName)).Add(styleElement);
                 }
             }
         }
