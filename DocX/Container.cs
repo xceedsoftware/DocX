@@ -305,7 +305,7 @@ namespace Novacode
                 Uri style_package_uri = new Uri("/word/styles.xml", UriKind.Relative);
                 if (!Document.package.PartExists(style_package_uri))
                 {
-                    PackagePart style_package = Document.package.CreatePart(style_package_uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml");
+                    PackagePart style_package = Document.package.CreatePart(style_package_uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml", CompressionOption.Maximum);
                     using (TextWriter tw = new StreamWriter(style_package.GetStream()))
                     {
                         style_document = new XDocument

@@ -219,7 +219,7 @@ namespace Novacode
             this.startIndex = startIndex;
             this.endIndex = startIndex + GetElementTextLength(xml);
 
-            RebuildDocProperties();            
+            RebuildDocProperties();
 
             #region It's possible that a Paragraph may have pStyle references
             // Check if this Paragraph references any pStyle elements.
@@ -230,14 +230,14 @@ namespace Novacode
             {
                 Uri style_package_uri = new Uri("/word/styles.xml", UriKind.Relative);
                 PackagePart styles_document = document.package.GetPart(style_package_uri);
-                
+
                 using (TextReader tr = new StreamReader(styles_document.GetStream()))
                 {
                     XDocument style_document = XDocument.Load(tr);
                     XElement styles_element = style_document.Element(XName.Get("styles", DocX.w.NamespaceName));
 
                     var styles_element_ids = stylesElements.Select(e => e.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value);
-                    
+
                     //foreach(string id in styles_element_ids)
                     //{
                     //    var style = 
@@ -252,7 +252,7 @@ namespace Novacode
                     //    styles.Add(style);
                     //} 
                 }
-            } 
+            }
             #endregion
 
             this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).ToList();

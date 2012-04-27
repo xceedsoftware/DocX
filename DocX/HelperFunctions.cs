@@ -16,7 +16,7 @@ namespace Novacode
     {
         internal static void CreateRelsPackagePart(DocX Document, Uri uri)
         {
-            PackagePart pp = Document.package.CreatePart(uri, "application/vnd.openxmlformats-package.relationships+xml");
+            PackagePart pp = Document.package.CreatePart(uri, "application/vnd.openxmlformats-package.relationships+xml", CompressionOption.Maximum);
             using (TextWriter tw = new StreamWriter(pp.GetStream()))
             {
                 XDocument d = new XDocument
@@ -190,7 +190,7 @@ namespace Novacode
             Uri settingsUri = new Uri("/word/settings.xml", UriKind.Relative);
             if (!package.PartExists(settingsUri))
             {
-                settingsPart = package.CreatePart(settingsUri, "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml");
+                settingsPart = package.CreatePart(settingsUri, "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml", CompressionOption.Maximum);
 
                 PackagePart mainDocumentPart = package.GetParts().Where
                 (
@@ -259,7 +259,7 @@ namespace Novacode
 
         internal static void CreateCustomPropertiesPart(DocX document)
         {
-            PackagePart customPropertiesPart = document.package.CreatePart(new Uri("/docProps/custom.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.custom-properties+xml");
+            PackagePart customPropertiesPart = document.package.CreatePart(new Uri("/docProps/custom.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.custom-properties+xml", CompressionOption.Maximum);
 
             XDocument customPropDoc = new XDocument
             (
@@ -312,7 +312,7 @@ namespace Novacode
         {
             XDocument stylesDoc;
             // Create the main document part for this package
-            PackagePart word_styles = package.CreatePart(new Uri("/word/styles.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml");
+            PackagePart word_styles = package.CreatePart(new Uri("/word/styles.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml", CompressionOption.Maximum);
 
             stylesDoc = HelperFunctions.DecompressXMLResource("Novacode.Resources.default_styles.xml.gz");
             XElement lang = stylesDoc.Root.Element(XName.Get("docDefaults", DocX.w.NamespaceName)).Element(XName.Get("rPrDefault", DocX.w.NamespaceName)).Element(XName.Get("rPr", DocX.w.NamespaceName)).Element(XName.Get("lang", DocX.w.NamespaceName));
