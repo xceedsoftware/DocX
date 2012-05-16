@@ -79,7 +79,13 @@ namespace Novacode
         /// </example>
         public Picture CreatePicture()
         {
-            return Paragraph.CreatePicture(document, id, string.Empty, string.Empty);
+            return CreatePicture(0, 0);// Paragraph.CreatePicture(document, id, string.Empty, string.Empty);
+        }
+        public Picture CreatePicture(int height, int width) {
+            Picture picture = Paragraph.CreatePicture(document, id, string.Empty, string.Empty);
+            picture.Height = height;
+            picture.Width = width;
+            return picture;
         }
 
       ///<summary>
