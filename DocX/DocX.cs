@@ -1438,7 +1438,7 @@ namespace Novacode
                 String value = styleId.Value;
                 styleId.Remove();
                 String key = Regex.Replace(temp.ToString(), @"\s+", "");
-                local_styles.Add(key, value);
+                if (!local_styles.ContainsKey(key)) local_styles.Add(key, value); 
             }
 
             // Add each remote style to this document.
