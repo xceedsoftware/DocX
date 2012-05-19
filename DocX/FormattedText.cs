@@ -19,7 +19,7 @@ namespace Novacode
         public int CompareTo(object obj)
         {
             FormattedText other = (FormattedText)obj;
-            FormattedText tf = (FormattedText)obj;
+            FormattedText tf = this;
 
             if (other.formatting == null || tf.formatting == null)
                 return -1;
