@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Drawing;
-using System.IO;
 using System.Xml.Linq;
 
 namespace Novacode
@@ -60,6 +57,14 @@ namespace Novacode
                 }
                 )
             );
+        }
+
+        public static string GetAttribute(this XElement el, XName name, string defaultValue = "")
+        {
+            var attr = el.Attribute(name);
+            if (attr != null)
+                return attr.Value;
+            return defaultValue;
         }
     }
 }
