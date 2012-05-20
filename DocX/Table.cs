@@ -287,7 +287,22 @@ namespace Novacode
 
             else
                 design = TableDesign.None;
+
+            XElement tableLook = properties.Element(XName.Get("tblLook", DocX.w.NamespaceName));
+            if (tableLook != null)
+            {
+                TableLook = new TableLook();
+                TableLook.FirstRow = tableLook.GetAttribute(XName.Get("firstRow", DocX.w.NamespaceName)) == "1";
+                TableLook.LastRow = tableLook.GetAttribute(XName.Get("lastRow", DocX.w.NamespaceName)) == "1";
+                TableLook.FirstColumn = tableLook.GetAttribute(XName.Get("firstColumn", DocX.w.NamespaceName)) == "1";
+                TableLook.LastColumn = tableLook.GetAttribute(XName.Get("lastColumn", DocX.w.NamespaceName)) == "1";
+                TableLook.NoHorizontalBanding = tableLook.GetAttribute(XName.Get("noHBand", DocX.w.NamespaceName)) == "1";
+                TableLook.NoVerticalBanding = tableLook.GetAttribute(XName.Get("noVBand", DocX.w.NamespaceName)) == "1";
+            }
+
         }
+
+        public TableLook TableLook { get; set; }
 
         public Alignment Alignment
         {
@@ -3027,5 +3042,15 @@ namespace Novacode
             //IMPORTANT: It will be better to check all methods that work with adding anything to cells
             return table;
         }
+    }
+
+    public class TableLook
+    {
+        public bool FirstRow { get; set; }
+        public bool LastRow { get; set; }
+        public bool FirstColumn { get; set; }
+        public bool LastColumn { get; set; }
+        public bool NoHorizontalBanding { get; set; }
+        public bool NoVerticalBanding { get; set; }
     }
 }
