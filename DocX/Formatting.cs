@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using System.Drawing;
 using System.Globalization;
@@ -76,11 +74,11 @@ namespace Novacode
             {
                 switch (option.Name.LocalName)
                 {
-                    case "lang": formatting.Language = new CultureInfo(option.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value); break;
-                    case "spacing": formatting.Spacing = Double.Parse(option.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value) / 20.0; break;
-                    case "position": formatting.Position = Int32.Parse(option.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value) / 2; break;
-                    case "kern": formatting.Position = Int32.Parse(option.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value) / 2; break;
-                    case "w": formatting.PercentageScale = Int32.Parse(option.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value); break;
+                    case "lang": formatting.Language = new CultureInfo(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("eastAsia", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("bidi", DocX.w.NamespaceName))); break;
+                    case "spacing": formatting.Spacing = Double.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 20.0; break;
+                    case "position": formatting.Position = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2; break;
+                    case "kern": formatting.Position = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2; break;
+                    case "w": formatting.PercentageScale = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))); break;
                     case "rFonts": break;
                     case "vanish": formatting.hidden = true; break;
                     case "b": formatting.Bold = true; break;
@@ -450,7 +448,7 @@ namespace Novacode
             if(other.spacing != this.spacing)
                 return -1;
 
-            if(other.language != this.language)
+            if (!other.language.Equals(this.language))
                 return -1;
 
             return 0;
