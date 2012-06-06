@@ -7,9 +7,6 @@ using System.Xml;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.IO.Packaging;
-using System.Security.Principal;
-using System.Reflection;
-using System.IO.Compression;
 using System.Security.Cryptography;
 
 namespace Novacode
