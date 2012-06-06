@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using System.Security.Principal;
-using System.Collections;
 using System.IO.Packaging;
 using System.IO;
 using System.Drawing;
