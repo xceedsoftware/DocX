@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
-using System.IO;
-using System.IO.Packaging;
 using System.Collections;
 using System.Drawing;
-using System.Reflection;
 
 namespace Novacode
 {
