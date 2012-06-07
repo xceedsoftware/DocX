@@ -19,16 +19,12 @@ namespace Novacode
         ///     </r>
         /// </p>
         /// </summary>
-        private XElement xml;
-        public XElement Xml { get { return xml; } set { xml = value; } }
-
+        public XElement Xml { get; set; }
         /// <summary>
         /// This is a reference to the DocX object that this element belongs to.
         /// Every DocX element is connected to a document.
         /// </summary>
-        private DocX document;
-        internal DocX Document { get { return document; } set { document = value; } }
-
+        internal DocX Document { get; set; }
         /// <summary>
         /// Store both the document and xml so that they can be accessed by derived types.
         /// </summary>
@@ -36,8 +32,8 @@ namespace Novacode
         /// <param name="xml">The Xml that gives this element substance</param>
         public DocXElement(DocX document, XElement xml)
         {
-            this.document = document;
-            this.xml = xml;
+            this.Document = document;
+            this.Xml = xml;
         }
     }
 
