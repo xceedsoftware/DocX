@@ -79,11 +79,12 @@ namespace Novacode
                     case "position": formatting.Position = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2; break;
                     case "kern": formatting.Position = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2; break;
                     case "w": formatting.PercentageScale = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))); break;
-                    case "rFonts": break;
+                    case "rFonts": formatting.FontFamily = new FontFamily(option.GetAttribute(XName.Get("cs", DocX.w.NamespaceName))); break;
                     case "vanish": formatting.hidden = true; break;
                     case "b": formatting.Bold = true; break;
                     case "i": formatting.Italic = true; break;
-
+                    case "u": formatting.UnderlineStyle = HelperFunctions.GetUnderlineStyle(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName)));
+                              break;
                     default: break;
                 }
             }

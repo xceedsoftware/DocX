@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Novacode;
-using System.Drawing;
-using System.IO;
-using System.Drawing.Imaging;
-using System.Threading.Tasks;
 using System.Data;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Novacode;
 
 namespace Examples
 {
     class Program
     {
         static void Main(string[] args)
-        {            
+        {
+            Setup();
             // Easy
             Console.WriteLine("\nRunning Easy Examples");
             HelloWorld();
@@ -23,6 +23,7 @@ namespace Examples
 
             HeadersAndFooters();
             HyperlinksImagesTables();
+            AddList();
 
             Equations();
 
@@ -42,6 +43,14 @@ namespace Examples
 
             Console.WriteLine("\nPress any key to exit.");
             Console.ReadKey();
+        }
+
+        private static void Setup()
+        {
+            if (!Directory.Exists("docs"))
+            {
+                Directory.CreateDirectory("docs");
+            }
         }
 
         #region Charts
@@ -316,6 +325,31 @@ namespace Examples
                 Console.WriteLine("\tCreated: docs\\HyperlinksImagesTables.docx\n");
             }
         }
+        private static void AddList()
+        {
+            Console.WriteLine("\tAddList()");
+
+            using (var document = DocX.Create(@"docs\Lists.docx"))
+            {
+                var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered, 2);
+                document.AddListItem(numberedList, "First sub list item", 1);
+                document.AddListItem(numberedList, "Second List Item.");
+                document.AddListItem(numberedList, "Third list item.");
+                document.AddListItem(numberedList, "Nested item.", 1);
+                document.AddListItem(numberedList, "Second nested item.", 1);
+
+                var bulletedList = document.AddList("First Bulleted Item.", 0, ListItemType.Bulleted);
+                document.AddListItem(bulletedList, "Second bullet item");
+                document.AddListItem(bulletedList, "Sub bullet item", 1);
+                document.AddListItem(bulletedList, "Second sub bullet item", 1);
+                document.AddListItem(bulletedList, "Third bullet item");
+
+                document.InsertList(numberedList);
+                document.InsertList(bulletedList);
+                document.Save();
+                Console.WriteLine("\tCreated: docs\\Lists.docx");
+            }
+        }
 
         private static void HeadersAndFooters()
         {
@@ -385,6 +419,20 @@ namespace Examples
                 // Insert a Paragraph after the page break.
                 Paragraph p8 = document.InsertParagraph();
                 p8.AppendLine("Hello Third page.");
+
+                //Insert a next page break, which is a section break combined with a page break
+                document.InsertSectionPageBreak();
+
+                //Insert a paragraph after the "Next" page break
+                Paragraph p9 = document.InsertParagraph();
+                p9.Append("Next page section break.");
+
+                //Insert a continuous section break
+                document.InsertSection();
+
+                //Create a paragraph in the new section
+                var p10 = document.InsertParagraph();
+                p10.Append("Continuous section paragraph.");
 
                 // Save all changes to this document.
                 document.Save();
@@ -812,7 +860,6 @@ namespace Examples
                     // Save this Bitmap back into the document using a Create\Write stream.
                     b.Save(img.GetStream(FileMode.Create, FileAccess.Write), ImageFormat.Png);
                 }
-
                 else
                     Console.WriteLine("The provided document contains no Images.");
 
