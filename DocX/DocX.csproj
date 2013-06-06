@@ -61,10 +61,11 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>StrongNameFile.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -103,7 +104,9 @@
     <Compile Include="Headers.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="Hyperlink.cs" />
+    <Compile Include="List.cs" />
     <Compile Include="PageLayout.cs" />
+    <Compile Include="Section.cs" />
     <Compile Include="_BaseClasses.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="_Enumerations.cs" />
@@ -116,9 +119,6 @@
     <Compile Include="_Extensions.cs">
       <SubType>Code</SubType>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="StrongNameFile.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="License\License.html" />
@@ -143,6 +143,13 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\numbering.xml.gz" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\numbering.default_bullet_abstract.xml.gz" />
+    <EmbeddedResource Include="Resources\numbering.default_decimal_abstract.xml.gz" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
