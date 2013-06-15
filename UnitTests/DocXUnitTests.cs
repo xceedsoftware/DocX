@@ -17,23 +17,23 @@ namespace UnitTests
     [TestClass]
     public class DocXUnitTests
     {
-        // Get the fullpath to the executing assembly.
-        string directory_executing_assembly;
-        string directory_documents;
-        string file_temp = "temp.docx";
+        
+        private readonly string _directoryDocuments;
+        private const string FileTemp = "temp.docx";
+        private readonly string _directoryWithFiles;
 
         const string package_part_document = "/word/document.xml";
 
         public DocXUnitTests()
         {
-            directory_executing_assembly = Assembly.GetExecutingAssembly().Location;
-
-            // The documents directory
-            List<string> steps = directory_executing_assembly.Split('\\').ToList();
+            string directoryExecutingAssembly = Assembly.GetExecutingAssembly().Location; // Get the fullpath to the executing assembly.
+            List<string> steps = directoryExecutingAssembly.Split('\\').ToList(); // The documents directory
             steps.RemoveRange(steps.Count() - 2, 2);
-            directory_documents = String.Join("\\", steps) + "\\documents\\";
-            Setup(directory_documents);
-
+            _directoryDocuments = String.Join("\\", steps) + "\\documents\\";
+            Setup(_directoryDocuments); // prepare temp documents directory 
+            RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
+            rd.Up(3);
+            _directoryWithFiles = rd.Path + @"\UnitTests\documents\";
         }
         private static void Setup(string path)
         {
@@ -51,7 +51,7 @@ namespace UnitTests
                 {"Case Number","cr-md-2011-1234567"}
             };
 
-            using (DocX replaceDoc = DocX.Load(directory_documents + "ReplaceTests.docx"))
+            using (DocX replaceDoc = DocX.Load(_directoryWithFiles + "ReplaceTests.docx"))
             {
                 foreach (var t in replaceDoc.Tables)
                 {   // each table has 1 row and 3 columns
@@ -134,7 +134,7 @@ namespace UnitTests
         public void Test_EverybodyHasAHome_Loaded()
         {
             // Load a document.
-            using (DocX document = DocX.Load(directory_documents + "EverybodyHasAHome.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "EverybodyHasAHome.docx"))
             {
                 // Main document tests.
                 string document_xml_file = document.mainPart.Uri.OriginalString;
@@ -215,10 +215,10 @@ namespace UnitTests
         public void Test_Insert_Picture_ParagraphBeforeSelf()
         {
             // Create test document.
-            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
             {
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(directory_documents + "purple.png");
+                Novacode.Image img = document.AddImage(_directoryWithFiles + "purple.png");
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -238,10 +238,10 @@ namespace UnitTests
         public void Test_Insert_Picture_ParagraphAfterSelf()
         {
             // Create test document.
-            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
             {
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(directory_documents + "purple.png");
+                Novacode.Image img = document.AddImage(_directoryWithFiles + "purple.png");
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -367,30 +367,30 @@ namespace UnitTests
         [TestMethod]
         public void Test_Document_AddImage_FromDisk()
         {
-            using (DocX document = DocX.Create(directory_documents + "test_add_images.docx"))
+            using (DocX document = DocX.Create(_directoryDocuments + "test_add_images.docx"))
             {
                 // Add a png to into this document
-                Novacode.Image png = document.AddImage(directory_documents + "purple.png");
+                Novacode.Image png = document.AddImage(_directoryWithFiles + "purple.png");
                 Assert.IsTrue(document.Images.Count == 1);
                 Assert.IsTrue(Path.GetExtension(png.pr.TargetUri.OriginalString) == ".png");
 
                 // Add a tiff into to this document
-                Novacode.Image tif = document.AddImage(directory_documents + "yellow.tif");
+                Novacode.Image tif = document.AddImage(_directoryWithFiles + "yellow.tif");
                 Assert.IsTrue(document.Images.Count == 2);
                 Assert.IsTrue(Path.GetExtension(tif.pr.TargetUri.OriginalString) == ".tif");
 
                 // Add a gif into to this document
-                Novacode.Image gif = document.AddImage(directory_documents + "orange.gif");
+                Novacode.Image gif = document.AddImage(_directoryWithFiles + "orange.gif");
                 Assert.IsTrue(document.Images.Count == 3);
                 Assert.IsTrue(Path.GetExtension(gif.pr.TargetUri.OriginalString) == ".gif");
 
                 // Add a jpg into to this document
-                Novacode.Image jpg = document.AddImage(directory_documents + "green.jpg");
+                Novacode.Image jpg = document.AddImage(_directoryWithFiles + "green.jpg");
                 Assert.IsTrue(document.Images.Count == 4);
                 Assert.IsTrue(Path.GetExtension(jpg.pr.TargetUri.OriginalString) == ".jpg");
 
                 // Add a bitmap to this document
-                Novacode.Image bitmap = document.AddImage(directory_documents + "red.bmp");
+                Novacode.Image bitmap = document.AddImage(_directoryWithFiles + "red.bmp");
                 Assert.IsTrue(document.Images.Count == 5);
                 // Word does not allow bmp make sure it was inserted as a png.
                 Assert.IsTrue(Path.GetExtension(bitmap.pr.TargetUri.OriginalString) == ".png");
@@ -400,32 +400,32 @@ namespace UnitTests
         [TestMethod]
         public void Test_Document_AddImage_FromStream()
         {
-            using (DocX document = DocX.Create(directory_documents + "test_add_images.docx"))
+            using (DocX document = DocX.Create(_directoryDocuments + "test_add_images.docx"))
             {
                 // DocX will always insert Images that come from Streams as jpeg.
 
                 // Add a png to into this document
-                Novacode.Image png = document.AddImage(new FileStream(directory_documents + "purple.png", FileMode.Open));
+                Novacode.Image png = document.AddImage(new FileStream(_directoryWithFiles + "purple.png", FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 1);
                 Assert.IsTrue(Path.GetExtension(png.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a tiff into to this document
-                Novacode.Image tif = document.AddImage(new FileStream(directory_documents + "yellow.tif", FileMode.Open));
+                Novacode.Image tif = document.AddImage(new FileStream(_directoryWithFiles + "yellow.tif", FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 2);
                 Assert.IsTrue(Path.GetExtension(tif.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a gif into to this document
-                Novacode.Image gif = document.AddImage(new FileStream(directory_documents + "orange.gif", FileMode.Open));
+                Novacode.Image gif = document.AddImage(new FileStream(_directoryWithFiles + "orange.gif", FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 3);
                 Assert.IsTrue(Path.GetExtension(gif.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a jpg into to this document
-                Novacode.Image jpg = document.AddImage(new FileStream(directory_documents + "green.jpg", FileMode.Open));
+                Novacode.Image jpg = document.AddImage(new FileStream(_directoryWithFiles + "green.jpg", FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 4);
                 Assert.IsTrue(Path.GetExtension(jpg.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a bitmap to this document
-                Novacode.Image bitmap = document.AddImage(new FileStream(directory_documents + "red.bmp", FileMode.Open));
+                Novacode.Image bitmap = document.AddImage(new FileStream(_directoryWithFiles + "red.bmp", FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 5);
                 // Word does not allow bmp make sure it was inserted as a png.
                 Assert.IsTrue(Path.GetExtension(bitmap.pr.TargetUri.OriginalString) == ".jpeg");
@@ -435,7 +435,7 @@ namespace UnitTests
         [TestMethod]
         public void Test_Tables()
         {
-            using (DocX document = DocX.Load(directory_documents + "Tables.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "Tables.docx"))
             {
                 // There is only one Paragraph at the document level.
                 Assert.IsTrue(document.Paragraphs.Count() == 13);
@@ -454,7 +454,7 @@ namespace UnitTests
         [TestMethod]
         public void Test_Images()
         {
-            using (DocX document = DocX.Load(directory_documents + "Images.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "Images.docx"))
             {
                 // Extract Images from Document.
                 List<Novacode.Image> document_images = document.Images;
@@ -498,7 +498,7 @@ namespace UnitTests
         public void Test_Insert_Picture()
         {
             // Load test document.
-            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
             {
                 // Add Headers and Footers into this document.
                 document.AddHeaders();
@@ -507,7 +507,7 @@ namespace UnitTests
                 document.DifferentOddAndEvenPages = true;
 
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(directory_documents + "purple.png");
+                Novacode.Image img = document.AddImage(_directoryWithFiles + "purple.png");
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -549,7 +549,7 @@ namespace UnitTests
         public void Test_Insert_Hyperlink()
         {
             // Load test document.
-            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
             {
                 // Add Headers and Footers into this document.
                 document.AddHeaders();
@@ -597,7 +597,7 @@ namespace UnitTests
         public void Test_Get_Set_Hyperlink()
         {
             // Load test document.
-            using (DocX document = DocX.Load(directory_documents + "Hyperlinks.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "Hyperlinks.docx"))
             {
                 // Hyperlinks in the document.
                 Assert.IsTrue(document.Hyperlinks.Count == 3);
@@ -688,7 +688,7 @@ namespace UnitTests
         public void Test_Append_Hyperlink()
         {
             // Load test document.
-            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
             {
                 // Add Headers and Footers into this document.
                 document.AddHeaders();
@@ -743,7 +743,7 @@ namespace UnitTests
         public void Test_Append_Picture()
         {
             // Create test document.
-            using (DocX document = DocX.Create(directory_documents + "Test.docx"))
+            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
             {
                 // Add Headers and Footers into this document.
                 document.AddHeaders();
@@ -752,7 +752,7 @@ namespace UnitTests
                 document.DifferentOddAndEvenPages = true;
 
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(directory_documents + "purple.png");
+                Novacode.Image img = document.AddImage(_directoryWithFiles + "purple.png");
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -794,7 +794,7 @@ namespace UnitTests
         public void Test_Move_Picture_Load()
         {
             // Load test document.
-            using (DocX document = DocX.Load(directory_documents + "MovePicture.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "MovePicture.docx"))
             {
                 // Extract the first Picture from the first Paragraph.
                 Picture picture = document.Paragraphs.First().Pictures.First();
@@ -824,7 +824,7 @@ namespace UnitTests
                 footer_odd.Paragraphs.First().AppendPicture(picture);
 
                 // Save this as MovedPicture.docx
-                document.SaveAs(directory_documents + "MovedPicture.docx");
+                document.SaveAs(_directoryDocuments + "MovedPicture.docx");
             }
         }
 
@@ -1143,7 +1143,7 @@ namespace UnitTests
         public void Test_Document_Paragraphs()
         {
             // Load the document 'Paragraphs.docx'
-            using (DocX document = DocX.Load(directory_documents + "Paragraphs.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "Paragraphs.docx"))
             {
                 // Extract the Paragraphs from this document.
                 List<Paragraph> paragraphs = document.Paragraphs;
@@ -1170,11 +1170,11 @@ namespace UnitTests
                 document.Paragraphs.ForEach(p => Assert.IsTrue(p.PackagePart.Uri.ToString() == package_part_document));
 
                 // Test the saving of the document.
-                document.SaveAs(file_temp);
+                document.SaveAs(FileTemp);
             }
 
             // Delete the tempory file.
-            File.Delete(file_temp);
+            File.Delete(FileTemp);
         }
 
         [TestMethod]
@@ -1195,7 +1195,7 @@ namespace UnitTests
         public void Test_Table_InsertRowAndColumn()
         {
             // Create a table
-            using (DocX document = DocX.Create(directory_documents + "Tables2.docx"))
+            using (DocX document = DocX.Create(_directoryDocuments + "Tables2.docx"))
             {
                 // Add a Table to a document.
                 Table t = document.AddTable(2, 2);
@@ -1217,7 +1217,7 @@ namespace UnitTests
             }
 
             // Check table
-            using (DocX document = DocX.Load(directory_documents + "Tables2.docx"))
+            using (DocX document = DocX.Load(_directoryDocuments + "Tables2.docx"))
             {
                 // Get a table from a document
                 Table t = document.Tables[0];
@@ -1245,7 +1245,7 @@ namespace UnitTests
             {
                 using (DocX document = DocX.Create(documentStream))
                 {
-                    document.ApplyTemplate(directory_documents + "Template.dotx");
+                    document.ApplyTemplate(_directoryWithFiles + "Template.dotx");
                     document.Save();
 
                     Header firstHeader = document.Headers.first;
@@ -1330,7 +1330,7 @@ namespace UnitTests
         [TestMethod]
         public void Test_ParentContainer_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(directory_documents + "Tables.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "Tables.docx"))
             {
                 List<Paragraph> paragraphs = document.Paragraphs;
 
@@ -1344,7 +1344,7 @@ namespace UnitTests
         [TestMethod]
         public void Test_Section_Count_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(directory_documents + "testdoc_SectionsWithSectionBreaks.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_SectionsWithSectionBreaks.docx"))
             {
                 var sections = document.GetSections();
 
@@ -1356,7 +1356,7 @@ namespace UnitTests
         [TestMethod]
         public void Test_Section_Paragraph_Count_Match_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(directory_documents + "testdoc_SectionsWithSectionBreaksMultiParagraph.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_SectionsWithSectionBreaksMultiParagraph.docx"))
             {
 
                 var sections = document.GetSections();
@@ -1371,7 +1371,7 @@ namespace UnitTests
         [TestMethod]
         public void Test_Section_Paragraph_Content_Match_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(directory_documents + "testdoc_SectionsWithSectionBreaks.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_SectionsWithSectionBreaks.docx"))
             {
 
                 var sections = document.GetSections();
@@ -1387,7 +1387,7 @@ namespace UnitTests
         [TestMethod]
         public void Test_Ordered_List_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(directory_documents + "testdoc_OrderedList.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_OrderedList.docx"))
             {
 
                 var sections = document.GetSections();
@@ -1405,7 +1405,7 @@ namespace UnitTests
         [TestMethod]
         public void Test_Unordered_List_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(directory_documents + "testdoc_UnorderedList.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_UnorderedList.docx"))
             {
 
                 var sections = document.GetSections();
@@ -1423,7 +1423,7 @@ namespace UnitTests
         [TestMethod]
         public void Test_Ordered_Unordered_Lists_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(directory_documents + "testdoc_OrderedUnorderedLists.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_OrderedUnorderedLists.docx"))
             {
 
                 var sections = document.GetSections();
@@ -1667,7 +1667,7 @@ namespace UnitTests
         public void WhenADocumentHasListsTheListPropertyReturnsTheCorrectNumberOfLists()
         {
 
-            using (DocX document = DocX.Load(directory_documents + "testdoc_OrderedUnorderedLists.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_OrderedUnorderedLists.docx"))
             {
                 var lists = document.Lists;
 
@@ -1740,7 +1740,7 @@ namespace UnitTests
         [TestMethod]
         public void WhileReadingWhenTextIsBoldItalicUnderlineItShouldReadTheProperFormatting()
         {
-            using (DocX document = DocX.Load(directory_documents + "FontFormat.docx"))
+            using (DocX document = DocX.Load(_directoryWithFiles + "FontFormat.docx"))
             {
                 var underlinedTextFormatting = document.Paragraphs[0].MagicText[0].formatting;
                 var boldTextFormatting = document.Paragraphs[0].MagicText[2].formatting;
