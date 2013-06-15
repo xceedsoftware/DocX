@@ -30,12 +30,18 @@ namespace UnitTests
 
             // The documents directory
             List<string> steps = directory_executing_assembly.Split('\\').ToList();
-            steps.RemoveRange(steps.Count() - 3, 3);
+            steps.RemoveRange(steps.Count() - 2, 2);
             directory_documents = String.Join("\\", steps) + "\\documents\\";
+            Setup(directory_documents);
 
-            // directory_documents = "C:\\Users\\Faizan\\DocX\\UnitTests\\documents\\";
         }
-
+        private static void Setup(string path)
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+        }
         [TestMethod]
         public void Test_Pattern_Replacement()
         {
