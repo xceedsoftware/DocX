@@ -3275,13 +3275,17 @@ namespace Novacode
             }
             else
             {
-                // Set the length of this stream to 0
-                stream.SetLength(0);
+                if (stream.CanSeek) // 2013-05-25: Check if stream can be seeked to support System.Web.HttpResponseStream
+                {
+                    // Set the length of this stream to 0
+                    stream.SetLength(0);
 
-                // Write to the beginning of the stream
-                stream.Position = 0;
+                    // Write to the beginning of the stream
+                    stream.Position = 0;
+                }
 
                 memoryStream.WriteTo(stream);
+                memoryStream.Flush();
             }
             #endregion
         }
@@ -3608,10 +3612,11 @@ namespace Novacode
                 pid = pids.Max();
 
             // Check if a custom property already exists with this name
+            // 2013-05-25: IgnoreCase while searching for custom property as it would produce a currupted docx.
             var customProperty =
             (
                 from d in customPropDoc.Descendants()
-                where (d.Name.LocalName == "property") && (d.Attribute(XName.Get("name")).Value == cp.Name)
+                where (d.Name.LocalName == "property") && (d.Attribute(XName.Get("name")).Value.Equals(cp.Name, StringComparison.InvariantCultureIgnoreCase))
                 select d
             ).SingleOrDefault();
 
@@ -3628,7 +3633,7 @@ namespace Novacode
                     new XAttribute("fmtid", "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}"),
                     new XAttribute("pid", pid + 1),
                     new XAttribute("name", cp.Name),
-                        new XElement(customVTypesSchema + cp.Type, cp.Value)
+                        new XElement(customVTypesSchema + cp.Type, cp.Value ?? "")
                 )
             );
 
@@ -3637,7 +3642,7 @@ namespace Novacode
                 customPropDoc.Save(tw, SaveOptions.None);
 
             // Refresh all fields in this document which display this custom property.
-            UpdateCustomPropertyValue(this, cp.Name, cp.Value.ToString());
+            UpdateCustomPropertyValue(this, cp.Name, (cp.Value ?? "").ToString()); 
         }
 
         /// <summary>
