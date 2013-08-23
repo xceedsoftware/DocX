@@ -29,6 +29,8 @@ namespace Novacode
         static internal XNamespace a = "http://schemas.openxmlformats.org/drawingml/2006/main";
         static internal XNamespace c = "http://schemas.openxmlformats.org/drawingml/2006/chart";
 
+        static internal XNamespace v = "urn:schemas-microsoft-com:vml";
+
         internal static XNamespace n = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering";
         #endregion
 
@@ -1179,6 +1181,17 @@ namespace Novacode
                                 embed.SetValue(new_Id);
                             }
                         }
+
+                        // Replace all instances of remote_Id in the local document with local_Id (for shapes as well)
+                        var v_elems = remote_mainDoc.Descendants(XName.Get("imagedata", DocX.v.NamespaceName));
+                        foreach (var elem in v_elems)
+                        {
+                            XAttribute id = elem.Attribute(XName.Get("id", DocX.r.NamespaceName));
+                            if (id != null && id.Value == remote_Id)
+                            {
+                                id.SetValue(new_Id);
+                            }
+                        }
                     }
 
                     break;
@@ -1222,6 +1235,17 @@ namespace Novacode
                     if (embed != null && embed.Value == remote_Id)
                     {
                         embed.SetValue(new_Id);
+                    }
+                }
+
+                // Replace all instances of remote_Id in the local document with local_Id (for shapes as well)
+                var v_elems = remote_mainDoc.Descendants(XName.Get("imagedata", DocX.v.NamespaceName));
+                foreach (var elem in v_elems)
+                {
+                    XAttribute id = elem.Attribute(XName.Get("id", DocX.r.NamespaceName));
+                    if (id != null && id.Value == remote_Id)
+                    {
+                        id.SetValue(new_Id);
                     }
                 }
             }
@@ -1600,6 +1624,17 @@ namespace Novacode
                         if (embed != null && embed.Value == remote_Id)
                         {
                             embed.SetValue(local_Id);
+                        }
+                    }
+
+                     // Replace all instances of remote_Id in the local document with local_Id (for shapes as well)
+                    var v_elems = remote_mainDoc.Descendants(XName.Get("imagedata", DocX.v.NamespaceName));
+                    foreach (var elem in v_elems)
+                    {
+                        XAttribute id = elem.Attribute(XName.Get("id", DocX.r.NamespaceName));
+                        if (id != null && id.Value == remote_Id)
+                        {
+                            id.SetValue(local_Id);
                         }
                     }
                     break;
