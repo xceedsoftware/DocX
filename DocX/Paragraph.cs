@@ -286,39 +286,40 @@ namespace Novacode
 
             RebuildDocProperties();
 
-            #region It's possible that a Paragraph may have pStyle references
-            // Check if this Paragraph references any pStyle elements.
-            var stylesElements = xml.Descendants(XName.Get("pStyle", DocX.w.NamespaceName));
+            // As per Unused code affecting performance (Wiki Link: [discussion:454191]) and coffeycathal suggestion no longer requeried
+            //#region It's possible that a Paragraph may have pStyle references
+            //// Check if this Paragraph references any pStyle elements.
+            //var stylesElements = xml.Descendants(XName.Get("pStyle", DocX.w.NamespaceName));
 
-            // If one or more pStyles are referenced.
-            if (stylesElements.Count() > 0)
-            {
-                Uri style_package_uri = new Uri("/word/styles.xml", UriKind.Relative);
-                PackagePart styles_document = document.package.GetPart(style_package_uri);
+            //// If one or more pStyles are referenced.
+            //if (stylesElements.Count() > 0)
+            //{
+            //    Uri style_package_uri = new Uri("/word/styles.xml", UriKind.Relative);
+            //    PackagePart styles_document = document.package.GetPart(style_package_uri);
 
-                using (TextReader tr = new StreamReader(styles_document.GetStream()))
-                {
-                    XDocument style_document = XDocument.Load(tr);
-                    XElement styles_element = style_document.Element(XName.Get("styles", DocX.w.NamespaceName));
+            //    using (TextReader tr = new StreamReader(styles_document.GetStream()))
+            //    {
+            //        XDocument style_document = XDocument.Load(tr);
+            //        XElement styles_element = style_document.Element(XName.Get("styles", DocX.w.NamespaceName));
 
-                    var styles_element_ids = stylesElements.Select(e => e.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value);
+            //        var styles_element_ids = stylesElements.Select(e => e.Attribute(XName.Get("val", DocX.w.NamespaceName)).Value);
 
-                    //foreach(string id in styles_element_ids)
-                    //{
-                    //    var style = 
-                    //    (
-                    //        from d in styles_element.Descendants()
-                    //        let styleId = d.Attribute(XName.Get("styleId", DocX.w.NamespaceName))
-                    //        let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
-                    //        where type != null && type.Value == "paragraph" && styleId != null && styleId.Value == id
-                    //        select d
-                    //    ).First();
+            //        //foreach(string id in styles_element_ids)
+            //        //{
+            //        //    var style = 
+            //        //    (
+            //        //        from d in styles_element.Descendants()
+            //        //        let styleId = d.Attribute(XName.Get("styleId", DocX.w.NamespaceName))
+            //        //        let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
+            //        //        where type != null && type.Value == "paragraph" && styleId != null && styleId.Value == id
+            //        //        select d
+            //        //    ).First();
 
-                    //    styles.Add(style);
-                    //} 
-                }
-            }
-            #endregion
+            //        //    styles.Add(style);
+            //        //} 
+            //    }
+            //}
+            //#endregion
 
             this.runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).ToList();
         }
