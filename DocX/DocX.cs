@@ -2386,7 +2386,7 @@ namespace Novacode
 
             MemoryStream ms = new MemoryStream();
 
-            using (FileStream fs = new FileStream(filename, FileMode.Open))
+            using (FileStream fs = new FileStream(filename, FileMode.Open,FileAccess.Read))
             {
                 byte[] data = new byte[fs.Length];
                 fs.Read(data, 0, (int)fs.Length);
