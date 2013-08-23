@@ -159,5 +159,36 @@ namespace Novacode
                 return new List<Image>();
             }
         }
+        public new Table InsertTable(int rowCount, int columnCount)
+        {
+            if (rowCount < 1 || columnCount < 1)
+                throw new ArgumentOutOfRangeException("Row and Column count must be greater than zero.");
+
+            Table t = base.InsertTable(rowCount, columnCount);
+            t.mainPart = mainPart;
+            return t;
+        }
+        public new Table InsertTable(int index, Table t)
+        {
+            Table t2 = base.InsertTable(index, t);
+            t2.mainPart = mainPart;
+            return t2;
+        }
+        public new Table InsertTable(Table t)
+        {
+            t = base.InsertTable(t);
+            t.mainPart = mainPart;
+            return t;
+        }
+        public new Table InsertTable(int index, int rowCount, int columnCount)
+        {
+            if (rowCount < 1 || columnCount < 1)
+                throw new ArgumentOutOfRangeException("Row and Column count must be greater than zero.");
+
+            Table t = base.InsertTable(index, rowCount, columnCount);
+            t.mainPart = mainPart;
+            return t;
+        }
+
     }
 }
