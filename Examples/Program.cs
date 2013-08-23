@@ -20,7 +20,7 @@ namespace Examples
             HelloWorld();
             RightToLeft();
             Indentation();
-
+             
             HeadersAndFooters();
             HyperlinksImagesTables();
             AddList();
@@ -287,7 +287,9 @@ namespace Examples
                 newRow.ReplaceText("4", "5");
 
                 // Add an image into the document.    
-                Novacode.Image image = document.AddImage(@"images\logo_template.png");
+                RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
+                rd.Up(2);
+                Novacode.Image image = document.AddImage(rd.Path + @"\images\logo_template.png");
 
                 // Create a picture (A custom view of an Image).
                 Picture picture = image.CreatePicture();
@@ -488,7 +490,9 @@ namespace Examples
             logo_paragraph.Pictures[0].Remove();
 
             // Add the Happy Builders logo to this document.
-            Novacode.Image logo = template.AddImage(@"images\logo_the_happy_builder.png");
+            RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
+            rd.Up(2);
+            Novacode.Image logo = template.AddImage(rd.Path + @"\images\logo_the_happy_builder.png");
 
             // Insert the Happy Builders logo into this Paragraph.
             logo_paragraph.InsertPicture(logo.CreatePicture());
@@ -580,7 +584,9 @@ namespace Examples
             Paragraph upper_right_paragraph = layout_table.Rows[0].Cells[1].Paragraphs[0];
 
             // Add a template logo image to this document.
-            Novacode.Image logo = document.AddImage(@"images\logo_template.png");
+            RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
+            rd.Up(2);
+            Novacode.Image logo = document.AddImage(rd.Path + @"\images\logo_template.png");
 
             // Insert this template logo into the upper right Paragraph.
             upper_right_paragraph.InsertPicture(logo.CreatePicture());
