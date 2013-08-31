@@ -33,6 +33,7 @@ namespace Examples
             Console.WriteLine("\nRunning Intermediate Examples");
             CreateInvoice();
             HeadersAndFootersWithImagesAndTables();
+            HeadersAndFootersWithImagesAndTablesUsingInsertPicture();
 
             // Advanced
             Console.WriteLine("\nRunning Advanced Examples");
@@ -604,7 +605,174 @@ namespace Examples
                 // Save all changes to this document.
                 document.Save();
 
-                Console.WriteLine("\tCreated: docs\\HeadersAndFooters.docx\n");
+                Console.WriteLine("\tCreated: docs\\HeadersAndFootersWithImagesAndTables.docx\n");
+            }// Release this document from memory.
+        }
+        private static void HeadersAndFootersWithImagesAndTablesUsingInsertPicture()
+        {
+            Console.WriteLine("\tHeadersAndFootersWithImagesAndTablesUsingInsertPicture()");
+
+            // Create a new document.
+            using (DocX document = DocX.Create(@"docs\HeadersAndFootersWithImagesAndTablesUsingInsertPicture.docx"))
+            {
+                // Add a template logo image to this document.
+                RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
+                rd.Up(2);
+                Novacode.Image logo = document.AddImage(rd.Path + @"\images\logo_the_happy_builder.png");
+
+                // Add Headers and Footers to this document.
+                document.AddHeaders();
+                document.AddFooters();
+
+                // Force the first page to have a different Header and Footer.
+                document.DifferentFirstPage = true;
+
+                // Force odd & even pages to have different Headers and Footers.
+                document.DifferentOddAndEvenPages = true;
+
+                // Get the first, odd and even Headers for this document.
+                Header header_first = document.Headers.first;
+                Header header_odd = document.Headers.odd;
+                Header header_even = document.Headers.even;
+
+                // Get the first, odd and even Footer for this document.
+                Footer footer_first = document.Footers.first;
+                Footer footer_odd = document.Footers.odd;
+                Footer footer_even = document.Footers.even;
+
+                // Insert a Paragraph into the first Header.
+                Paragraph p0 = header_first.InsertParagraph();
+                p0.Append("Hello First Header.").Bold();
+
+
+
+                // Insert a Paragraph into the odd Header.
+                Paragraph p1 = header_odd.InsertParagraph();
+                p1.Append("Hello Odd Header.").Bold();
+
+
+                // Insert a Paragraph into the even Header.
+                Paragraph p2 = header_even.InsertParagraph();
+                p2.Append("Hello Even Header.").Bold();
+
+                // Insert a Paragraph into the first Footer.
+                Paragraph p3 = footer_first.InsertParagraph();
+                p3.Append("Hello First Footer.").Bold();
+
+                // Insert a Paragraph into the odd Footer.
+                Paragraph p4 = footer_odd.InsertParagraph();
+                p4.Append("Hello Odd Footer.").Bold();
+
+                // Insert a Paragraph into the even Header.
+                Paragraph p5 = footer_even.InsertParagraph();
+                p5.Append("Hello Even Footer.").Bold();
+
+                // Insert a Paragraph into the document.
+                Paragraph p6 = document.InsertParagraph();
+                p6.AppendLine("Hello First page.");
+
+                // Create a second page to show that the first page has its own header and footer.
+                p6.InsertPageBreakAfterSelf();
+
+                // Insert a Paragraph after the page break.
+                Paragraph p7 = document.InsertParagraph();
+                p7.AppendLine("Hello Second page.");
+
+                // Create a third page to show that even and odd pages have different headers and footers.
+                p7.InsertPageBreakAfterSelf();
+
+                // Insert a Paragraph after the page break.
+                Paragraph p8 = document.InsertParagraph();
+                p8.AppendLine("Hello Third page.");
+
+                //Insert a next page break, which is a section break combined with a page break
+                document.InsertSectionPageBreak();
+
+                //Insert a paragraph after the "Next" page break
+                Paragraph p9 = document.InsertParagraph();
+                p9.Append("Next page section break.");
+
+                //Insert a continuous section break
+                document.InsertSection();
+
+                //Create a paragraph in the new section
+                var p10 = document.InsertParagraph();
+                p10.Append("Continuous section paragraph.");
+
+
+                // Inserting logo into footer and header into Tables
+
+                #region Company Logo in Header in Table
+                // Insert Table into First Header - Create a new Table with 2 columns and 1 rows.
+                Table header_first_table = header_first.InsertTable(1, 2);
+                header_first_table.Design = TableDesign.TableGrid;
+                header_first_table.AutoFit = AutoFit.Window;
+                // Get the upper right Paragraph in the layout_table.
+                Paragraph upperRightParagraph = header_first.Tables[0].Rows[0].Cells[1].Paragraphs[0];
+                // Insert this template logo into the upper right Paragraph of Table.
+                upperRightParagraph.InsertPicture(logo.CreatePicture());
+                upperRightParagraph.Alignment = Alignment.right;
+
+                // Get the upper left Paragraph in the layout_table.
+                Paragraph upperLeftParagraphFirstTable = header_first.Tables[0].Rows[0].Cells[0].Paragraphs[0];
+                upperLeftParagraphFirstTable.Append("Company Name - DocX Corporation");
+                #endregion
+
+
+                #region Company Logo in Header in Invisible Table
+                // Insert Table into First Header - Create a new Table with 2 columns and 1 rows.
+                Table header_second_table = header_odd.InsertTable(1, 2);
+                header_second_table.Design = TableDesign.None;
+                header_second_table.AutoFit = AutoFit.Window;
+                // Get the upper right Paragraph in the layout_table.
+                Paragraph upperRightParagraphSecondTable = header_second_table.Rows[0].Cells[1].Paragraphs[0];
+                // Insert this template logo into the upper right Paragraph of Table.
+                upperRightParagraphSecondTable.InsertPicture(logo.CreatePicture());
+                upperRightParagraphSecondTable.Alignment = Alignment.right;
+
+                // Get the upper left Paragraph in the layout_table.
+                Paragraph upperLeftParagraphSecondTable = header_second_table.Rows[0].Cells[0].Paragraphs[0];
+                upperLeftParagraphSecondTable.Append("Company Name - DocX Corporation");
+                #endregion
+
+                #region Company Logo in Footer in Table
+                // Insert Table into First Header - Create a new Table with 2 columns and 1 rows.
+                Table footer_first_table = footer_first.InsertTable(1, 2);
+                footer_first_table.Design = TableDesign.TableGrid;
+                footer_first_table.AutoFit = AutoFit.Window;
+                // Get the upper right Paragraph in the layout_table.
+                Paragraph upperRightParagraphFooterParagraph = footer_first.Tables[0].Rows[0].Cells[1].Paragraphs[0];
+                // Insert this template logo into the upper right Paragraph of Table.
+                upperRightParagraphFooterParagraph.InsertPicture(logo.CreatePicture());
+                upperRightParagraphFooterParagraph.Alignment = Alignment.right;
+
+                // Get the upper left Paragraph in the layout_table.
+                Paragraph upperLeftParagraphFirstTableFooter = footer_first.Tables[0].Rows[0].Cells[0].Paragraphs[0];
+                upperLeftParagraphFirstTableFooter.Append("Company Name - DocX Corporation");
+                #endregion
+
+
+
+                #region Company Logo in Header in Invisible Table
+                // Insert Table into First Header - Create a new Table with 2 columns and 1 rows.
+                Table footer_second_table = footer_odd.InsertTable(1, 2);
+                footer_second_table.Design = TableDesign.None;
+                footer_second_table.AutoFit = AutoFit.Window;
+                // Get the upper right Paragraph in the layout_table.
+                Paragraph upperRightParagraphSecondTableFooter = footer_second_table.Rows[0].Cells[1].Paragraphs[0];
+                // Insert this template logo into the upper right Paragraph of Table.
+                upperRightParagraphSecondTableFooter.InsertPicture(logo.CreatePicture());
+                upperRightParagraphSecondTableFooter.Alignment = Alignment.right;
+
+                // Get the upper left Paragraph in the layout_table.
+                Paragraph upperLeftParagraphSecondTableFooter = footer_second_table.Rows[0].Cells[0].Paragraphs[0];
+                upperLeftParagraphSecondTableFooter.Append("Company Name - DocX Corporation");
+                #endregion
+
+                // Save all changes to this document.
+                document.Save();
+
+                Console.WriteLine("\tCreated: docs\\HeadersAndFootersWithImagesAndTablesUsingInsertPicture.docx\n");
             }// Release this document from memory.
         }
 
