@@ -32,6 +32,7 @@ namespace Examples
             // Intermediate
             Console.WriteLine("\nRunning Intermediate Examples");
             CreateInvoice();
+            HyperlinksImagesTablesWithLists();
             HeadersAndFootersWithImagesAndTables();
             HeadersAndFootersWithImagesAndTablesUsingInsertPicture();
 
@@ -324,6 +325,121 @@ namespace Examples
                 document.Save();
 
                 Console.WriteLine("\tCreated: docs\\HyperlinksImagesTables.docx\n");
+            }
+        }
+        private static void HyperlinksImagesTablesWithLists()
+        {
+            Console.WriteLine("\tHyperlinksImagesTablesWithLists()");
+
+            // Create a document.
+            using (DocX document = DocX.Create(@"docs\HyperlinksImagesTablesWithLists.docx"))
+            {
+                // Add a hyperlink into the document.
+                Hyperlink link = document.AddHyperlink("link", new Uri("http://www.google.com"));
+
+                // created numbered lists 
+                var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered, 1);
+                document.AddListItem(numberedList, "First sub list item", 1);
+                document.AddListItem(numberedList, "Second List Item.");
+                document.AddListItem(numberedList, "Third list item.");
+                document.AddListItem(numberedList, "Nested item.", 1);
+                document.AddListItem(numberedList, "Second nested item.", 1);
+
+                // created bulleted lists
+
+                var bulletedList = document.AddList("First Bulleted Item.", 0, ListItemType.Bulleted);
+                document.AddListItem(bulletedList, "Second bullet item");
+                document.AddListItem(bulletedList, "Sub bullet item", 1);
+                document.AddListItem(bulletedList, "Second sub bullet item", 1);
+                document.AddListItem(bulletedList, "Third bullet item");
+
+
+                // Add a Table into the document.
+                Table table = document.AddTable(2, 2);
+                table.Design = TableDesign.ColorfulGridAccent2;
+                table.Alignment = Alignment.center;
+                table.Rows[0].Cells[0].Paragraphs[0].Append("1");
+                table.Rows[0].Cells[1].Paragraphs[0].Append("2");
+                table.Rows[1].Cells[0].Paragraphs[0].Append("3");
+                table.Rows[1].Cells[1].Paragraphs[0].Append("4");
+
+                Row newRow = table.InsertRow(table.Rows[1]);
+                newRow.ReplaceText("4", "5");
+
+                // Add an image into the document.    
+                RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
+                rd.Up(2);
+                Novacode.Image image = document.AddImage(rd.Path + @"\images\logo_template.png");
+
+                // Create a picture (A custom view of an Image).
+                Picture picture = image.CreatePicture();
+                picture.Rotation = 10;
+                picture.SetPictureShape(BasicShapes.cube);
+
+                // Insert a new Paragraph into the document.
+                Paragraph title = document.InsertParagraph().Append("Test").FontSize(20).Font(new FontFamily("Comic Sans MS"));
+                title.Alignment = Alignment.center;
+
+              
+
+                // Insert a new Paragraph into the document.
+                Paragraph p1 = document.InsertParagraph();
+
+                // Append content to the Paragraph
+                p1.AppendLine("This line contains a ").Append("bold").Bold().Append(" word.");
+                p1.AppendLine("Here is a cool ").AppendHyperlink(link).Append(".");
+                p1.AppendLine();
+                p1.AppendLine("Check out this picture ").AppendPicture(picture).Append(" its funky don't you think?");
+                p1.AppendLine();
+                p1.AppendLine("Can you check this Table of figures for me?");
+                p1.AppendLine();
+
+                // Insert the Table after Paragraph 1.
+                p1.InsertTableAfterSelf(table);
+
+                // Insert a new Paragraph into the document.
+                Paragraph p2 = document.InsertParagraph();
+
+                // Append content to the Paragraph.
+                p2.AppendLine("Is it correct?");
+                p2.AppendLine();
+                p2.AppendLine("Adding bullet list below: ");
+
+                document.InsertList(bulletedList);
+
+                // Adding another paragraph to add table and bullet list after it
+                Paragraph p3 = document.InsertParagraph();
+                p3.AppendLine();
+                p3.AppendLine("Adding another table...");
+                
+                // Adding another table
+                Table table1 = document.AddTable(2, 2);
+                table1.Design = TableDesign.ColorfulGridAccent2;
+                table1.Alignment = Alignment.center;
+                table1.Rows[0].Cells[0].Paragraphs[0].Append("1");
+                table1.Rows[0].Cells[1].Paragraphs[0].Append("2");
+                table1.Rows[1].Cells[0].Paragraphs[0].Append("3");
+                table1.Rows[1].Cells[1].Paragraphs[0].Append("4");
+
+                Paragraph p4 = document.InsertParagraph();
+                p4.InsertTableBeforeSelf(table1);
+
+                p4.AppendLine();
+        
+
+                // Insert numbered list after table
+                Paragraph p5 = document.InsertParagraph();
+                p5.AppendLine("Adding numbered list below: ");
+                p5.AppendLine();
+                document.InsertList(numberedList);
+
+
+
+
+                // Save this document.
+                document.Save();
+
+                Console.WriteLine("\tCreated: docs\\HyperlinksImagesTablesWithLists.docx\n");
             }
         }
         private static void AddList()
