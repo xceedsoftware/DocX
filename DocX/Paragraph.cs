@@ -2385,7 +2385,7 @@ namespace Novacode
                     // The picture has to be the next element, extract it back out of the DOM.
                     p_xml = (XElement)run.Xml.NextNode;
                 }
-
+            }
                 // Extract the attribute id from the Pictures Xml.
                 XAttribute a_id =
                 (
@@ -2396,7 +2396,7 @@ namespace Novacode
 
                 // Set its value to the Pictures relationships id.
                 a_id.SetValue(Id);
-            }
+            
 
             return this;
         }
