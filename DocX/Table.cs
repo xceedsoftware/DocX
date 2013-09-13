@@ -319,6 +319,89 @@ namespace Novacode
             }
         }
 
+         /// <summary>
+         /// String containing the Table Caption value (the table's Alternate Text Title)
+         /// </summary>
+         private string _tableCaption;
+         /// <summary>
+         /// Gets or Sets the value of the Table Caption (Alternate Text Title) of this table. 
+         /// </summary>
+         public string TableCaption
+        {
+            set
+            {
+                XElement tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
+                if (tblPr != null)
+                {
+                    XElement tblCaption =
+                        tblPr.Descendants(XName.Get("tblCaption", DocX.w.NamespaceName)).FirstOrDefault();
+
+                    if (tblCaption != null)
+                        tblCaption.Remove();
+
+                    tblCaption = new XElement(XName.Get("tblCaption", DocX.w.NamespaceName),
+                        new XAttribute(XName.Get("val", DocX.w.NamespaceName), value));
+                   tblPr.Add(tblCaption);
+                }
+            }
+
+            get
+            {
+                XElement tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
+                if (tblPr != null)
+                {
+                    XElement caption = tblPr.Element(XName.Get("tblCaption", DocX.w.NamespaceName));
+                    if (caption != null)
+                    {
+                        _tableCaption = caption.GetAttribute(XName.Get("val", DocX.w.NamespaceName));
+                    }
+                }
+                return _tableCaption;
+            }
+        }
+
+        /// <summary>
+        /// String containing the Table Description (the table's Alternate Text Description).
+        /// </summary>
+        private string _tableDescription;
+        /// <summary>
+        /// Gets or Sets the value of the Table Description (Alternate Text Description) of this table. 
+        /// </summary>
+        public string TableDescription
+        {
+            set
+            {
+                XElement tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
+                if (tblPr != null)
+                {
+                    XElement tblDescription =
+                        tblPr.Descendants(XName.Get("tblDescription", DocX.w.NamespaceName)).FirstOrDefault();
+
+                    if (tblDescription != null)
+                        tblDescription.Remove();
+
+                    tblDescription = new XElement(XName.Get("tblDescription", DocX.w.NamespaceName),
+                       new XAttribute(XName.Get("val", DocX.w.NamespaceName), value));
+                    tblPr.Add(tblDescription);
+                }
+            }
+
+            get
+            {
+                XElement tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
+                if (tblPr != null)
+                {
+                    XElement caption = tblPr.Element(XName.Get("tblDescription", DocX.w.NamespaceName));
+                    if (caption != null)
+                    {
+                        _tableDescription = caption.GetAttribute(XName.Get("val", DocX.w.NamespaceName));
+                    }
+                }
+                return _tableDescription;
+            }
+        }
+
+
         public TableLook TableLook { get; set; }
 
         public Alignment Alignment
