@@ -641,4 +641,18 @@
     /// </summary>
     DelText,
   }
+  public enum LineSpacingType
+  {
+  	Line,
+  	Before,
+  	After
+  }
+  
+  public enum LineSpacingTypeAuto
+  {
+  	AutoBefore,
+  	AutoAfter,
+  	Auto,
+  	None
+  }
 }

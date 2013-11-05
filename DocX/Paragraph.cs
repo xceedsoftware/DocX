@@ -3068,6 +3068,111 @@ namespace Novacode
             }
         }
 
+                
+        /// <summary>
+        /// Set the linespacing for this paragraph manually.
+        /// </summary>
+        /// <param name="spacingType">The type of spacing to be set, can be either Before, After or Line (Standard line spacing).</param>
+        /// <param name="spacingFloat">A float value of the amount of spacing. Equals the value that van be set in Word using the "Line and Paragraph spacing" button.</param>
+        public void SetLineSpacing(LineSpacingType spacingType, float spacingFloat)
+        {
+            spacingFloat = spacingFloat * 240;
+            int spacingValue = (int) spacingFloat;
+            
+            var pPr = this.GetOrCreate_pPr();
+            var spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
+            if (spacing == null)
+            {
+                pPr.Add(new XElement(XName.Get("spacing", DocX.w.NamespaceName)));
+                spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
+            }
+            
+            string spacingTypeAttribute = "";
+            switch (spacingType)
+            {
+            	case LineSpacingType.Line:
+            		{
+            			spacingTypeAttribute = "line";
+            			break;
+            		}
+            	case LineSpacingType.Before:
+            		{
+            			spacingTypeAttribute = "before";
+            			break;
+            		}
+            	case LineSpacingType.After:
+            		{
+            			spacingTypeAttribute = "after";
+            			break;
+            		}          		
+            		
+            }
+            
+            spacing.SetAttributeValue(XName.Get(spacingTypeAttribute, DocX.w.NamespaceName), spacingValue);
+        }
+        
+        /// <summary>
+        /// Set the linespacing for this paragraph using the Auto value.
+        /// </summary>
+        /// <param name="spacingType">The type of spacing to be set automatically. Using Auto will set both Before and After. None will remove any linespacing.</param>
+        public void SetLineSpacing(LineSpacingTypeAuto spacingType)
+        {
+            int spacingValue = 100;
+            
+            var pPr = this.GetOrCreate_pPr();
+            var spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
+            
+            if (spacingType.Equals(LineSpacingTypeAuto.None))
+            {
+            	if (spacing != null)
+            	{
+            		spacing.Remove();
+            	}
+            }
+            
+            else {
+            	
+	            if (spacing == null)
+	            {
+	                pPr.Add(new XElement(XName.Get("spacing", DocX.w.NamespaceName)));
+	                spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
+	            }
+	            
+	            string spacingTypeAttribute = "";
+	            string autoSpacingTypeAttribute = "";
+	            switch (spacingType)
+	            {
+	            	case LineSpacingTypeAuto.AutoBefore:
+	            		{
+	            			spacingTypeAttribute = "before";
+	            			autoSpacingTypeAttribute = "beforeAutospacing";
+	            			break;
+	            		}
+	            	case LineSpacingTypeAuto.AutoAfter:
+	            		{
+	            			spacingTypeAttribute = "after";
+	            			autoSpacingTypeAttribute = "afterAutospacing";
+	            			break;
+	            		}
+	            	case LineSpacingTypeAuto.Auto:
+	            		{
+	            			spacingTypeAttribute = "before";
+	            			autoSpacingTypeAttribute = "beforeAutospacing";
+	            			spacing.SetAttributeValue(XName.Get("after", DocX.w.NamespaceName), spacingValue);
+	            			spacing.SetAttributeValue(XName.Get("afterAutospacing", DocX.w.NamespaceName), 1);
+	            			break;
+	            		}            		
+	            		
+	            }
+	            
+	            spacing.SetAttributeValue(XName.Get(autoSpacingTypeAttribute, DocX.w.NamespaceName), 1);
+	            spacing.SetAttributeValue(XName.Get(spacingTypeAttribute, DocX.w.NamespaceName), spacingValue);            	
+            	
+            }
+ 
+        }
+
+
         public Paragraph Spacing(double spacing)
         {
             spacing *= 20;
