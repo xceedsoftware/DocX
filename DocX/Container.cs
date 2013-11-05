@@ -360,6 +360,12 @@ namespace Novacode
 
         public virtual void ReplaceText(string oldValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch)
         {
+            // PATCH BY HeDo - Arguments check!
+            if (oldValue == null || oldValue.Length == 0)
+                throw new ArgumentException("oldValue cannot be null or empty", "oldValue");
+
+            if (newValue == null || newValue.Length == 0)
+                throw new ArgumentException("newValue cannot be null or empty", "newValue");
             // ReplaceText in Headers of the document.
             Headers headers = Document.Headers;
             List<Header> headerList = new List<Header> { headers.first, headers.even, headers.odd };
