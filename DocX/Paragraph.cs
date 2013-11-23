@@ -3446,7 +3446,8 @@ namespace Novacode
                     default:
                         {
                             XElement[] splitRunBefore = Run.SplitRun(run, index, EditType.del);
-                            int min = Math.Min(index + processed + (count - processed), run.EndIndex);
+                            //int min = Math.Min(index + processed + (count - processed), run.EndIndex);
+                            int min = Math.Min(index + (count - processed), run.EndIndex);
                             XElement[] splitRunAfter = Run.SplitRun(run, min, EditType.del);
 
                             object middle = CreateEdit(EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun(new Run(Document, splitRunBefore[1], run.StartIndex + GetElementTextLength(splitRunBefore[0])), min, EditType.del)[0] });
