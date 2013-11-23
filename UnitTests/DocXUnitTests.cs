@@ -1829,6 +1829,49 @@ namespace UnitTests
           }
         }
 
+      [TestMethod]
+      public void Test_Paragraph_RemoveTextManyLetters()
+      {
+          using (DocX document = DocX.Create(@"docs\HelloWorldRemovingManyLetters.docx"))
+          {
+
+              Paragraph p3 = document.InsertParagraph("");
+              p3.Xml = XElement.Parse(
+                  @"<w:p xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                    <w:pPr>
+                    <w:ind />
+                    </w:pPr>
+                    <w:r>
+                    <w:t>Based on the previous screening criteria, you qualify to participate in this particular survey. At the completion of the survey, you will be notified that your responses have been received and honoraria information will be captured for future payment. Thank you in advance for taking the time to participate with us. ^f('xMinutes').get() == 'xx' ? """" : ""</w:t>
+                    </w:r>
+                    <w:r>
+                    <w:rPr>
+                        <w:lang w:val=""pl-PL"" />
+                    </w:rPr>
+                    <w:t xml:space=""preserve"">This survey should take </w:t>
+                    </w:r>
+                    <w:r>
+                    <w:t>"" + f('xMinutes').get() + ""</w:t>
+                    </w:r>
+                    <w:r>
+                    <w:rPr>
+                        <w:lang w:val=""pl-PL"" />
+                    </w:rPr>
+                    <w:t xml:space=""preserve""> minutes.  </w:t>
+                    </w:r>
+                    <w:r>
+                    <w:t>""^Participants completing this survey will receive the honorarium designated in the invitation you have received. &lt;BR&gt;&lt;BR&gt;If you leave the survey prior to finishing it, you may return to your last question by visiting the same link provided in your email invitation (please be certain to use the same email that you used a moment ago to register for this study). If you have any questions or concerns about this study, please contact us at &lt;a href=""mailto:blabla@blabla.com?Subject=^f('sName')^ PD:^f('pdID')^""&gt;blabla@blabla.com&lt;/a&gt;. Thank you.</w:t>
+                    </w:r>
+                    </w:p>");
+
+              int l1 = p3.Text.Length; //960
+              p3.RemoveText(318, 99);
+              int l2 = p3.Text.Length; //should be 861
+              Assert.AreEqual(l1 - 99, l2);
+          }
+      }
+
+
     }
 }
        
