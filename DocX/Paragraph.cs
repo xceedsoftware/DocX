@@ -1694,7 +1694,7 @@ namespace Novacode
                 count -= HelperFunctions.GetSize(Xml);
 
                 // We have found the element, now find the run it belongs to.
-                while (Xml.Name.LocalName != "r")
+                while ((Xml.Name.LocalName != "r") && (Xml.Name.LocalName != "pPr"))
                     Xml = Xml.Parent;
 
                 theOne = new Run(Document, Xml, count);
