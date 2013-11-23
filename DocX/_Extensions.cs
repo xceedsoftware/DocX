@@ -66,5 +66,32 @@ namespace Novacode
                 return attr.Value;
             return defaultValue;
         }
+
+        /// <summary>
+        /// Sets margin for all the pages in a Dox document in Inches. (Written by Shashwat Tripathi)
+        /// </summary>
+        /// <param name="document"></param>
+        /// <param name="top">Margin from the Top. Leave -1 for no change</param>
+        /// <param name="bottom">Margin from the Bottom. Leave -1 for no change</param>
+        /// <param name="right">Margin from the Right. Leave -1 for no change</param>
+        /// <param name="left">Margin from the Left. Leave -1 for no change</param>
+        public static void SetMargin(this DocX document, float top, float bottom, float right, float left)
+        {
+            XNamespace ab = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+            var tempElement = document.PageLayout.Xml.Descendants(ab + "pgMar");
+            var e = tempElement.GetEnumerator();
+
+            foreach (var item in tempElement)
+            {
+                if (left != -1)
+                    item.SetAttributeValue(ab + "left", (1440 * left) / 1);
+                if (right != -1)
+                    item.SetAttributeValue(ab + "right", (1440 * right) / 1);
+                if (top != -1)
+                    item.SetAttributeValue(ab + "top", (1440 * top) / 1);
+                if (bottom != -1)
+                    item.SetAttributeValue(ab + "bottom", (1440 * bottom) / 1);
+            }
+        }
     }
 }
