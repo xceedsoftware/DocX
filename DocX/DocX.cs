@@ -1779,6 +1779,18 @@ namespace Novacode
             list.Items.ForEach(i => i.mainPart = mainPart);
             return list;
         }
+        public new List InsertList(List list, System.Drawing.FontFamily fontFamily, double fontSize)
+        {
+            base.InsertList(list, fontFamily, fontSize);
+            list.Items.ForEach(i => i.mainPart = mainPart);
+            return list;
+        }
+        public new List InsertList(List list, double fontSize)
+        {
+            base.InsertList(list, fontSize);
+            list.Items.ForEach(i => i.mainPart = mainPart);
+            return list;
+        }
 
         /// <summary>
         /// Insert a list at an index location in the document.

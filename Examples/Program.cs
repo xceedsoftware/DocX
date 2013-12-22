@@ -35,6 +35,7 @@ namespace Examples
             HyperlinksImagesTablesWithLists();
             HeadersAndFootersWithImagesAndTables();
             HeadersAndFootersWithImagesAndTablesUsingInsertPicture();
+            DocumentsWithListsFontChange();
 
             // Advanced
             Console.WriteLine("\nRunning Advanced Examples");
@@ -440,6 +441,45 @@ namespace Examples
                 document.Save();
 
                 Console.WriteLine("\tCreated: docs\\HyperlinksImagesTablesWithLists.docx\n");
+            }
+        }
+        private static void DocumentsWithListsFontChange()
+        {
+            Console.WriteLine("\tDocumentsWithListsFontChange()");
+
+            // Create a document.
+            using (DocX document = DocX.Create(@"docs\DocumentsWithListsFontChange.docx"))
+            {
+
+                 foreach ( FontFamily oneFontFamily in FontFamily.Families )  {
+
+                 System.Drawing.FontFamily fontFamily = oneFontFamily;
+                double fontSize = 15;
+
+                // created numbered lists 
+                var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered, 1);
+                document.AddListItem(numberedList, "First sub list item", 1);
+                document.AddListItem(numberedList, "Second List Item.");
+                document.AddListItem(numberedList, "Third list item.");
+                document.AddListItem(numberedList, "Nested item.", 1);
+                document.AddListItem(numberedList, "Second nested item.", 1);
+
+                // created bulleted lists
+
+                var bulletedList = document.AddList("First Bulleted Item.", 0, ListItemType.Bulleted);
+                document.AddListItem(bulletedList, "Second bullet item");
+                document.AddListItem(bulletedList, "Sub bullet item", 1);
+                document.AddListItem(bulletedList, "Second sub bullet item", 1);
+                document.AddListItem(bulletedList, "Third bullet item");
+
+                document.InsertList(bulletedList);
+                document.InsertList(numberedList, fontFamily, fontSize);                              
+                 
+                }
+                // Save this document.
+                document.Save();
+
+                Console.WriteLine("\tCreated: docs\\DocumentsWithListsFontChange.docx\n");
             }
         }
         private static void AddList()
