@@ -2748,14 +2748,14 @@ namespace Novacode
 
         private string GetNextFreeRelationshipID()
         {
-            string id =
-            (
-                from r in mainPart.GetRelationships()
-                select r.Id
-            ).Max();
+            int id = (
+                 from r in mainPart.GetRelationships()
+                 where r.Id.Substring(0, 3).Equals("rId")
+                 select int.Parse(r.Id.Substring(3))
+             ).DefaultIfEmpty().Max();
 
-            // The convension for ids is rid01, rid02, etc
-            string newId = id.Replace("rId", "");
+            // The conventiom for ids is rid01, rid02, etc
+            string newId = id.ToString();
             int result;
             if (int.TryParse(newId, out result))
                 return ("rId" + (result + 1));
