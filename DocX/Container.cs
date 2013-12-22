@@ -744,9 +744,31 @@ namespace Novacode
         {
             foreach (var item in list.Items)
             {
+              //  item.Font(System.Drawing.FontFamily fontFamily)
+
                 Xml.Add(item.Xml);
             }
 
+            return list;
+        }
+        public List InsertList(List list, double fontSize)
+        {
+            foreach (var item in list.Items)
+            {
+                item.FontSize(fontSize);
+                Xml.Add(item.Xml);
+            }
+            return list;
+        }
+
+        public List InsertList(List list, System.Drawing.FontFamily fontFamily, double fontSize)
+        {
+            foreach (var item in list.Items)
+            {
+                item.Font(fontFamily);
+                item.FontSize(fontSize);
+                Xml.Add(item.Xml);
+            }
             return list;
         }
 
