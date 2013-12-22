@@ -28,6 +28,7 @@ namespace Examples
             PieChart();
             LineChart();
             Chart3D();
+            DocumentMargins();
 
             // Intermediate
             Console.WriteLine("\nRunning Intermediate Examples");
@@ -443,6 +444,50 @@ namespace Examples
                 Console.WriteLine("\tCreated: docs\\HyperlinksImagesTablesWithLists.docx\n");
             }
         }
+
+        private static void DocumentMargins()
+        {
+            Console.WriteLine("\tDocumentMargins()");
+
+            // Create a document.
+            using (DocX document = DocX.Create(@"docs\DocumentMargins.docx"))
+            {
+
+              // Create a float var that contains doc Margins properties.
+                float leftMargin = document.MarginLeft;
+                float rightMargin = document.MarginRight;
+                float topMargin = document.MarginTop;
+                float bottomMargin = document.MarginBottom;
+                // Modify using your own vars.
+                leftMargin = 95F;
+                rightMargin = 45F;
+                topMargin = 50F;
+                bottomMargin = 180F;
+
+                // Or simply work the margins by setting the property directly. 
+                document.MarginLeft = leftMargin;
+                document.MarginRight = rightMargin;
+                document.MarginTop = topMargin;
+                document.MarginBottom = bottomMargin; 
+                
+                // created bulleted lists
+
+                var bulletedList = document.AddList("First Bulleted Item.", 0, ListItemType.Bulleted);
+                document.AddListItem(bulletedList, "Second bullet item");
+                document.AddListItem(bulletedList, "Sub bullet item", 1);
+                document.AddListItem(bulletedList, "Second sub bullet item", 1);
+                document.AddListItem(bulletedList, "Third bullet item");
+
+
+                document.InsertList(bulletedList);
+                
+                // Save this document.
+                document.Save();
+
+                Console.WriteLine("\tCreated: docs\\DocumentMargins.docx\n");
+            }
+        }
+
         private static void DocumentsWithListsFontChange()
         {
             Console.WriteLine("\tDocumentsWithListsFontChange()");
