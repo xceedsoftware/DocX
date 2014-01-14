@@ -2179,6 +2179,58 @@ namespace Novacode
             }
         }
 
+                
+        /// <summary>
+        /// Allow row to break across pages. 
+        /// The default value is true: Word will break the contents of the row across pages. 
+        /// If set to false, the contents of the row will not be split across pages, the entire row will be moved to the next page instead.
+        /// </summary>
+        public bool BreakAcrossPages
+        {
+        	get
+        	{
+        		XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+        		
+        		if (trPr == null)
+        			return true;
+        		
+        		XElement trCantSplit = trPr.Element(XName.Get("cantSplit", DocX.w.NamespaceName));
+        		
+        		if (trCantSplit == null)
+        			return true;
+        		
+        		return false;
+        	}
+        	
+        	set
+        	{
+        		if (value == false)
+        		{
+	        		XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+	                if (trPr == null)
+	                {
+	                    Xml.SetElementValue(XName.Get("trPr", DocX.w.NamespaceName), string.Empty);
+	                    trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+	                }
+	                
+	                XElement trCantSplit = trPr.Element(XName.Get("cantSplit", DocX.w.NamespaceName));
+	                if (trCantSplit == null)
+	                	trPr.SetElementValue(XName.Get("cantSplit", DocX.w.NamespaceName), string.Empty);
+                }
+        		
+        		if (value == true)
+        		{
+        			XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+        			if (trPr != null)
+        			{
+        				XElement trCantSplit = trPr.Element(XName.Get("cantSplit", DocX.w.NamespaceName));
+        				if (trCantSplit != null)
+        					trCantSplit.Remove();
+        			}
+        		}
+        	}
+        }
+
         /// <summary>
         /// Merge cells starting with startIndex and ending with endIndex.
         /// </summary>
