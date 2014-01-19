@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
 using System.IO;
-using System.IO.Packaging;
 using System.Linq;
-using System.Security.Principal;
-using System.Text.RegularExpressions;
+using System.Drawing;
 using System.Xml.Linq;
+using System.Collections;
+using System.IO.Packaging;
+using System.Globalization;
+using System.Security.Principal;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 
 namespace Novacode
@@ -37,25 +37,25 @@ namespace Novacode
         {
             get
             {
-              return ParagraphNumberPropertiesBacker ?? (ParagraphNumberPropertiesBacker = GetParagraphNumberProperties());
+                return ParagraphNumberPropertiesBacker ?? (ParagraphNumberPropertiesBacker = GetParagraphNumberProperties());
             }
         }
 
-      private XElement GetParagraphNumberProperties()
-      {
-        var numPrNode = Xml.Descendants().FirstOrDefault(el => el.Name.LocalName == "numPr");
-        if (numPrNode != null)
+        private XElement GetParagraphNumberProperties()
         {
-          var numIdNode = numPrNode.Descendants().First(numId => numId.Name.LocalName == "numId");
-          var numIdAttribute = numIdNode.Attribute(DocX.w + "val");
-          if (numIdAttribute != null && numIdAttribute.Value.Equals("0"))
-          {
-            return null;
-          }
-        }
+            var numPrNode = Xml.Descendants().FirstOrDefault(el => el.Name.LocalName == "numPr");
+            if (numPrNode != null)
+            {
+                var numIdNode = numPrNode.Descendants().First(numId => numId.Name.LocalName == "numId");
+                var numIdAttribute = numIdNode.Attribute(DocX.w + "val");
+                if (numIdAttribute != null && numIdAttribute.Value.Equals("0"))
+                {
+                    return null;
+                }
+            }
 
-        return numPrNode;
-      }
+            return numPrNode;
+        }
 
         private bool? IsListItemBacker { get; set; }
         /// <summary>
@@ -988,7 +988,7 @@ namespace Novacode
         {
             // Convert the path of this mainPart to its equilivant rels file path.
             string path = mainPart.Uri.OriginalString.Replace("/word/", "");
-            Uri rels_path = new Uri("/word/_rels/" + path + ".rels", UriKind.Relative);
+            Uri rels_path = new Uri(String.Format("/word/_rels/{0}.rels", path), UriKind.Relative);
 
             // Check to see if the rels file exists and create it if not.
             if (!Document.package.PartExists(rels_path))
@@ -1385,16 +1385,16 @@ namespace Novacode
             // Returns the underlying XElement's Value property.
             get
             {
-              try
-              {
-                return HelperFunctions.GetFormattedText(Xml);
+                try
+                {
+                    return HelperFunctions.GetFormattedText(Xml);
 
-              }
-              catch (Exception)
-              {
-                return null;
-              }            
-            
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+
             }
         }
 
@@ -2228,6 +2228,48 @@ namespace Novacode
             return this;
         }
 
+        public Paragraph AppendBookmark(String bookmarkName)
+        {
+            XElement wBookmarkStart = new XElement(
+                XName.Get("bookmarkStart", DocX.w.NamespaceName),
+                new XAttribute(XName.Get("id", DocX.w.NamespaceName), 0),
+                new XAttribute(XName.Get("name", DocX.w.NamespaceName), bookmarkName));
+            Xml.Add(wBookmarkStart);
+
+            XElement wBookmarkEnd = new XElement(
+                XName.Get("bookmarkEnd", DocX.w.NamespaceName),
+                new XAttribute(XName.Get("id", DocX.w.NamespaceName), 0),
+                new XAttribute(XName.Get("name", DocX.w.NamespaceName), bookmarkName));
+            Xml.Add(wBookmarkEnd);
+
+            return this;
+        }
+
+        public IEnumerable<Bookmark> GetBookmarks()
+        {
+            return Xml.Descendants(XName.Get("bookmarkStart", DocX.w.NamespaceName))
+                        .Select(x => x.Attribute(XName.Get("name", DocX.w.NamespaceName)))
+                        .Select(x => new Bookmark
+                        {
+                            Name = x.Value,
+                            Paragraph = this
+                        });
+        }
+
+        public void InsertAtBookmark(string toInsert, string bookmarkName)
+        {
+            var bookmark = Xml.Descendants(XName.Get("bookmarkStart", DocX.w.NamespaceName))
+                                .Where(x => x.Attribute(XName.Get("name", DocX.w.NamespaceName)).Value == bookmarkName).SingleOrDefault();
+            if (bookmark != null)
+            {
+                
+                var run = HelperFunctions.FormatInput(toInsert, null);
+                bookmark.AddBeforeSelf(run);
+                runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).ToList();
+                HelperFunctions.RenumberIDs(Document);
+            }
+        }
+
         internal string GetOrGenerateRel(Picture p)
         {
             string image_uri_string = p.img.pr.TargetUri.OriginalString;
@@ -2386,17 +2428,17 @@ namespace Novacode
                     p_xml = (XElement)run.Xml.NextNode;
                 }
             }
-                // Extract the attribute id from the Pictures Xml.
-                XAttribute a_id =
-                (
-                    from e in p_xml.Descendants()
-                    where e.Name.LocalName.Equals("blip")
-                    select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
-                ).Single();
+            // Extract the attribute id from the Pictures Xml.
+            XAttribute a_id =
+            (
+                from e in p_xml.Descendants()
+                where e.Name.LocalName.Equals("blip")
+                select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"))
+            ).Single();
 
-                // Set its value to the Pictures relationships id.
-                a_id.SetValue(Id);
-            
+            // Set its value to the Pictures relationships id.
+            a_id.SetValue(Id);
+
 
             return this;
         }
@@ -2472,15 +2514,15 @@ namespace Novacode
                 return;
             }
 
-          var contentIsListOfFontProperties = false;
-          var fontProps = content as IEnumerable;
-          if (fontProps != null)
-          {
-            foreach (object property in fontProps)
+            var contentIsListOfFontProperties = false;
+            var fontProps = content as IEnumerable;
+            if (fontProps != null)
             {
-              contentIsListOfFontProperties = (property as XAttribute != null);
+                foreach (object property in fontProps)
+                {
+                    contentIsListOfFontProperties = (property as XAttribute != null);
+                }
             }
-          }
 
             foreach (XElement run in runs)
             {
@@ -2494,21 +2536,21 @@ namespace Novacode
                 rPr.SetElementValue(textFormatPropName, value);
                 XElement last = rPr.Elements().Last();
 
-              if (contentIsListOfFontProperties) //if content is a list of attributes, as in the case when specifying a font family 
-              {
-                foreach (object property in fontProps)
+                if (contentIsListOfFontProperties) //if content is a list of attributes, as in the case when specifying a font family 
                 {
-                  if (last.Attribute(((System.Xml.Linq.XAttribute) (property)).Name) == null)
-                  {
-                    last.Add(property); //Add this attribute if element doesn't have it
-                  }
-                  else
-                  {
-                    last.Attribute(((System.Xml.Linq.XAttribute) (property)).Name).Value =
-                      ((System.Xml.Linq.XAttribute) (property)).Value; //Apply value only if element already has it
-                  }
+                    foreach (object property in fontProps)
+                    {
+                        if (last.Attribute(((System.Xml.Linq.XAttribute)(property)).Name) == null)
+                        {
+                            last.Add(property); //Add this attribute if element doesn't have it
+                        }
+                        else
+                        {
+                            last.Attribute(((System.Xml.Linq.XAttribute)(property)).Name).Value =
+                              ((System.Xml.Linq.XAttribute)(property)).Value; //Apply value only if element already has it
+                        }
+                    }
                 }
-              }
 
                 if (content as System.Xml.Linq.XAttribute != null)//If content is an attribute
                 {
@@ -3068,7 +3110,7 @@ namespace Novacode
             }
         }
 
-                
+
         /// <summary>
         /// Set the linespacing for this paragraph manually.
         /// </summary>
@@ -3077,8 +3119,8 @@ namespace Novacode
         public void SetLineSpacing(LineSpacingType spacingType, float spacingFloat)
         {
             spacingFloat = spacingFloat * 240;
-            int spacingValue = (int) spacingFloat;
-            
+            int spacingValue = (int)spacingFloat;
+
             var pPr = this.GetOrCreate_pPr();
             var spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
             if (spacing == null)
@@ -3086,31 +3128,31 @@ namespace Novacode
                 pPr.Add(new XElement(XName.Get("spacing", DocX.w.NamespaceName)));
                 spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
             }
-            
+
             string spacingTypeAttribute = "";
             switch (spacingType)
             {
-            	case LineSpacingType.Line:
-            		{
-            			spacingTypeAttribute = "line";
-            			break;
-            		}
-            	case LineSpacingType.Before:
-            		{
-            			spacingTypeAttribute = "before";
-            			break;
-            		}
-            	case LineSpacingType.After:
-            		{
-            			spacingTypeAttribute = "after";
-            			break;
-            		}          		
-            		
+                case LineSpacingType.Line:
+                    {
+                        spacingTypeAttribute = "line";
+                        break;
+                    }
+                case LineSpacingType.Before:
+                    {
+                        spacingTypeAttribute = "before";
+                        break;
+                    }
+                case LineSpacingType.After:
+                    {
+                        spacingTypeAttribute = "after";
+                        break;
+                    }
+
             }
-            
+
             spacing.SetAttributeValue(XName.Get(spacingTypeAttribute, DocX.w.NamespaceName), spacingValue);
         }
-        
+
         /// <summary>
         /// Set the linespacing for this paragraph using the Auto value.
         /// </summary>
@@ -3118,58 +3160,59 @@ namespace Novacode
         public void SetLineSpacing(LineSpacingTypeAuto spacingType)
         {
             int spacingValue = 100;
-            
+
             var pPr = this.GetOrCreate_pPr();
             var spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
-            
+
             if (spacingType.Equals(LineSpacingTypeAuto.None))
             {
-            	if (spacing != null)
-            	{
-            		spacing.Remove();
-            	}
+                if (spacing != null)
+                {
+                    spacing.Remove();
+                }
             }
-            
-            else {
-            	
-	            if (spacing == null)
-	            {
-	                pPr.Add(new XElement(XName.Get("spacing", DocX.w.NamespaceName)));
-	                spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
-	            }
-	            
-	            string spacingTypeAttribute = "";
-	            string autoSpacingTypeAttribute = "";
-	            switch (spacingType)
-	            {
-	            	case LineSpacingTypeAuto.AutoBefore:
-	            		{
-	            			spacingTypeAttribute = "before";
-	            			autoSpacingTypeAttribute = "beforeAutospacing";
-	            			break;
-	            		}
-	            	case LineSpacingTypeAuto.AutoAfter:
-	            		{
-	            			spacingTypeAttribute = "after";
-	            			autoSpacingTypeAttribute = "afterAutospacing";
-	            			break;
-	            		}
-	            	case LineSpacingTypeAuto.Auto:
-	            		{
-	            			spacingTypeAttribute = "before";
-	            			autoSpacingTypeAttribute = "beforeAutospacing";
-	            			spacing.SetAttributeValue(XName.Get("after", DocX.w.NamespaceName), spacingValue);
-	            			spacing.SetAttributeValue(XName.Get("afterAutospacing", DocX.w.NamespaceName), 1);
-	            			break;
-	            		}            		
-	            		
-	            }
-	            
-	            spacing.SetAttributeValue(XName.Get(autoSpacingTypeAttribute, DocX.w.NamespaceName), 1);
-	            spacing.SetAttributeValue(XName.Get(spacingTypeAttribute, DocX.w.NamespaceName), spacingValue);            	
-            	
+
+            else
+            {
+
+                if (spacing == null)
+                {
+                    pPr.Add(new XElement(XName.Get("spacing", DocX.w.NamespaceName)));
+                    spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
+                }
+
+                string spacingTypeAttribute = "";
+                string autoSpacingTypeAttribute = "";
+                switch (spacingType)
+                {
+                    case LineSpacingTypeAuto.AutoBefore:
+                        {
+                            spacingTypeAttribute = "before";
+                            autoSpacingTypeAttribute = "beforeAutospacing";
+                            break;
+                        }
+                    case LineSpacingTypeAuto.AutoAfter:
+                        {
+                            spacingTypeAttribute = "after";
+                            autoSpacingTypeAttribute = "afterAutospacing";
+                            break;
+                        }
+                    case LineSpacingTypeAuto.Auto:
+                        {
+                            spacingTypeAttribute = "before";
+                            autoSpacingTypeAttribute = "beforeAutospacing";
+                            spacing.SetAttributeValue(XName.Get("after", DocX.w.NamespaceName), spacingValue);
+                            spacing.SetAttributeValue(XName.Get("afterAutospacing", DocX.w.NamespaceName), 1);
+                            break;
+                        }
+
+                }
+
+                spacing.SetAttributeValue(XName.Get(autoSpacingTypeAttribute, DocX.w.NamespaceName), 1);
+                spacing.SetAttributeValue(XName.Get(spacingTypeAttribute, DocX.w.NamespaceName), spacingValue);
+
             }
- 
+
         }
 
 

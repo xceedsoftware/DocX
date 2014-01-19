@@ -24,6 +24,7 @@ namespace Examples
             HyperlinksImagesTables();
             AddList();
             Equations();
+            Bookmarks();
             BarChart();
             PieChart();
             LineChart();
@@ -215,6 +216,25 @@ namespace Examples
             }
         }
 
+        private static void Bookmarks()
+        {
+            Console.WriteLine("\nBookmarks()");
+
+            using (var document = DocX.Create(@"docs\Bookmarks.docx"))
+            {
+                var paragraph = document.InsertBookmark("firstBookmark");
+
+                var paragraph2 = document.InsertParagraph("This is a paragraph which contains a ");
+                paragraph2.AppendBookmark("secondBookmark");
+                paragraph2.Append("bookmark");
+
+                paragraph2.InsertAtBookmark("handy ", "secondBookmark");
+
+                document.Save();
+                Console.WriteLine("\tCreated: docs\\Bookmarks.docx\n");
+            
+            }
+        }
         /// <summary>
         /// Create a document with a Paragraph whos first line is indented.
         /// </summary>

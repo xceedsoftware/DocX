@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+using Novacode;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Drawing;
 using System.Xml.Linq;
+using System.Reflection;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Novacode;
 
 namespace UnitTests
 {

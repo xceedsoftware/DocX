@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.Packaging;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using System.IO.Packaging;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Novacode
 {
@@ -387,6 +387,27 @@ namespace Novacode
                         p.ReplaceText(oldValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo);
         }
 
+        public virtual void InsertAtBookmark(string toInsert, string bookmarkName)
+        {
+            if (String.IsNullOrWhiteSpace(bookmarkName))
+                throw new ArgumentException("bookmark cannot be null or empty", "bookmarkName");
+
+            var headerCollection = Document.Headers;
+            var headers = new List<Header> { headerCollection.first, headerCollection.even, headerCollection.odd };
+            foreach (var header in headers.Where(x => x != null))
+                foreach (var paragraph in header.Paragraphs)
+                    paragraph.InsertAtBookmark(toInsert, bookmarkName);
+
+            foreach (var paragraph in Paragraphs)
+                paragraph.InsertAtBookmark(toInsert, bookmarkName);
+
+            var footerCollection = Document.Footers;
+            var footers = new List<Footer> { footerCollection.first, footerCollection.even, footerCollection.odd };
+            foreach (var footer in footers.Where(x => x != null))
+                foreach (var paragraph in footer.Paragraphs)
+                    paragraph.InsertAtBookmark(toInsert, bookmarkName);
+        }
+
         public virtual Paragraph InsertParagraph(int index, string text, bool trackChanges)
         {
             return InsertParagraph(index, text, trackChanges, null);
@@ -669,6 +690,13 @@ namespace Novacode
         {
             Paragraph p = InsertParagraph();
             p.AppendEquation(equation);
+            return p;
+        }
+
+        public virtual Paragraph InsertBookmark(String bookmarkName)
+        {
+            var p = InsertParagraph();
+            p.AppendBookmark(bookmarkName);
             return p;
         }
 
