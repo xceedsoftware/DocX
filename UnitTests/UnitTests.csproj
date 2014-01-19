@@ -63,6 +63,12 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InsertAtBookmark.cs">
+      <DependentUpon>DocXUnitTests.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AppendBookmark.cs">
+      <DependentUpon>DocXUnitTests.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DocXUnitTests.cs" />
     <Compile Include="RelativeDirectory.cs" />
