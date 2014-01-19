@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using System.Xml.Linq;
+using System.Xml;
 
 namespace Novacode
 {
@@ -396,6 +397,16 @@ namespace Novacode
         }
 
         internal static XElement CreateTable(int rowCount, int columnCount)
+		{
+			int[] columnWidths = new int[columnCount];
+			for (int i = 0; i < columnCount; i++)
+			{
+				columnWidths[i] = 2310;
+			}
+			return CreateTable(rowCount, columnWidths);
+		}
+
+		internal static XElement CreateTable(int rowCount, int[] columnWidths)
         {
             XElement newTable =
             new XElement
@@ -411,8 +422,8 @@ namespace Novacode
             );
 
             XElement tableGrid = new XElement(XName.Get("tblGrid", DocX.w.NamespaceName));
-            for (int i = 0; i < columnCount; i++)
-                tableGrid.Add(new XElement(XName.Get("gridCol", DocX.w.NamespaceName), new XAttribute(XName.Get("w", DocX.w.NamespaceName), "2310")));
+            for (int i = 0; i < columnWidths.Length; i++)
+                tableGrid.Add(new XElement(XName.Get("gridCol", DocX.w.NamespaceName), new XAttribute(XName.Get("w", DocX.w.NamespaceName), XmlConvert.ToString(columnWidths[i]))));
 
             newTable.Add(tableGrid);
 
@@ -420,7 +431,7 @@ namespace Novacode
             {
                 XElement row = new XElement(XName.Get("tr", DocX.w.NamespaceName));
 
-                for (int j = 0; j < columnCount; j++)
+                for (int j = 0; j < columnWidths.Length; j++)
                 {
                     XElement cell = CreateTableCell();
                     row.Add(cell);

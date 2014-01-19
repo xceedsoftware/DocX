@@ -89,7 +89,8 @@
     Tcbs_threeDEmboss,
     Tcbs_threeDEngrave,
     Tcbs_outset,
-    Tcbs_inset
+    Tcbs_inset,
+	Tcbs_nil
   }
 
   /// <summary>
