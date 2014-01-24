@@ -150,9 +150,9 @@ namespace Novacode
                     break;
                 }
             }
-
-            var numFmtNode = lvlNode.Descendants().First(n => n.Name.LocalName == "numFmt");
-            p.ListItemType = GetListItemType(numFmtNode.Attribute(DocX.w + "val").Value);
+           
+           	var numFmtNode = lvlNode.Descendants().First(n => n.Name.LocalName == "numFmt");
+          		p.ListItemType = GetListItemType(numFmtNode.Attribute(DocX.w + "val").Value);    
         }
 
 

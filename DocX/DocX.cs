@@ -924,7 +924,7 @@ namespace Novacode
         /// <summary>
         /// Insert the contents of another document at the end of this document. 
         /// </summary>
-        /// <param name="document">The document to insert at the end of this document.</param>
+        /// <param name="remote_document">The document to insert at the end of this document.</param>
         /// <example>
         /// Create a new document and insert an old document into it.
         /// <code>
@@ -1007,10 +1007,22 @@ namespace Novacode
                             merge_customs(remote_pp, local_pp, remote_mainDoc);
                             break;
 
+                        // Merge footnotes (and endnotes) before merging styles, then set the remote_footnotes to the just updated footnotes
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml":
+                            merge_footnotes(remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes);
+                            remote_footnotes = footnotes;
+                            break;
+ 
+                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml":
+                            merge_endnotes(remote_pp, local_pp, remote_mainDoc, remote_document, remote_endnotes);
+                            remote_endnotes = endnotes;
+                            break;
+
                         case "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml":
                             merge_styles(remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes, remote_endnotes);
                             break;
 
+                        // Merge styles after merging the footnotes, so the changes will be applied to the correct document/footnotes
                         case "application/vnd.ms-word.stylesWithEffects+xml":
                             merge_styles(remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes, remote_endnotes);
                             break;
@@ -1021,14 +1033,6 @@ namespace Novacode
 
                         case "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml":
                             merge_numbering(remote_pp, local_pp, remote_mainDoc, remote_document);
-                            break;
-
-                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml":
-                            merge_footnotes(remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes);
-                            break;
-
-                        case "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml":
-                            merge_endnotes(remote_pp, local_pp, remote_mainDoc, remote_document, remote_endnotes);
                             break;
 
                         default:
@@ -1458,8 +1462,12 @@ namespace Novacode
                 guidd++;
             }
 
-            numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_abstractNums);
-            numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_nums);
+            // Checking whether there were more than 0 elements, helped me get rid of exceptions thrown while using InsertDocument
+            if (numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName)).Count() > 0)
+            	numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_abstractNums);
+            
+            if (numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName)).Count() > 0)
+            	numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_nums);
         }
 
         private void merge_fonts(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote)
@@ -1528,7 +1536,12 @@ namespace Novacode
                     }
                 }
                 else
+                {
                     guuid = Guid.NewGuid().ToString();
+                    // Set the styleId in the remote_style to this new Guid
+                    // [Fixed the issue that my document referred to a new Guid while my styles still had the old value ("Titel")]
+                    remote_style.SetAttributeValue(XName.Get("styleId", DocX.w.NamespaceName), guuid);
+                }
 
                 foreach (XElement e in remote_mainDoc.Root.Descendants(XName.Get("pStyle", DocX.w.NamespaceName)))
                 {
