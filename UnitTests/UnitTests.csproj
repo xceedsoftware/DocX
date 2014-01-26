@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="documents\EverybodyHasAHome.docx" />
+    <None Include="documents\FontFormat.docx" />
     <None Include="documents\Hyperlinks.docx" />
     <None Include="documents\Images.docx" />
     <None Include="documents\MovePicture.docx" />
