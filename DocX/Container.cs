@@ -5,6 +5,7 @@ using System.Xml.Linq;
 using System.IO.Packaging;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Collections.ObjectModel;
 
 namespace Novacode
 {
@@ -56,7 +57,7 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public virtual List<Paragraph> Paragraphs
+        public virtual ReadOnlyCollection<Paragraph> Paragraphs
         {
             get
             {
@@ -75,10 +76,49 @@ namespace Novacode
                     }
                 }
 
-                return paragraphs;
+                return paragraphs.AsReadOnly();
             }
         }
+        // <summary>
+        /// Removes paragraph at specified position
+        /// </summary>
+        /// <param name="index">Index of paragraph to remove</param>
+        /// <returns>True if removed</returns>
+        public bool RemoveParagraphAt(int index)
+        {
+            int i = 0;
+            foreach (var paragraph in Xml.Descendants(DocX.w + "p"))
+            {
+                if (i == index)
+                {
+                    paragraph.Remove();
+                    return true;
+                }
+                ++i;
+ 
+            }
+ 
+            return false;
+        }
 
+        /// <summary>
+        /// Removes paragraph
+        /// </summary>
+        /// <param name="paragraph">Paragraph to remove</param>
+        /// <returns>True if removed</returns>
+        public bool RemoveParagraph(Paragraph p)
+        {
+            foreach (var paragraph in Xml.Descendants(DocX.w + "p"))
+            {
+                if (paragraph.Equals(p.Xml))
+                {
+                    paragraph.Remove();
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
 
         public virtual List<Section> Sections

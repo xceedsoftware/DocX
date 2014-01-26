@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.ObjectModel;
 
 namespace UnitTests
 {
@@ -1146,7 +1147,7 @@ namespace UnitTests
             using (DocX document = DocX.Load(_directoryWithFiles + "Paragraphs.docx"))
             {
                 // Extract the Paragraphs from this document.
-                List<Paragraph> paragraphs = document.Paragraphs;
+                ReadOnlyCollection<Paragraph> paragraphs = document.Paragraphs;
 
                 // There should be 3 Paragraphs in this document.
                 Assert.IsTrue(paragraphs.Count() == 3);
@@ -1167,7 +1168,11 @@ namespace UnitTests
                 Assert.IsTrue(p3_text == "Paragraph 3");
 
                 // Its important that each Paragraph knows the PackagePart it belongs to.
-                document.Paragraphs.ForEach(p => Assert.IsTrue(p.PackagePart.Uri.ToString() == package_part_document));
+                 foreach (var paragraph in document.Paragraphs)
+                {
+                    Assert.IsTrue(paragraph.PackagePart.Uri.ToString() == package_part_document);
+                }
+ 
 
                 // Test the saving of the document.
                 document.SaveAs(FileTemp);
@@ -1332,7 +1337,7 @@ namespace UnitTests
         {
             using (DocX document = DocX.Load(_directoryWithFiles + "Tables.docx"))
             {
-                List<Paragraph> paragraphs = document.Paragraphs;
+                ReadOnlyCollection<Paragraph> paragraphs = document.Paragraphs;
 
                 Paragraph p1 = paragraphs[0];
 
@@ -1821,9 +1826,9 @@ namespace UnitTests
           {
             Paragraph p = document.InsertParagraph();
 
-            p.Append("Hello World").Font(new FontFamily("Century"));
+            p.Append("Hello World").Font(new FontFamily("Symbol"));
 
-            Assert.AreEqual(p.MagicText[0].formatting.FontFamily.Name, "Century");
+            Assert.AreEqual(p.MagicText[0].formatting.FontFamily.Name, "Symbol");
 
             document.Save();
           }
@@ -1869,6 +1874,52 @@ namespace UnitTests
               int l2 = p3.Text.Length; //should be 861
               Assert.AreEqual(l1 - 99, l2);
           }
+      }
+
+      [TestMethod]
+      public void Test_Table_RemoveParagraphs()
+      {
+          MemoryStream memoryStream;
+          DocX document;
+ 
+          memoryStream = new MemoryStream();
+          document = DocX.Create(memoryStream);
+          // Add a Table into the document.
+          Table table = document.AddTable(1, 4); // 1 row, 4 cells
+          table.Design = TableDesign.TableGrid;
+          table.Alignment = Alignment.center;
+          // Edit row
+          var row = table.Rows[0];
+
+          // Fill 1st paragraph
+          row.Cells[0].Paragraphs.ElementAt(0).Append("Paragraph 1");
+          // Fill 2nd paragraph
+          var secondParagraph = row.Cells[0].InsertParagraph("Paragraph 2");
+
+          // Check number of paragraphs
+          Assert.AreEqual(2, row.Cells[0].Paragraphs.Count());
+
+          // Remove 1st paragraph
+          var deleted = row.Cells[0].RemoveParagraphAt(0);
+          Assert.IsTrue(deleted);
+          // Check number of paragraphs
+          Assert.AreEqual(1, row.Cells[0].Paragraphs.Count());
+
+          // Remove 3rd (nonexisting) paragraph
+          deleted = row.Cells[0].RemoveParagraphAt(3);
+          Assert.IsFalse(deleted);
+          //check number of paragraphs
+          Assert.AreEqual(1, row.Cells[0].Paragraphs.Count());
+
+          // Remove secondParagraph (this time the only one) paragraph
+          deleted = row.Cells[0].RemoveParagraph(secondParagraph);
+          Assert.IsTrue(deleted);
+          Assert.AreEqual(0, row.Cells[0].Paragraphs.Count());
+
+          // Remove last paragraph once again - this time this paragraph does not exists
+          deleted = row.Cells[0].RemoveParagraph(secondParagraph);
+          Assert.IsFalse(deleted);
+          Assert.AreEqual(0, row.Cells[0].Paragraphs.Count());
       }
 
 
