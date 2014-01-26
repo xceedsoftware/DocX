@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+using System.Collections.ObjectModel;
 
 namespace Novacode
 {
@@ -3881,12 +3882,15 @@ namespace Novacode
             return paragraphs.ToArray();
         }
 
-        public override List<Paragraph> Paragraphs
+        public override ReadOnlyCollection<Paragraph> Paragraphs
         {
             get
             {
-                List<Paragraph> l = base.Paragraphs;
-                l.ForEach(x => x.PackagePart = mainPart);
+                ReadOnlyCollection<Paragraph> l = base.Paragraphs;
+                foreach (var paragraph in l)
+                {
+                    paragraph.PackagePart = mainPart;
+                }
                 return l;
             }
         }

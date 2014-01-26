@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using System.IO.Packaging;
+using System.Collections.ObjectModel;
 
 namespace Novacode
 {
@@ -122,12 +123,15 @@ namespace Novacode
         }
 
 
-        public override List<Paragraph> Paragraphs
+        public override ReadOnlyCollection<Paragraph> Paragraphs
         {
             get
             {
-                List<Paragraph> l = base.Paragraphs;
-                l.ForEach(x => x.mainPart = mainPart);
+                ReadOnlyCollection<Paragraph> l = base.Paragraphs;
+                foreach (var paragraph in l)
+                {
+                    paragraph.mainPart = mainPart;
+                }
                 return l;
             }
         }

@@ -6,6 +6,7 @@ using System.IO.Packaging;
 using System.IO;
 using System.Drawing;
 using System.Globalization;
+using System.Collections.ObjectModel;
 
 namespace Novacode
 {
@@ -2078,7 +2079,7 @@ namespace Novacode
                 table.Remove();
         }
 
-        public override List<Paragraph> Paragraphs
+        public override ReadOnlyCollection<Paragraph> Paragraphs
         {
             get
             {
@@ -2091,7 +2092,7 @@ namespace Novacode
                 foreach (Paragraph p in paragraphs)
                     p.PackagePart = table.mainPart;
 
-                return paragraphs;
+                return paragraphs.AsReadOnly();
             }
         }
 
@@ -2358,11 +2359,11 @@ namespace Novacode
             this.mainPart = row.mainPart;
         }
 
-        public override List<Paragraph> Paragraphs
+        public override ReadOnlyCollection<Paragraph> Paragraphs
         {
             get
             {
-                List<Paragraph> paragraphs = base.Paragraphs;
+                ReadOnlyCollection<Paragraph> paragraphs = base.Paragraphs;
 
                 foreach (Paragraph p in paragraphs)
                     p.PackagePart = row.table.mainPart;
