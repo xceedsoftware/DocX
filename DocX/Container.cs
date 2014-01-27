@@ -427,6 +427,41 @@ namespace Novacode
                         p.ReplaceText(oldValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo);
         }
 
+        /// <summary>
+        /// Removes all items with required formatting
+        /// </summary>
+        /// <returns>Numer of texts removed</returns>
+        public int RemoveTextInGivenFormat(Formatting matchFormatting, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch)
+        {
+            var deletedCount = 0;
+            foreach (var x in Xml.Elements())
+            {
+                deletedCount += RemoveTextWithFormatRecursive(x, matchFormatting, fo);
+            }
+
+            return deletedCount;
+        }
+
+        internal int RemoveTextWithFormatRecursive(XElement element, Formatting matchFormatting, MatchFormattingOptions fo)
+        {
+            var deletedCount = 0;
+            foreach (var x in element.Elements())
+            {
+                if ("rPr".Equals(x.Name.LocalName))
+                {
+                    if (HelperFunctions.ContainsEveryChildOf(matchFormatting.Xml, x, fo))
+                    {
+                        x.Parent.Remove();
+                        ++deletedCount;
+                    }
+                }
+
+                deletedCount += RemoveTextWithFormatRecursive(x, matchFormatting, fo);
+            }
+
+            return deletedCount;
+        }
+
         public virtual void InsertAtBookmark(string toInsert, string bookmarkName)
         {
             if (String.IsNullOrWhiteSpace(bookmarkName))

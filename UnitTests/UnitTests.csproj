@@ -90,6 +90,7 @@
     <None Include="documents\testdoc_SectionsWithSectionBreaksMultiParagraph.docx" />
     <None Include="documents\testdoc_UnorderedList.docx" />
     <None Include="documents\TestParent.docx" />
+    <None Include="documents\VariousTextFormatting.docx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="documents\green.jpg" />
