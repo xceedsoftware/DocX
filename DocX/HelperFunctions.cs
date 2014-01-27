@@ -15,6 +15,29 @@ namespace Novacode
 {
     internal static class HelperFunctions
     {
+
+        /// <summary>
+        /// Checks whether 'toCheck' has all children that 'desired' has and values of 'val' attributes are the same
+        /// </summary>
+        /// <param name="desired"></param>
+        /// <param name="toCheck"></param>
+        /// <param name="fo">Matching options whether check if desired attributes are inder a, or a has exactly and only these attributes as b has.</param>
+        /// <returns></returns>
+        internal static bool ContainsEveryChildOf(XElement desired, XElement toCheck, MatchFormattingOptions fo)
+        {
+            foreach (XElement e in desired.Elements())
+            {
+                // If a formatting property has the same name and 'val' attribute's value, its considered to be equivalent.
+                if (!toCheck.Elements(e.Name).Where(bElement => bElement.GetAttribute(XName.Get("val", DocX.w.NamespaceName)) == e.GetAttribute(XName.Get("val", DocX.w.NamespaceName))).Any())
+                    return false;
+            }
+
+            // If the formatting has to be exact, no additionaly formatting must exist.
+            if (fo == MatchFormattingOptions.ExactMatch)
+                return desired.Elements().Count() == toCheck.Elements().Count();
+
+            return true;
+        }
         internal static void CreateRelsPackagePart(DocX Document, Uri uri)
         {
             PackagePart pp = Document.package.CreatePart(uri, "application/vnd.openxmlformats-package.relationships+xml", CompressionOption.Maximum);

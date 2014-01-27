@@ -3642,7 +3642,7 @@ namespace Novacode
                          * Make sure that every formatting element in f.xml is also in this run,
                          * if this is not true, then their formatting does not match.
                          */
-                        if (!ContainsEveryChildOf(matchFormatting.Xml, rPr, fo))
+                        if (!HelperFunctions.ContainsEveryChildOf(matchFormatting.Xml, rPr, fo))
                         {
                             formattingMatch = false;
                             break;
@@ -3661,22 +3661,6 @@ namespace Novacode
                     RemoveText(m.Index, m.Length, trackChanges);
                 }
             }
-        }
-
-        internal bool ContainsEveryChildOf(XElement a, XElement b, MatchFormattingOptions fo)
-        {
-            foreach (XElement e in a.Elements())
-            {
-                // If a formatting property has the same name and value, its considered to be equivalent.
-                if (!b.Elements(e.Name).Where(bElement => bElement.Value == e.Value).Any())
-                    return false;
-            }
-
-            // If the formatting has to be exact, no additionaly formatting must exist.
-            if (fo == MatchFormattingOptions.ExactMatch)
-                return a.Elements().Count() == b.Elements().Count();
-
-            return true;
         }
 
         /// <summary>

@@ -926,6 +926,59 @@ namespace UnitTests
             }
         }
 
+         [TestMethod]
+        public void Test_Paragraph_ReplaceTextInGivenFormat()
+        {
+            // Load a document.
+            using (DocX document = DocX.Load(_directoryWithFiles + "VariousTextFormatting.docx"))
+            {
+                // Removing red text highlighted with yellow
+                var formatting = new Formatting();
+                formatting.FontColor = Color.Blue;
+                // IMPORTANT: default constructor of Formatting sets up language property - set it to NULL to be language independent
+                var desiredFormat = new Formatting() { Language = null, FontColor = Color.FromArgb(255, 0, 0), Highlight = Highlight.yellow };
+                var replaced = string.Empty;
+                foreach (var p in document.Paragraphs)
+                {
+                    if (p.Text == "Text highlighted with yellow")
+                    {
+                        p.ReplaceText("Text highlighted with yellow", "New text highlighted with yellow", false, RegexOptions.None, null, desiredFormat, MatchFormattingOptions.ExactMatch);
+                        replaced += p.Text;
+                    }
+                }
+
+                Assert.AreEqual("New text highlighted with yellow", replaced);
+
+                // Removing red text with no other formatting (ExactMatch)
+                desiredFormat = new Formatting() { Language = null, FontColor = Color.FromArgb(255, 0, 0) };
+                var count = 0;
+                foreach (var p in document.Paragraphs)
+                {
+                    p.ReplaceText("Text", "Replaced text", false, RegexOptions.None, null, desiredFormat, MatchFormattingOptions.ExactMatch);
+                    if (p.Text.StartsWith("Replaced text"))
+                    {
+                        ++count;
+                    }
+                }
+
+                Assert.AreEqual(1, count);
+
+                // Removing just red text with any other formatting (SubsetMatch)
+                desiredFormat = new Formatting() { Language = null, FontColor = Color.FromArgb(255, 0, 0) };
+                count = 0;
+                foreach (var p in document.Paragraphs)
+                {
+                    p.ReplaceText("Text", "Replaced text", false, RegexOptions.None, null, desiredFormat, MatchFormattingOptions.SubsetMatch);
+                    if (p.Text.StartsWith("Replaced text"))
+                    {
+                        ++count;
+                    }
+                }
+
+                Assert.AreEqual(2, count);
+            }
+        }
+
         [TestMethod]
         public void Test_Paragraph_RemoveText()
         {
@@ -1034,6 +1087,30 @@ namespace UnitTests
                 p4.RemoveText(1, 1); Assert.IsTrue(p4.Text == "AB");
                 p4.RemoveText(p4.Text.Length - 1, 1); Assert.IsTrue(p4.Text == "A");
                 p4.RemoveText(p4.Text.Length - 1, 1); Assert.IsTrue(p4.Text == "");
+            }
+        }
+
+        [TestMethod]
+        public void Test_Document_RemoveTextInGivenFormat()
+        {
+            // Load a document.
+            using (DocX document = DocX.Load(_directoryWithFiles + "VariousTextFormatting.docx"))
+            {
+                var formatting = new Formatting();
+                formatting.FontColor = Color.Blue;
+                // IMPORTANT: default constructor of Formatting sets up language property - set it to NULL to be language independent
+                formatting.Language = null;
+                var deletedCount = document.RemoveTextInGivenFormat(formatting);
+                Assert.AreEqual(2, deletedCount);
+
+                deletedCount = document.RemoveTextInGivenFormat(new Formatting() { Highlight = Highlight.yellow, Language = null });
+                Assert.AreEqual(2, deletedCount);
+
+                deletedCount = document.RemoveTextInGivenFormat(new Formatting() { Highlight = Highlight.blue, Language = null, FontColor = Color.FromArgb(0, 255, 0) });
+                Assert.AreEqual(1, deletedCount);
+
+                deletedCount = document.RemoveTextInGivenFormat(new Formatting() { Language = null, FontColor = Color.FromArgb(123, 123, 123) }, MatchFormattingOptions.ExactMatch);
+                Assert.AreEqual(2, deletedCount);
             }
         }
 
