@@ -170,29 +170,33 @@ namespace Novacode
             //find num node in numbering 
             var numNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "num");
             XElement numNode = numNodes.FirstOrDefault(node => node.Attribute(DocX.w + "numId").Value.Equals(numIdValue));
-
-            //Get abstractNumId node and its value from numNode
-            var abstractNumIdNode = numNode.Descendants().First(n => n.Name.LocalName == "abstractNumId");
-            var abstractNumNodeValue = abstractNumIdNode.Attribute(DocX.w + "val").Value;
-
-            var abstractNumNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "abstractNum");
-            XElement abstractNumNode =
-              abstractNumNodes.FirstOrDefault(node => node.Attribute(DocX.w + "abstractNumId").Value.Equals(abstractNumNodeValue));
-
-            //Find lvl node
-            var lvlNodes = abstractNumNode.Descendants().Where(n => n.Name.LocalName == "lvl");
-            XElement lvlNode = null;
-            foreach (XElement node in lvlNodes)
-            {
-                if (node.Attribute(DocX.w + "ilvl").Value.Equals(ilvlValue))
-                {
-                    lvlNode = node;
-                    break;
-                }
-            }
            
-           	var numFmtNode = lvlNode.Descendants().First(n => n.Name.LocalName == "numFmt");
-          		p.ListItemType = GetListItemType(numFmtNode.Attribute(DocX.w + "val").Value);    
+	        if (numNode != null)
+            {
+               //Get abstractNumId node and its value from numNode
+	            var abstractNumIdNode = numNode.Descendants().First(n => n.Name.LocalName == "abstractNumId");
+	            var abstractNumNodeValue = abstractNumIdNode.Attribute(DocX.w + "val").Value;
+	
+	            var abstractNumNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "abstractNum");
+	            XElement abstractNumNode =
+	              abstractNumNodes.FirstOrDefault(node => node.Attribute(DocX.w + "abstractNumId").Value.Equals(abstractNumNodeValue));
+	
+	            //Find lvl node
+	            var lvlNodes = abstractNumNode.Descendants().Where(n => n.Name.LocalName == "lvl");
+	            XElement lvlNode = null;
+	            foreach (XElement node in lvlNodes)
+	            {
+	                if (node.Attribute(DocX.w + "ilvl").Value.Equals(ilvlValue))
+	                {
+	                    lvlNode = node;
+	                    break;
+	                }
+	            }
+	           
+	           	var numFmtNode = lvlNode.Descendants().First(n => n.Name.LocalName == "numFmt");
+	          		p.ListItemType = GetListItemType(numFmtNode.Attribute(DocX.w + "val").Value);
+            }         
+
         }
 
 
