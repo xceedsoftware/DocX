@@ -96,6 +96,7 @@
     <Compile Include="Charts\PieChart.cs" />
     <Compile Include="Charts\XElementHelpers.cs" />
     <Compile Include="Container.cs" />
+    <Compile Include="DocumentTypes.cs" />
     <Compile Include="Footers.cs" />
     <Compile Include="Footer.cs" />
     <Compile Include="CustomProperty.cs" />

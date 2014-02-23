@@ -1361,7 +1361,28 @@ namespace UnitTests
                 }
             }
         }
-
+        [TestMethod]
+        public void When_opening_a_template_no_error_should_be_thrown()
+        {
+            using (DocX document = DocX.Load(_directoryWithFiles + "Template.dotx"))
+            {
+                Assert.IsTrue(document.Paragraphs.Count > 0);
+            }
+        }
+        [TestMethod]
+        public void Saving_and_loading_a_template_should_work()
+        {
+            using (DocX document = DocX.Create("test template.dotx", DocumentTypes.Template))
+            {
+                document.InsertParagraph("hello, this is a paragraph");
+                document.Save();
+            }
+            using (DocX document = DocX.Load("test template.dotx"))
+            {
+                Assert.IsTrue(document.Paragraphs.Count > 0);
+            }
+            
+        }
         [TestMethod]
         public void Test_ParentContainer_When_Creating_Doc()
         {

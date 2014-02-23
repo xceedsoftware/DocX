@@ -2050,7 +2050,7 @@ namespace Novacode
         /// <seealso cref="DocX.Load(System.IO.Stream)"/>
         /// <seealso cref="DocX.Load(string)"/>
         /// <seealso cref="DocX.Save()"/>
-        public static DocX Create(Stream stream)
+        public static DocX Create(Stream stream, DocumentTypes documentType = DocumentTypes.Document)
         {
             // Store this document in memory
             MemoryStream ms = new MemoryStream();
@@ -2058,7 +2058,7 @@ namespace Novacode
             // Create the docx package
             Package package = Package.Open(ms, FileMode.Create, FileAccess.ReadWrite);
 
-            PostCreation(ref package);
+            PostCreation(package, documentType);
             DocX document = DocX.Load(ms);
             document.stream = stream;
             return document;
@@ -2095,7 +2095,7 @@ namespace Novacode
         /// <seealso cref="DocX.Load(string)"/>
         /// <seealso cref="DocX.Save()"/>
         /// </example>
-        public static DocX Create(string filename)
+        public static DocX Create(string filename, DocumentTypes documentType = DocumentTypes.Document)
         {
             // Store this document in memory
             MemoryStream ms = new MemoryStream();
@@ -2104,19 +2104,27 @@ namespace Novacode
             //WordprocessingDocument wdDoc = WordprocessingDocument.Create(ms, DocumentFormat.OpenXml.WordprocessingDocumentType.Document);
             Package package = Package.Open(ms, FileMode.Create, FileAccess.ReadWrite);
 
-            PostCreation(ref package);
+            PostCreation(package, documentType);
             DocX document = DocX.Load(ms);
             document.filename = filename;
             return document;
         }
 
-        internal static void PostCreation(ref Package package)
+        internal static void PostCreation(Package package, DocumentTypes documentType = DocumentTypes.Document)
         {
             XDocument mainDoc, stylesDoc, numberingDoc;
 
             #region MainDocumentPart
             // Create the main document part for this package
-            PackagePart mainDocumentPart = package.CreatePart(new Uri("/word/document.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml");
+            PackagePart mainDocumentPart;
+            if (documentType == DocumentTypes.Document)
+            {
+                mainDocumentPart = package.CreatePart(new Uri("/word/document.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml");
+            }
+            else
+            {
+                mainDocumentPart = package.CreatePart(new Uri("/word/document.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml");
+            }
             package.CreateRelationship(mainDocumentPart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument");
 
             // Load the document part into a XDocument object
@@ -2162,11 +2170,8 @@ namespace Novacode
             #region MainDocumentPart
             document.mainPart = package.GetParts().Where
             (
-                p => p.ContentType.Equals
-                (
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
-                    StringComparison.CurrentCultureIgnoreCase
-                )
+                     p => p.ContentType.Equals(HelperFunctions.DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase) ||
+                     p.ContentType.Equals(HelperFunctions.TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase)
             ).Single();
 
             using (TextReader tr = new StreamReader(document.mainPart.GetStream(FileMode.Open, FileAccess.Read)))
