@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DF41F5CE-8BCB-40CC-835F-54A3DB7D802F}"
 	ProjectSection(SolutionItems) = preProject
 		DocX.vsmdi = DocX.vsmdi
@@ -34,9 +36,6 @@ Global
 		SccProjectUniqueName4 = Documentation\\Documentation.shfbproj
 		SccProjectName4 = Documentation
 		SccLocalPath4 = Documentation
-	EndGlobalSection
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = DocX.vsmdi
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,9 +71,10 @@ Global
 		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Debug|x86.ActiveCfg = Debug|x86
 		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Debug|x86.Build.0 = Debug|x86
-		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Release|Any CPU.ActiveCfg = Release|x86
-		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Release|Mixed Platforms.Build.0 = Release|x86
+		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Release|x86.ActiveCfg = Release|x86
 		{F3022BB7-0E40-4C80-A495-37FEAF3671AB}.Release|x86.Build.0 = Release|x86
 		{1EB1EE8F-9978-425B-A742-533DCCEB4811}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -89,5 +89,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = DocX.vsmdi
 	EndGlobalSection
 EndGlobal

@@ -15,7 +15,8 @@ namespace Novacode
 {
     internal static class HelperFunctions
     {
-
+        public const string DOCUMENT_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
+        public const string TEMPLATE_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml";
         /// <summary>
         /// Checks whether 'toCheck' has all children that 'desired' has and values of 'val' attributes are the same
         /// </summary>
@@ -215,14 +216,8 @@ namespace Novacode
             {
                 settingsPart = package.CreatePart(settingsUri, "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml", CompressionOption.Maximum);
 
-                PackagePart mainDocumentPart = package.GetParts().Where
-                (
-                    p => p.ContentType.Equals
-                    (
-                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
-                        StringComparison.CurrentCultureIgnoreCase
-                    )
-                ).Single();
+                PackagePart mainDocumentPart = package.GetParts().Single(p => p.ContentType.Equals(DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase) ||
+                                                                              p.ContentType.Equals(TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase));
 
                 mainDocumentPart.CreateRelationship(settingsUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings");
 
@@ -344,11 +339,8 @@ namespace Novacode
             using (TextWriter tw = new StreamWriter(wordNumbering.GetStream(FileMode.Create, FileAccess.Write)))
                 numberingDoc.Save(tw, SaveOptions.None);
 
-            PackagePart mainDocumentPart = package.GetParts().Single(p => p.ContentType.Equals
-                                                                            (
-                                                                              "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
-                                                                              StringComparison.CurrentCultureIgnoreCase
-                                                                            ));
+            PackagePart mainDocumentPart = package.GetParts().Single(p => p.ContentType.Equals(DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase) ||
+                                                                          p.ContentType.Equals(TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase));
 
             mainDocumentPart.CreateRelationship(wordNumbering.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering");
             return numberingDoc;
@@ -378,11 +370,7 @@ namespace Novacode
 
             PackagePart mainDocumentPart = package.GetParts().Where
             (
-                p => p.ContentType.Equals
-                (
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
-                    StringComparison.CurrentCultureIgnoreCase
-                )
+                p => p.ContentType.Equals(DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase)||p.ContentType.Equals(TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase)
             ).Single();
 
             mainDocumentPart.CreateRelationship(word_styles.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles");
