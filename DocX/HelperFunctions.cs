@@ -17,6 +17,13 @@ namespace Novacode
     {
         public const string DOCUMENT_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
         public const string TEMPLATE_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml";
+
+            public static bool IsNullOrWhiteSpace(this string value)
+            {
+                if (value == null) return true;
+                return string.IsNullOrEmpty(value.Trim());
+            }
+
         /// <summary>
         /// Checks whether 'toCheck' has all children that 'desired' has and values of 'val' attributes are the same
         /// </summary>
