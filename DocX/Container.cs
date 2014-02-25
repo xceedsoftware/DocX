@@ -467,7 +467,7 @@ namespace Novacode
 
         public virtual void InsertAtBookmark(string toInsert, string bookmarkName)
         {
-            if (String.IsNullOrWhiteSpace(bookmarkName))
+            if (bookmarkName.IsNullOrWhiteSpace())
                 throw new ArgumentException("bookmark cannot be null or empty", "bookmarkName");
 
             var headerCollection = Document.Headers;
