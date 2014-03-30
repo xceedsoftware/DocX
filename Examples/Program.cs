@@ -7,6 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Novacode;
+using System.Collections.Generic;
+using System.Linq;
+using System.Drawing;
+using System.ComponentModel;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using System.Xml.Linq;
 
 namespace Examples
 {
@@ -38,6 +46,7 @@ namespace Examples
             HeadersAndFootersWithImagesAndTables();
             HeadersAndFootersWithImagesAndTablesUsingInsertPicture();
             DocumentsWithListsFontChange();
+            DocumentHeading();
 
             // Advanced
             Console.WriteLine("\nRunning Advanced Examples");
@@ -215,7 +224,25 @@ namespace Examples
                 Console.WriteLine("\tCreated: docs\\Equations.docx\n");
             }
         }
+        public static void DocumentHeading()
+        {
+            Console.WriteLine("\nDocumentHeading()");
+            using (DocX document = DocX.Create(@"docs\DocumentHeading.docx"))
+            {
 
+                foreach (HeadingType heading in (HeadingType[])Enum.GetValues(typeof(HeadingType)))
+                {
+                    string text = string.Format("{0} - The quick brown fox jumps over the lazy dog", heading.EnumDescription());
+
+                    Paragraph p = document.InsertParagraph();
+                    p.AppendLine(text).Heading(heading);
+                }
+
+
+                document.Save();
+                Console.WriteLine("\tCreated: docs\\DocumentHeading.docx\n");
+            }
+        }
         private static void Bookmarks()
         {
             Console.WriteLine("\nBookmarks()");

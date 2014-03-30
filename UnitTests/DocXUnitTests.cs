@@ -1935,7 +1935,7 @@ namespace UnitTests
       [TestMethod]
       public void Test_Paragraph_RemoveTextManyLetters()
       {
-          using (DocX document = DocX.Create(@"docs\HelloWorldRemovingManyLetters.docx"))
+          using (DocX document = DocX.Create(@"HelloWorldRemovingManyLetters.docx"))
           {
 
               Paragraph p3 = document.InsertParagraph("");
@@ -2018,6 +2018,24 @@ namespace UnitTests
           deleted = row.Cells[0].RemoveParagraph(secondParagraph);
           Assert.IsFalse(deleted);
           Assert.AreEqual(0, row.Cells[0].Paragraphs.Count());
+      }
+      [TestMethod]
+      public void GenerateHeadingTestDocument()
+      {
+          using (DocX document = DocX.Create(@"Document Header Test.docx"))
+          {
+
+              foreach (HeadingType heading in (HeadingType[])Enum.GetValues(typeof(HeadingType)))
+              {
+                  string text = string.Format("{0} - The quick brown fox jumps over the lazy dog", heading.EnumDescription());
+
+                  Paragraph p = document.InsertParagraph();
+                  p.AppendLine(text).Heading(heading);
+              }
+
+
+              document.Save();
+          }
       }
 
 
