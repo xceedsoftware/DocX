@@ -259,6 +259,7 @@ namespace Novacode
         {
             autofit = AutoFit.ColumnWidth;
             this.Xml = xml;
+            this.mainPart = document.mainPart;
 
             XElement properties = xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
 
