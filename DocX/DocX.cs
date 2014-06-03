@@ -2183,6 +2183,13 @@ namespace Novacode
             using (TextReader tr = new StreamReader(document.settingsPart.GetStream()))
                 document.settings = XDocument.Load(tr);
 
+            document.paragraphLookup.Clear();
+            foreach (var paragraph in document.Paragraphs)
+            {
+                if (!document.paragraphLookup.ContainsKey(paragraph.endIndex))
+                    document.paragraphLookup.Add(paragraph.endIndex, paragraph);
+            }
+            
             return document;
         }
 
