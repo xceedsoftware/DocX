@@ -141,8 +141,9 @@ namespace Novacode
             if (text == String.Empty)
                 return null;
 
-            // e is a w:t element, it must exist inside a w:r element, lets climb until we find it.
-            while (!e.Name.Equals(XName.Get("r", DocX.w.NamespaceName)))
+            // e is a w:t element, it must exist inside a w:r element or a w:tabs, lets climb until we find it.
+            while (!e.Name.Equals(XName.Get("r", DocX.w.NamespaceName)) &&
+                   !e.Name.Equals(XName.Get("tabs", DocX.w.NamespaceName)))
                 e = e.Parent;
 
             // e is a w:r element, lets find the rPr element.
