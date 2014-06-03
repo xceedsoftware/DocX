@@ -1568,6 +1568,18 @@ namespace Novacode
         {
             PackagePart part = document.package.GetPart(document.mainPart.GetRelationship(id).TargetUri);
 
+            int newDocPrId = 1;
+            List<string> existingIds = new List<string>();
+            foreach (var docPrId in document.Xml.Descendants(XName.Get("docPr", DocX.wp.NamespaceName)))
+            {
+                existingIds.Add(docPrId.Attributes().FirstOrDefault(x => x.Name == "id").Value);
+
+            }
+
+            while (existingIds.Contains(newDocPrId.ToString()))
+                newDocPrId++;
+
+
             int cx, cy;
 
             using (System.Drawing.Image img = System.Drawing.Image.FromStream(part.GetStream()))
@@ -1584,7 +1596,7 @@ namespace Novacode
                 <wp:inline distT=""0"" distB=""0"" distL=""0"" distR=""0"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"">
                     <wp:extent cx=""{0}"" cy=""{1}"" />
                     <wp:effectExtent l=""0"" t=""0"" r=""0"" b=""0"" />
-                    <wp:docPr id=""1"" name=""{3}"" descr=""{4}"" />
+                    <wp:docPr id=""{5}"" name=""{3}"" descr=""{4}"" />
                     <wp:cNvGraphicFramePr>
                         <a:graphicFrameLocks xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" noChangeAspect=""1"" />
                     </wp:cNvGraphicFramePr>
@@ -1615,7 +1627,7 @@ namespace Novacode
                     </a:graphic>
                 </wp:inline>
             </drawing>
-            ", cx, cy, id, name, descr));
+            ", cx, cy, id, name, descr, newDocPrId.ToString()));
 
             return new Picture(document, xml, new Image(document, document.mainPart.GetRelationship(id)));
         }
