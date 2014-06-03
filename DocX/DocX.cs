@@ -2262,37 +2262,37 @@ namespace Novacode
                 switch (rel.RelationshipType)
                 {
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes":
-                        document.endnotesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        document.endnotesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.endnotesPart.GetStream()))
                             document.endnotes = XDocument.Load(tr);
                         break;
 
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes":
-                        document.footnotesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        document.footnotesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.footnotesPart.GetStream()))
                             document.footnotes = XDocument.Load(tr);
                         break;
 
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles":
-                        document.stylesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        document.stylesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.stylesPart.GetStream()))
                             document.styles = XDocument.Load(tr);
                         break;
 
                     case "http://schemas.microsoft.com/office/2007/relationships/stylesWithEffects":
-                        document.stylesWithEffectsPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        document.stylesWithEffectsPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.stylesWithEffectsPart.GetStream()))
                             document.stylesWithEffects = XDocument.Load(tr);
                         break;
 
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable":
-                        document.fontTablePart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        document.fontTablePart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.fontTablePart.GetStream()))
                             document.fontTable = XDocument.Load(tr);
                         break;
 
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering":
-                        document.numberingPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.RelativeOrAbsolute));
+                        document.numberingPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.numberingPart.GetStream()))
                             document.numbering = XDocument.Load(tr);
                         break;
