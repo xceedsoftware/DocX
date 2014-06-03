@@ -2523,6 +2523,18 @@ namespace Novacode
                 }
 
                 rPr.SetElementValue(textFormatPropName, value);
+                var last = rPr.Elements().Last();
+                if (content as System.Xml.Linq.XAttribute != null)//If content is an attribute
+                {
+                    if (last.Attribute(((System.Xml.Linq.XAttribute)(content)).Name) == null)
+                    {
+                        last.Add(content); //Add this attribute if element doesn't have it
+                    }
+                    else
+                    {
+                        last.Attribute(((System.Xml.Linq.XAttribute)(content)).Name).Value = ((System.Xml.Linq.XAttribute)(content)).Value; //Apply value only if element already has it
+                    }
+                }
                 return;
             }
 
