@@ -74,12 +74,36 @@ namespace Novacode
             {
                 switch (option.Name.LocalName)
                 {
-                    case "lang": formatting.Language = new CultureInfo(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("eastAsia", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("bidi", DocX.w.NamespaceName))); break;
-                    case "spacing": formatting.Spacing = Double.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 20.0; break;
-                    case "position": formatting.Position = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2; break;
-                    case "kern": formatting.Position = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2; break;
-                    case "w": formatting.PercentageScale = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))); break;
-                    case "rFonts": formatting.FontFamily = new FontFamily(option.GetAttribute(XName.Get("cs", DocX.w.NamespaceName))); break;
+                    case "lang": 
+                        formatting.Language = new CultureInfo(
+                            option.GetAttribute(XName.Get("val", DocX.w.NamespaceName), null) ?? 
+                            option.GetAttribute(XName.Get("eastAsia", DocX.w.NamespaceName), null) ?? 
+                            option.GetAttribute(XName.Get("bidi", DocX.w.NamespaceName))); 
+                        break;
+                    case "spacing": 
+                        formatting.Spacing = Double.Parse(
+                            option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 20.0; 
+                        break;
+                    case "position": 
+                        formatting.Position = Int32.Parse(
+                            option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2; 
+                        break;
+                    case "kern": 
+                        formatting.Position = Int32.Parse(
+                            option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2; 
+                        break;
+                    case "w": 
+                        formatting.PercentageScale = Int32.Parse(
+                            option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))); 
+                        break;
+                    case "rFonts": 
+                        formatting.FontFamily = 
+                            new FontFamily(
+                                option.GetAttribute(XName.Get("cs", DocX.w.NamespaceName), null) ??
+                                option.GetAttribute(XName.Get("ascii", DocX.w.NamespaceName), null) ??
+                                option.GetAttribute(XName.Get("hAnsi", DocX.w.NamespaceName), null) ??
+                                option.GetAttribute(XName.Get("eastAsia", DocX.w.NamespaceName))); 
+                        break;
                     case "vanish": formatting.hidden = true; break;
                     case "b": formatting.Bold = true; break;
                     case "i": formatting.Italic = true; break;
