@@ -3120,6 +3120,9 @@ namespace Novacode
             using (TextWriter tw = new StreamWriter(mainPart.GetStream(FileMode.Create, FileAccess.Write)))
                 mainDoc.Save(tw, SaveOptions.None);
 
+            using (TextReader tr = new StreamReader(settingsPart.GetStream()))
+                settings = XDocument.Load(tr);
+
             XElement body = mainDoc.Root.Element(w + "body");
             XElement sectPr = body.Descendants(w + "sectPr").FirstOrDefault();
 
