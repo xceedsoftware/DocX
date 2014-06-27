@@ -2463,7 +2463,7 @@ namespace Novacode
 
             MemoryStream ms = new MemoryStream();
 
-            using (FileStream fs = new FileStream(filename, FileMode.Open,FileAccess.Read))
+            using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 byte[] data = new byte[fs.Length];
                 fs.Read(data, 0, (int)fs.Length);
@@ -3035,7 +3035,7 @@ namespace Novacode
             // Open a Stream to the new image being added.
             Stream newImageStream;
             if (o is string)
-                newImageStream = new FileStream(o as string, FileMode.Open, FileAccess.Read);
+                newImageStream = new FileStream(o as string, FileMode.Open, FileAccess.Read, FileShare.Read);
             else
                 newImageStream = o as Stream;
 
