@@ -1155,9 +1155,7 @@ namespace Novacode
             // Before doing any other work, check to see if this image is actually referenced in the document.
             // In my testing I have found cases of Images inside documents that are not referenced
             var remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString.Replace("/word/", ""))).FirstOrDefault();
-            if (remote_rel == null)
-                return;
-            {
+            if (remote_rel == null) {
             	remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString)).FirstOrDefault();
             	if (remote_rel == null)
             		return;
