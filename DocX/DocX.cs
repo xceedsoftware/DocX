@@ -3033,12 +3033,15 @@ namespace Novacode
             // Open a Stream to the new image being added.
             Stream newImageStream;
             if (o is string)
-                newImageStream = new FileStream(o as string, FileMode.Open, FileAccess.Read, FileShare.Read);
+                newImageStream = new FileStream(o as string, FileMode.Open, FileAccess.Read);
             else
                 newImageStream = o as Stream;
 
             // Get all image parts in word\document.xml
-            List<PackagePart> imageParts = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image").Select(ir => package.GetParts().Where(p => p.Uri.ToString().EndsWith(ir.TargetUri.ToString())).First()).ToList();
+
+            PackageRelationshipCollection relationshipsByImages = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+            List<PackagePart> imageParts = relationshipsByImages.Select(ir => package.GetParts().FirstOrDefault(p => p.Uri.ToString().EndsWith(ir.TargetUri.ToString()))).Where(e => e != null).ToList();
+
             foreach (PackagePart relsPart in package.GetParts().Where(part => part.Uri.ToString().Contains("/word/")).Where(part => part.ContentType.Equals("application/vnd.openxmlformats-package.relationships+xml")))
             {
                 XDocument relsPartContent;
@@ -3056,15 +3059,26 @@ namespace Novacode
                 {
                     if (imageRelationship.Attribute(XName.Get("Target")) != null)
                     {
-                        string imagePartUri = Path.Combine(Path.GetDirectoryName(relsPart.Uri.ToString()), imageRelationship.Attribute(XName.Get("Target")).Value);
-                        imagePartUri = Path.GetFullPath(imagePartUri.Replace("\\_rels", string.Empty));
-                        imagePartUri = imagePartUri.Replace(Path.GetFullPath("\\"), string.Empty).Replace("\\", "/");
+                        string targetMode = string.Empty;
 
-                        if (!imagePartUri.StartsWith("/"))
-                            imagePartUri = "/" + imagePartUri;
+                        XAttribute targetModeAttibute = imageRelationship.Attribute(XName.Get("TargetMode"));
+                        if (targetModeAttibute != null)
+                        {
+                            targetMode = targetModeAttibute.Value;
+                        }
 
-                        PackagePart imagePart = package.GetPart(new Uri(imagePartUri, UriKind.Relative));
-                        imageParts.Add(imagePart);
+                        if (!targetMode.Equals("External"))
+                        {
+                            string imagePartUri = Path.Combine(Path.GetDirectoryName(relsPart.Uri.ToString()), imageRelationship.Attribute(XName.Get("Target")).Value);
+                            imagePartUri = Path.GetFullPath(imagePartUri.Replace("\\_rels", string.Empty));
+                            imagePartUri = imagePartUri.Replace(Path.GetFullPath("\\"), string.Empty).Replace("\\", "/");
+
+                            if (!imagePartUri.StartsWith("/"))
+                                imagePartUri = "/" + imagePartUri;
+
+                            PackagePart imagePart = package.GetPart(new Uri(imagePartUri, UriKind.Relative));
+                            imageParts.Add(imagePart);
+                        }
                     }
                 }
             }
