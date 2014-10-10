@@ -132,6 +132,24 @@ namespace Novacode
                     select new Picture(Document, p, img)
                 ).ToList();
 
+		        List<Picture> shapes =
+		        (
+		            from p in Xml.Descendants()
+		            where (p.Name.LocalName == "pict")
+		            let id =
+		            (
+		                from e in p.Descendants()
+		                where e.Name.LocalName.Equals("imagedata")
+		                select e.Attribute(XName.Get("id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
+		            ).SingleOrDefault()
+		            where id != null
+		            let img = new Image(Document, mainPart.GetRelationship(id))
+		            select new Picture(Document, p, img)
+		        ).ToList();
+		        
+		        foreach (Picture p in shapes)
+		            pictures.Add(p);
+                
 
                 return pictures;
             }

@@ -39,66 +39,118 @@ namespace Novacode
         /// </summary>
         /// <param name="i">The XElement i to wrap</param>
         internal Picture(DocX document, XElement i, Image img):base(document, i)
-        {
-            picture_rels = new Dictionary<PackagePart, PackageRelationship>();
-            
-            this.img = img;
-
-            this.id =
-            (
-                from e in Xml.Descendants()
-                where e.Name.LocalName.Equals("blip")
-                select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
-            ).Single(); 
-
-            this.name = 
-            (
-                from e in Xml.Descendants()
-                let a = e.Attribute(XName.Get("name"))
-                where (a != null)
-                select a.Value
-            ).First();
-          
-            this.descr =
-            (
-                from e in Xml.Descendants()
-                let a = e.Attribute(XName.Get("descr"))
-                where (a != null)
-                select a.Value
-            ).FirstOrDefault();
-
-            this.cx = 
-            (
-                from e in Xml.Descendants()
-                let a = e.Attribute(XName.Get("cx"))
-                where (a != null)
-                select int.Parse(a.Value)
-            ).First();
-
-            this.cy = 
-            (
-                from e in Xml.Descendants()
-                let a = e.Attribute(XName.Get("cy"))
-                where (a != null)
-                select int.Parse(a.Value)
-            ).First();
-
-            this.xfrm =
-            (
-                from d in Xml.Descendants()
-                where d.Name.LocalName.Equals("xfrm")
-                select d
-            ).Single();
-
-            this.prstGeom =
-            (
-                from d in Xml.Descendants()
-                where d.Name.LocalName.Equals("prstGeom")
-                select d
-            ).Single();
-
-            this.rotation = xfrm.Attribute(XName.Get("rot")) == null ? 0 : uint.Parse(xfrm.Attribute(XName.Get("rot")).Value);
-        }
+		{
+		    picture_rels = new Dictionary<PackagePart, PackageRelationship>();
+		    
+		    this.img = img;
+		
+		    this.id =
+		    (
+		        from e in Xml.Descendants()
+		        where e.Name.LocalName.Equals("blip")
+		        select e.Attribute(XName.Get("embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
+		    ).SingleOrDefault();
+		
+		    if (this.id == null)
+		    {
+		        this.id =
+		        (
+		            from e in Xml.Descendants()
+		            where e.Name.LocalName.Equals("imagedata")
+		            select e.Attribute(XName.Get("id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
+		        ).SingleOrDefault();
+		    }
+		
+		    this.name = 
+		    (
+		        from e in Xml.Descendants()
+		        let a = e.Attribute(XName.Get("name"))
+		        where (a != null)
+		        select a.Value
+		    ).FirstOrDefault();
+		    
+		    if (this.name == null)
+		    {
+		        this.name = 
+		        (
+		            from e in Xml.Descendants()
+		            let a = e.Attribute(XName.Get("title"))
+		            where (a != null)
+		            select a.Value
+		        ).FirstOrDefault();
+		    }
+		  
+		    this.descr =
+		    (
+		        from e in Xml.Descendants()
+		        let a = e.Attribute(XName.Get("descr"))
+		        where (a != null)
+		        select a.Value
+		    ).FirstOrDefault();
+		
+		    this.cx = 
+		    (
+		        from e in Xml.Descendants()
+		        let a = e.Attribute(XName.Get("cx"))
+		        where (a != null)
+		        select int.Parse(a.Value)
+		    ).FirstOrDefault();
+		    
+		    if (this.cx == 0)
+		    {
+		        XAttribute style = 
+		        (
+		            from e in Xml.Descendants()
+            let a = e.Attribute(XName.Get("style"))
+		            where (a != null)
+		            select a
+		        ).FirstOrDefault();
+		        
+		        string fromWidth = style.Value.Substring(style.Value.IndexOf("width:") + 6);
+		        var widthInt = ((double.Parse((fromWidth.Substring(0, fromWidth.IndexOf("pt"))).Replace(".", ","))) / 72.0) * 914400;
+		        cx = System.Convert.ToInt32(widthInt);
+		    }
+		
+		    this.cy = 
+		    (
+		        from e in Xml.Descendants()
+		        let a = e.Attribute(XName.Get("cy"))
+		        where (a != null)
+		        select int.Parse(a.Value)
+		    ).FirstOrDefault();
+		    
+		    if (this.cy == 0)
+		    {
+		        XAttribute style = 
+		        (
+		            from e in Xml.Descendants()
+		            let a = e.Attribute(XName.Get("style"))
+		            where (a != null)
+		            select a
+		        ).FirstOrDefault();
+		        
+		        string fromHeight = style.Value.Substring(style.Value.IndexOf("height:") + 7);
+		        var heightInt = ((double.Parse((fromHeight.Substring(0, fromHeight.IndexOf("pt"))).Replace(".", ","))) / 72.0) * 914400;
+		        cy = System.Convert.ToInt32(heightInt);
+		    }
+		
+		    this.xfrm =
+		    (
+		        from d in Xml.Descendants()
+		        where d.Name.LocalName.Equals("xfrm")
+		        select d
+		    ).SingleOrDefault();
+		
+		    this.prstGeom =
+		    (
+		        from d in Xml.Descendants()
+		        where d.Name.LocalName.Equals("prstGeom")
+		        select d
+		    ).SingleOrDefault();
+		
+		    if (xfrm != null)
+		        this.rotation = xfrm.Attribute(XName.Get("rot")) == null ? 0 : uint.Parse(xfrm.Attribute(XName.Get("rot")).Value);
+		}
 
         private void SetPictureShape(object shape)
         {
