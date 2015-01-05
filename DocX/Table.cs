@@ -2014,6 +2014,7 @@ namespace Novacode
             }
             return b;
         }
+       
     }
 
     /// <summary>
@@ -3469,7 +3470,66 @@ namespace Novacode
             //IMPORTANT: It will be better to check all methods that work with adding anything to cells
             return table;
         }
+
+        public TextDirection TextDirection
+        {
+            get
+            {
+                XElement tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+
+                // If tcPr is null, this cell contains no width information.
+                if (tcPr == null)
+                    return TextDirection.right;
+                XElement textDirection = tcPr.Element(XName.Get("textDirection", DocX.w.NamespaceName));
+                if (textDirection == null)
+                    return TextDirection.right;
+                XAttribute val = textDirection.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                if (val == null)
+                    return TextDirection.right;
+
+                // If val is not a VerticalAlign enum, something is wrong with this attributes value, so remove it and return VerticalAlignment.Center;
+                try
+                {
+                    return (TextDirection)Enum.Parse(typeof(TextDirection), val.Value, true);
+                }
+
+                catch
+                {
+                    val.Remove();
+                    return TextDirection.right;
+                }
+            }
+            set
+            {
+                /*
+                    * Get the tcPr (table cell properties) element for this Cell,
+                    * null will be return if no such element exists.
+                    */
+                XElement tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                if (tcPr == null)
+                {
+                    Xml.SetElementValue(XName.Get("tcPr", DocX.w.NamespaceName), string.Empty);
+                    tcPr = Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                }
+
+                /*
+                 * Get the vAlign (table cell vertical alignment) element for this Cell,
+                 * null will be return if no such element exists.
+                 */
+                XElement textDirection = tcPr.Element(XName.Get("textDirection", DocX.w.NamespaceName));
+                if (textDirection == null)
+                {
+                    tcPr.SetElementValue(XName.Get("textDirection", DocX.w.NamespaceName), string.Empty);
+                    textDirection = tcPr.Element(XName.Get("textDirection", DocX.w.NamespaceName));
+                }
+
+                // Set the VerticalAlignment in 'val'
+                textDirection.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), value.ToString());
+
+            }
+        }
     }
+
 
     public class TableLook
     {
@@ -3480,4 +3540,5 @@ namespace Novacode
         public bool NoHorizontalBanding { get; set; }
         public bool NoVerticalBanding { get; set; }
     }
+   
 }
