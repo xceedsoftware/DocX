@@ -1106,6 +1106,22 @@ namespace Novacode
                 }
             }
 
+            ////ole object links
+            foreach (var oleObject_rel in remote_document.mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject"))
+            {
+                var old_rel_Id = oleObject_rel.Id;
+                var new_rel_Id = mainPart.CreateRelationship(oleObject_rel.TargetUri, oleObject_rel.TargetMode, oleObject_rel.RelationshipType).Id;
+                var oleObject_refs = remote_mainDoc.Descendants(XName.Get("OLEObject", "urn:schemas-microsoft-com:office:office"));
+                foreach (var oleObject_ref in oleObject_refs)
+                {
+                    XAttribute a0 = oleObject_ref.Attribute(XName.Get("id", DocX.r.NamespaceName));
+                    if (a0 != null && a0.Value == old_rel_Id)
+                    {
+                        a0.SetValue(new_rel_Id);
+                    }
+                }
+            }
+
 
             foreach (PackagePart remote_pp in ppc)
             {
