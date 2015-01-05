@@ -38,6 +38,7 @@ namespace Examples
             LineChart();
             Chart3D();
             DocumentMargins();
+            CreateTableWithTextDirection();
 
             // Intermediate
             Console.WriteLine("\nRunning Intermediate Examples");
@@ -1059,6 +1060,34 @@ namespace Examples
                 // The template exists now so re-call CreateInvoice().
                 CreateInvoice();
             }
+        }
+        private static void CreateTableWithTextDirection()
+        {
+            Console.WriteLine("\tCreateTableWithTextDirection()");
+
+            // Create a document.
+            using (DocX document = DocX.Create(@"docs\\CeateTableWithTextDirection.docx"))
+            {
+                // Add a Table to this document.
+                Table t = document.AddTable(2, 3);
+                // Specify some properties for this Table.
+                t.Alignment = Alignment.center;
+                t.Design = TableDesign.MediumGrid1Accent2;
+                // Add content to this Table.
+                t.Rows[0].Cells[0].Paragraphs.First().Append("A");
+                t.Rows[0].Cells[0].TextDirection = TextDirection.btLr;
+                t.Rows[0].Cells[1].Paragraphs.First().Append("B");
+                t.Rows[0].Cells[1].TextDirection = TextDirection.btLr;
+                t.Rows[0].Cells[2].Paragraphs.First().Append("C");
+                t.Rows[0].Cells[2].TextDirection = TextDirection.btLr;
+                t.Rows[1].Cells[0].Paragraphs.First().Append("D");
+                t.Rows[1].Cells[1].Paragraphs.First().Append("E");
+                t.Rows[1].Cells[2].Paragraphs.First().Append("F");
+                // Insert the Table into the document.
+                document.InsertTable(t);
+                document.Save();
+            }// Release this document from memory.
+            Console.WriteLine("\tCreated: docs\\CreateTableWithTextDirection.docx");
         }
 
         // Create an invoice for a factitious company called "The Happy Builder".
