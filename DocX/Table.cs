@@ -1870,7 +1870,7 @@ namespace Novacode
 				tblBorderType.SetAttributeValue(XName.Get("space", DocX.w.NamespaceName), (border.Space).ToString());
 
 				// The color attribute is used for the border color
-				tblBorderType.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), ColorTranslator.ToHtml(border.Color));
+                tblBorderType.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), border.Color.ToHex());
 			}
 		}
 
@@ -2004,7 +2004,7 @@ namespace Novacode
                 // If color is not a Color, something is wrong with this attributes value, so remove it
                 try
                 {
-                    b.Color = ColorTranslator.FromHtml(color.Value);
+                    b.Color = ColorTranslator.FromHtml(string.Format("#{0}", color.Value));
                 }
                 catch
                 {
@@ -3221,7 +3221,7 @@ namespace Novacode
             tcBorderType.SetAttributeValue(XName.Get("space", DocX.w.NamespaceName), (border.Space).ToString());
 
             // The color attribute is used for the border color
-            tcBorderType.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), ColorTranslator.ToHtml(border.Color));
+            tcBorderType.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), border.Color.ToHex());
         }
 
 
@@ -3368,7 +3368,7 @@ namespace Novacode
                 // If color is not a Color, something is wrong with this attributes value, so remove it
                 try
                 {
-                    b.Color = ColorTranslator.FromHtml(color.Value);
+                    b.Color = ColorTranslator.FromHtml(string.Format("#{0}", color.Value));
                 }
                 catch
                 {
