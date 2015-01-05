@@ -1609,43 +1609,43 @@ namespace Novacode
             XElement e = new XElement(DocX.w + "drawing");
 
             XElement xml = XElement.Parse
-            (string.Format(@"
-            <drawing xmlns = ""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
-                <wp:inline distT=""0"" distB=""0"" distL=""0"" distR=""0"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"">
-                    <wp:extent cx=""{0}"" cy=""{1}"" />
-                    <wp:effectExtent l=""0"" t=""0"" r=""0"" b=""0"" />
-                    <wp:docPr id=""{5}"" name=""{3}"" descr=""{4}"" />
-                    <wp:cNvGraphicFramePr>
-                        <a:graphicFrameLocks xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" noChangeAspect=""1"" />
-                    </wp:cNvGraphicFramePr>
-                    <a:graphic xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"">
-                        <a:graphicData uri=""http://schemas.openxmlformats.org/drawingml/2006/picture"">
-                            <pic:pic xmlns:pic=""http://schemas.openxmlformats.org/drawingml/2006/picture"">
-                                <pic:nvPicPr>
-                                <pic:cNvPr id=""0"" name=""{3}"" />
-                                    <pic:cNvPicPr />
-                                </pic:nvPicPr>
-                                <pic:blipFill>
-                                    <a:blip r:embed=""{2}"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships""/>
-                                    <a:stretch>
-                                        <a:fillRect />
-                                    </a:stretch>
-                                </pic:blipFill>
-                                <pic:spPr>
-                                    <a:xfrm>
-                                        <a:off x=""0"" y=""0"" />
-                                        <a:ext cx=""{0}"" cy=""{1}"" />
-                                    </a:xfrm>
-                                    <a:prstGeom prst=""rect"">
-                                        <a:avLst />
-                                    </a:prstGeom>
-                                </pic:spPr>
-                            </pic:pic>
-                        </a:graphicData>
-                    </a:graphic>
-                </wp:inline>
-            </drawing>
-            ", cx, cy, id, name, descr, newDocPrId.ToString()));
+                 (string.Format(@"<w:r xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                    <w:drawing xmlns = ""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                        <wp:inline distT=""0"" distB=""0"" distL=""0"" distR=""0"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"">
+                            <wp:extent cx=""{0}"" cy=""{1}"" />
+                            <wp:effectExtent l=""0"" t=""0"" r=""0"" b=""0"" />
+                            <wp:docPr id=""{5}"" name=""{3}"" descr=""{4}"" />
+                            <wp:cNvGraphicFramePr>
+                                <a:graphicFrameLocks xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" noChangeAspect=""1"" />
+                            </wp:cNvGraphicFramePr>
+                            <a:graphic xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"">
+                                <a:graphicData uri=""http://schemas.openxmlformats.org/drawingml/2006/picture"">
+                                    <pic:pic xmlns:pic=""http://schemas.openxmlformats.org/drawingml/2006/picture"">
+                                        <pic:nvPicPr>
+                                        <pic:cNvPr id=""0"" name=""{3}"" />
+                                            <pic:cNvPicPr />
+                                        </pic:nvPicPr>
+                                        <pic:blipFill>
+                                            <a:blip r:embed=""{2}"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships""/>
+                                            <a:stretch>
+                                                <a:fillRect />
+                                            </a:stretch>
+                                        </pic:blipFill>
+                                        <pic:spPr>
+                                            <a:xfrm>
+                                                <a:off x=""0"" y=""0"" />
+                                                <a:ext cx=""{0}"" cy=""{1}"" />
+                                            </a:xfrm>
+                                            <a:prstGeom prst=""rect"">
+                                                <a:avLst />
+                                            </a:prstGeom>
+                                        </pic:spPr>
+                                    </pic:pic>
+                                </a:graphicData>
+                            </a:graphic>
+                        </wp:inline>
+                    </w:drawing></w:r>
+                    ", cx, cy, id, name, descr, newDocPrId.ToString()));
 
             return new Picture(document, xml, new Image(document, document.mainPart.GetRelationship(id)));
         }
