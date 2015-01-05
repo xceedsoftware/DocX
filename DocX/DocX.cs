@@ -882,6 +882,35 @@ namespace Novacode
                 return HelperFunctions.GetText(Xml);
             }
         }
+         /// <summary>
+         /// Get the text of each footnote from this document
+         /// </summary>
+         public IEnumerable<string> FootnotesText
+         {
+             get
+             {
+                foreach (XElement footnote in footnotes.Root.Elements(w + "footnote"))
+                {
+                    yield return HelperFunctions.GetText(footnote);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get the text of each endnote from this document
+        /// </summary>
+        public IEnumerable<string> EndnotesText
+        {
+            get
+            {
+                foreach (XElement endnote in endnotes.Root.Elements(w + "endnote"))
+                {
+                    yield return HelperFunctions.GetText(endnote);
+                }
+            }
+        }
+
+
 
         internal string GetCollectiveText(List<PackagePart> list)
         {
