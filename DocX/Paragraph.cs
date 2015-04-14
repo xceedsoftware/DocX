@@ -1588,10 +1588,11 @@ namespace Novacode
 
             int newDocPrId = 1;
             List<string> existingIds = new List<string>();
-            foreach (var docPrId in document.Xml.Descendants(XName.Get("docPr", DocX.wp.NamespaceName)))
+            foreach (var bookmarkId in document.Xml.Descendants(XName.Get("bookmarkStart", DocX.w.NamespaceName)))
             {
-                existingIds.Add(docPrId.Attributes().FirstOrDefault(x => x.Name == "id").Value);
-
+                var idAtt = bookmarkId.Attributes().FirstOrDefault(x => x.Name.LocalName == "id");
+                if (idAtt != null)
+                    existingIds.Add(idAtt.Value);
             }
 
             while (existingIds.Contains(newDocPrId.ToString()))
