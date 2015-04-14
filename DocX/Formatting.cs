@@ -96,6 +96,13 @@ namespace Novacode
                         formatting.PercentageScale = Int32.Parse(
                             option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))); 
                         break;
+                    // <w:sz w:val="20"/><w:szCs w:val="20"/>
+                    case "sz":
+                        formatting.Size = Int32.Parse(
+                            option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2; 
+                        break;
+                   
+
                     case "rFonts": 
                         formatting.FontFamily = 
                             new FontFamily(
@@ -103,6 +110,14 @@ namespace Novacode
                                 option.GetAttribute(XName.Get("ascii", DocX.w.NamespaceName), null) ??
                                 option.GetAttribute(XName.Get("hAnsi", DocX.w.NamespaceName), null) ??
                                 option.GetAttribute(XName.Get("eastAsia", DocX.w.NamespaceName))); 
+                        break;
+                    case "color" :
+                        try
+                        {
+                            string color = option.GetAttribute(XName.Get("val", DocX.w.NamespaceName));
+                            formatting.FontColor = System.Drawing.ColorTranslator.FromHtml(string.Format("#{0}", color));
+                        }
+                        catch { }
                         break;
                     case "vanish": formatting.hidden = true; break;
                     case "b": formatting.Bold = true; break;
@@ -112,6 +127,7 @@ namespace Novacode
                     default: break;
                 }
             }
+
 
             return formatting;
         }
