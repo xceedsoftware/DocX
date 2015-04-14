@@ -2258,6 +2258,11 @@ namespace Novacode
             return this;
         }
 
+        public bool ValidateBookmark(string bookmarkName)
+        {
+            return GetBookmarks().Any(b => b.Name.Equals(bookmarkName));
+        }
+
         public Paragraph AppendBookmark(String bookmarkName)
         {
             XElement wBookmarkStart = new XElement(

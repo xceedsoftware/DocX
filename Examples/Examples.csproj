@@ -48,6 +48,9 @@
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DocX">
+      <HintPath>..\DocX\bin\Release\DocX.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -61,12 +64,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RelativeDirectory.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DocX\DocX.csproj">
-      <Project>{E863D072-AA8B-4108-B5F1-785241B37F67}</Project>
-      <Name>DocX</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -7,14 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Novacode;
-using System.Collections.Generic;
-using System.Linq;
-using System.Drawing;
-using System.ComponentModel;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using System.Xml.Linq;
+using Image = Novacode.Image;
 
 namespace Examples
 {
@@ -39,6 +32,8 @@ namespace Examples
             Chart3D();
             DocumentMargins();
             CreateTableWithTextDirection();
+            AddToc();
+            AddTocByReference();
 
             // Intermediate
             Console.WriteLine("\nRunning Intermediate Examples");
@@ -339,7 +334,7 @@ namespace Examples
                 // Add an image into the document.    
                 RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
                 rd.Up(2);
-                Novacode.Image image = document.AddImage(rd.Path + @"\images\logo_template.png");
+                Image image = document.AddImage(rd.Path + @"\images\logo_template.png");
 
                 // Create a picture (A custom view of an Image).
                 Picture picture = image.CreatePicture();
@@ -419,7 +414,7 @@ namespace Examples
                 // Add an image into the document.    
                 RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
                 rd.Up(2);
-                Novacode.Image image = document.AddImage(rd.Path + @"\images\logo_template.png");
+                Image image = document.AddImage(rd.Path + @"\images\logo_template.png");
 
                 // Create a picture (A custom view of an Image).
                 Picture picture = image.CreatePicture();
@@ -546,7 +541,7 @@ namespace Examples
 
                  foreach ( FontFamily oneFontFamily in FontFamily.Families )  {
 
-                 System.Drawing.FontFamily fontFamily = oneFontFamily;
+                 FontFamily fontFamily = oneFontFamily;
                 double fontSize = 15;
 
                 // created numbered lists 
@@ -575,6 +570,7 @@ namespace Examples
                 Console.WriteLine("\tCreated: docs\\DocumentsWithListsFontChange.docx\n");
             }
         }
+
         private static void AddList()
         {
             Console.WriteLine("\tAddList()");
@@ -700,7 +696,7 @@ namespace Examples
                 // Add a template logo image to this document.
                 RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
                 rd.Up(2);
-                Novacode.Image logo = document.AddImage(rd.Path + @"\images\logo_the_happy_builder.png");
+                Image logo = document.AddImage(rd.Path + @"\images\logo_the_happy_builder.png");
 
                 // Add Headers and Footers to this document.
                 document.AddHeaders();
@@ -867,7 +863,7 @@ namespace Examples
                 // Add a template logo image to this document.
                 RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
                 rd.Up(2);
-                Novacode.Image logo = document.AddImage(rd.Path + @"\images\logo_the_happy_builder.png");
+                Image logo = document.AddImage(rd.Path + @"\images\logo_the_happy_builder.png");
 
                 // Add Headers and Footers to this document.
                 document.AddHeaders();
@@ -1102,7 +1098,7 @@ namespace Examples
             // Add the Happy Builders logo to this document.
             RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
             rd.Up(2);
-            Novacode.Image logo = template.AddImage(rd.Path + @"\images\logo_the_happy_builder.png");
+            Image logo = template.AddImage(rd.Path + @"\images\logo_the_happy_builder.png");
 
             // Insert the Happy Builders logo into this Paragraph.
             logo_paragraph.InsertPicture(logo.CreatePicture());
@@ -1196,7 +1192,7 @@ namespace Examples
             // Add a template logo image to this document.
             RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
             rd.Up(2);
-            Novacode.Image logo = document.AddImage(rd.Path + @"\images\logo_template.png");
+            Image logo = document.AddImage(rd.Path + @"\images\logo_template.png");
 
             // Insert this template logo into the upper right Paragraph.
             upper_right_paragraph.InsertPicture(logo.CreatePicture());
@@ -1453,7 +1449,7 @@ namespace Examples
                 // Make sure this document has at least one Image.
                 if (document.Images.Count() > 0)
                 {
-                    Novacode.Image img = document.Images[0];
+                    Image img = document.Images[0];
 
                     // Write "Hello World" into this Image.
                     Bitmap b = new Bitmap(img.GetStream(FileMode.Open, FileAccess.ReadWrite));
@@ -1517,6 +1513,51 @@ namespace Examples
                 }
             );
             Console.WriteLine("\tCreated: None\n");
+        }
+
+        static void AddToc()
+        {
+            Console.WriteLine("\tAddToc()");
+
+            using (var document = DocX.Create(@"docs\Toc.docx"))
+            {
+                document.InsertTableOfContents("I can haz table of contentz", TableOfContentsSwitches.O | TableOfContentsSwitches.U | TableOfContentsSwitches.Z | TableOfContentsSwitches.H, "Heading2");
+                var h1 = document.InsertParagraph("Heading 1");
+                h1.StyleName = "Heading1";
+                document.InsertParagraph("Some very interesting content here");
+                var h2 = document.InsertParagraph("Heading 2");
+                document.InsertSectionPageBreak();
+                h2.StyleName = "Heading1";
+                document.InsertParagraph("Some very interesting content here as well");
+                var h3 = document.InsertParagraph("Heading 2.1");
+                h3.StyleName = "Heading2";
+                document.InsertParagraph("Not so very interesting....");
+
+                document.Save();
+            }
+        }
+
+        static void AddTocByReference()
+        {
+            Console.WriteLine("\tAddTocByReference()");
+
+            using (var document = DocX.Create(@"docs\TocByReference.docx"))
+            {
+                var h1 = document.InsertParagraph("Heading 1");
+                h1.StyleName = "Heading1";
+                document.InsertParagraph("Some very interesting content here");
+                var h2 = document.InsertParagraph("Heading 2");
+                document.InsertSectionPageBreak();
+                h2.StyleName = "Heading1";
+                document.InsertParagraph("Some very interesting content here as well");
+                var h3 = document.InsertParagraph("Heading 2.1");
+                h3.StyleName = "Heading2";
+                document.InsertParagraph("Not so very interesting....");
+
+                document.InsertTableOfContents(h2, "I can haz table of contentz", TableOfContentsSwitches.O | TableOfContentsSwitches.U | TableOfContentsSwitches.Z | TableOfContentsSwitches.H, "Heading2");
+
+                document.Save();
+            }
         }
     }
 }

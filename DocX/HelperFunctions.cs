@@ -478,14 +478,14 @@ namespace Novacode
                     );
         }
 
-        internal static List CreateItemInList(List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false)
+        internal static List CreateItemInList(List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false)
         {
             if (list.NumId == 0)
             {
-                list.CreateNewNumberingNumId(level, listType);
+                list.CreateNewNumberingNumId(level, listType, startNumber, continueNumbering);
             }
 
-            if (!string.IsNullOrEmpty(listText))
+            if (listText != null) //I see no reason why you shouldn't be able to insert an empty element. It simplifies tasks such as populating an item from html.
             {
                 var newParagraphSection = new XElement
                     (

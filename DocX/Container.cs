@@ -486,6 +486,23 @@ namespace Novacode
                     paragraph.InsertAtBookmark(toInsert, bookmarkName);
         }
 
+        public string[] ValidateBookmarks(params string[] bookmarkNames)
+        {
+            var headers = new[] {Document.Headers.first, Document.Headers.even, Document.Headers.odd}.Where(h => h != null).ToList();
+            var footers = new[] {Document.Footers.first, Document.Footers.even, Document.Footers.odd}.Where(f => f != null).ToList();
+
+            var nonMatching = new List<string>();
+            foreach (var bookmarkName in bookmarkNames)
+            {
+                if (headers.SelectMany(h => h.Paragraphs).Any(p => p.ValidateBookmark(bookmarkName))) return new string[0];
+                if (footers.SelectMany(h => h.Paragraphs).Any(p => p.ValidateBookmark(bookmarkName))) return new string[0];
+                if (Paragraphs.Any(p => p.ValidateBookmark(bookmarkName))) return new string[0];
+                nonMatching.Add(bookmarkName);
+            }
+            
+            return nonMatching.ToArray();
+        }
+
         public virtual Paragraph InsertParagraph(int index, string text, bool trackChanges)
         {
             return InsertParagraph(index, text, trackChanges, null);

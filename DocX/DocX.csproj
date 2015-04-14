@@ -110,6 +110,7 @@
     <Compile Include="List.cs" />
     <Compile Include="PageLayout.cs" />
     <Compile Include="Section.cs" />
+    <Compile Include="TableOfContents.cs" />
     <Compile Include="_BaseClasses.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="_Enumerations.cs" />

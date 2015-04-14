@@ -1834,14 +1834,15 @@ namespace Novacode
         /// <param name="listType">The type of list to be created: Bulleted or Numbered.</param>
         /// <param name="startNumber">The number start number for the list. </param>
         /// <param name="trackChanges">Enable change tracking</param>
+        /// <param name="continueNumbering">Set to true if you want to continue numbering from the previous numbered list</param>
         /// <returns>
         /// The created List. Call AddListItem(...) to add more elements to the list.
         /// Write the list to the Document with InsertList(...) once the list has all the desired 
         /// elements, otherwise the list will not be included in the working Document.
         /// </returns>
-        public List AddList(string listText = null, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false)
+        public List AddList(string listText = null, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false)
         {
-            return AddListItem(new List(this, null), listText, level, listType, startNumber, trackChanges);
+            return AddListItem(new List(this, null), listText, level, listType, startNumber, trackChanges, continueNumbering);
         }
 
         /// <summary>
@@ -1853,15 +1854,23 @@ namespace Novacode
         /// <param name="startNumber">The number start number for the list. </param>
         /// <param name="trackChanges">Enable change tracking</param>
         /// <param name="listType">Numbered or Bulleted list type. </param>
+        /// /// <param name="continueNumbering">Set to true if you want to continue numbering from the previous numbered list</param>
         /// <returns>
         /// The created List. Call AddListItem(...) to add more elements to the list.
         /// Write the list to the Document with InsertList(...) once the list has all the desired 
         /// elements, otherwise the list will not be included in the working Document.
         /// </returns>
-        public List AddListItem(List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false)
+        public List AddListItem(List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false)
         {
+            if(startNumber.HasValue && continueNumbering) throw new InvalidOperationException("Cannot specify a start number and at the same time continue numbering from another list");
+            var listToReturn = HelperFunctions.CreateItemInList(list, listText, level, listType, startNumber, trackChanges, continueNumbering);
+            var lastItem = listToReturn.Items.LastOrDefault();
+            if (lastItem != null)
+            {
+                lastItem.PackagePart = mainPart;
+            }
+            return listToReturn;
 
-            return HelperFunctions.CreateItemInList(list, listText, level, listType, startNumber, trackChanges);
         }
 
         /// <summary>
@@ -1872,19 +1881,16 @@ namespace Novacode
         public new List InsertList(List list)
         {
             base.InsertList(list);
-            list.Items.ForEach(i => i.mainPart = mainPart);
             return list;
         }
         public new List InsertList(List list, System.Drawing.FontFamily fontFamily, double fontSize)
         {
             base.InsertList(list, fontFamily, fontSize);
-            list.Items.ForEach(i => i.mainPart = mainPart);
             return list;
         }
         public new List InsertList(List list, double fontSize)
         {
             base.InsertList(list, fontSize);
-            list.Items.ForEach(i => i.mainPart = mainPart);
             return list;
         }
 
@@ -1897,7 +1903,6 @@ namespace Novacode
         public new List InsertList(int index, List list)
         {
             base.InsertList(index, list);
-            list.Items.ForEach(i => i.mainPart = mainPart);
             return list;
         }
 
@@ -4091,6 +4096,50 @@ namespace Novacode
                     )
                ));
             p.Xml.Add(chartElement);
+        }
+
+        /// <summary>
+        /// Inserts a default TOC into the current document.
+        /// Title: Table of contents
+        /// Swithces will be: TOC \h \o '1-3' \u \z
+        /// </summary>
+        /// <returns>The inserted TableOfContents</returns>
+        public TableOfContents InsertDefaultTableOfContents()
+        {
+            return InsertTableOfContents("Table of contents", TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z | TableOfContentsSwitches.U);
+        }
+        
+        /// <summary>
+        /// Inserts a TOC into the current document.
+        /// </summary>
+        /// <param name="title">The title of the TOC</param>
+        /// <param name="switches">Switches to be applied, see: http://officeopenxml.com/WPtableOfContents.php </param>
+        /// <param name="headerStyle">Lets you set the style name of the TOC header</param>
+        /// <param name="maxIncludeLevel">Lets you specify how many header levels should be included - default is 1-3</param>
+        /// <param name="rightTabPos">Lets you override the right tab position - this is not common</param>
+        /// <returns>The inserted TableOfContents</returns>
+        public TableOfContents InsertTableOfContents(string title, TableOfContentsSwitches switches, string headerStyle = null, int maxIncludeLevel = 3, int? rightTabPos = null)
+        {
+            var toc = TableOfContents.CreateTableOfContents(this, title, switches, headerStyle, maxIncludeLevel, rightTabPos);
+            Xml.Add(toc.Xml);
+            return toc;
+        }
+
+        /// <summary>
+        /// Inserts at TOC into the current document before the provided <see cref="reference"/>
+        /// </summary>
+        /// <param name="reference">The paragraph to use as reference</param>
+        /// <param name="title">The title of the TOC</param>
+        /// <param name="switches">Switches to be applied, see: http://officeopenxml.com/WPtableOfContents.php </param>
+        /// <param name="headerStyle">Lets you set the style name of the TOC header</param>
+        /// <param name="maxIncludeLevel">Lets you specify how many header levels should be included - default is 1-3</param>
+        /// <param name="rightTabPos">Lets you override the right tab position - this is not common</param>
+        /// <returns>The inserted TableOfContents</returns>
+        public TableOfContents InsertTableOfContents(Paragraph reference, string title, TableOfContentsSwitches switches, string headerStyle = null, int maxIncludeLevel = 3, int? rightTabPos = null)
+        {
+            var toc = TableOfContents.CreateTableOfContents(this, title, switches, headerStyle, maxIncludeLevel, rightTabPos);
+            reference.Xml.AddBeforeSelf(toc.Xml);
+            return toc;
         }
 
         #region IDisposable Members
