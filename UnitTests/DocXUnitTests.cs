@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.ObjectModel;
+using System.Xml;
+using Formatting = Novacode.Formatting;
 
 namespace UnitTests
 {
@@ -1839,6 +1841,30 @@ namespace UnitTests
             }
         }
 
+        [TestMethod]
+        public void ParagraphAppendHyperLink_ParagraphIsListItem_ShouldNotThrow()
+        {
+            using (var document = DocX.Create("HyperlinkList.docx"))
+            {
+                var list = document.AddList("Item 1", listType: ListItemType.Numbered);
+                document.AddListItem(list, "Item 2");
+                document.AddListItem(list, "Item 3");
+
+                Uri uri;
+                Uri.TryCreate("http://www.google.com", UriKind.RelativeOrAbsolute, out uri);
+                var hLink = document.AddHyperlink("Google", uri);
+                var item2 = list.Items[1];
+
+                item2.InsertText("\nMore text\n");
+                item2.AppendHyperlink(hLink);
+
+                item2.InsertText("\nEven more text");
+
+                document.InsertList(list);
+                document.Save();
+            }
+        }
+
 
         [TestMethod]
         public void WhileReadingWhenTextIsBoldItalicUnderlineItShouldReadTheProperFormatting()
@@ -2038,7 +2064,547 @@ namespace UnitTests
           }
       }
 
+      
 
+        [TestMethod]
+        public void CreateTableOfContents_WithTitleAndSwitches_SetsExpectedXml()
+        {            
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const int rightPos = 9350;
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                var toc = TableOfContents.CreateTableOfContents(document, title, switches);
+
+                const string switchString = @"TOC \h \o '1-3' \u \z";
+                var expectedString = string.Format(XmlTemplateBases.TocXmlBase, "TOCHeading", title, rightPos, switchString);
+                var expectedReader = XmlReader.Create(new StringReader(expectedString));
+                var expected = XElement.Load(expectedReader);                
+
+                Assert.IsTrue(XNode.DeepEquals(expected, toc.Xml));
+            }
+        }
+
+        [TestMethod]
+        public void CreateTableOfContents_WithTitleSwitchesHeaderStyleLastIncludeLevelRightTabPos_SetsExpectedXml()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const int rightPos = 1337;
+                const string style = "TestStyle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                var toc = TableOfContents.CreateTableOfContents(document, title, switches, style, 6, rightPos);
+
+                const string switchString = @"TOC \h \o '1-6' \u \z";
+                var expectedString = string.Format(XmlTemplateBases.TocXmlBase, style, title, rightPos, switchString);
+
+                var expectedReader = XmlReader.Create(new StringReader(expectedString));
+                var expected = XElement.Load(expectedReader);
+
+                Assert.IsTrue(XNode.DeepEquals(expected, toc.Xml));
+            }
+        }
+
+        [TestMethod]
+        public void CreateTableOfContents_WhenCalled_AddsUpdateFieldsWithValueTrueToSettings()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                TableOfContents.CreateTableOfContents(document, title, switches);
+
+                var updateField = document.settings.Descendants().FirstOrDefault(x => x.Name == DocX.w + "updateFields");
+                Assert.IsNotNull(updateField);
+                Assert.AreEqual("true", updateField.Attribute(DocX.w + "val").Value);
+            }
+        }
+
+        [TestMethod]
+        public void CreateTableOfContents_WhenCalledSettingsAlreadyHasUpdateFields_DoesNotAddUpdateFields()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                var element = new XElement(XName.Get("updateFields", DocX.w.NamespaceName), new XAttribute(DocX.w + "val", true));
+                document.settings.Root.Add(element);
+                const string title = "TestTitle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                TableOfContents.CreateTableOfContents(document, title, switches);
+
+                var updateFields = document.settings.Descendants().Single(x => x.Name == DocX.w + "updateFields");
+                Assert.AreSame(element, updateFields);
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_TocHeadingStyleIsNotPresent_AddsTocHeaderStyle()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const string headerStyle = "TestStyle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                TableOfContents.CreateTableOfContents(document, title, switches, headerStyle);
+
+                var expectedString = string.Format(XmlTemplateBases.TocHeadingStyleBase, headerStyle);
+
+                var expectedReader = XmlReader.Create(new StringReader(expectedString));
+                var expected = XElement.Load(expectedReader);
+
+                var actual = document.styles.Root.Descendants().FirstOrDefault(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("paragraph") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals(headerStyle));
+
+                Assert.IsTrue(XNode.DeepEquals(expected, actual));
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_Toc1StyleIsNotPresent_AddsToc1Style()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                TableOfContents.CreateTableOfContents(document, title, switches);
+
+                var expectedString = string.Format(XmlTemplateBases.TocElementStyleBase, "TOC1", "toc 1");
+
+                var expectedReader = XmlReader.Create(new StringReader(expectedString));
+                var expected = XElement.Load(expectedReader);
+
+                var actual = document.styles.Root.Descendants().FirstOrDefault(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("paragraph") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals("TOC1"));
+
+                Assert.IsTrue(XNode.DeepEquals(expected, actual));
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_Toc2StyleIsNotPresent_AddsToc2Style()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                TableOfContents.CreateTableOfContents(document, title, switches);
+
+                var expectedString = string.Format(XmlTemplateBases.TocElementStyleBase, "TOC2", "toc 2");
+
+                var expectedReader = XmlReader.Create(new StringReader(expectedString));
+                var expected = XElement.Load(expectedReader);
+
+                var actual = document.styles.Root.Descendants().FirstOrDefault(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("paragraph") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals("TOC2"));
+
+                Assert.IsTrue(XNode.DeepEquals(expected, actual));
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_Toc3StyleIsNotPresent_AddsToc3tyle()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                TableOfContents.CreateTableOfContents(document, title, switches);
+
+                var expectedString = string.Format(XmlTemplateBases.TocElementStyleBase, "TOC3", "toc 3");
+
+                var expectedReader = XmlReader.Create(new StringReader(expectedString));
+                var expected = XElement.Load(expectedReader);
+
+                var actual = document.styles.Root.Descendants().FirstOrDefault(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("paragraph") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals("TOC3"));
+
+                Assert.IsTrue(XNode.DeepEquals(expected, actual));
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_Toc4StyleIsNotPresent_AddsToc4Style()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                TableOfContents.CreateTableOfContents(document, title, switches);
+
+                var expectedString = string.Format(XmlTemplateBases.TocElementStyleBase, "TOC4", "toc 4");
+
+                var expectedReader = XmlReader.Create(new StringReader(expectedString));
+                var expected = XElement.Load(expectedReader);
+
+                var actual = document.styles.Root.Descendants().FirstOrDefault(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("paragraph") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals("TOC4"));
+
+                Assert.IsTrue(XNode.DeepEquals(expected, actual));
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_HyperlinkStyleIsNotPresent_AddsHyperlinkStyle()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                TableOfContents.CreateTableOfContents(document, title, switches);
+
+                var expectedString = XmlTemplateBases.TocHyperLinkStyleBase;
+
+                var expectedReader = XmlReader.Create(new StringReader(expectedString));
+                var expected = XElement.Load(expectedReader);
+
+                var actual = document.styles.Root.Descendants().FirstOrDefault(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("character") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals("Hyperlink"));
+
+                Assert.IsTrue(XNode.DeepEquals(expected, actual));
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_TocHeadingStyleIsPresent_DoesNotAddTocHeaderStyle()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const string headerStyle = "TestStyle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                var xElement = XElement.Load(XmlReader.Create(new StringReader(string.Format(XmlTemplateBases.TocHeadingStyleBase, headerStyle))));
+                document.styles.Root.Add(xElement);
+                
+                TableOfContents.CreateTableOfContents(document, title, switches, headerStyle);
+
+                var actual = document.styles.Root.Descendants().Single(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("paragraph") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals(headerStyle));
+
+                Assert.AreSame(xElement, actual);
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_Toc1StyleIsPresent_DoesNotAddToc1Style()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const string headerStyle = "TestStyle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                var xElement = XElement.Load(XmlReader.Create(new StringReader(string.Format(XmlTemplateBases.TocElementStyleBase, "TOC1", "toc 1"))));
+                document.styles.Root.Add(xElement);
+
+                TableOfContents.CreateTableOfContents(document, title, switches, headerStyle);
+
+                var actual = document.styles.Root.Descendants().Single(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("paragraph") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals("TOC1"));
+
+                Assert.AreSame(xElement, actual);
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_Toc2StyleIsPresent_DoesNotAddToc2Style()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const string headerStyle = "TestStyle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                var xElement = XElement.Load(XmlReader.Create(new StringReader(string.Format(XmlTemplateBases.TocElementStyleBase, "TOC2", "toc 2"))));
+                document.styles.Root.Add(xElement);
+
+                TableOfContents.CreateTableOfContents(document, title, switches, headerStyle);
+
+                var actual = document.styles.Root.Descendants().Single(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("paragraph") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals("TOC2"));
+
+                Assert.AreSame(xElement, actual);
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_Toc3StyleIsPresent_DoesNotAddToc3Style()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const string headerStyle = "TestStyle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                var xElement = XElement.Load(XmlReader.Create(new StringReader(string.Format(XmlTemplateBases.TocElementStyleBase, "TOC3", "toc 3"))));
+                document.styles.Root.Add(xElement);
+
+                TableOfContents.CreateTableOfContents(document, title, switches, headerStyle);
+
+                var actual = document.styles.Root.Descendants().Single(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("paragraph") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals("TOC3"));
+
+                Assert.AreSame(xElement, actual);
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_Toc4StyleIsPresent_DoesNotAddToc4Style()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const string headerStyle = "TestStyle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                var xElement = XElement.Load(XmlReader.Create(new StringReader(string.Format(XmlTemplateBases.TocElementStyleBase, "TOC4", "toc 4"))));
+                document.styles.Root.Add(xElement);
+
+                TableOfContents.CreateTableOfContents(document, title, switches, headerStyle);
+
+                var actual = document.styles.Root.Descendants().Single(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("paragraph") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals("TOC4"));
+
+                Assert.AreSame(xElement, actual);
+            }
+        }
+
+        [TestMethod]
+        public void CreteTableOfContents_HyperlinkStyleIsPresent_DoesNotAddHyperlinkStyle()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string title = "TestTitle";
+                const TableOfContentsSwitches switches =
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U;
+
+                var xElement = XElement.Load(XmlReader.Create(new StringReader(XmlTemplateBases.TocHyperLinkStyleBase)));
+                document.styles.Root.Add(xElement);
+
+                TableOfContents.CreateTableOfContents(document, title, switches);
+
+                var actual = document.styles.Root.Descendants().Single(x =>
+                                x.Name.Equals(DocX.w + "style") &&
+                                x.Attribute(DocX.w + "type").Value.Equals("character") &&
+                                x.Attribute(DocX.w + "styleId").Value.Equals("Hyperlink"));
+
+                Assert.AreSame(xElement, actual);
+            }
+        }
+
+        [TestMethod]
+        public void InsertDefaultTableOfContents_WhenCalled_AddsTocToDocument()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                document.InsertDefaultTableOfContents();
+
+                var toc = TableOfContents.CreateTableOfContents(document, "Table of contents",
+                    TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
+                    TableOfContentsSwitches.U);
+                
+                Assert.IsTrue(document.Xml.Descendants().FirstOrDefault(x => XNode.DeepEquals(toc.Xml, x)) != null);
+            }
+        }
+
+        [TestMethod]
+        public void InsertTableOfContents_WhenCalledWithTitleSwitchesHeaderStyleMaxIncludeLevelAndRightTabPos_AddsTocToDocument()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string tableOfContentsTitle = "Table of contents";
+                const TableOfContentsSwitches tableOfContentsSwitches = TableOfContentsSwitches.O | TableOfContentsSwitches.A;
+                const string headerStyle = "HeaderStyle";
+                const int lastIncludeLevel = 4;
+                const int rightTabPos = 1337;
+                
+                document.InsertTableOfContents(tableOfContentsTitle, tableOfContentsSwitches, headerStyle, lastIncludeLevel, rightTabPos);
+
+                var toc = TableOfContents.CreateTableOfContents(document, tableOfContentsTitle, tableOfContentsSwitches, headerStyle, lastIncludeLevel, rightTabPos);
+
+                Assert.IsTrue(document.Xml.Descendants().FirstOrDefault(x => XNode.DeepEquals(toc.Xml, x)) != null);
+            }
+        }
+
+        [TestMethod]
+        public void InsertTableOfContents_WhenCalledWithReferenceTitleSwitchesHeaderStyleMaxIncludeLevelAndRightTabPos_AddsTocToDocumentAtExpectedLocation()
+        {
+            using (var document = DocX.Create("TableOfContents Test.docx"))
+            {
+                const string tableOfContentsTitle = "Table of contents";
+                const TableOfContentsSwitches tableOfContentsSwitches = TableOfContentsSwitches.O | TableOfContentsSwitches.A;
+                const string headerStyle = "HeaderStyle";
+                const int lastIncludeLevel = 4;
+                const int rightTabPos = 1337;
+
+                document.InsertParagraph("Paragraph1");
+                var p2 = document.InsertParagraph("Paragraph2");
+                var p3 = document.InsertParagraph("Paragraph3");
+
+                document.InsertTableOfContents(p3, tableOfContentsTitle, tableOfContentsSwitches, headerStyle, lastIncludeLevel, rightTabPos);
+
+                var toc = TableOfContents.CreateTableOfContents(document, tableOfContentsTitle, tableOfContentsSwitches, headerStyle, lastIncludeLevel, rightTabPos);
+
+                var tocElement = document.Xml.Descendants().FirstOrDefault(x => XNode.DeepEquals(toc.Xml, x));
+
+                Assert.IsTrue(p2.Xml.IsBefore(tocElement));
+                Assert.IsTrue(tocElement.IsAfter(p2.Xml));
+                Assert.IsTrue(tocElement.IsBefore(p3.Xml));
+                Assert.IsTrue(p3.Xml.IsAfter(tocElement));
+            }
+        }
+
+        [TestMethod]
+        public void ValidateBookmark_WhenCalledWithNameOfNonMatchingBookmark_ReturnsFalse()
+        {
+            using (var document = DocX.Create("Bookmark validate.docx"))
+            {
+                var p = document.InsertParagraph("No bookmark here");
+
+                Assert.IsFalse(p.ValidateBookmark("Team Rubberduck"));
+            }
+        }
+
+        [TestMethod]
+        public void ValidateBookmark_WhenCalledWithNameOfMatchingBookmark_ReturnsTrue()
+        {
+            using (var document = DocX.Create("Bookmark validate.docx"))
+            {
+                var p = document.InsertParagraph("Here's a bookmark!");
+                const string bookmarkName = "Team Rubberduck";
+
+                p.AppendBookmark(bookmarkName);
+
+                Assert.IsTrue(p.ValidateBookmark("Team Rubberduck"));
+            }
+        }
+
+        [TestMethod]
+        public void ValidateBookmarks_WhenCalledWithMatchingBookmarkNameInHeader_ReturnsEmpty()
+        {
+            using (var document = DocX.Create("Bookmark validate.docx"))
+            {
+                document.AddHeaders();
+                var p = document.Headers.first.InsertParagraph("Here's a bookmark!");
+                const string bookmarkName = "Team Rubberduck";
+
+                p.AppendBookmark(bookmarkName);
+
+                Assert.IsTrue(document.ValidateBookmarks("Team Rubberduck").Length == 0);
+            }
+        }
+
+        [TestMethod]
+        public void ValidateBookmarks_WhenCalledWithMatchingBookmarkNameInMainDocument_ReturnsEmpty()
+        {
+            using (var document = DocX.Create("Bookmark validate.docx"))
+            {
+                var p = document.InsertParagraph("Here's a bookmark!");
+                const string bookmarkName = "Team Rubberduck";
+
+                p.AppendBookmark(bookmarkName);
+
+                Assert.IsTrue(document.ValidateBookmarks("Team Rubberduck").Length == 0);
+            }
+        }
+
+        [TestMethod]
+        public void ValidateBookmarks_WhenCalledWithMatchingBookmarkNameInFooters_ReturnsEmpty()
+        {
+            using (var document = DocX.Create("Bookmark validate.docx"))
+            {
+                document.AddFooters();
+                var p = document.Footers.first.InsertParagraph("Here's a bookmark!");
+                const string bookmarkName = "Team Rubberduck";
+
+                p.AppendBookmark(bookmarkName);
+
+                Assert.IsTrue(document.ValidateBookmarks("Team Rubberduck").Length == 0);
+            }
+        }
+
+        [TestMethod]
+        public void ValidateBookmarks_WhenCalledWithNoMatchingBookmarkNames_ReturnsExpected()
+        {
+            using (var document = DocX.Create("Bookmark validate.docx"))
+            {
+                document.AddHeaders();
+                var p = document.Headers.first.InsertParagraph("Here's a bookmark!");
+
+                p.AppendBookmark("Not in search");
+
+                var bookmarkNames = new[] {"Team Rubberduck", "is", "the most", "awesome people"};
+
+                var result = document.ValidateBookmarks(bookmarkNames);
+                for (var i = 0; i < bookmarkNames.Length; i++)
+                {
+                    Assert.AreEqual(bookmarkNames[i], result[i]);
+                }
+            }
+        }        
     }
 }
        

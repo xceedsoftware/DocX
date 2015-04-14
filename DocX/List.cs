@@ -101,7 +101,7 @@ namespace Novacode
             return Items.Any(i => i.ParagraphNumberProperties.Descendants().First(el => el.Name.LocalName == "ilvl").Value == ilvl.ToString());
         }
 
-        internal void CreateNewNumberingNumId(int level = 0, ListItemType listType = ListItemType.Numbered)
+        internal void CreateNewNumberingNumId(int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool continueNumbering = false)
         {
             ValidateDocXNumberingPartExists();
             if (Document.numbering.Root == null)
@@ -126,9 +126,13 @@ namespace Novacode
                 default:
                     throw new InvalidOperationException(string.Format("Unable to deal with ListItemType: {0}.", listType.ToString()));
             }
+
             var abstractNumTemplate = listTemplate.Descendants().Single(d => d.Name.LocalName == "abstractNum");
             abstractNumTemplate.SetAttributeValue(DocX.w + "abstractNumId", abstractNumId);
-            var abstractNumXml = new XElement(XName.Get("num", DocX.w.NamespaceName), new XAttribute(DocX.w + "numId", numId), new XElement(XName.Get("abstractNumId", DocX.w.NamespaceName), new XAttribute(DocX.w + "val", abstractNumId)));
+            
+            //Fixing an issue where numbering would continue from previous numbered lists. Setting startOverride assures that a numbered list starts on the provided number.
+            //The override needs only be on level 0 as this will cascade to the rest of the list.
+            var abstractNumXml = GetAbstractNumXml(abstractNumId, numId, startNumber, continueNumbering);
 
             var abstractNumNode = Document.numbering.Root.Descendants().LastOrDefault(xElement => xElement.Name.LocalName == "abstractNum");
             var numXml = Document.numbering.Root.Descendants().LastOrDefault(xElement => xElement.Name.LocalName == "num");
@@ -147,6 +151,18 @@ namespace Novacode
             }
 
             NumId = numId;
+        }
+
+        private XElement GetAbstractNumXml(int abstractNumId, int numId, int? startNumber, bool continueNumbering)
+        {
+            //Fixing an issue where numbering would continue from previous numbered lists. Setting startOverride assures that a numbered list starts on the provided number.
+            //The override needs only be on level 0 as this will cascade to the rest of the list.
+            var startOverride = new XElement(XName.Get("startOverride", DocX.w.NamespaceName), new XAttribute(DocX.w + "val", startNumber ?? 1));
+            var lvlOverride = new XElement(XName.Get("lvlOverride", DocX.w.NamespaceName), new XAttribute(DocX.w + "ilvl", 0), startOverride);
+            var abstractNumIdElement = new XElement(XName.Get("abstractNumId", DocX.w.NamespaceName), new XAttribute(DocX.w + "val", abstractNumId));
+            return continueNumbering 
+                ? new XElement(XName.Get("num", DocX.w.NamespaceName), new XAttribute(DocX.w + "numId", numId), abstractNumIdElement)
+                : new XElement(XName.Get("num", DocX.w.NamespaceName), new XAttribute(DocX.w + "numId", numId), abstractNumIdElement, lvlOverride);
         }
 
         /// <summary>

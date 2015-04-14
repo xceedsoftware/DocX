@@ -207,4 +207,109 @@ namespace Novacode
             //return t;
         }
     }
+
+    public static class XmlTemplateBases
+    {
+        #region TocXml
+        public const string TocXmlBase = @"<w:sdt xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+                  <w:sdtPr>
+                    <w:docPartObj>
+                      <w:docPartGallery w:val='Table of Contents'/>
+                      <w:docPartUnique/>
+                    </w:docPartObj>\
+                  </w:sdtPr>
+                  <w:sdtEndPr>
+                    <w:rPr>
+                      <w:rFonts w:asciiTheme='minorHAnsi' w:cstheme='minorBidi' w:eastAsiaTheme='minorHAnsi' w:hAnsiTheme='minorHAnsi'/>
+                      <w:color w:val='auto'/>
+                      <w:sz w:val='22'/>
+                      <w:szCs w:val='22'/>
+                      <w:lang w:eastAsia='en-US'/>
+                    </w:rPr>
+                  </w:sdtEndPr>
+                  <w:sdtContent>
+                    <w:p>
+                      <w:pPr>
+                        <w:pStyle w:val='{0}'/>
+                      </w:pPr>
+                      <w:r>
+                        <w:t>{1}</w:t>
+                      </w:r>
+                    </w:p>
+                    <w:p>
+                      <w:pPr>
+                        <w:pStyle w:val='TOC1'/>
+                        <w:tabs>
+                          <w:tab w:val='right' w:leader='dot' w:pos='{2}'/>
+                        </w:tabs>
+                        <w:rPr>
+                          <w:noProof/>
+                        </w:rPr>
+                      </w:pPr>
+                      <w:r>
+                        <w:fldChar w:fldCharType='begin' w:dirty='true'/>
+                      </w:r>
+                      <w:r>
+                        <w:instrText xml:space='preserve'> {3} </w:instrText>
+                      </w:r>
+                      <w:r>
+                        <w:fldChar w:fldCharType='separate'/>
+                      </w:r>
+                    </w:p>
+                    <w:p>
+                      <w:r>
+                        <w:rPr>
+                          <w:b/>
+                          <w:bCs/>
+                          <w:noProof/>
+                        </w:rPr>
+                        <w:fldChar w:fldCharType='end'/>
+                      </w:r>
+                    </w:p>
+                  </w:sdtContent>
+                </w:sdt>
+            ";
+        public const string TocHeadingStyleBase = @"<w:style w:type='paragraph' w:styleId='{0}' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+            <w:name w:val='TOC Heading'/>
+            <w:basedOn w:val='Heading1'/>
+            <w:next w:val='Normal'/>
+            <w:uiPriority w:val='39'/>
+            <w:semiHidden/>
+            <w:unhideWhenUsed/>
+            <w:qFormat/>
+            <w:rsid w:val='00E67AA6'/>
+            <w:pPr>
+              <w:outlineLvl w:val='9'/>
+            </w:pPr>
+            <w:rPr>
+              <w:lang w:eastAsia='nb-NO'/>
+            </w:rPr>
+          </w:style>
+        ";
+        public const string TocElementStyleBase = @"  <w:style w:type='paragraph' w:styleId='{0}' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+            <w:name w:val='{1}' />
+            <w:basedOn w:val='Normal' />
+            <w:next w:val='Normal' />
+            <w:autoRedefine />
+            <w:uiPriority w:val='39' />
+            <w:unhideWhenUsed />
+            <w:pPr>
+              <w:spacing w:after='100' />
+              <w:ind w:left='440' />
+            </w:pPr>
+          </w:style>
+        ";
+        public const string TocHyperLinkStyleBase = @"  <w:style w:type='character' w:styleId='Hyperlink' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+            <w:name w:val='Hyperlink' />
+            <w:basedOn w:val='Normal' />
+            <w:uiPriority w:val='99' />
+            <w:unhideWhenUsed />
+            <w:rPr>
+              <w:color w:val='0000FF' w:themeColor='hyperlink' />
+              <w:u w:val='single' />
+            </w:rPr>
+          </w:style>
+        ";
+        #endregion
+    }
 }
