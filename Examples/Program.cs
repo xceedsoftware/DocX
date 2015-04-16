@@ -89,6 +89,7 @@ namespace Examples
 
         private static void BarChart()
         {
+            Console.WriteLine("\tBarChart()");
             // Create new document. 
             using (DocX document = DocX.Create(@"docs\BarChart.docx"))
             {
@@ -117,10 +118,12 @@ namespace Examples
                 document.InsertChart(c);
                 document.Save();
             }
+            Console.WriteLine("\tCreated: docs\\BarChart.docx\n");
         }
 
         private static void PieChart()
         {
+            Console.WriteLine("\tPieChart()");
             // Create new document. 
             using (DocX document = DocX.Create(@"docs\PieChart.docx"))
             {
@@ -141,10 +144,12 @@ namespace Examples
                 document.InsertChart(c);
                 document.Save();
             }
+            Console.WriteLine("\tCreated: docs\\PieChart.docx\n");
         }
 
         private static void LineChart()
         {
+            Console.WriteLine("\tLineChart()");
             // Create new document. 
             using (DocX document = DocX.Create(@"docs\LineChart.docx"))
             {
@@ -170,10 +175,12 @@ namespace Examples
                 document.InsertChart(c);
                 document.Save();
             }
+            Console.WriteLine("\tCreated: docs\\LineChart.docx\n");
         }
 
         private static void Chart3D()
         {
+            Console.WriteLine("\tChart3D()");
             // Create new document. 
             using (DocX document = DocX.Create(@"docs\3DChart.docx"))
             {
@@ -195,6 +202,7 @@ namespace Examples
                 document.InsertChart(c);
                 document.Save();
             }
+            Console.WriteLine("\tCreated: docs\\3DChart.docx\n");
         }
 
         #endregion
@@ -204,7 +212,7 @@ namespace Examples
         /// </summary>
         private static void Equations()
         {
-            Console.WriteLine("\nEquations()");
+            Console.WriteLine("\tEquations()");
 
             // Create a new document.
             using (DocX document = DocX.Create(@"docs\Equations.docx"))
@@ -222,7 +230,7 @@ namespace Examples
         }
         public static void DocumentHeading()
         {
-            Console.WriteLine("\nDocumentHeading()");
+            Console.WriteLine("\tDocumentHeading()");
             using (DocX document = DocX.Create(@"docs\DocumentHeading.docx"))
             {
 
@@ -241,7 +249,7 @@ namespace Examples
         }
         private static void Bookmarks()
         {
-            Console.WriteLine("\nBookmarks()");
+            Console.WriteLine("\tBookmarks()");
 
             using (var document = DocX.Create(@"docs\Bookmarks.docx"))
             {
