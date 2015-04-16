@@ -30,8 +30,10 @@ namespace Novacode
             get
             {
                 List<Series> series = new List<Series>();
+                int indx = 1;
                 foreach (XElement element in ChartXml.Elements(XName.Get("ser", DocX.c.NamespaceName)))
                 {
+                    element.Add(new XElement(XName.Get("idx", DocX.c.NamespaceName)), (indx++).ToString());
                     series.Add(new Series(element));
                 }
                 return series;
@@ -48,8 +50,16 @@ namespace Novacode
         /// </summary>
         public void AddSeries(Series series)
         {
-            if (ChartXml.Elements(XName.Get("ser", DocX.c.NamespaceName)).Count() == MaxSeriesCount)
+            int serCount = ChartXml.Elements(XName.Get("ser", DocX.c.NamespaceName)).Count();
+            if (serCount == MaxSeriesCount)
                 throw new InvalidOperationException("Maximum series for this chart is" + MaxSeriesCount.ToString() + "and have exceeded!");
+            // Sourceman 16.04.2015 - Every Series needs to have an order and index element for being processed by Word 2013
+            series.Xml.AddFirst(
+                new XElement(XName.Get("order", DocX.c.NamespaceName),
+                    new XAttribute(XName.Get("val"), (serCount + 1).ToString())));
+            series.Xml.AddFirst(
+                new XElement(XName.Get("idx", DocX.c.NamespaceName),
+                    new XAttribute(XName.Get("val"), (serCount + 1).ToString())));
             ChartXml.Add(series.Xml);
         }
 
@@ -79,7 +89,9 @@ namespace Novacode
             if (Legend != null)
                 RemoveLegend();
             Legend = new ChartLegend(position, overlay);
-            ChartRootXml.Add(Legend.Xml);
+            //ChartRootXml.Add(Legend.Xml);
+            // Sourceman: seems to be necessary to keep track of the order of elements as defined in the schema (Word 2013)
+            ChartRootXml.Element(XName.Get("plotArea", DocX.c.NamespaceName)).AddAfterSelf(Legend.Xml);
         }
 
         /// <summary>
@@ -210,15 +222,23 @@ namespace Novacode
                 XElement axIDvalXml = XElement.Parse(String.Format(
                     @"<c:axId val=""{0}"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>", ValueAxis.Id));
 
-                ChartXml.Add(axIDcatXml);
-                ChartXml.Add(axIDvalXml);
+                // Sourceman: seems to be necessary to keep track of the order of elements as defined in the schema (Word 2013)
+                var insertPoint = ChartXml.Element(XName.Get("gapWidth", DocX.c.NamespaceName));
+                if (insertPoint != null) {
+                    insertPoint.AddAfterSelf(axIDvalXml);
+                    insertPoint.AddAfterSelf(axIDcatXml);
+                } else {
+                    ChartXml.Add(axIDcatXml);
+                    ChartXml.Add(axIDvalXml);
+                }
 
                 plotAreaXml.Add(CategoryAxis.Xml);
                 plotAreaXml.Add(ValueAxis.Xml);
             }
 
             ChartRootXml = Xml.Root.Element(XName.Get("chart", DocX.c.NamespaceName));
-            ChartRootXml.Add(plotAreaXml);
+            //ChartRootXml.Add(plotAreaXml);
+            ChartRootXml.Element(XName.Get("autoTitleDeleted", DocX.c.NamespaceName)).AddAfterSelf(plotAreaXml);
         }
 
         /// <summary>
@@ -266,7 +286,7 @@ namespace Novacode
                         new XElement(
                             XName.Get("srgbClr", DocX.a.NamespaceName),
                             new XAttribute(XName.Get("val"), value.ToHex()))));
-                Xml.Add(colorElement);
+                Xml.Element(XName.Get("tx", DocX.c.NamespaceName)).AddAfterSelf(colorElement);
             }
         }
 
@@ -288,6 +308,7 @@ namespace Novacode
                     XName.Get("tx", DocX.c.NamespaceName),
                     new XElement(
                         XName.Get("strRef", DocX.c.NamespaceName),
+                        new XElement(XName.Get("f", DocX.c.NamespaceName), ""),
                         new XElement(
                             XName.Get("strCache", DocX.c.NamespaceName),
                             new XElement(
@@ -298,10 +319,14 @@ namespace Novacode
                 new XElement(XName.Get("invertIfNegative", DocX.c.NamespaceName), "0"),
                     new XElement(
                         XName.Get("cat", DocX.c.NamespaceName),
-                        new XElement(XName.Get("strRef", DocX.c.NamespaceName), strCache)),
+                        new XElement(XName.Get("strRef", DocX.c.NamespaceName), 
+                            new XElement(XName.Get("f", DocX.c.NamespaceName), ""),
+                            strCache)),
                 new XElement(
                         XName.Get("val", DocX.c.NamespaceName),
-                        new XElement(XName.Get("numRef", DocX.c.NamespaceName), numCache))
+                        new XElement(XName.Get("numRef", DocX.c.NamespaceName),
+                            new XElement(XName.Get("f", DocX.c.NamespaceName), ""),
+                            numCache))
                 );
         }
 
@@ -314,8 +339,8 @@ namespace Novacode
             numCache.RemoveAll();
 
             strCache.Add(ptCount);
-            numCache.Add(ptCount);
             numCache.Add(formatCode);
+            numCache.Add(ptCount);
 
             Int32 index = 0;
             XElement pt;
@@ -343,8 +368,8 @@ namespace Novacode
             numCache.RemoveAll();
 
             strCache.Add(ptCount);
-            numCache.Add(ptCount);
             numCache.Add(formatCode);
+            numCache.Add(ptCount);
 
             XElement pt;
             for (int index = 0; index < categories.Count; index++)
