@@ -436,7 +436,75 @@ namespace Novacode
                 }
             }
         }
-
+         /// <summary>
+        /// This paragraph will be kept on the same page as the next paragraph
+        /// </summary>
+        /// <example>
+        /// Create a Paragraph that will stay on the same page as the paragraph that comes next
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// 
+        /// {
+        ///     // Create a new Paragraph with the text "Hello World".
+        ///     Paragraph p = document.InsertParagraph("Hello World.");
+        ///     p.KeepWithNext();
+        ///     document.InsertParagraph("Previous paragraph will appear on the same page as this paragraph");
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// <param name="keepWithNext"></param>
+        /// <returns></returns>
+        public Paragraph KeepWithNext(bool keepWithNext = true)
+        {
+            var pPr = GetOrCreate_pPr();
+            var keepWithNextE = pPr.Element(XName.Get("keepNext", DocX.w.NamespaceName));
+            if (keepWithNextE == null && keepWithNext)
+            {
+                pPr.Add(new XElement(XName.Get("keepNext", DocX.w.NamespaceName)));
+            }
+            if (!keepWithNext && keepWithNextE != null)
+            {
+                keepWithNextE.Remove();
+            }
+            return this;
+ 
+        }
+         /// <summary>
+        /// Keep all lines in this paragraph together on a page
+        /// </summary>
+        /// <example>
+        /// Create a Paragraph whose lines will stay together on a single page
+        /// <code>
+        /// // Create a new document.
+        /// using (DocX document = DocX.Create("Test.docx"))
+        /// {
+        ///     // Create a new Paragraph with the text "Hello World".
+        ///     Paragraph p = document.InsertParagraph("All lines of this paragraph will appear on the same page...\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6...");
+        ///     p.KeepLinesTogether();
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }
+        /// </code>
+        /// </example>
+        /// <param name="keepTogether"></param>
+        /// <returns></returns>
+        public Paragraph KeepLinesTogether(bool keepTogether = true)
+        {
+            var pPr = GetOrCreate_pPr();
+            var keepLinesE = pPr.Element(XName.Get("keepLines", DocX.w.NamespaceName));
+            if (keepLinesE == null && keepTogether)
+            {
+                pPr.Add(new XElement(XName.Get("keepLines", DocX.w.NamespaceName)));
+            }
+            if (!keepTogether && keepLinesE != null)
+            {
+                keepLinesE.Remove();
+            }
+            return this;
+        }
         /// <summary>
         /// If the pPr element doesent exist it is created, either way it is returned by this function.
         /// </summary>
@@ -3286,16 +3354,28 @@ namespace Novacode
         {
             spacingBefore *= 20;
 
-            if (spacingBefore - (int)spacingBefore == 0)
+            var pPr = GetOrCreate_pPr();
+            var spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
+            if (spacingBefore > 0)
             {
-                if (!(spacingBefore > -1585 && spacingBefore < 1585))
-                    throw new ArgumentException("SpacingBefore", "Value must be in the range: -1584 - 1584");
+                 if (spacing == null)
+                 {
+                    spacing = new XElement(XName.Get("spacing", DocX.w.NamespaceName));
+                    pPr.Add(spacing);
+                 }
+                 var attr = spacing.Attribute(XName.Get("before", DocX.w.NamespaceName));
+                 if (attr == null)
+                     spacing.SetAttributeValue(XName.Get("before", DocX.w.NamespaceName), spacingBefore);
+                 else
+                    attr.SetValue(spacingBefore);
             }
-
-            else
-                throw new ArgumentException("SpacingBefore", "Value must be either a whole or acurate to one decimal, examples: 32, 32.1, 32.2, 32.9");
-
-            ApplyTextFormattingProperty(XName.Get("before", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), spacingBefore));
+            if (Math.Abs(spacingBefore) < 0.1f && spacing != null)
+            {
+                var attr = spacing.Attribute(XName.Get("before", DocX.w.NamespaceName));
+                attr.Remove();
+                if (!spacing.HasAttributes)
+                    spacing.Remove();
+            }
 
             return this;
         }
@@ -3304,16 +3384,28 @@ namespace Novacode
         {
             spacingAfter *= 20;
 
-            if (spacingAfter - (int)spacingAfter == 0)
+            var pPr = GetOrCreate_pPr();
+            var spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
+            if (spacingAfter > 0)
             {
-                if (!(spacingAfter > -1585 && spacingAfter < 1585))
-                    throw new ArgumentException("SpacingAfter", "Value must be in the range: -1584 - 1584");
+                if (spacing == null)
+                {
+                    spacing = new XElement(XName.Get("spacing", DocX.w.NamespaceName));
+                    pPr.Add(spacing);
+                }
+                var attr = spacing.Attribute(XName.Get("after", DocX.w.NamespaceName));
+                if (attr == null)
+                    spacing.SetAttributeValue(XName.Get("after", DocX.w.NamespaceName), spacingAfter);
+                else
+                    attr.SetValue(spacingAfter);
             }
-
-            else
-                throw new ArgumentException("SpacingAfter", "Value must be either a whole or acurate to one decimal, examples: 32, 32.1, 32.2, 32.9");
-
-            ApplyTextFormattingProperty(XName.Get("after", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), spacingAfter));
+            if (Math.Abs(spacingAfter) < 0.1f && spacing != null)
+            {
+                var attr = spacing.Attribute(XName.Get("after", DocX.w.NamespaceName));
+                attr.Remove();
+                if (!spacing.HasAttributes)
+                    spacing.Remove();
+            }
 
             return this;
         }
