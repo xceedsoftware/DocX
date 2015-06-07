@@ -19,6 +19,8 @@ namespace Examples
             // Easy
             Console.WriteLine("\nRunning Easy Examples");
             HelloWorld();
+            HelloWorldKeepLinesTogether();
+            HelloWorldKeepWithNext();
             RightToLeft();
             Indentation();
             HeadersAndFooters();
@@ -1567,5 +1569,40 @@ namespace Examples
                 document.Save();
             }
         }
+
+        static void HelloWorldKeepWithNext()
+        {
+             // Create a Paragraph that will stay on the same page as the paragraph that comes next
+            Console.WriteLine("\tHelloWorldKeepWithNext()");
+             // Create a new document.
+            using (DocX document = DocX.Create("docs\\HelloWorldKeepWithNext.docx"))
+             
+             {
+                 // Create a new Paragraph with the text "Hello World".
+                 Paragraph p = document.InsertParagraph("Hello World.");
+                 p.KeepWithNext();
+                 document.InsertParagraph("Previous paragraph will appear on the same page as this paragraph");
+                 
+                 // Save all changes made to this document.
+                 document.Save();
+                 Console.WriteLine("\tCreated: docs\\HelloWorldKeepWithNext.docx\n");
+             }
+        }
+        static void HelloWorldKeepLinesTogether()
+        {
+            // Create a Paragraph that will stay on the same page as the paragraph that comes next
+            Console.WriteLine("\tHelloWorldKeepLinesTogether()");
+            // Create a new document.
+            using (DocX document = DocX.Create("docs\\HelloWorldKeepLinesTogether.docx"))
+            {
+                // Create a new Paragraph with the text "Hello World".
+                Paragraph p = document.InsertParagraph("All lines of this paragraph will appear on the same page...\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6...");
+                p.KeepLinesTogether();
+                // Save all changes made to this document.
+                document.Save();
+                Console.WriteLine("\tCreated: docs\\HelloWorldKeepLinesTogether.docx\n");
+            }
+        }
+    
     }
 }
