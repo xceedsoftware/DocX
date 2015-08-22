@@ -882,13 +882,13 @@ namespace Novacode
                 return HelperFunctions.GetText(Xml);
             }
         }
-         /// <summary>
-         /// Get the text of each footnote from this document
-         /// </summary>
-         public IEnumerable<string> FootnotesText
-         {
-             get
-             {
+        /// <summary>
+        /// Get the text of each footnote from this document
+        /// </summary>
+        public IEnumerable<string> FootnotesText
+        {
+            get
+            {
                 foreach (XElement footnote in footnotes.Root.Elements(w + "footnote"))
                 {
                     yield return HelperFunctions.GetText(footnote);
@@ -1043,7 +1043,7 @@ namespace Novacode
                             merge_footnotes(remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes);
                             remote_footnotes = footnotes;
                             break;
- 
+
                         case "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml":
                             merge_endnotes(remote_pp, local_pp, remote_mainDoc, remote_document, remote_endnotes);
                             remote_endnotes = endnotes;
@@ -1201,9 +1201,9 @@ namespace Novacode
             // In my testing I have found cases of Images inside documents that are not referenced
             var remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString.Replace("/word/", ""))).FirstOrDefault();
             if (remote_rel == null) {
-            	remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString)).FirstOrDefault();
-            	if (remote_rel == null)
-            		return;
+                remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString)).FirstOrDefault();
+                if (remote_rel == null)
+                    return;
             }
             String remote_Id = remote_rel.Id;
 
@@ -1265,7 +1265,7 @@ namespace Novacode
                 if (!new_uri.StartsWith("/"))
                     new_uri = "/" + new_uri;
 
-                PackagePart new_pp = package.CreatePart(new Uri(new_uri, UriKind.Relative), remote_pp.ContentType);
+                PackagePart new_pp = package.CreatePart(new Uri(new_uri, UriKind.Relative), remote_pp.ContentType, CompressionOption.Normal);
 
                 using (Stream s_read = remote_pp.GetStream())
                 {
@@ -1299,30 +1299,30 @@ namespace Novacode
                 }
 
                 if (!defRelId.Success)
-				{
-	               	// Replace all instances of remote_Id in the local document with local_Id
-	                var elems_local = mainDoc.Descendants(XName.Get("blip", DocX.a.NamespaceName));
-	                foreach (var elem in elems_local)
-	                {
-	                    XAttribute embed = elem.Attribute(XName.Get("embed", DocX.r.NamespaceName));
-	                    if (embed != null && embed.Value == remote_Id)
-	                    {
-	                        embed.SetValue(new_Id);
-	                    }
-	                }
-					
-	                                
-	                // Replace all instances of remote_Id in the local document with local_Id
-	                var v_elems_local = mainDoc.Descendants(XName.Get("imagedata", DocX.v.NamespaceName));
-	                foreach (var elem in v_elems_local)
-	                {
-	                    XAttribute id = elem.Attribute(XName.Get("id", DocX.r.NamespaceName));
-	                    if (id != null && id.Value == remote_Id)
-	                    {
-	                        id.SetValue(new_Id);
-	                    }
-	                }
-				}
+                {
+                    // Replace all instances of remote_Id in the local document with local_Id
+                    var elems_local = mainDoc.Descendants(XName.Get("blip", DocX.a.NamespaceName));
+                    foreach (var elem in elems_local)
+                    {
+                        XAttribute embed = elem.Attribute(XName.Get("embed", DocX.r.NamespaceName));
+                        if (embed != null && embed.Value == remote_Id)
+                        {
+                            embed.SetValue(new_Id);
+                        }
+                    }
+
+
+                    // Replace all instances of remote_Id in the local document with local_Id
+                    var v_elems_local = mainDoc.Descendants(XName.Get("imagedata", DocX.v.NamespaceName));
+                    foreach (var elem in v_elems_local)
+                    {
+                        XAttribute id = elem.Attribute(XName.Get("id", DocX.r.NamespaceName));
+                        if (id != null && id.Value == remote_Id)
+                        {
+                            id.SetValue(new_Id);
+                        }
+                    }
+                }
 
 
                 // Replace all instances of remote_Id in the local document with local_Id (for shapes as well)
@@ -1547,10 +1547,10 @@ namespace Novacode
 
             // Checking whether there were more than 0 elements, helped me get rid of exceptions thrown while using InsertDocument
             if (numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName)).Count() > 0)
-            	numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_abstractNums);
-            
+                numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_abstractNums);
+
             if (numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName)).Count() > 0)
-            	numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_nums);
+                numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_nums);
         }
 
         private void merge_fonts(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote)
@@ -1723,7 +1723,7 @@ namespace Novacode
                         }
                     }
 
-                     // Replace all instances of remote_Id in the local document with local_Id (for shapes as well)
+                    // Replace all instances of remote_Id in the local document with local_Id (for shapes as well)
                     var v_elems = remote_mainDoc.Descendants(XName.Get("imagedata", DocX.v.NamespaceName));
                     foreach (var elem in v_elems)
                     {
@@ -1740,7 +1740,7 @@ namespace Novacode
 
         protected PackagePart clonePackagePart(PackagePart pp)
         {
-            PackagePart new_pp = package.CreatePart(pp.Uri, pp.ContentType);
+            PackagePart new_pp = package.CreatePart(pp.Uri, pp.ContentType, CompressionOption.Normal);
 
             using (Stream s_read = pp.GetStream())
             {
@@ -1862,7 +1862,7 @@ namespace Novacode
         /// </returns>
         public List AddListItem(List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false)
         {
-            if(startNumber.HasValue && continueNumbering) throw new InvalidOperationException("Cannot specify a start number and at the same time continue numbering from another list");
+            if (startNumber.HasValue && continueNumbering) throw new InvalidOperationException("Cannot specify a start number and at the same time continue numbering from another list");
             var listToReturn = HelperFunctions.CreateItemInList(list, listText, level, listType, startNumber, trackChanges, continueNumbering);
             var lastItem = listToReturn.Items.LastOrDefault();
             if (lastItem != null)
@@ -2206,11 +2206,11 @@ namespace Novacode
             PackagePart mainDocumentPart;
             if (documentType == DocumentTypes.Document)
             {
-                mainDocumentPart = package.CreatePart(new Uri("/word/document.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml");
+                mainDocumentPart = package.CreatePart(new Uri("/word/document.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml", CompressionOption.Normal);
             }
             else
             {
-                mainDocumentPart = package.CreatePart(new Uri("/word/document.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml");
+                mainDocumentPart = package.CreatePart(new Uri("/word/document.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml", CompressionOption.Normal);
             }
             package.CreateRelationship(mainDocumentPart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument");
 
@@ -2276,7 +2276,7 @@ namespace Novacode
                 if (!document.paragraphLookup.ContainsKey(paragraph.endIndex))
                     document.paragraphLookup.Add(paragraph.endIndex, paragraph);
             }
-            
+
             return document;
         }
 
@@ -2992,7 +2992,7 @@ namespace Novacode
             {
                 string header_uri = string.Format("/word/{0}{1}.xml", reference, i);
 
-                PackagePart headerPart = package.CreatePart(new Uri(header_uri, UriKind.Relative), string.Format("application/vnd.openxmlformats-officedocument.wordprocessingml.{0}+xml", reference));
+                PackagePart headerPart = package.CreatePart(new Uri(header_uri, UriKind.Relative), string.Format("application/vnd.openxmlformats-officedocument.wordprocessingml.{0}+xml", reference), CompressionOption.Normal);
                 PackageRelationship headerRelationship = mainPart.CreateRelationship(headerPart.Uri, TargetMode.Internal, string.Format("http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference));
 
                 XDocument header;
@@ -3168,7 +3168,7 @@ namespace Novacode
             } while (package.PartExists(new Uri(imgPartUriPath, UriKind.Relative)));
 
             // We are now guareenteed that imgPartUriPath is unique.
-            PackagePart img = package.CreatePart(new Uri(imgPartUriPath, UriKind.Relative), contentType);
+            PackagePart img = package.CreatePart(new Uri(imgPartUriPath, UriKind.Relative), contentType, CompressionOption.Normal);
 
             // Create a new image relationship
             PackageRelationship rel = mainPart.CreateRelationship(img.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
@@ -3819,7 +3819,7 @@ namespace Novacode
                 customPropDoc.Save(tw, SaveOptions.None);
 
             // Refresh all fields in this document which display this custom property.
-            UpdateCustomPropertyValue(this, cp.Name, (cp.Value ?? "").ToString()); 
+            UpdateCustomPropertyValue(this, cp.Name, (cp.Value ?? "").ToString());
         }
 
         /// <summary>
@@ -4061,7 +4061,7 @@ namespace Novacode
             } while (package.PartExists(new Uri(chartPartUriPath, UriKind.Relative)));
 
             // Create chart part.
-            PackagePart chartPackagePart = package.CreatePart(new Uri(chartPartUriPath, UriKind.Relative), "application/vnd.openxmlformats-officedocument.drawingml.chart+xml");
+            PackagePart chartPackagePart = package.CreatePart(new Uri(chartPartUriPath, UriKind.Relative), "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", CompressionOption.Normal);
 
             // Create a new chart relationship
             String relID = GetNextFreeRelationshipID();
@@ -4108,7 +4108,7 @@ namespace Novacode
         {
             return InsertTableOfContents("Table of contents", TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z | TableOfContentsSwitches.U);
         }
-        
+
         /// <summary>
         /// Inserts a TOC into the current document.
         /// </summary>
