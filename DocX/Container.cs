@@ -95,9 +95,9 @@ namespace Novacode
                     return true;
                 }
                 ++i;
- 
+
             }
- 
+
             return false;
         }
 
@@ -170,32 +170,32 @@ namespace Novacode
             //find num node in numbering 
             var numNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "num");
             XElement numNode = numNodes.FirstOrDefault(node => node.Attribute(DocX.w + "numId").Value.Equals(numIdValue));
-           
-	        if (numNode != null)
+
+            if (numNode != null)
             {
-               //Get abstractNumId node and its value from numNode
-	            var abstractNumIdNode = numNode.Descendants().First(n => n.Name.LocalName == "abstractNumId");
-	            var abstractNumNodeValue = abstractNumIdNode.Attribute(DocX.w + "val").Value;
-	
-	            var abstractNumNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "abstractNum");
-	            XElement abstractNumNode =
-	              abstractNumNodes.FirstOrDefault(node => node.Attribute(DocX.w + "abstractNumId").Value.Equals(abstractNumNodeValue));
-	
-	            //Find lvl node
-	            var lvlNodes = abstractNumNode.Descendants().Where(n => n.Name.LocalName == "lvl");
-	            XElement lvlNode = null;
-	            foreach (XElement node in lvlNodes)
-	            {
-	                if (node.Attribute(DocX.w + "ilvl").Value.Equals(ilvlValue))
-	                {
-	                    lvlNode = node;
-	                    break;
-	                }
-	            }
-	           
-	           	var numFmtNode = lvlNode.Descendants().First(n => n.Name.LocalName == "numFmt");
-	          		p.ListItemType = GetListItemType(numFmtNode.Attribute(DocX.w + "val").Value);
-            }         
+                //Get abstractNumId node and its value from numNode
+                var abstractNumIdNode = numNode.Descendants().First(n => n.Name.LocalName == "abstractNumId");
+                var abstractNumNodeValue = abstractNumIdNode.Attribute(DocX.w + "val").Value;
+
+                var abstractNumNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "abstractNum");
+                XElement abstractNumNode =
+                  abstractNumNodes.FirstOrDefault(node => node.Attribute(DocX.w + "abstractNumId").Value.Equals(abstractNumNodeValue));
+
+                //Find lvl node
+                var lvlNodes = abstractNumNode.Descendants().Where(n => n.Name.LocalName == "lvl");
+                XElement lvlNode = null;
+                foreach (XElement node in lvlNodes)
+                {
+                    if (node.Attribute(DocX.w + "ilvl").Value.Equals(ilvlValue))
+                    {
+                        lvlNode = node;
+                        break;
+                    }
+                }
+
+                var numFmtNode = lvlNode.Descendants().First(n => n.Name.LocalName == "numFmt");
+                p.ListItemType = GetListItemType(numFmtNode.Attribute(DocX.w + "val").Value);
+            }
 
         }
 
@@ -499,7 +499,7 @@ namespace Novacode
                 if (Paragraphs.Any(p => p.ValidateBookmark(bookmarkName))) return new string[0];
                 nonMatching.Add(bookmarkName);
             }
-            
+
             return nonMatching.ToArray();
         }
 
@@ -771,10 +771,33 @@ namespace Novacode
 
             if (trackChanges)
                 newParagraph = HelperFunctions.CreateEdit(EditType.ins, DateTime.Now, newParagraph);
-
             Xml.Add(newParagraph);
+            var paragraphAdded = new Paragraph(Document, newParagraph, 0);
+            if (this is Cell)
+            {
+                var cell = this as Cell;
+                paragraphAdded.PackagePart = cell.mainPart;
+            }
+            else if (this is DocX)
+            {
+                paragraphAdded.PackagePart = Document.mainPart;
+            }
+            else if (this is Footer)
+            {
+                var f = this as Footer;
+                paragraphAdded.mainPart = f.mainPart;
+            }
+            else if (this is Header)
+            {
+                var h = this as Header;
+                paragraphAdded.mainPart = h.mainPart;
+            }
+            else
+            {
+                Console.WriteLine("No idea what we are {0}", this);
+                paragraphAdded.PackagePart = Document.mainPart;
+            }
 
-            var paragraphAdded = Paragraphs.Last();
 
             GetParent(paragraphAdded);
 
@@ -867,7 +890,7 @@ namespace Novacode
         {
             foreach (var item in list.Items)
             {
-              //  item.Font(System.Drawing.FontFamily fontFamily)
+                //  item.Font(System.Drawing.FontFamily fontFamily)
 
                 Xml.Add(item.Xml);
             }

@@ -440,11 +440,11 @@ namespace Novacode
                 )
             );
 
-            XElement tableGrid = new XElement(XName.Get("tblGrid", DocX.w.NamespaceName));
+            /*XElement tableGrid = new XElement(XName.Get("tblGrid", DocX.w.NamespaceName));
             for (int i = 0; i < columnWidths.Length; i++)
                 tableGrid.Add(new XElement(XName.Get("gridCol", DocX.w.NamespaceName), new XAttribute(XName.Get("w", DocX.w.NamespaceName), XmlConvert.ToString(columnWidths[i]))));
 
-            newTable.Add(tableGrid);
+            newTable.Add(tableGrid);*/
 
             for (int i = 0; i < rowCount; i++)
             {
@@ -464,14 +464,14 @@ namespace Novacode
         /// <summary>
         /// Create and return a cell of a table        
         /// </summary>        
-        internal static XElement CreateTableCell()
+        internal static XElement CreateTableCell(double w = 2310)
         {
             return new XElement
                     (
                         XName.Get("tc", DocX.w.NamespaceName),
                             new XElement(XName.Get("tcPr", DocX.w.NamespaceName),
                             new XElement(XName.Get("tcW", DocX.w.NamespaceName),
-                                    new XAttribute(XName.Get("w", DocX.w.NamespaceName), "2310"),
+                                    new XAttribute(XName.Get("w", DocX.w.NamespaceName), w),
                                     new XAttribute(XName.Get("type", DocX.w.NamespaceName), "dxa"))),
                             new XElement(XName.Get("p", DocX.w.NamespaceName),
                                 new XElement(XName.Get("pPr", DocX.w.NamespaceName)))
