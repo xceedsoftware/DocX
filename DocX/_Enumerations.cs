@@ -373,7 +373,11 @@ namespace Novacode
     /// <summary>
     /// Autofit to Column width.
     /// </summary>
-    ColumnWidth
+    ColumnWidth,
+    /// <summary>
+    ///  Autofit to Fixed column width
+    /// </summary>
+    Fixed
   };
 
   public enum RectangleShapes
