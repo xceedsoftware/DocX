@@ -13,6 +13,7 @@ namespace Examples
 {
     class Program
     {
+        private static Border BlankBorder = new Border(BorderStyle.Tcbs_none, 0, 0, Color.White);
         static void Main(string[] args)
         {
             Setup();
@@ -45,6 +46,8 @@ namespace Examples
             HeadersAndFootersWithImagesAndTablesUsingInsertPicture();
             DocumentsWithListsFontChange();
             DocumentHeading();
+            LargeTable();
+            TableWithSpecifiedWidths();
 
             // Advanced
             Console.WriteLine("\nRunning Advanced Examples");
@@ -1603,6 +1606,107 @@ namespace Examples
                 Console.WriteLine("\tCreated: docs\\HelloWorldKeepLinesTogether.docx\n");
             }
         }
-    
+       
+        static void LargeTable()
+        {
+            Console.WriteLine("\tLargeTable()");
+            var _directoryWithFiles = "docs\\";
+            using (var output = File.Open(_directoryWithFiles + "LargeTable.docx", FileMode.Create))
+            {
+                using (var doc = DocX.Create(output))
+                {
+                    var tbl = doc.InsertTable(1, 18);
+
+                    var wholeWidth = doc.PageWidth - doc.MarginLeft - doc.MarginRight;
+                    var colWidth = wholeWidth / tbl.ColumnCount;
+                    var colWidths = new int[tbl.ColumnCount];
+                    tbl.AutoFit = AutoFit.Contents;
+                    var r = tbl.Rows[0];
+                    var cx = 0;
+                    foreach (var cell in r.Cells)
+                    {
+                        cell.Paragraphs.First().Append("Col " + cx);
+                        //cell.Width = colWidth;
+                        cell.MarginBottom = 0;
+                        cell.MarginLeft = 0;
+                        cell.MarginRight = 0;
+                        cell.MarginTop = 0;
+
+                        cx++;
+                    }
+                    tbl.SetBorder(TableBorderType.Bottom, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Left, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Right, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Top, BlankBorder);
+                    tbl.SetBorder(TableBorderType.InsideV, BlankBorder);
+                    tbl.SetBorder(TableBorderType.InsideH, BlankBorder);
+
+                    doc.Save();
+                }
+            }
+            Console.WriteLine("\tCreated: docs\\LargeTable.docx\n");
+        }
+
+   
+        static void TableWithSpecifiedWidths()
+        {
+            Console.WriteLine("\tTableSpecifiedWidths()");
+            var _directoryWithFiles = "docs\\";
+            using (var output = File.Open(_directoryWithFiles + "TableSpecifiedWidths.docx", FileMode.Create))
+            {
+                using (var doc = DocX.Create(output))
+                {
+                    var widths = new float[] { 200f, 100f, 300f };
+                    var tbl = doc.InsertTable(1, widths.Length);
+                    tbl.SetWidths(widths);
+                    var wholeWidth = doc.PageWidth - doc.MarginLeft - doc.MarginRight;
+                    tbl.AutoFit = AutoFit.Contents;
+                    var r = tbl.Rows[0];
+                    var cx = 0;
+                    foreach (var cell in r.Cells)
+                    {
+                        cell.Paragraphs.First().Append("Col " + cx);
+                        //cell.Width = colWidth;
+                        cell.MarginBottom = 0;
+                        cell.MarginLeft = 0;
+                        cell.MarginRight = 0;
+                        cell.MarginTop = 0;
+
+                        cx++;
+                    }
+                    //add new rows 
+                    for (var x = 0; x < 5; x++)
+                    {
+                        r = tbl.InsertRow();
+                        cx = 0;
+                        foreach (var cell in r.Cells)
+                        {
+                            cell.Paragraphs.First().Append("Col " + cx);
+                            //cell.Width = colWidth;
+                            cell.MarginBottom = 0;
+                            cell.MarginLeft = 0;
+                            cell.MarginRight = 0;
+                            cell.MarginTop = 0;
+
+                            cx++;
+                        }
+                    }
+                    tbl.SetBorder(TableBorderType.Bottom, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Left, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Right, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Top, BlankBorder);
+                    tbl.SetBorder(TableBorderType.InsideV, BlankBorder);
+                    tbl.SetBorder(TableBorderType.InsideH, BlankBorder);
+
+                    doc.Save();
+                }
+            }
+            Console.WriteLine("\tCreated: docs\\TableSpecifiedWidths.docx\n");
+
+        }
+
+
+
+
     }
 }
