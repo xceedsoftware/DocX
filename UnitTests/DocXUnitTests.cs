@@ -24,6 +24,7 @@ namespace UnitTests
         private readonly string _directoryDocuments;
         private const string FileTemp = "temp.docx";
         private readonly string _directoryWithFiles;
+        private static Border BlankBorder = new Border(BorderStyle.Tcbs_none, 0, 0, Color.White);
 
         const string package_part_document = "/word/document.xml";
 
@@ -45,6 +46,99 @@ namespace UnitTests
                 Directory.CreateDirectory(path);
             }
         }
+        [TestMethod]
+        public void LargeTable()
+        {
+            using (var output = File.Open(_directoryWithFiles + "LargeTable.docx", FileMode.Create))
+            {
+                using (var doc = DocX.Create(output))
+                {
+                    var tbl = doc.InsertTable(1, 18);
+                    
+                    var wholeWidth = doc.PageWidth - doc.MarginLeft - doc.MarginRight;
+                    var colWidth = wholeWidth / tbl.ColumnCount;
+                    var colWidths = new int[tbl.ColumnCount];
+                    tbl.AutoFit=AutoFit.Contents;
+                    var r = tbl.Rows[0];
+                    var cx = 0;
+                    foreach (var cell in r.Cells)
+                    {
+                        cell.Paragraphs.First().Append("Col " + cx);
+                        //cell.Width = colWidth;
+                        cell.MarginBottom = 0;
+                        cell.MarginLeft = 0;
+                        cell.MarginRight = 0;
+                        cell.MarginTop = 0;
+
+                        cx++;
+                    }
+                    tbl.SetBorder(TableBorderType.Bottom, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Left, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Right, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Top, BlankBorder);
+                    tbl.SetBorder(TableBorderType.InsideV, BlankBorder);
+                    tbl.SetBorder(TableBorderType.InsideH, BlankBorder);
+
+                    doc.Save();
+                }
+            }
+        }
+
+        [TestMethod]
+        public void TableWithSpecifiedWidths()
+        {
+            using (var output = File.Open(_directoryWithFiles + "TableSpecifiedWidths.docx", FileMode.Create))
+            {
+                using (var doc = DocX.Create(output))
+                {
+                    var widths = new float[] {200f, 100f, 300f};
+                    var tbl = doc.InsertTable(1, widths.Length);
+                    tbl.SetWidths(widths);
+                    var wholeWidth = doc.PageWidth - doc.MarginLeft - doc.MarginRight;
+                    tbl.AutoFit = AutoFit.Contents;
+                    var r = tbl.Rows[0];
+                    var cx = 0;
+                    foreach (var cell in r.Cells)
+                    {
+                        cell.Paragraphs.First().Append("Col " + cx);
+                        //cell.Width = colWidth;
+                        cell.MarginBottom = 0;
+                        cell.MarginLeft = 0;
+                        cell.MarginRight = 0;
+                        cell.MarginTop = 0;
+
+                        cx++;
+                    }
+                    //add new rows 
+                    for (var x = 0; x < 5; x++)
+                    {
+                        r = tbl.InsertRow();
+                        cx = 0;
+                        foreach (var cell in r.Cells)
+                        {
+                            cell.Paragraphs.First().Append("Col " + cx);
+                            //cell.Width = colWidth;
+                            cell.MarginBottom = 0;
+                            cell.MarginLeft = 0;
+                            cell.MarginRight = 0;
+                            cell.MarginTop = 0;
+
+                            cx++;
+                        }
+                    }
+                    tbl.SetBorder(TableBorderType.Bottom, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Left, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Right, BlankBorder);
+                    tbl.SetBorder(TableBorderType.Top, BlankBorder);
+                    tbl.SetBorder(TableBorderType.InsideV, BlankBorder);
+                    tbl.SetBorder(TableBorderType.InsideH, BlankBorder);
+
+                    doc.Save();
+                }
+            }
+            
+        }
+
         [TestMethod]
         public void Test_Pattern_Replacement()
         {
