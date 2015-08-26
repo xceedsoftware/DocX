@@ -16,7 +16,6 @@ namespace Novacode
         internal String text;
 
         internal Dictionary<PackagePart, PackageRelationship> hyperlink_rels;
-        public PackagePart mainPart;
         internal int type;
         internal String id;
         internal XElement instrText;

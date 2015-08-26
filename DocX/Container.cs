@@ -79,6 +79,28 @@ namespace Novacode
                 return paragraphs.AsReadOnly();
             }
         }
+        public virtual ReadOnlyCollection<Paragraph> ParagraphsDeepSearch
+        {
+            get
+            {
+                List<Paragraph> paragraphs = GetParagraphs(true);
+
+                foreach (var p in paragraphs)
+                {
+                    if ((p.Xml.ElementsAfterSelf().FirstOrDefault() != null) && (p.Xml.ElementsAfterSelf().First().Name.Equals(DocX.w + "tbl")))
+                        p.FollowingTable = new Table(this.Document, p.Xml.ElementsAfterSelf().First());
+
+                    p.ParentContainer = GetParentFromXmlName(p.Xml.Ancestors().First().Name.LocalName);
+
+                    if (p.IsListItem)
+                    {
+                        GetListItemType(p);
+                    }
+                }
+
+                return paragraphs.AsReadOnly();
+            }
+        }
         // <summary>
         /// Removes paragraph at specified position
         /// </summary>
@@ -95,9 +117,9 @@ namespace Novacode
                     return true;
                 }
                 ++i;
-
+ 
             }
-
+ 
             return false;
         }
 
@@ -170,32 +192,32 @@ namespace Novacode
             //find num node in numbering 
             var numNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "num");
             XElement numNode = numNodes.FirstOrDefault(node => node.Attribute(DocX.w + "numId").Value.Equals(numIdValue));
-
-            if (numNode != null)
+           
+	        if (numNode != null)
             {
-                //Get abstractNumId node and its value from numNode
-                var abstractNumIdNode = numNode.Descendants().First(n => n.Name.LocalName == "abstractNumId");
-                var abstractNumNodeValue = abstractNumIdNode.Attribute(DocX.w + "val").Value;
-
-                var abstractNumNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "abstractNum");
-                XElement abstractNumNode =
-                  abstractNumNodes.FirstOrDefault(node => node.Attribute(DocX.w + "abstractNumId").Value.Equals(abstractNumNodeValue));
-
-                //Find lvl node
-                var lvlNodes = abstractNumNode.Descendants().Where(n => n.Name.LocalName == "lvl");
-                XElement lvlNode = null;
-                foreach (XElement node in lvlNodes)
-                {
-                    if (node.Attribute(DocX.w + "ilvl").Value.Equals(ilvlValue))
-                    {
-                        lvlNode = node;
-                        break;
-                    }
-                }
-
-                var numFmtNode = lvlNode.Descendants().First(n => n.Name.LocalName == "numFmt");
-                p.ListItemType = GetListItemType(numFmtNode.Attribute(DocX.w + "val").Value);
-            }
+               //Get abstractNumId node and its value from numNode
+	            var abstractNumIdNode = numNode.Descendants().First(n => n.Name.LocalName == "abstractNumId");
+	            var abstractNumNodeValue = abstractNumIdNode.Attribute(DocX.w + "val").Value;
+	
+	            var abstractNumNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "abstractNum");
+	            XElement abstractNumNode =
+	              abstractNumNodes.FirstOrDefault(node => node.Attribute(DocX.w + "abstractNumId").Value.Equals(abstractNumNodeValue));
+	
+	            //Find lvl node
+	            var lvlNodes = abstractNumNode.Descendants().Where(n => n.Name.LocalName == "lvl");
+	            XElement lvlNode = null;
+	            foreach (XElement node in lvlNodes)
+	            {
+	                if (node.Attribute(DocX.w + "ilvl").Value.Equals(ilvlValue))
+	                {
+	                    lvlNode = node;
+	                    break;
+	                }
+	            }
+	           
+	           	var numFmtNode = lvlNode.Descendants().First(n => n.Name.LocalName == "numFmt");
+	          		p.ListItemType = GetListItemType(numFmtNode.Attribute(DocX.w + "val").Value);
+            }         
 
         }
 
@@ -203,38 +225,36 @@ namespace Novacode
         public ContainerType ParentContainer;
 
 
-        internal List<Paragraph> GetParagraphs()
+        internal List<Paragraph> GetParagraphs(bool deepSearch=false)
         {
             // Need some memory that can be updated by the recursive search.
             int index = 0;
             List<Paragraph> paragraphs = new List<Paragraph>();
 
-            GetParagraphsRecursive(Xml, ref index, ref paragraphs);
+            GetParagraphsRecursive(Xml, ref index, ref paragraphs, deepSearch);
 
             return paragraphs;
         }
 
-        internal void GetParagraphsRecursive(XElement Xml, ref int index, ref List<Paragraph> paragraphs)
+        internal void GetParagraphsRecursive(XElement Xml, ref int index, ref List<Paragraph> paragraphs, bool deepSearch=false)
         {
             // sdtContent are for PageNumbers inside Headers or Footers, don't go any deeper.
             //if (Xml.Name.LocalName == "sdtContent")
             //    return;
-
+            var keepSearching = true;
             if (Xml.Name.LocalName == "p")
             {
                 paragraphs.Add(new Paragraph(Document, Xml, index));
 
                 index += HelperFunctions.GetText(Xml).Length;
+                if (!deepSearch)
+                    keepSearching = false;
             }
-
-            else
+            if (keepSearching && Xml.HasElements)
             {
-                if (Xml.HasElements)
+                foreach (XElement e in Xml.Elements())
                 {
-                    foreach (XElement e in Xml.Elements())
-                    {
-                        GetParagraphsRecursive(e, ref index, ref paragraphs);
-                    }
+                    GetParagraphsRecursive(e, ref index, ref paragraphs, deepSearch);
                 }
             }
         }
@@ -499,7 +519,7 @@ namespace Novacode
                 if (Paragraphs.Any(p => p.ValidateBookmark(bookmarkName))) return new string[0];
                 nonMatching.Add(bookmarkName);
             }
-
+            
             return nonMatching.ToArray();
         }
 
@@ -823,7 +843,7 @@ namespace Novacode
             XElement newTable = HelperFunctions.CreateTable(rowCount, columnCount);
             Xml.Add(newTable);
 
-            return new Table(Document, newTable);
+            return new Table(Document, newTable) { mainPart = mainPart};
         }
 
         public Table InsertTable(int index, int rowCount, int columnCount)
@@ -848,7 +868,7 @@ namespace Novacode
             }
 
 
-            return new Table(Document, newTable);
+            return new Table(Document, newTable) { mainPart = mainPart };
         }
 
         public Table InsertTable(Table t)
@@ -856,8 +876,11 @@ namespace Novacode
             XElement newXElement = new XElement(t.Xml);
             Xml.Add(newXElement);
 
-            Table newTable = new Table(Document, newXElement);
-            newTable.Design = t.Design;
+            Table newTable = new Table(Document, newXElement)
+            {
+                mainPart = mainPart,
+                Design = t.Design
+            };
 
             return newTable;
         }
@@ -875,8 +898,11 @@ namespace Novacode
                 split[1]
             );
 
-            Table newTable = new Table(Document, newXElement);
-            newTable.Design = t.Design;
+            Table newTable = new Table(Document, newXElement)
+            {
+                mainPart = mainPart,
+                Design = t.Design
+            };
 
             return newTable;
         }
@@ -890,7 +916,7 @@ namespace Novacode
         {
             foreach (var item in list.Items)
             {
-                //  item.Font(System.Drawing.FontFamily fontFamily)
+              //  item.Font(System.Drawing.FontFamily fontFamily)
 
                 Xml.Add(item.Xml);
             }
