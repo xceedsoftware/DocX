@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO.Packaging;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -10,6 +11,9 @@ namespace Novacode
     /// </summary>
     public abstract class DocXElement
     {
+        internal PackagePart mainPart;
+        public PackagePart PackagePart { get { return mainPart; } set { mainPart = value; } }
+
         /// <summary>
         /// This is the actual Xml that gives this element substance. 
         /// For example, a Paragraphs Xml might look something like the following
@@ -19,6 +23,7 @@ namespace Novacode
         ///     </r>
         /// </p>
         /// </summary>
+        
         public XElement Xml { get; set; }
         /// <summary>
         /// This is a reference to the DocX object that this element belongs to.
@@ -172,7 +177,7 @@ namespace Novacode
             Xml.AddAfterSelf(newTable);
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
-            return new Table(Document, newlyInserted);
+            return new Table(Document, newlyInserted) { mainPart = mainPart };
         }
 
         public virtual Table InsertTableAfterSelf(Table t)
@@ -180,7 +185,7 @@ namespace Novacode
             Xml.AddAfterSelf(t.Xml);
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
             //Dmitchern
-            return new Table(Document, newlyInserted); //return new table, dont affect parameter table
+            return new Table(Document, newlyInserted) { mainPart = mainPart }; //return new table, dont affect parameter table
 
             //t.Xml = newlyInserted;
             //return t;
@@ -192,7 +197,7 @@ namespace Novacode
             Xml.AddBeforeSelf(newTable);
             XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
-            return new Table(Document, newlyInserted);
+            return new Table(Document, newlyInserted) { mainPart = mainPart };
         }
 
         public virtual Table InsertTableBeforeSelf(Table t)
@@ -201,7 +206,7 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
             //Dmitchern
-            return new Table(Document, newlyInserted); //return new table, dont affect parameter table
+            return new Table(Document, newlyInserted) { mainPart=mainPart}; //return new table, dont affect parameter table
 
             //t.Xml = newlyInserted;
             //return t;

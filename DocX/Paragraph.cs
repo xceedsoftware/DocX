@@ -18,8 +18,6 @@ namespace Novacode
     /// </summary>
     public class Paragraph : InsertBeforeOrAfter
     {
-        internal PackagePart mainPart;
-        public PackagePart PackagePart { get { return mainPart; } set { mainPart = value; } }
 
         // The Append family of functions use this List to apply style.
         internal List<XElement> runs;
@@ -436,7 +434,22 @@ namespace Novacode
                 }
             }
         }
-         /// <summary>
+
+        public bool IsKeepWithNext
+        {
+
+            get
+            {
+                var pPr = GetOrCreate_pPr();
+                var keepWithNextE = pPr.Element(XName.Get("keepNext", DocX.w.NamespaceName));
+                if (keepWithNextE == null)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+        /// <summary>
         /// This paragraph will be kept on the same page as the next paragraph
         /// </summary>
         /// <example>
@@ -457,6 +470,7 @@ namespace Novacode
         /// </example>
         /// <param name="keepWithNext"></param>
         /// <returns></returns>
+
         public Paragraph KeepWithNext(bool keepWithNext = true)
         {
             var pPr = GetOrCreate_pPr();
@@ -470,9 +484,9 @@ namespace Novacode
                 keepWithNextE.Remove();
             }
             return this;
- 
+
         }
-         /// <summary>
+        /// <summary>
         /// Keep all lines in this paragraph together on a page
         /// </summary>
         /// <example>
@@ -635,7 +649,7 @@ namespace Novacode
                 XAttribute hanging = ind.Attribute(XName.Get("hanging", DocX.w.NamespaceName));
 
                 if (hanging != null)
-                    return float.Parse(hanging.Value);
+                    return float.Parse(hanging.Value) / (57 * 10);
 
                 return 0.0f;
             }
@@ -694,7 +708,7 @@ namespace Novacode
 
                 XAttribute left = ind.Attribute(XName.Get("left", DocX.w.NamespaceName));
                 if (left != null)
-                    return float.Parse(left.Value);
+                    return float.Parse(left.Value) / (57 * 10);
 
                 return 0.0f;
             }
@@ -2860,7 +2874,7 @@ namespace Novacode
 
             else
                 throw new ArgumentException("Size", "Value must be either a whole or half number, examples: 32, 32.5");
-
+            
             ApplyTextFormattingProperty(XName.Get("sz", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), fontSize * 2));
             ApplyTextFormattingProperty(XName.Get("szCs", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), fontSize * 2));
 
@@ -3358,15 +3372,15 @@ namespace Novacode
             var spacing = pPr.Element(XName.Get("spacing", DocX.w.NamespaceName));
             if (spacingBefore > 0)
             {
-                 if (spacing == null)
-                 {
+                if (spacing == null)
+                {
                     spacing = new XElement(XName.Get("spacing", DocX.w.NamespaceName));
                     pPr.Add(spacing);
-                 }
-                 var attr = spacing.Attribute(XName.Get("before", DocX.w.NamespaceName));
-                 if (attr == null)
-                     spacing.SetAttributeValue(XName.Get("before", DocX.w.NamespaceName), spacingBefore);
-                 else
+                }
+                var attr = spacing.Attribute(XName.Get("before", DocX.w.NamespaceName));
+                if (attr == null)
+                    spacing.SetAttributeValue(XName.Get("before", DocX.w.NamespaceName), spacingBefore);
+                else
                     attr.SetValue(spacingBefore);
             }
             if (Math.Abs(spacingBefore) < 0.1f && spacing != null)
@@ -3406,6 +3420,7 @@ namespace Novacode
                 if (!spacing.HasAttributes)
                     spacing.Remove();
             }
+            //ApplyTextFormattingProperty(XName.Get("after", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), spacingAfter));
 
             return this;
         }

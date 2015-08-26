@@ -54,7 +54,6 @@ namespace Novacode
 
         public Paragraph PageNumberParagraph;
 
-        internal PackagePart mainPart;
         internal Header(DocX document, XElement xml, PackagePart mainPart):base(document, xml)
         {
             this.mainPart = mainPart;

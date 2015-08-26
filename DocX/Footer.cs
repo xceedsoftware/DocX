@@ -49,7 +49,6 @@ namespace Novacode
             }
         }
 
-        internal PackagePart mainPart;
         internal Footer(DocX document, XElement xml, PackagePart mainPart): base(document, xml)
         {
             this.mainPart = mainPart;
