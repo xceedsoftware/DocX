@@ -22,6 +22,7 @@ namespace Examples
             HelloWorld();
             HelloWorldKeepLinesTogether();
             HelloWorldKeepWithNext();
+            HelloWorldAdvancedFormatting();
             RightToLeft();
             Indentation();
             HeadersAndFooters();
@@ -1445,6 +1446,33 @@ namespace Examples
                 document.Save();
                 Console.WriteLine("\tCreated: docs\\Hello World.docx\n");
             }
+        }
+
+        static void HelloWorldAdvancedFormatting()
+        {
+            Console.WriteLine("\tHelloWorldAdvancedFormatting()");
+            // Create a document.
+            using (DocX document = DocX.Create(@"docs\HelloWorldAdvancedFormatting.docx"))
+            {
+                // Insert a new Paragraphs.
+                Paragraph p = document.InsertParagraph();
+
+                p.Append("I am ").Append("bold").Bold()
+                .Append(" and I am ")
+                .Append("italic").Italic().Append(".")
+                .AppendLine("I am ")
+                .Append("Arial Black")
+                .Font(new FontFamily("Arial Black"))
+                .Append(" and I am not.")
+                .AppendLine("I am ")
+                .Append("BLUE").Color(Color.Blue)
+                .Append(" and I am")
+                .Append("Red").Color(Color.Red).Append(".");
+
+                // Save this document.
+                document.Save();
+                Console.WriteLine("\tCreated: docs\\HelloWorldAdvancedFormatting.docx\n");
+            }// Release this document from memory.
         }
 
         /// <summary>
