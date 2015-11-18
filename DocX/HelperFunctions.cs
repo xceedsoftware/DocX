@@ -566,6 +566,7 @@ namespace Novacode
                         }
                         newRuns.Add(new XElement(DocX.w + "r", rPr, tabRun));
                         break;
+                    case '\r':
                     case '\n':
                         if (sb.Length > 0)
                         {
