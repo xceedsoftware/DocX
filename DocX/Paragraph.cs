@@ -2388,6 +2388,48 @@ namespace Novacode
             }
         }
 
+        public void ReplaceAtBookmark(string toInsert, string bookmarkName)
+        {
+            XElement bookmark = Xml.Descendants(XName.Get("bookmarkStart", DocX.w.NamespaceName))
+                .Where(x => x.Attribute(XName.Get("name", DocX.w.NamespaceName)).Value == bookmarkName)
+                .SingleOrDefault();
+            if (bookmark == null)
+                return;
+
+            XNode nextNode = bookmark.NextNode;
+            XElement nextElement = nextNode as XElement;
+            while (nextElement == null || nextElement.Name.NamespaceName != DocX.w.NamespaceName || (nextElement.Name.LocalName != "r" && nextElement.Name.LocalName != "bookmarkEnd"))
+            {
+                nextNode = nextNode.NextNode;
+                nextElement = nextNode as XElement;
+            }
+
+            // Check if next element is a bookmarkEnd
+            if (nextElement.Name.LocalName == "bookmarkEnd")
+            {
+                ReplaceAtBookmark_Add(toInsert, bookmark);
+                return;
+            }
+
+            XElement contentElement = nextElement.Elements(XName.Get("t", DocX.w.NamespaceName)).FirstOrDefault();
+            if (contentElement == null)
+            {
+                ReplaceAtBookmark_Add(toInsert, bookmark);
+                return;
+            }
+
+            contentElement.Value = toInsert;
+        }
+
+        private void ReplaceAtBookmark_Add(string toInsert, XElement bookmark)
+        {
+            var run = HelperFunctions.FormatInput(toInsert, null);
+            bookmark.AddAfterSelf(run);
+            runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).ToList();
+            HelperFunctions.RenumberIDs(Document);
+        }
+
+
         internal string GetOrGenerateRel(Picture p)
         {
             string image_uri_string = p.img.pr.TargetUri.OriginalString;
