@@ -30,6 +30,7 @@ namespace Examples
             AddList();
             Equations();
             Bookmarks();
+            BookmarksReplaceTextOfBookmarkKeepingFormat();
             BarChart();
             PieChart();
             LineChart();
@@ -272,6 +273,29 @@ namespace Examples
             
             }
         }
+        /// <summary>
+        /// Loads a document 'DocumentWithBookmarks.docx' and changes text inside bookmark keeping formatting the same.
+        /// This code creates the file 'BookmarksReplaceTextOfBookmarkKeepingFormat.docx'.
+        /// </summary>
+        private static void BookmarksReplaceTextOfBookmarkKeepingFormat()
+        {
+            Console.WriteLine("\tBookmarksReplaceTextOfBookmarkKeepingFormat()");
+
+            using (DocX docX = DocX.Load("DocumentWithBookmarks.docx"))
+            {
+                foreach (Bookmark bookmark in docX.Bookmarks)
+                    Console.WriteLine("\t\tFound bookmark {0}", bookmark.Name);
+
+                // Replace bookmars content
+                docX.Bookmarks["bmkNoContent"].SetText("Here there was a bookmark");
+                docX.Bookmarks["bmkContent"].SetText("Here there was a bookmark with a previous content");
+                docX.Bookmarks["bmkFormattedContent"].SetText("Here there was a formatted bookmark");
+
+                docX.SaveAs(@"docs\BookmarksReplaceTextOfBookmarkKeepingFormat.docx");
+            }
+            Console.WriteLine("\tCreated: docs\\BookmarksReplaceTextOfBookmarkKeepingFormat.docx");
+        }
+
         /// <summary>
         /// Create a document with a Paragraph whos first line is indented.
         /// </summary>

@@ -75,6 +75,17 @@ namespace Novacode
             }
         }
 
+        public BookmarkCollection Bookmarks
+        {
+            get
+            {
+                BookmarkCollection bookmarks = new BookmarkCollection();
+                foreach (Paragraph paragraph in Paragraphs)
+                    bookmarks.AddRange(paragraph.GetBookmarks());
+                return bookmarks;
+            }
+        }
+
         public float MarginTop
         {
             get
