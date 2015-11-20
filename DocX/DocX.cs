@@ -332,6 +332,152 @@ namespace Novacode
             settings.Root.AddFirst(documentProtection);
         }
 
+        public void AddProtection(EditRestrictions er, string strPassword)
+        {
+            // http://blogs.msdn.com/b/vsod/archive/2010/04/05/how-to-set-the-editing-restrictions-in-word-using-open-xml-sdk-2-0.aspx
+            // Call remove protection before adding a new protection element.
+            RemoveProtection();
+
+            if (er == EditRestrictions.none)
+                return;
+
+            XElement documentProtection = new XElement(XName.Get("documentProtection", DocX.w.NamespaceName));
+            documentProtection.Add(new XAttribute(XName.Get("edit", DocX.w.NamespaceName), er.ToString()));
+            documentProtection.Add(new XAttribute(XName.Get("enforcement", DocX.w.NamespaceName), "1"));
+
+            int[] InitialCodeArray = { 0xE1F0, 0x1D0F, 0xCC9C, 0x84C0, 0x110C, 0x0E10, 0xF1CE, 0x313E, 0x1872, 0xE139, 0xD40F, 0x84F9, 0x280C, 0xA96A, 0x4EC3 };
+            int[,] EncryptionMatrix = new int[15, 7]
+            {
+
+        /* char 1  */ {0xAEFC, 0x4DD9, 0x9BB2, 0x2745, 0x4E8A, 0x9D14, 0x2A09},
+        /* char 2  */ {0x7B61, 0xF6C2, 0xFDA5, 0xEB6B, 0xC6F7, 0x9DCF, 0x2BBF},
+        /* char 3  */ {0x4563, 0x8AC6, 0x05AD, 0x0B5A, 0x16B4, 0x2D68, 0x5AD0},
+        /* char 4  */ {0x0375, 0x06EA, 0x0DD4, 0x1BA8, 0x3750, 0x6EA0, 0xDD40},
+        /* char 5  */ {0xD849, 0xA0B3, 0x5147, 0xA28E, 0x553D, 0xAA7A, 0x44D5},
+        /* char 6  */ {0x6F45, 0xDE8A, 0xAD35, 0x4A4B, 0x9496, 0x390D, 0x721A},
+        /* char 7  */ {0xEB23, 0xC667, 0x9CEF, 0x29FF, 0x53FE, 0xA7FC, 0x5FD9},
+        /* char 8  */ {0x47D3, 0x8FA6, 0x0F6D, 0x1EDA, 0x3DB4, 0x7B68, 0xF6D0},
+        /* char 9  */ {0xB861, 0x60E3, 0xC1C6, 0x93AD, 0x377B, 0x6EF6, 0xDDEC},
+        /* char 10 */ {0x45A0, 0x8B40, 0x06A1, 0x0D42, 0x1A84, 0x3508, 0x6A10},
+        /* char 11 */ {0xAA51, 0x4483, 0x8906, 0x022D, 0x045A, 0x08B4, 0x1168},
+        /* char 12 */ {0x76B4, 0xED68, 0xCAF1, 0x85C3, 0x1BA7, 0x374E, 0x6E9C},
+        /* char 13 */ {0x3730, 0x6E60, 0xDCC0, 0xA9A1, 0x4363, 0x86C6, 0x1DAD},
+        /* char 14 */ {0x3331, 0x6662, 0xCCC4, 0x89A9, 0x0373, 0x06E6, 0x0DCC},
+        /* char 15 */ {0x1021, 0x2042, 0x4084, 0x8108, 0x1231, 0x2462, 0x48C4}
+            };
+
+            // Generate the Salt
+            byte[] arrSalt = new byte[16];
+            RandomNumberGenerator rand = new RNGCryptoServiceProvider();
+            rand.GetNonZeroBytes(arrSalt);
+
+            //Array to hold Key Values
+            byte[] generatedKey = new byte[4];
+
+            //Maximum length of the password is 15 chars.
+            int intMaxPasswordLength = 15;
+
+            if (!String.IsNullOrEmpty(strPassword))
+            {
+                strPassword = strPassword.Substring(0, Math.Min(strPassword.Length, intMaxPasswordLength));
+
+                byte[] arrByteChars = new byte[strPassword.Length];
+
+                for (int intLoop = 0; intLoop < strPassword.Length; intLoop++)
+                {
+                    int intTemp = Convert.ToInt32(strPassword[intLoop]);
+                    arrByteChars[intLoop] = Convert.ToByte(intTemp & 0x00FF);
+                    if (arrByteChars[intLoop] == 0)
+                        arrByteChars[intLoop] = Convert.ToByte((intTemp & 0xFF00) >> 8);
+                }
+
+                int intHighOrderWord = InitialCodeArray[arrByteChars.Length - 1];
+
+                for (int intLoop = 0; intLoop < arrByteChars.Length; intLoop++)
+                {
+                    int tmp = intMaxPasswordLength - arrByteChars.Length + intLoop;
+                    for (int intBit = 0; intBit < 7; intBit++)
+                    {
+                        if ((arrByteChars[intLoop] & (0x0001 << intBit)) != 0)
+                        {
+                            intHighOrderWord ^= EncryptionMatrix[tmp, intBit];
+                        }
+                    }
+                }
+
+                int intLowOrderWord = 0;
+
+                // For each character in the strPassword, going backwards
+                for (int intLoopChar = arrByteChars.Length - 1; intLoopChar >= 0; intLoopChar--)
+                {
+                    intLowOrderWord = (((intLowOrderWord >> 14) & 0x0001) | ((intLowOrderWord << 1) & 0x7FFF)) ^ arrByteChars[intLoopChar];
+                }
+
+                intLowOrderWord = (((intLowOrderWord >> 14) & 0x0001) | ((intLowOrderWord << 1) & 0x7FFF)) ^ arrByteChars.Length ^ 0xCE4B;
+
+                // Combine the Low and High Order Word
+                int intCombinedkey = (intHighOrderWord << 16) + intLowOrderWord;
+
+                // The byte order of the result shall be reversed [Example: 0x64CEED7E becomes 7EEDCE64. end example],
+                // and that value shall be hashed as defined by the attribute values.
+
+                for (int intTemp = 0; intTemp < 4; intTemp++)
+                {
+                    generatedKey[intTemp] = Convert.ToByte(((uint)(intCombinedkey & (0x000000FF << (intTemp * 8)))) >> (intTemp * 8));
+                }
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (int intTemp = 0; intTemp < 4; intTemp++)
+            {
+                sb.Append(Convert.ToString(generatedKey[intTemp], 16));
+            }
+            generatedKey = Encoding.Unicode.GetBytes(sb.ToString().ToUpper());
+
+            byte[] tmpArray1 = generatedKey;
+            byte[] tmpArray2 = arrSalt;
+            byte[] tempKey = new byte[tmpArray1.Length + tmpArray2.Length];
+            Buffer.BlockCopy(tmpArray2, 0, tempKey, 0, tmpArray2.Length);
+            Buffer.BlockCopy(tmpArray1, 0, tempKey, tmpArray2.Length, tmpArray1.Length);
+            generatedKey = tempKey;
+
+
+            int iterations = 100000;
+
+            HashAlgorithm sha1 = new SHA1Managed();
+            generatedKey = sha1.ComputeHash(generatedKey);
+            byte[] iterator = new byte[4];
+            for (int intTmp = 0; intTmp < iterations; intTmp++)
+            {
+
+                iterator[0] = Convert.ToByte((intTmp & 0x000000FF) >> 0);
+                iterator[1] = Convert.ToByte((intTmp & 0x0000FF00) >> 8);
+                iterator[2] = Convert.ToByte((intTmp & 0x00FF0000) >> 16);
+                iterator[3] = Convert.ToByte((intTmp & 0xFF000000) >> 24);
+
+                generatedKey = concatByteArrays(iterator, generatedKey);
+                generatedKey = sha1.ComputeHash(generatedKey);
+            }
+
+            documentProtection.Add(new XAttribute(XName.Get("cryptProviderType", DocX.w.NamespaceName), "rsaFull"));
+            documentProtection.Add(new XAttribute(XName.Get("cryptAlgorithmClass", DocX.w.NamespaceName), "hash"));
+            documentProtection.Add(new XAttribute(XName.Get("cryptAlgorithmType", DocX.w.NamespaceName), "typeAny"));
+            documentProtection.Add(new XAttribute(XName.Get("cryptAlgorithmSid", DocX.w.NamespaceName), "4"));          // SHA1
+            documentProtection.Add(new XAttribute(XName.Get("cryptSpinCount", DocX.w.NamespaceName), iterations.ToString()));
+            documentProtection.Add(new XAttribute(XName.Get("hash", DocX.w.NamespaceName), Convert.ToBase64String(generatedKey)));
+            documentProtection.Add(new XAttribute(XName.Get("salt", DocX.w.NamespaceName), Convert.ToBase64String(arrSalt)));
+
+            settings.Root.AddFirst(documentProtection);
+        }
+
+        private byte[] concatByteArrays(byte[] array1, byte[] array2)
+        {
+            byte[] result = new byte[array1.Length + array2.Length];
+            Buffer.BlockCopy(array2, 0, result, 0, array2.Length);
+            Buffer.BlockCopy(array1, 0, result, array2.Length, array1.Length);
+            return result;
+        }
+
         /// <summary>
         /// Remove editing protection from this document.
         /// </summary>
@@ -3230,8 +3376,11 @@ namespace Novacode
             using (TextWriter tw = new StreamWriter(mainPart.GetStream(FileMode.Create, FileAccess.Write)))
                 mainDoc.Save(tw, SaveOptions.None);
 
-            using (TextReader tr = new StreamReader(settingsPart.GetStream()))
-                settings = XDocument.Load(tr);
+            if (settings == null)
+            {
+                using (TextReader tr = new StreamReader(settingsPart.GetStream()))
+                    settings = XDocument.Load(tr);
+            }
 
             XElement body = mainDoc.Root.Element(w + "body");
             XElement sectPr = body.Descendants(w + "sectPr").FirstOrDefault();
