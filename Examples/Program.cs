@@ -23,6 +23,7 @@ namespace Examples
             HelloWorldKeepLinesTogether();
             HelloWorldKeepWithNext();
             HelloWorldAdvancedFormatting();
+            HelloWorldProtectedDocument();
             RightToLeft();
             Indentation();
             HeadersAndFooters();
@@ -1452,7 +1453,7 @@ namespace Examples
             Console.WriteLine("\tHelloWorld()");
 
             // Create a new document.
-            using (DocX document = DocX.Create(@"docs\Hello World.docx"))
+            using (DocX document = DocX.Create(@"docs\HelloWorld.docx"))
             {
                 // Insert a Paragraph into this document.
                 Paragraph p = document.InsertParagraph();
@@ -1468,7 +1469,74 @@ namespace Examples
 
                 // Save this document to disk.
                 document.Save();
-                Console.WriteLine("\tCreated: docs\\Hello World.docx\n");
+                Console.WriteLine("\tCreated: docs\\HelloWorld.docx\n");
+            }
+        }
+
+        static void HelloWorldProtectedDocument()
+        {
+            Console.WriteLine("\tHelloWorldPasswordProtected()");
+
+            // Create a new document.
+            using (DocX document = DocX.Create(@"docs\HelloWorldPasswordProtected.docx"))
+            {
+                // Insert a Paragraph into this document.
+                Paragraph p = document.InsertParagraph();
+
+                // Append some text and add formatting.
+                p.Append("Hello World!^011Hello World!")
+                .Font(new FontFamily("Times New Roman"))
+                .FontSize(32)
+                .Color(Color.Blue)
+                .Bold();
+
+
+                // Save this document to disk with different options
+                // Protected with password for Read Only
+                EditRestrictions erReadOnly = EditRestrictions.readOnly;
+                document.AddProtection(erReadOnly, "SomePassword");
+                document.SaveAs(@"docs\\HelloWorldPasswordProtectedReadOnly.docx");
+                Console.WriteLine("\tCreated: docs\\HelloWorldPasswordProtectedReadOnly.docx\n");
+
+                // Protected with password for Comments
+                EditRestrictions erComments = EditRestrictions.comments;
+                document.AddProtection(erComments, "SomePassword");
+                document.SaveAs(@"docs\\HelloWorldPasswordProtectedCommentsOnly.docx");
+                Console.WriteLine("\tCreated: docs\\HelloWorldPasswordProtectedCommentsOnly.docx\n");
+
+                // Protected with password for Forms
+                EditRestrictions erForms = EditRestrictions.forms;
+                document.AddProtection(erForms, "SomePassword");
+                document.SaveAs(@"docs\\HelloWorldPasswordProtectedFormsOnly.docx");
+                Console.WriteLine("\tCreated: docs\\HelloWorldPasswordProtectedFormsOnly.docx\n");
+
+                // Protected with password for Tracked Changes
+                EditRestrictions erTrackedChanges = EditRestrictions.trackedChanges;
+                document.AddProtection(erTrackedChanges, "SomePassword");
+                document.SaveAs(@"docs\\HelloWorldPasswordProtectedTrackedChangesOnly.docx");
+                Console.WriteLine("\tCreated: docs\\HelloWorldPasswordProtectedTrackedChangesOnly.docx\n");
+
+                // But it's also possible to add restrictions without protecting it with password.
+
+                // Protected with password for Read Only
+                document.AddProtection(erReadOnly);
+                document.SaveAs(@"docs\\HelloWorldWithoutPasswordReadOnly.docx");
+                Console.WriteLine("\tCreated: docs\\HelloWorldWithoutPasswordReadOnly.docx\n");
+
+                // Protected with password for Comments
+                document.AddProtection(erComments);
+                document.SaveAs(@"docs\\HelloWorldWithoutPasswordCommentsOnly.docx");
+                Console.WriteLine("\tCreated: docs\\HelloWorldWithoutPasswordCommentsOnly.docx\n");
+
+                // Protected with password for Forms
+                document.AddProtection(erForms);
+                document.SaveAs(@"docs\\HelloWorldWithoutPasswordFormsOnly.docx");
+                Console.WriteLine("\tCreated: docs\\HelloWorldWithoutPasswordFormsOnly.docx\n");
+
+                // Protected with password for Tracked Changes
+                document.AddProtection(erTrackedChanges);
+                document.SaveAs(@"docs\\HelloWorldWithoutPasswordTrackedChangesOnly.docx");
+                Console.WriteLine("\tCreated: docs\\HelloWorldWithoutPasswordTrackedChangesOnly.docx\n");
             }
         }
 
