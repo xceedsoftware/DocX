@@ -1,8 +1,12 @@
+<img alt="DocX" src="https://download-codeplex.sec.s-msft.com/Download?ProjectName=docx&DownloadId=83756&Build=21031" />
+
 ## What is DocX?
 
 DocX is a .NET library that allows developers to manipulate Word 2007/2010/2013 files, in an easy and intuitive manner. DocX is fast, lightweight and best of all it does not require Microsoft Word or Office to be installed.
 
 DocX is available on [Codeplex](https://docx.codeplex.com/) and [GitHub](https://github.com/WordDocX/DocX). We will try to update both.
+
+<img alt="NuGet Downloads" src="https://img.shields.io/nuget/dt/DocX.svg" />
 
 ## DocX Author
 
