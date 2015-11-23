@@ -1,12 +1,16 @@
 <img alt="DocX" src="https://download-codeplex.sec.s-msft.com/Download?ProjectName=docx&DownloadId=83756&Build=21031" />
 
+[Codeplex](https://docx.codeplex.com/) | [GitHub](https://github.com/WordDocX/DocX) | [Blog](http://cathalscorner.blogspot.com/) |  [Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GHSZDFX6JHS2A&lc=GB&item_name=DocX%20library&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted)
+
+<img alt="NuGet Downloads" src="https://img.shields.io/nuget/dt/DocX.svg" /> <img alt="NuGet Version" src="https://img.shields.io/nuget/v/DocX.svg" />
+
+***
+
 ## What is DocX?
 
 DocX is a .NET library that allows developers to manipulate Word 2007/2010/2013 files, in an easy and intuitive manner. DocX is fast, lightweight and best of all it does not require Microsoft Word or Office to be installed.
 
-DocX is available on [Codeplex](https://docx.codeplex.com/) and [GitHub](https://github.com/WordDocX/DocX). We will try to update both.
-
-<img alt="NuGet Downloads" src="https://img.shields.io/nuget/dt/DocX.svg" />
+DocX is available on both Codeplex and Github. We will try to update both.
 
 ## DocX Author
 
