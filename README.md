@@ -14,7 +14,7 @@ DocX is available on both Codeplex and Github. We will try to update both.
 
 ## Install via Nuget
 ```
-Package-Install DocX
+Install-Package DocX
 ```
 
 ## DocX Author
