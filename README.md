@@ -12,12 +12,18 @@ DocX is a .NET library that allows developers to manipulate Word 2007/2010/2013 
 
 DocX is available on both Codeplex and Github. We will try to update both.
 
+## Install via Nuget
+```
+Package-Install DocX
+```
+
 ## DocX Author
 
 DocX was written by a PhD student **Cathal Coffey** studying at the National University of Ireland Maynooth. 
 If you have found DocX useful and would like to buy Cathal lunch then you can do so via a paypal [donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GHSZDFX6JHS2A&lc=GB&item_name=DocX%20library&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted).
 
 To connect with Cathal on LinkedIn please follow: http://ie.linkedin.com/in/cathalcoffey
+
 For Cathal's personal website follow: http://www.cathalcoffey.ie
 
 ## DocX Maintenance
@@ -25,6 +31,7 @@ For Cathal's personal website follow: http://www.cathalcoffey.ie
 Currently the development of DocX is mostly done by great support of community with project being maintained by Przemysław Kłys (MadBoy).
 
 To connect with Przemek on LinkedIn please follow http://www.linkedin.com/in/pklys
+
 For Przemek own little company website visit [Evotec](http://evotec.pl/)
 
 ## Cutting Edge
@@ -90,7 +97,9 @@ If you do, please email me.
 
 ## How can I send feedback!
 
-If you have found DocX useful at work or in a personal project, I would love to hear about it. Equally if you have decided not to use DocX, please send me and email stating why this is so. I will use this feedback to improve DocX in future releases. My email address is coffey.cathal@gmail.com.
+If you have found DocX useful at work or in a personal project, I would love to hear about it. Equally if you have decided not to use DocX, please send me and email stating why this is so. I will use this feedback to improve DocX in future releases. 
+
+My email address is coffey.cathal@gmail.com
 
 ## Other Projects
 
@@ -98,10 +107,6 @@ Cathal has another open source project [sql4csv](https://github.com/ccoffey/sql4
 sql4csv is a python library that offers an SQL "like" interface for .csv files. 
 
 Cathal also has [3 android applications](https://play.google.com/store/apps/developer?id=Cathal+Coffey&hl=en) on GooglePlay.
-
-Happy coding, 
-
-Cathal
 
 ***
 
