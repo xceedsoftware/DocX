@@ -103,6 +103,7 @@ namespace Novacode
         /// <example>
         /// Returns a list of all Pictures in a Table.
         /// <code>
+        /// <![CDATA[
         /// // Create a document.
         /// using (DocX document = DocX.Load(@"Test.docx"))
         /// {
@@ -115,6 +116,7 @@ namespace Novacode
         ///     // Save this document.
         ///     document.Save();
         /// }
+        /// ]]>
         /// </code>
         /// </example>
         public List<Picture> Pictures
@@ -173,7 +175,7 @@ namespace Novacode
         ///     Table t = document.Tables[0];
         ///
         ///     // Get a list of all Hyperlinks in this Table.
-        ///     List<Hyperlink> hyperlinks = t.Hyperlinks;
+        ///     List&lt;Hyperlink&gt; hyperlinks = t.Hyperlinks;
         ///
         ///     // Save this document.
         ///     document.Save();
@@ -2603,7 +2605,7 @@ namespace Novacode
         /// <example>
         /// Creates a table with 3 cells and sets the vertical alignment of each to 1 of the 3 available options.
         /// <code>
-        ///// Create a new document.
+        /// // Create a new document.
         ///using(DocX document = DocX.Create("Test.docx"))
         ///{
         ///    // Insert a Table into this document.
@@ -3348,7 +3350,7 @@ namespace Novacode
         /// </summary>
         /// <example>
         /// <code>
-        ///// Create a new document.
+        /// // Create a new document.
         ///using (DocX document = DocX.Create("Test.docx"))
         ///{
         ///    // Insert a table into this document.

@@ -97,6 +97,7 @@ namespace Novacode
         /// <example>
         /// Returns a list of all Pictures in a Paragraph.
         /// <code>
+        /// <![CDATA[
         /// // Create a document.
         /// using (DocX document = DocX.Load(@"Test.docx"))
         /// {
@@ -109,6 +110,7 @@ namespace Novacode
         ///    // Save this document.
         ///    document.Save();
         /// }
+        /// ]]>
         /// </code>
         /// </example>
         public List<Picture> Pictures
@@ -165,7 +167,7 @@ namespace Novacode
         ///    Paragraph p = document.Paragraphs[0];
         ///    
         ///    // Get all of the hyperlinks in this Paragraph.
-        ///    List<Hyperlink> hyperlinks = paragraph.Hyperlinks;
+        ///    <![CDATA[ List<Hyperlink> ]]> hyperlinks = paragraph.Hyperlinks;
         ///    
         ///    // Change the first hyperlinks text and Uri
         ///    Hyperlink h0 = hyperlinks[0];
@@ -1508,46 +1510,46 @@ namespace Novacode
         //    return newPicture;  
         //}
 
-        /// <summary>
-        /// Insert a Picture at the end of this paragraph.
-        /// </summary>
-        /// <param name="description">A string to describe this Picture.</param>
-        /// <param name="imageID">The unique id that identifies the Image this Picture represents.</param>
-        /// <param name="name">The name of this image.</param>
-        /// <returns>A Picture.</returns>
-        /// <example>
-        /// <code>
-        /// // Create a document using a relative filename.
-        /// using (DocX document = DocX.Create(@"Test.docx"))
-        /// {
-        ///     // Add a new Paragraph to this document.
-        ///     Paragraph p = document.InsertParagraph("Here is Picture 1", false);
-        ///
-        ///     // Add an Image to this document.
-        ///     Novacode.Image img = document.AddImage(@"Image.jpg");
-        ///
-        ///     // Insert pic at the end of Paragraph p.
-        ///     Picture pic = p.InsertPicture(img.Id, "Photo 31415", "A pie I baked.");
-        ///
-        ///     // Rotate the Picture clockwise by 30 degrees. 
-        ///     pic.Rotation = 30;
-        ///
-        ///     // Resize the Picture.
-        ///     pic.Width = 400;
-        ///     pic.Height = 300;
-        ///
-        ///     // Set the shape of this Picture to be a cube.
-        ///     pic.SetPictureShape(BasicShapes.cube);
-        ///
-        ///     // Flip the Picture Horizontally.
-        ///     pic.FlipHorizontal = true;
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// Removed to simplify the API.
+        // <summary>
+        // Insert a Picture at the end of this paragraph.
+        // </summary>
+        // <param name="description">A string to describe this Picture.</param>
+        // <param name="imageID">The unique id that identifies the Image this Picture represents.</param>
+        // <param name="name">The name of this image.</param>
+        // <returns>A Picture.</returns>
+        // <example>
+        // <code>
+        // // Create a document using a relative filename.
+        // using (DocX document = DocX.Create(@"Test.docx"))
+        // {
+        //     // Add a new Paragraph to this document.
+        //     Paragraph p = document.InsertParagraph("Here is Picture 1", false);
+        //
+        //     // Add an Image to this document.
+        //     Novacode.Image img = document.AddImage(@"Image.jpg");
+        //
+        //     // Insert pic at the end of Paragraph p.
+        //     Picture pic = p.InsertPicture(img.Id, "Photo 31415", "A pie I baked.");
+        //
+        //     // Rotate the Picture clockwise by 30 degrees. 
+        //     pic.Rotation = 30;
+        //
+        //     // Resize the Picture.
+        //     pic.Width = 400;
+        //     pic.Height = 300;
+        //
+        //     // Set the shape of this Picture to be a cube.
+        //     pic.SetPictureShape(BasicShapes.cube);
+        //
+        //     // Flip the Picture Horizontally.
+        //     pic.FlipHorizontal = true;
+        //
+        //     // Save all changes made to this document.
+        //     document.Save();
+        // }// Release this document from memory.
+        // </code>
+        // </example>
+        // Removed to simplify the API.
         //public Picture InsertPicture(string imageID, string name, string description)
         //{
         //    Picture p = CreatePicture(Document, imageID, name, description);
@@ -1591,47 +1593,47 @@ namespace Novacode
         //    return p;
         //}
 
-        /// <summary>
-        /// Insert a Picture into this Paragraph at a specified index.
-        /// </summary>
-        /// <param name="description">A string to describe this Picture.</param>
-        /// <param name="imageID">The unique id that identifies the Image this Picture represents.</param>
-        /// <param name="name">The name of this image.</param>
-        /// <param name="index">The index to insert this Picture at.</param>
-        /// <returns>A Picture.</returns>
-        /// <example>
-        /// <code>
-        /// // Create a document using a relative filename.
-        /// using (DocX document = DocX.Create(@"Test.docx"))
-        /// {
-        ///     // Add a new Paragraph to this document.
-        ///     Paragraph p = document.InsertParagraph("Here is Picture 1", false);
-        ///
-        ///     // Add an Image to this document.
-        ///     Novacode.Image img = document.AddImage(@"Image.jpg");
-        ///
-        ///     // Insert pic at the start of Paragraph p.
-        ///     Picture pic = p.InsertPicture(0, img.Id, "Photo 31415", "A pie I baked.");
-        ///
-        ///     // Rotate the Picture clockwise by 30 degrees. 
-        ///     pic.Rotation = 30;
-        ///
-        ///     // Resize the Picture.
-        ///     pic.Width = 400;
-        ///     pic.Height = 300;
-        ///
-        ///     // Set the shape of this Picture to be a cube.
-        ///     pic.SetPictureShape(BasicShapes.cube);
-        ///
-        ///     // Flip the Picture Horizontally.
-        ///     pic.FlipHorizontal = true;
-        ///
-        ///     // Save all changes made to this document.
-        ///     document.Save();
-        /// }// Release this document from memory.
-        /// </code>
-        /// </example>
-        /// Removed to simplify API.
+        // <summary>
+        // Insert a Picture into this Paragraph at a specified index.
+        // </summary>
+        // <param name="description">A string to describe this Picture.</param>
+        // <param name="imageID">The unique id that identifies the Image this Picture represents.</param>
+        // <param name="name">The name of this image.</param>
+        // <param name="index">The index to insert this Picture at.</param>
+        // <returns>A Picture.</returns>
+        // <example>
+        // <code>
+        // // Create a document using a relative filename.
+        // using (DocX document = DocX.Create(@"Test.docx"))
+        // {
+        //     // Add a new Paragraph to this document.
+        //     Paragraph p = document.InsertParagraph("Here is Picture 1", false);
+        //
+        //     // Add an Image to this document.
+        //     Novacode.Image img = document.AddImage(@"Image.jpg");
+        //
+        //     // Insert pic at the start of Paragraph p.
+        //     Picture pic = p.InsertPicture(0, img.Id, "Photo 31415", "A pie I baked.");
+        //
+        //     // Rotate the Picture clockwise by 30 degrees. 
+        //     pic.Rotation = 30;
+        //
+        //     // Resize the Picture.
+        //     pic.Width = 400;
+        //     pic.Height = 300;
+        //
+        //     // Set the shape of this Picture to be a cube.
+        //     pic.SetPictureShape(BasicShapes.cube);
+        //
+        //     // Flip the Picture Horizontally.
+        //     pic.FlipHorizontal = true;
+        //
+        //     // Save all changes made to this document.
+        //     document.Save();
+        // }// Release this document from memory.
+        // </code>
+        // </example>
+        // Removed to simplify API.
         //public Picture InsertPicture(int index, string imageID, string name, string description)
         //{
         //    Picture picture = CreatePicture(Document, imageID, name, description);
@@ -1661,6 +1663,7 @@ namespace Novacode
         /// <summary>
         /// Create a new Picture.
         /// </summary>
+        /// <param name="document"></param>
         /// <param name="id">A unique id that identifies an Image embedded in this document.</param>
         /// <param name="name">The name of this Picture.</param>
         /// <param name="descr">The description of this Picture.</param>
@@ -1921,8 +1924,6 @@ namespace Novacode
         /// </example>
         /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
         /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
         /// <param name="value">The System.String to insert.</param>
         /// <param name="trackChanges">Flag this insert as a change.</param>
         /// <param name="formatting">The text formatting.</param>
@@ -1988,8 +1989,6 @@ namespace Novacode
         /// </example>
         /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
         /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
         /// <param name="index">The index position of the insertion.</param>
         /// <param name="value">The System.String to insert.</param>
         /// <param name="trackChanges">Flag this insert as a change.</param>
@@ -3500,11 +3499,12 @@ namespace Novacode
         /// Append a field of type document property, this field will display the custom property cp, at the end of this paragraph.
         /// </summary>
         /// <param name="cp">The custom property to display.</param>
+        /// <param name="trackChanges"></param>
         /// <param name="f">The formatting to use for this text.</param>
         /// <example>
         /// Create, add and display a custom property in a document.
         /// <code>
-        ///// Load a document.
+        /// // Load a document.
         ///using (DocX document = DocX.Create("CustomProperty_Add.docx"))
         ///{
         ///    // Add a few Custom Properties to this document.
@@ -3541,6 +3541,7 @@ namespace Novacode
         /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
         /// </summary>
         /// <param name="cp">The custom property to display.</param>
+        /// <param name="trackChanges"></param>
         /// <param name="f">The formatting to use for this text.</param>
         /// <example>
         /// Create, add and display a custom property in a document.
@@ -3618,10 +3619,6 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
-        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
         /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
         /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
         /// <param name="index">The position to begin deleting characters.</param>
@@ -3745,8 +3742,6 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool)"/>
-        /// <seealso cref="Paragraph.ReplaceText(string, string, bool, RegexOptions)"/>
         /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
         /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
         /// <param name="index">The position to begin deleting characters.</param>
@@ -3797,8 +3792,6 @@ namespace Novacode
         /// </example>
         /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
         /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(string, bool)"/>
-        /// <seealso cref="Paragraph.InsertText(int, string, bool)"/>
         /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
         /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
         /// <param name="newValue">A System.String to replace all occurances of oldValue.</param>
@@ -3875,7 +3868,7 @@ namespace Novacode
         ///     foreach(Paragraph p in document.Paragraphs)
         ///     {
         ///         // Find all instances of 'go' in this paragraph.
-        ///         List&lt;int&gt; gos = document.FindAll("go");
+        ///         <![CDATA[ List<int> ]]> gos = document.FindAll("go");
         ///
         ///         /* 
         ///          * Insert 'don't' in frount of every instance of 'go' in this document to produce 'don't go'.
@@ -3915,7 +3908,7 @@ namespace Novacode
         ///     foreach(Paragraph p in document.Paragraphs)
         ///     {
         ///         // Find all instances of 'go' in this paragraph (Ignore case).
-        ///         List&lt;int&gt; gos = document.FindAll("go", RegexOptions.IgnoreCase);
+        ///         <![CDATA[ List<int> ]]> gos = document.FindAll("go", RegexOptions.IgnoreCase);
         ///
         ///         /* 
         ///          * Insert 'don't' in frount of every instance of 'go' in this document to produce 'don't go'.

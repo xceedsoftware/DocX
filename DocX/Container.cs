@@ -20,7 +20,7 @@ namespace Novacode
         /// using (DocX document = DocX.Load(@"Test.docx"))
         /// {
         ///    // All Paragraphs in this document.
-        ///    List<Paragraph> documentParagraphs = document.Paragraphs;
+        ///    <![CDATA[ List<Paragraph> ]]> documentParagraphs = document.Paragraphs;
         ///    
         ///    // Make sure this document contains at least one Table.
         ///    if (document.Tables.Count() > 0)
@@ -29,7 +29,7 @@ namespace Novacode
         ///        Table t = document.Tables[0];
         ///
         ///        // All Paragraphs in this Table.
-        ///        List<Paragraph> tableParagraphs = t.Paragraphs;
+        ///        <![CDATA[ List<Paragraph> ]]> tableParagraphs = t.Paragraphs;
         ///    
         ///        // Make sure this Table contains at least one Row.
         ///        if (t.Rows.Count() > 0)
@@ -38,7 +38,7 @@ namespace Novacode
         ///            Row r = t.Rows[0];
         ///
         ///            // All Paragraphs in this Row.
-        ///            List<Paragraph> rowParagraphs = r.Paragraphs;
+        ///            <![CDATA[ List<Paragraph> ]]> rowParagraphs = r.Paragraphs;
         ///
         ///            // Make sure this Row contains at least one Cell.
         ///            if (r.Cells.Count() > 0)
@@ -47,7 +47,7 @@ namespace Novacode
         ///                Cell c = r.Cells[0];
         ///
         ///                // All Paragraphs in this Cell.
-        ///                List<Paragraph> cellParagraphs = c.Paragraphs;
+        ///                <![CDATA[ List<Paragraph> ]]> cellParagraphs = c.Paragraphs;
         ///            }
         ///        }
         ///    }
@@ -101,7 +101,7 @@ namespace Novacode
                 return paragraphs.AsReadOnly();
             }
         }
-        // <summary>
+        /// <summary>
         /// Removes paragraph at specified position
         /// </summary>
         /// <param name="index">Index of paragraph to remove</param>
@@ -126,7 +126,7 @@ namespace Novacode
         /// <summary>
         /// Removes paragraph
         /// </summary>
-        /// <param name="paragraph">Paragraph to remove</param>
+        /// <param name="p">Paragraph to remove</param>
         /// <returns>True if removed</returns>
         public bool RemoveParagraph(Paragraph p)
         {
@@ -395,7 +395,7 @@ namespace Novacode
         /// Find all unique instances of the given Regex Pattern,
         /// returning the list of the unique strings found
         /// </summary>
-        /// <param name="str"></param>
+        /// <param name="pattern"></param>
         /// <param name="options"></param>
         /// <returns></returns>
         public virtual List<string> FindUniqueByPattern(string pattern, RegexOptions options)

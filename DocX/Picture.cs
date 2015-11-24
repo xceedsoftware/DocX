@@ -37,7 +37,9 @@ namespace Novacode
         /// <summary>
         /// Wraps an XElement as an Image
         /// </summary>
+        /// <param name="document"></param>
         /// <param name="i">The XElement i to wrap</param>
+        /// <param name="img"></param>
         internal Picture(DocX document, XElement i, Image img):base(document, i)
 		{
 		    picture_rels = new Dictionary<PackagePart, PackageRelationship>();
