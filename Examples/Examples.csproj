@@ -49,7 +49,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DocX">
-      <HintPath>..\DocX\bin\Release\DocX.dll</HintPath>
+      <HintPath>..\DocX\bin\Debug\DocX.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
