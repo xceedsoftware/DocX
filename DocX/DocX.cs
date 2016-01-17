@@ -247,7 +247,7 @@ namespace Novacode
         /// }
         /// </code>
         /// </example>
-        /// <seealso cref="AddProtection"/>
+        /// <seealso cref="AddProtection(EditRestrictions)"/>
         /// <seealso cref="RemoveProtection"/>
         /// <seealso cref="GetProtectionType"/>
         public bool isProtected
@@ -282,7 +282,7 @@ namespace Novacode
         /// }
         /// </code>
         /// </example>
-        /// <seealso cref="AddProtection"/>
+        /// <seealso cref="AddProtection(EditRestrictions)"/>
         /// <seealso cref="RemoveProtection"/>
         /// <seealso cref="isProtected"/>
         public EditRestrictions GetProtectionType()
@@ -494,7 +494,7 @@ namespace Novacode
         /// }
         /// </code>
         /// </example>
-        /// <seealso cref="AddProtection"/>
+        /// <seealso cref="AddProtection(EditRestrictions)"/>
         /// <seealso cref="GetProtectionType"/>
         /// <seealso cref="isProtected"/>
         public void RemoveProtection()
@@ -594,6 +594,8 @@ namespace Novacode
         /// <summary>
         /// Should the Document use different Headers and Footers for odd and even pages?
         /// </summary>
+        /// <example>
+        /// <code>
         /// // Create a document.
         /// using (DocX document = DocX.Create(@"Test.docx"))
         /// {
@@ -622,6 +624,7 @@ namespace Novacode
         ///     // Save all changes to this document.
         ///     document.Save();    
         /// }// Release this document from memory.
+        /// </code>
         /// </example>
         public bool DifferentOddAndEvenPages
         {
@@ -2243,6 +2246,7 @@ namespace Novacode
         /// Creates a document using a Stream.
         /// </summary>
         /// <param name="stream">The Stream to create the document from.</param>
+        /// <param name="documentType"></param>
         /// <returns>Returns a DocX object which represents the document.</returns>
         /// <example>
         /// Creating a document from a FileStream.
@@ -2288,7 +2292,6 @@ namespace Novacode
         /// }
         /// </code>
         /// </example>
-        /// <seealso cref="DocX.Create(string)"/>
         /// <seealso cref="DocX.Load(System.IO.Stream)"/>
         /// <seealso cref="DocX.Load(string)"/>
         /// <seealso cref="DocX.Save()"/>
@@ -2310,6 +2313,7 @@ namespace Novacode
         /// Creates a document using a fully qualified or relative filename.
         /// </summary>
         /// <param name="filename">The fully qualified or relative filename.</param>
+        /// <param name="documentType"></param>
         /// <returns>Returns a DocX object which represents the document.</returns>
         /// <example>
         /// <code>
@@ -2332,7 +2336,6 @@ namespace Novacode
         ///     document.Save();
         /// }// Release this document from memory
         /// </code>
-        /// <seealso cref="DocX.Create(System.IO.Stream)"/>
         /// <seealso cref="DocX.Load(System.IO.Stream)"/>
         /// <seealso cref="DocX.Load(string)"/>
         /// <seealso cref="DocX.Save()"/>
@@ -2604,8 +2607,6 @@ namespace Novacode
         /// </code>
         /// </example>
         /// <seealso cref="DocX.Load(string)"/>
-        /// <seealso cref="DocX.Create(System.IO.Stream)"/>
-        /// <seealso cref="DocX.Create(string)"/>
         /// <seealso cref="DocX.Save()"/>
         public static DocX Load(Stream stream)
         {
@@ -2655,8 +2656,6 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// <seealso cref="DocX.Load(System.IO.Stream)"/>
-        /// <seealso cref="DocX.Create(System.IO.Stream)"/>
-        /// <seealso cref="DocX.Create(string)"/>
         /// <seealso cref="DocX.Save()"/>
         /// </example>
         public static DocX Load(string filename)
@@ -3360,8 +3359,6 @@ namespace Novacode
         /// </code>
         /// </example>
         /// <seealso cref="DocX.SaveAs(string)"/>
-        /// <seealso cref="DocX.Create(System.IO.Stream)"/>
-        /// <seealso cref="DocX.Create(string)"/>
         /// <seealso cref="DocX.Load(System.IO.Stream)"/>
         /// <seealso cref="DocX.Load(string)"/> 
         /// <!-- 
@@ -3660,8 +3657,6 @@ namespace Novacode
         /// </code>
         /// </example>
         /// <seealso cref="DocX.Save()"/>
-        /// <seealso cref="DocX.Create(System.IO.Stream)"/>
-        /// <seealso cref="DocX.Create(string)"/>
         /// <seealso cref="DocX.Load(System.IO.Stream)"/>
         /// <seealso cref="DocX.Load(string)"/>
         public void SaveAs(string filename)
@@ -3721,8 +3716,6 @@ namespace Novacode
         /// </code>
         /// </example>
         /// <seealso cref="DocX.Save()"/>
-        /// <seealso cref="DocX.Create(System.IO.Stream)"/>
-        /// <seealso cref="DocX.Create(string)"/>
         /// <seealso cref="DocX.Load(System.IO.Stream)"/>
         /// <seealso cref="DocX.Load(string)"/>
         public void SaveAs(Stream stream)
@@ -4284,7 +4277,7 @@ namespace Novacode
         }
 
         /// <summary>
-        /// Inserts at TOC into the current document before the provided <see cref="reference"/>
+        /// Inserts at TOC into the current document before the provided <paramref name="reference"/>
         /// </summary>
         /// <param name="reference">The paragraph to use as reference</param>
         /// <param name="title">The title of the TOC</param>
