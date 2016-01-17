@@ -2556,6 +2556,25 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Saves and copies the document into a new DocX object
+        /// </summary>
+        /// <returns>
+        /// Returns a new DocX object with an identical document
+        /// </returns>
+        /// <example>
+        /// <seealso cref="DocX.Load(System.IO.Stream)"/>
+        /// <seealso cref="DocX.Save()"/>
+        /// </example>
+        public DocX Copy()
+        {
+            MemoryStream ms = new MemoryStream();
+            SaveAs(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+
+            return DocX.Load(ms);
+        }
+
+        /// <summary>
         /// Loads a document into a DocX object using a Stream.
         /// </summary>
         /// <param name="stream">The Stream to load the document from.</param>
