@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 
 namespace Novacode
 {
-    public class Footer : Container
+    public class Footer : Container, IParagraphContainer
     {
         public bool PageNumbers 
         { 

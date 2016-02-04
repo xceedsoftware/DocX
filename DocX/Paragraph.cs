@@ -3803,7 +3803,7 @@ namespace Novacode
         /// <param name="fo">How should formatting be matched?</param>
         public void ReplaceText(string oldValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch)
         {
-            MatchCollection mc = Regex.Matches(this.Text, Regex.Escape(oldValue), options);
+            MatchCollection mc = Regex.Matches(Text, Regex.Escape(oldValue), options);
 
             // Loop through the matches in reverse order
             foreach (Match m in mc.Cast<Match>().Reverse())
@@ -3852,6 +3852,70 @@ namespace Novacode
                 }
             }
         }
+
+        /// <summary>
+        /// Find pattern regex must return a group match.
+        /// </summary>
+        /// <param name="findPattern">Regex pattern that must include one group match. ie (.*)</param>
+        /// <param name="regexMatchHandler">A func that accepts the matching find grouping text and returns a replacement value</param>
+        /// <param name="trackChanges"></param>
+        /// <param name="options"></param>
+        /// <param name="newFormatting"></param>
+        /// <param name="matchFormatting"></param>
+        /// <param name="fo"></param>
+        public void ReplaceText(string findPattern, Func<string,string> regexMatchHandler, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch)
+        {
+            var matchCollection = Regex.Matches(Text, findPattern, options);
+
+            // Loop through the matches in reverse order
+            foreach (var match in matchCollection.Cast<Match>().Reverse())
+            {
+                // Assume the formatting matches until proven otherwise.
+                bool formattingMatch = true;
+
+                // Does the user want to match formatting?
+                if (matchFormatting != null)
+                {
+                    // The number of characters processed so far
+                    int processed = 0;
+
+                    do
+                    {
+                        // Get the next run effected
+                        Run run = GetFirstRunEffectedByEdit(match.Index + processed);
+
+                        // Get this runs properties
+                        XElement rPr = run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName));
+
+                        if (rPr == null)
+                            rPr = new Formatting().Xml;
+
+                        /* 
+                         * Make sure that every formatting element in f.xml is also in this run,
+                         * if this is not true, then their formatting does not match.
+                         */
+                        if (!HelperFunctions.ContainsEveryChildOf(matchFormatting.Xml, rPr, fo))
+                        {
+                            formattingMatch = false;
+                            break;
+                        }
+
+                        // We have processed some characters, so update the counter.
+                        processed += run.Value.Length;
+
+                    } while (processed < match.Length);
+                }
+
+                // If the formatting matches, do the replace.
+                if (formattingMatch)
+                {
+                    var newValue = regexMatchHandler.Invoke(match.Groups[1].Value);
+                    InsertText(match.Index + match.Value.Length, newValue, trackChanges, newFormatting);
+                    RemoveText(match.Index, match.Value.Length, trackChanges);
+                }
+            }
+        }
+
 
         /// <summary>
         /// Find all instances of a string in this paragraph and return their indexes in a List.
