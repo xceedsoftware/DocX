@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 
 namespace Novacode
 {
-    public class Header : Container
+    public class Header : Container, IParagraphContainer
     {
         public bool PageNumbers
         {

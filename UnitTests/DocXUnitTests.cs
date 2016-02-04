@@ -139,6 +139,36 @@ namespace UnitTests
             
         }
 
+        public void TestPatternFuncReplacement()
+        {
+            
+        }
+
+        public string ReplaceFunc(string findStr)
+        {
+            Dictionary<string, string> testPatterns = new Dictionary<string, string>()
+            {
+                {"COURT NAME","Fred Frump"},
+                {"Case Number","cr-md-2011-1234567"}
+            };
+
+            if (testPatterns.ContainsKey(findStr))
+            {
+                return testPatterns[findStr];
+            }
+            return findStr;
+        }
+
+        [TestMethod]
+        public void RegexTest()
+        {
+            var findPattern = "<(.*?)>";
+            var sample = "<Match This> text";
+            var matchCollection = Regex.Matches(sample, findPattern,RegexOptions.IgnoreCase);
+            int i = 1;
+
+        }
+
         [TestMethod]
         public void Test_Pattern_Replacement()
         {
@@ -171,7 +201,10 @@ namespace UnitTests
 
                 // Do the replacing
                 foreach (var p in testPatterns)
-                    replaceDoc.ReplaceText("<" + p.Key + ">", p.Value, false, RegexOptions.IgnoreCase);
+                {
+                    replaceDoc.ReplaceText("<(.*?)>", ReplaceFunc,false,RegexOptions.IgnoreCase);
+                    //replaceDoc.ReplaceText("<" + p.Key + ">", p.Value, false, RegexOptions.IgnoreCase);
+                }
 
                 // Make sure the origional string are no longer in the document.
                 Assert.IsTrue(replaceDoc.FindAll("<COURT NAME>").Count == 0);

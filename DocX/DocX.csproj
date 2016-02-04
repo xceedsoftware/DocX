@@ -112,6 +112,7 @@
     <Compile Include="Headers.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="Hyperlink.cs" />
+    <Compile Include="IParagraphContainer.cs" />
     <Compile Include="List.cs" />
     <Compile Include="PageLayout.cs" />
     <Compile Include="Section.cs" />
