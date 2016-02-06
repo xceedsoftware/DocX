@@ -638,7 +638,7 @@ namespace Novacode
         {
             int file1byte, file2byte;
 
-            if (streamOne.Length != streamOne.Length)
+            if (streamOne.Length != streamTwo.Length)
             {
                 // Return false to indicate files are different
                 return false;
