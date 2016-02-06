@@ -2003,11 +2003,11 @@ namespace UnitTests
                 var italicTextFormatting = document.Paragraphs[0].MagicText[4].formatting;
                 var boldItalicUnderlineTextFormatting = document.Paragraphs[0].MagicText[6].formatting;
 
-                Assert.IsTrue(boldTextFormatting.Bold);
-                Assert.IsTrue(italicTextFormatting.Italic);
+                Assert.IsTrue(boldTextFormatting.Bold.HasValue && boldTextFormatting.Bold.Value);
+                Assert.IsTrue(italicTextFormatting.Italic.HasValue && italicTextFormatting.Italic.Value);
                 Assert.AreEqual(underlinedTextFormatting.UnderlineStyle, UnderlineStyle.singleLine);
-                Assert.IsTrue(boldItalicUnderlineTextFormatting.Bold);
-                Assert.IsTrue(boldItalicUnderlineTextFormatting.Italic);
+                Assert.IsTrue(boldItalicUnderlineTextFormatting.Bold.HasValue && boldItalicUnderlineTextFormatting.Bold.Value);
+                Assert.IsTrue(boldItalicUnderlineTextFormatting.Italic.HasValue && boldItalicUnderlineTextFormatting.Italic.Value);
                 Assert.AreEqual(boldItalicUnderlineTextFormatting.UnderlineStyle, UnderlineStyle.singleLine);
             }
         }
@@ -2028,11 +2028,11 @@ namespace UnitTests
                 var italicTextFormatting = document.Paragraphs[0].MagicText[2].formatting;
                 var boldItalicUnderlineTextFormatting = document.Paragraphs[0].MagicText[3].formatting;
 
-                Assert.IsTrue(boldTextFormatting.Bold);
-                Assert.IsTrue(italicTextFormatting.Italic);
+                Assert.IsTrue(boldTextFormatting.Bold.HasValue && boldTextFormatting.Bold.Value);
+                Assert.IsTrue(italicTextFormatting.Italic.HasValue && italicTextFormatting.Italic.Value);
                 Assert.AreEqual(underlinedTextFormatting.UnderlineStyle, UnderlineStyle.singleLine);
-                Assert.IsTrue(boldItalicUnderlineTextFormatting.Bold);
-                Assert.IsTrue(boldItalicUnderlineTextFormatting.Italic);
+                Assert.IsTrue(boldItalicUnderlineTextFormatting.Bold.HasValue && boldItalicUnderlineTextFormatting.Bold.Value);
+                Assert.IsTrue(boldItalicUnderlineTextFormatting.Italic.HasValue && boldItalicUnderlineTextFormatting.Italic.Value);
                 Assert.AreEqual(boldItalicUnderlineTextFormatting.UnderlineStyle, UnderlineStyle.singleLine);
             }
         }
