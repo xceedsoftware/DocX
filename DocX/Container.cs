@@ -422,7 +422,7 @@ namespace Novacode
             return uniqueResults.Keys.ToList();  // return the unique list of results
         }
 
-        public virtual void ReplaceText(string searchValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch)
+        public virtual void ReplaceText(string searchValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch, bool escapeRegEx = true, bool useRegExSubstitutions = false)
         {
             if (string.IsNullOrEmpty(searchValue))
                 throw new ArgumentException("oldValue cannot be null or empty", "searchValue");
@@ -434,18 +434,18 @@ namespace Novacode
             foreach (var header in headerList)
                 if (header != null)
                     foreach (var paragraph in header.Paragraphs)
-                        paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions);
+                        paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions, escapeRegEx, useRegExSubstitutions);
 
             // ReplaceText int main body of document.
             foreach (var paragraph in Paragraphs)
-                paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions);
+                paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions, escapeRegEx, useRegExSubstitutions);
 
             // ReplaceText in Footers of the document.
             var footerList = new List<Footer> { Document.Footers.first, Document.Footers.even, Document.Footers.odd };
             foreach (var footer in footerList)
                 if (footer != null)
                     foreach (var paragraph in footer.Paragraphs)
-                        paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions);
+                        paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions, escapeRegEx, useRegExSubstitutions);
         }
 
         /// <summary>

@@ -10,38 +10,38 @@ namespace Novacode
     /// </summary>
     public class Formatting : IComparable
     {
-        private XElement rPr;
-        private bool hidden;
-        private bool bold;
-        private bool italic;
-        private StrikeThrough strikethrough;
-        private Script script;
-        private Highlight highlight;
-        private double? size;
-        private Color? fontColor;
-        private Color? underlineColor;
-        private UnderlineStyle underlineStyle;
-        private Misc misc;
-        private CapsStyle capsStyle;
-        private FontFamily fontFamily;
-        private int? percentageScale;
-        private int? kerning;
-        private int? position;
-        private double? spacing;
+		private XElement rPr;
+		private bool? hidden;
+		private bool? bold;
+		private bool? italic;
+		private StrikeThrough? strikethrough;
+		private Script? script;
+		private Highlight? highlight;
+		private double? size;
+		private Color? fontColor;
+		private Color? underlineColor;
+		private UnderlineStyle? underlineStyle;
+		private Misc? misc;
+		private CapsStyle? capsStyle;
+		private FontFamily fontFamily;
+		private int? percentageScale;
+		private int? kerning;
+		private int? position;
+		private double? spacing;
 
-        private CultureInfo language;
+		private CultureInfo language;
 
         /// <summary>
         /// A text formatting.
         /// </summary>
         public Formatting()
         {
-            capsStyle = CapsStyle.none;
-            strikethrough = StrikeThrough.none;
-            script = Script.none;
-            highlight = Highlight.none;
-            underlineStyle = UnderlineStyle.none;
-            misc = Misc.none;
+            capsStyle = Novacode.CapsStyle.none;
+            strikethrough = Novacode.StrikeThrough.none;
+            script = Novacode.Script.none;
+            highlight = Novacode.Highlight.none;
+            underlineStyle = Novacode.UnderlineStyle.none;
+            misc = Novacode.Misc.none;
 
             // Use current culture by default
             language = CultureInfo.CurrentCulture;
@@ -65,7 +65,35 @@ namespace Novacode
             } 
         }
 
-        public static Formatting Parse(XElement rPr)
+		/// <summary>
+		/// Returns a new identical instance of Formatting.
+		/// </summary>
+		/// <returns></returns>
+		public Formatting Clone()
+		{
+			Formatting newf = new Formatting();
+			newf.Bold = bold;
+			newf.CapsStyle = capsStyle;
+			newf.FontColor = fontColor;
+			newf.FontFamily = fontFamily;
+			newf.Hidden = hidden;
+			newf.Highlight = highlight;
+			newf.Italic = italic;
+			if (kerning.HasValue) { newf.Kerning = kerning; }
+			newf.Language = language;
+			newf.Misc = misc;
+			if (percentageScale.HasValue) { newf.PercentageScale = percentageScale; }
+			if (position.HasValue) { newf.Position = position; }
+			newf.Script = script;
+			if (size.HasValue) { newf.Size = size; }
+			if (spacing.HasValue) { newf.Spacing = spacing; }
+			newf.StrikeThrough = strikethrough;
+			newf.UnderlineColor = underlineColor;
+			newf.UnderlineStyle = underlineStyle;
+			return newf;
+		}
+
+		public static Formatting Parse(XElement rPr)
         {
             Formatting formatting = new Formatting();
 
@@ -167,67 +195,76 @@ namespace Novacode
                     );
                 }
 
-                if(hidden)
-                    rPr.Add(new XElement(XName.Get("vanish", DocX.w.NamespaceName)));
+				if (hidden.HasValue && hidden.Value)
+					rPr.Add(new XElement(XName.Get("vanish", DocX.w.NamespaceName)));
 
-                if (bold)
-                    rPr.Add(new XElement(XName.Get("b", DocX.w.NamespaceName)));
+				if (bold.HasValue && bold.Value)
+					rPr.Add(new XElement(XName.Get("b", DocX.w.NamespaceName)));
 
-                if (italic)
-                    rPr.Add(new XElement(XName.Get("i", DocX.w.NamespaceName)));
+				if (italic.HasValue && italic.Value)
+					rPr.Add(new XElement(XName.Get("i", DocX.w.NamespaceName)));
 
-                switch (underlineStyle)
-                {
-                    case UnderlineStyle.none:
-                        break;
-                    case UnderlineStyle.singleLine:
-                        rPr.Add(new XElement(XName.Get("u", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), "single")));
-                        break;
-                    case UnderlineStyle.doubleLine:
-                        rPr.Add(new XElement(XName.Get("u", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), "double")));
-                        break;
-                    default:
-                        rPr.Add(new XElement(XName.Get("u", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), underlineStyle.ToString())));
-                        break;
-                }
+				if (underlineStyle.HasValue)
+				{
+					switch (underlineStyle)
+					{
+					case Novacode.UnderlineStyle.none:
+						break;
+					case Novacode.UnderlineStyle.singleLine:
+						rPr.Add(new XElement(XName.Get("u", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), "single")));
+						break;
+					case Novacode.UnderlineStyle.doubleLine:
+						rPr.Add(new XElement(XName.Get("u", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), "double")));
+						break;
+					default:
+						rPr.Add(new XElement(XName.Get("u", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), underlineStyle.ToString())));
+						break;
+					}
+				}
 
                 if(underlineColor.HasValue)
                 {
                     // If an underlineColor has been set but no underlineStyle has been set
-                    if (underlineStyle == UnderlineStyle.none)
+                    if (underlineStyle == Novacode.UnderlineStyle.none)
                     {
                         // Set the underlineStyle to the default
-                        underlineStyle = UnderlineStyle.singleLine;
+                        underlineStyle = Novacode.UnderlineStyle.singleLine;
                         rPr.Add(new XElement(XName.Get("u", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), "single")));
                     }
 
                     rPr.Element(XName.Get("u", DocX.w.NamespaceName)).Add(new XAttribute(XName.Get("color", DocX.w.NamespaceName), underlineColor.Value.ToHex()));
                 }
 
-                switch (strikethrough)
-                {
-                    case StrikeThrough.none:
-                        break;
-                    case StrikeThrough.strike:
-                        rPr.Add(new XElement(XName.Get("strike", DocX.w.NamespaceName)));
-                        break;
-                    case StrikeThrough.doubleStrike:
-                        rPr.Add(new XElement(XName.Get("dstrike", DocX.w.NamespaceName)));
-                        break;
-                    default:
-                        break;
-                }
-                  
-                switch (script)
-                {
-                    case Script.none:
-                        break;
-                    default:
-                        rPr.Add(new XElement(XName.Get("vertAlign", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), script.ToString())));
-                        break;
-                }
+				if (strikethrough.HasValue)
+				{
+					switch (strikethrough)
+					{
+					case Novacode.StrikeThrough.none:
+						break;
+					case Novacode.StrikeThrough.strike:
+						rPr.Add(new XElement(XName.Get("strike", DocX.w.NamespaceName)));
+						break;
+					case Novacode.StrikeThrough.doubleStrike:
+						rPr.Add(new XElement(XName.Get("dstrike", DocX.w.NamespaceName)));
+						break;
+					default:
+						break;
+					}
+				}
 
-                if (size.HasValue)
+				if (script.HasValue)
+				{
+					switch (script)
+					{
+					case Novacode.Script.none:
+						break;
+					default:
+						rPr.Add(new XElement(XName.Get("vertAlign", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), script.ToString())));
+						break;
+					}
+				}
+
+				if (size.HasValue)
                 {
                     rPr.Add(new XElement(XName.Get("sz", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), (size * 2).ToString())));
                     rPr.Add(new XElement(XName.Get("szCs", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), (size * 2).ToString())));
@@ -236,63 +273,72 @@ namespace Novacode
                 if(fontColor.HasValue)
                     rPr.Add(new XElement(XName.Get("color", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), fontColor.Value.ToHex())));
 
-                switch (highlight)
-                {
-                    case Highlight.none:
-                        break;
-                    default:
-                        rPr.Add(new XElement(XName.Get("highlight", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), highlight.ToString())));
-                        break;
-                }
+				if (highlight.HasValue)
+				{
+					switch (highlight)
+					{
+					case Novacode.Highlight.none:
+						break;
+					default:
+						rPr.Add(new XElement(XName.Get("highlight", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), highlight.ToString())));
+						break;
+					}
+				}
 
-                switch (capsStyle)
-                {
-                    case CapsStyle.none:
-                        break;
-                    default:
-                        rPr.Add(new XElement(XName.Get(capsStyle.ToString(), DocX.w.NamespaceName)));
-                        break;
-                }
+				if (capsStyle.HasValue)
+				{
+					switch (capsStyle)
+					{
+					case Novacode.CapsStyle.none:
+						break;
+					default:
+						rPr.Add(new XElement(XName.Get(capsStyle.ToString(), DocX.w.NamespaceName)));
+						break;
+					}
+				}
 
-                switch (misc)
-                {
-                    case Misc.none:
-                        break;
-                    case Misc.outlineShadow:
-                        rPr.Add(new XElement(XName.Get("outline", DocX.w.NamespaceName)));
-                        rPr.Add(new XElement(XName.Get("shadow", DocX.w.NamespaceName)));
-                        break;
-                    case Misc.engrave:
-                        rPr.Add(new XElement(XName.Get("imprint", DocX.w.NamespaceName)));
-                        break;
-                    default:
-                        rPr.Add(new XElement(XName.Get(misc.ToString(), DocX.w.NamespaceName)));
-                        break;
-                }
+				if (misc.HasValue)
+				{
+					switch (misc)
+					{
+					case Novacode.Misc.none:
+						break;
+					case Novacode.Misc.outlineShadow:
+						rPr.Add(new XElement(XName.Get("outline", DocX.w.NamespaceName)));
+						rPr.Add(new XElement(XName.Get("shadow", DocX.w.NamespaceName)));
+						break;
+					case Novacode.Misc.engrave:
+						rPr.Add(new XElement(XName.Get("imprint", DocX.w.NamespaceName)));
+						break;
+					default:
+						rPr.Add(new XElement(XName.Get(misc.ToString(), DocX.w.NamespaceName)));
+						break;
+					}
+				}
 
-                return rPr;
+				return rPr;
             }
         }
 
         /// <summary>
         /// This formatting will apply Bold.
         /// </summary>
-        public bool Bold { get { return bold; } set { bold = value;} }
+        public bool? Bold { get { return bold; } set { bold = value;} }
 
         /// <summary>
         /// This formatting will apply Italic.
         /// </summary>
-        public bool Italic { get { return italic; } set { italic = value; } }
+        public bool? Italic { get { return italic; } set { italic = value; } }
 
         /// <summary>
         /// This formatting will apply StrickThrough.
         /// </summary>
-        public StrikeThrough StrikeThrough { get { return strikethrough; } set { strikethrough = value; } }
+        public StrikeThrough? StrikeThrough { get { return strikethrough; } set { strikethrough = value; } }
 
         /// <summary>
         /// The script that this formatting should be, normal, superscript or subscript.
         /// </summary>
-        public Script Script { get { return script; } set { script = value; } }
+        public Script? Script { get { return script; } set { script = value; } }
         
         /// <summary>
         /// The Size of this text, must be between 0 and 1638.
@@ -398,12 +444,12 @@ namespace Novacode
         /// <summary>
         /// Highlight colour.
         /// </summary>
-        public Highlight Highlight { get { return highlight; } set { highlight = value; } }
+        public Highlight? Highlight { get { return highlight; } set { highlight = value; } }
        
         /// <summary>
         /// The Underline style that this formatting applies.
         /// </summary>
-        public UnderlineStyle UnderlineStyle { get { return underlineStyle; } set { underlineStyle = value; } }
+        public UnderlineStyle? UnderlineStyle { get { return underlineStyle; } set { underlineStyle = value; } }
         
         /// <summary>
         /// The underline colour.
@@ -413,20 +459,20 @@ namespace Novacode
         /// <summary>
         /// Misc settings.
         /// </summary>
-        public Misc Misc { get { return misc; } set { misc = value; } }
+        public Misc? Misc { get { return misc; } set { misc = value; } }
         
         /// <summary>
         /// Is this text hidden or visible.
         /// </summary>
-        public bool Hidden { get { return hidden; } set { hidden = value; } }
+        public bool? Hidden { get { return hidden; } set { hidden = value; } }
         
         /// <summary>
         /// Capitalization style.
         /// </summary>
-        public CapsStyle CapsStyle { get { return capsStyle; } set { capsStyle = value; } }
+        public CapsStyle? CapsStyle { get { return capsStyle; } set { capsStyle = value; } }
         
         /// <summary>
-        /// The font familt of this formatting.
+        /// The font family of this formatting.
         /// </summary>
         /// <!-- 
         /// Bug found and fixed by krugs525 on August 12 2009.
