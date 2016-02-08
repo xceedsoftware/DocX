@@ -3892,7 +3892,7 @@ namespace Novacode
                 {
 					string repl = newValue;
 					//perform RegEx substitutions. Only named groups are not supported. Everything else is supported. However character escapes are not covered.
-					if (useRegExSubstitutions)
+					if (useRegExSubstitutions && !String.IsNullOrEmpty(repl))
 					{
 						repl = repl.Replace("$&", m.Value);
 						if (m.Groups.Count > 0)
@@ -3920,9 +3920,10 @@ namespace Novacode
 						repl = repl.Replace("$_", tText);
 						repl = repl.Replace("$$", "$");
 					}
-
-					InsertText(m.Index + m.Length, repl, trackChanges, newFormatting);
-                    RemoveText(m.Index, m.Length, trackChanges);
+					if (!String.IsNullOrEmpty(repl))
+						InsertText(m.Index + m.Length, repl, trackChanges, newFormatting);
+					if (m.Length > 0)
+						RemoveText(m.Index, m.Length, trackChanges);
                 }
             }
         }

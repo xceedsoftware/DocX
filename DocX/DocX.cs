@@ -1113,6 +1113,7 @@ namespace Novacode
         /// Insert the contents of another document at the end of this document. 
         /// </summary>
         /// <param name="remote_document">The document to insert at the end of this document.</param>
+		/// <param name="append">If true, document is inserted at the end, otherwise document is inserted at the beginning.</param>
         /// <example>
         /// Create a new document and insert an old document into it.
         /// <code>
@@ -1134,7 +1135,7 @@ namespace Novacode
         /// If the document being inserted contains Images, CustomProperties and or custom styles, these will be correctly inserted into the new document. In the case of Images, new ID's are generated for the Images being inserted to avoid ID conflicts. CustomProperties with the same name will be ignored not replaced.
         /// </remarks>
         /// </example>
-        public void InsertDocument(DocX remote_document)
+        public void InsertDocument(DocX remote_document, bool append = true)
         {
             // We don't want to effect the origional XDocument, so create a new one from the old one.
             XDocument remote_mainDoc = new XDocument(remote_document.mainDoc);
@@ -1340,10 +1341,13 @@ namespace Novacode
 
             // Add the remote documents contents to this document.
             XElement local_body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
-            local_body.Add(remote_body.Elements());
+			if (append)
+				local_body.Add(remote_body.Elements());
+			else
+				local_body.AddFirst(remote_body.Elements());
 
-            // Copy any missing root attributes to the local document.
-            foreach (XAttribute a in remote_mainDoc.Root.Attributes())
+			// Copy any missing root attributes to the local document.
+			foreach (XAttribute a in remote_mainDoc.Root.Attributes())
             {
                 if (mainDoc.Root.Attribute(a.Name) == null)
                 {
