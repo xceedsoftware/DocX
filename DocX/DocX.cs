@@ -49,7 +49,7 @@ namespace Novacode
                     {
                         float f;
                         if (float.TryParse(top.Value, out f))
-                            return (int)(f / 15.0f);
+                            return (int)(f / 20.0f);
                     }
                 }
             }
@@ -69,7 +69,7 @@ namespace Novacode
                     XAttribute top = pgMar.Attribute(xName);
                     if (top != null)
                     {
-                        top.SetValue(value * 15);
+                        top.SetValue(value * 20);
                     }
                 }
             }
@@ -86,7 +86,10 @@ namespace Novacode
             }
         }
 
-        public float MarginTop
+        /// <summary>
+		/// Top margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+		/// </summary>
+		public float MarginTop
         {
             get
             {
@@ -99,7 +102,10 @@ namespace Novacode
             }
         }
 
-        public float MarginBottom
+		/// <summary>
+		/// Bottom margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+		/// </summary>
+		public float MarginBottom
         {
             get
             {
@@ -112,7 +118,10 @@ namespace Novacode
             }
         }
 
-        public float MarginLeft
+		/// <summary>
+		/// Left margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+		/// </summary>
+		public float MarginLeft
         {
             get
             {
@@ -125,7 +134,10 @@ namespace Novacode
             }
         }
 
-        public float MarginRight
+		/// <summary>
+		/// Right margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+		/// </summary>
+		public float MarginRight
         {
             get
             {
@@ -138,7 +150,10 @@ namespace Novacode
             }
         }
 
-        public float PageWidth
+		/// <summary>
+		/// Page width value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+		/// </summary>
+		public float PageWidth
         {
             get
             {
@@ -155,12 +170,12 @@ namespace Novacode
                         {
                             float f;
                             if (float.TryParse(w.Value, out f))
-                                return (int)(f / 15.0f);
+                                return (int)(f / 20.0f);
                         }
                     }
                 }
 
-                return (int)(11906.0f / 15.0f);
+                return (12240.0f / 20.0f);
             }
 
             set
@@ -177,14 +192,17 @@ namespace Novacode
 
                         if (pgSz != null)
                         {
-                            pgSz.SetAttributeValue(XName.Get("w", DocX.w.NamespaceName), value * 15);
+                            pgSz.SetAttributeValue(XName.Get("w", DocX.w.NamespaceName), value * 20);
                         }
                     }
                 }
             }
         }
 
-        public float PageHeight
+		/// <summary>
+		/// Page height value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+		/// </summary>
+		public float PageHeight
         {
             get
             {
@@ -201,12 +219,12 @@ namespace Novacode
                         {
                             float f;
                             if (float.TryParse(w.Value, out f))
-                                return (int)(f / 15.0f);
+                                return (int)(f / 20.0f);
                         }
                     }
                 }
 
-                return (int)(16838.0f / 15.0f);
+				return (15840.0f / 20.0f);
             }
 
             set
@@ -223,7 +241,7 @@ namespace Novacode
 
                         if (pgSz != null)
                         {
-                            pgSz.SetAttributeValue(XName.Get("h", DocX.w.NamespaceName), value * 15);
+                            pgSz.SetAttributeValue(XName.Get("h", DocX.w.NamespaceName), value * 20);
                         }
                     }
                 }
