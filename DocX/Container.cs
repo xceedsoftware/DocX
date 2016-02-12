@@ -669,14 +669,21 @@ namespace Novacode
 
             if (firstPar != null)
             {
-                XElement[] splitParagraph = HelperFunctions.SplitParagraph(firstPar, index - firstPar.startIndex);
+				var splitindex = index - firstPar.startIndex;
+				if (splitindex <= 0)
+				{
+					firstPar.Xml.ReplaceWith(newParagraph.Xml, firstPar.Xml);
+				}
+				else {
+					XElement[] splitParagraph = HelperFunctions.SplitParagraph(firstPar, splitindex);
 
-                firstPar.Xml.ReplaceWith
-                (
-                    splitParagraph[0],
-                    newParagraph.Xml,
-                    splitParagraph[1]
-                );
+					firstPar.Xml.ReplaceWith
+					(
+						splitParagraph[0],
+						newParagraph.Xml,
+						splitParagraph[1]
+					);
+				}
             }
 
             else
