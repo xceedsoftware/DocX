@@ -2731,7 +2731,22 @@ namespace UnitTests
                     Assert.AreEqual(bookmarkNames[i], result[i]);
                 }
             }
-        }        
+        }
+
+        [TestMethod]
+        public void CreateTable_WhenCalledSetColumnWidth_ReturnsExpected()
+        {
+            using (var document = DocX.Create("Set column width.docx"))
+            {
+                var table = document.InsertTable(1, 2);
+
+                table.SetColumnWidth(0, 1000);
+                table.SetColumnWidth(1, 2000);
+
+                Assert.AreEqual(1000, table.GetColumnWidth(0));
+                Assert.AreEqual(2000, table.GetColumnWidth(1));                
+            }
+        }
     }
 }
        

@@ -274,7 +274,7 @@ namespace Novacode
             if (grid == null)
             {
                 XElement tblPr = GetOrCreate_tblPr();
-                tblPr.AddAfterSelf(XName.Get("tblGrid", DocX.w.NamespaceName));
+                tblPr.AddAfterSelf(new XElement(XName.Get("tblGrid", DocX.w.NamespaceName)));
                 grid = Xml.Element(XName.Get("tblGrid", DocX.w.NamespaceName));
             }
 
