@@ -2747,6 +2747,27 @@ namespace UnitTests
                 Assert.AreEqual(2000, table.GetColumnWidth(1));                
             }
         }
+
+        [TestMethod]
+        public void UpdateParagraphFontSize_WhenSetFontSize_ReturnsExpected()
+        {
+            using (var document = DocX.Create("Update paragraph font size.docx"))
+            {
+                var paragraph = document.InsertParagraph().FontSize(9);
+
+                paragraph.FontSize(11);
+
+                string szValue = paragraph.Xml.Descendants(XName.Get("sz", DocX.w.NamespaceName))
+                   .Attributes(XName.Get("val", DocX.w.NamespaceName)).First().Value;
+                string szCsValue = paragraph.Xml.Descendants(XName.Get("szCs", DocX.w.NamespaceName))
+                   .Attributes(XName.Get("val", DocX.w.NamespaceName)).First().Value;
+
+                // the expected value is multiplied by 2
+                // and the last font size is 11*2 = 22
+                Assert.AreEqual("22", szValue);
+                Assert.AreEqual("22", szCsValue);
+            }
+        }
     }
 }
        

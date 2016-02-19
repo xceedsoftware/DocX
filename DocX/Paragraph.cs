@@ -2710,16 +2710,16 @@ namespace Novacode
                 }
 
                 rPr.SetElementValue(textFormatPropName, value);
-                var last = rPr.Elements().Last();
-                if (content as System.Xml.Linq.XAttribute != null)//If content is an attribute
+                var last = rPr.Elements(textFormatPropName).Last();
+                if (content as XAttribute != null)//If content is an attribute
                 {
-                    if (last.Attribute(((System.Xml.Linq.XAttribute)(content)).Name) == null)
+                    if (last.Attribute(((XAttribute)(content)).Name) == null)
                     {
                         last.Add(content); //Add this attribute if element doesn't have it
                     }
                     else
                     {
-                        last.Attribute(((System.Xml.Linq.XAttribute)(content)).Name).Value = ((System.Xml.Linq.XAttribute)(content)).Value; //Apply value only if element already has it
+                        last.Attribute(((XAttribute)(content)).Name).Value = ((XAttribute)(content)).Value; //Apply value only if element already has it
                     }
                 }
                 return;
@@ -2745,33 +2745,33 @@ namespace Novacode
                 }
 
                 rPr.SetElementValue(textFormatPropName, value);
-                XElement last = rPr.Elements().Last();
+                XElement last = rPr.Elements(textFormatPropName).Last();
 
                 if (contentIsListOfFontProperties) //if content is a list of attributes, as in the case when specifying a font family 
                 {
                     foreach (object property in fontProps)
                     {
-                        if (last.Attribute(((System.Xml.Linq.XAttribute)(property)).Name) == null)
+                        if (last.Attribute(((XAttribute)(property)).Name) == null)
                         {
                             last.Add(property); //Add this attribute if element doesn't have it
                         }
                         else
                         {
-                            last.Attribute(((System.Xml.Linq.XAttribute)(property)).Name).Value =
-                              ((System.Xml.Linq.XAttribute)(property)).Value; //Apply value only if element already has it
+                            last.Attribute(((XAttribute)(property)).Name).Value =
+                              ((XAttribute)(property)).Value; //Apply value only if element already has it
                         }
                     }
                 }
 
-                if (content as System.Xml.Linq.XAttribute != null)//If content is an attribute
+                if (content as XAttribute != null)//If content is an attribute
                 {
-                    if (last.Attribute(((System.Xml.Linq.XAttribute)(content)).Name) == null)
+                    if (last.Attribute(((XAttribute)(content)).Name) == null)
                     {
                         last.Add(content); //Add this attribute if element doesn't have it
                     }
                     else
                     {
-                        last.Attribute(((System.Xml.Linq.XAttribute)(content)).Name).Value = ((System.Xml.Linq.XAttribute)(content)).Value; //Apply value only if element already has it
+                        last.Attribute(((XAttribute)(content)).Name).Value = ((XAttribute)(content)).Value; //Apply value only if element already has it
                     }
                 }
                 else
