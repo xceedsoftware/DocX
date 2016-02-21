@@ -2768,6 +2768,65 @@ namespace UnitTests
                 Assert.AreEqual("22", szCsValue);
             }
         }
+
+        [TestMethod]
+        public void SetTableCellMargin_WhenSetTwoCellMargins_ContainsTwoCellMargins()
+        {
+            using (var document = DocX.Create("Set table cell margins.docx"))
+            {
+                Table table = document.InsertTable(1,1);
+
+                table.SetTableCellMargin(TableCellMarginType.left, 20);
+                table.SetTableCellMargin(TableCellMarginType.right, 40);
+
+                var elements = table.Xml.Descendants(XName.Get("tblCellMar", DocX.w.NamespaceName)).ToList();
+                // should contain only one element named tblCellMar
+                Assert.AreEqual(1, elements.Count);
+                var element = elements.First();
+                // should contain two elements defining the margins
+                Assert.AreEqual(2, element.Elements().Count());
+
+                var left = element.Element(XName.Get("left", DocX.w.NamespaceName));
+                var right = element.Element(XName.Get("right", DocX.w.NamespaceName));
+
+                Assert.IsNotNull(left);
+                Assert.IsNotNull(right);
+
+                Assert.AreEqual("20", left.Attribute(XName.Get("w", DocX.w.NamespaceName)).Value);
+                Assert.AreEqual("dxa", left.Attribute(XName.Get("type", DocX.w.NamespaceName)).Value);
+
+                Assert.AreEqual("40", right.Attribute(XName.Get("w", DocX.w.NamespaceName)).Value);
+                Assert.AreEqual("dxa", right.Attribute(XName.Get("type", DocX.w.NamespaceName)).Value);
+            }
+        }
+
+        [TestMethod]
+        public void SetTableCellMargin_WhenReSetCellMargin_ContainsOneCellMargin()
+        {
+            using (var document = DocX.Create("Set table cell margin.docx"))
+            {
+                Table table = document.InsertTable(1, 1);
+
+                table.SetTableCellMargin(TableCellMarginType.left, 20);
+                // change the table cell margin
+                table.SetTableCellMargin(TableCellMarginType.left, 40);
+
+                var elements = table.Xml.Descendants(XName.Get("tblCellMar", DocX.w.NamespaceName)).ToList();
+                // should contain only one element named tblCellMar
+                Assert.AreEqual(1, elements.Count);
+                var element = elements.First();
+                // should contain two elements defining the margins
+                Assert.AreEqual(1, element.Elements().Count());
+
+                var left = element.Element(XName.Get("left", DocX.w.NamespaceName));
+
+                Assert.IsNotNull(left);
+
+                // check that the last value is taken
+                Assert.AreEqual("40", left.Attribute(XName.Get("w", DocX.w.NamespaceName)).Value);
+                Assert.AreEqual("dxa", left.Attribute(XName.Get("type", DocX.w.NamespaceName)).Value);
+            }
+        }
     }
 }
        

@@ -663,6 +663,30 @@ namespace Novacode
   	Auto,
   	None
   }
+
+  /// <summary>
+  /// Cell margin for all sides of the table cell.
+  /// </summary>
+  public enum TableCellMarginType
+  {
+      /// <summary>
+      /// The left cell margin.
+      /// </summary>
+      left,
+      /// <summary>
+      /// The right cell margin.
+      /// </summary>
+      right,
+      /// <summary>
+      /// The bottom cell margin.
+      /// </summary>
+      bottom,
+      /// <summary>
+      /// The top cell margin.
+      /// </summary>
+      top
+  }
+
   public enum HeadingType
   {
       [Description("Heading1")]
