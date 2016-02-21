@@ -232,6 +232,38 @@ namespace Novacode
             return tblPr;
         }
 
+        /// <summary>
+        /// Set the specified cell margin for the table-level.
+        /// </summary>
+        /// <param name="type">The side of the cell margin.</param>
+        /// <param name="margin">The value for the specified cell margin.</param>
+        /// <remarks>More information can be found <see cref="http://msdn.microsoft.com/en-us/library/documentformat.openxml.wordprocessing.tablecellmargindefault.aspx">here</see></remarks>
+        public void SetTableCellMargin(TableCellMarginType type, double margin)
+        {
+            XElement tblPr = GetOrCreate_tblPr();
+
+            // find (or create) the element with the cell margins 
+            XElement tblCellMar = tblPr.Element(XName.Get("tblCellMar", DocX.w.NamespaceName));
+            if (tblCellMar == null)
+            {
+                tblPr.AddFirst(new XElement(XName.Get("tblCellMar", DocX.w.NamespaceName)));
+                tblCellMar = tblPr.Element(XName.Get("tblCellMar", DocX.w.NamespaceName));
+            }
+
+            // find (or create) the element with cell margin for the specified side
+            XElement tblMargin = tblCellMar.Element(XName.Get(type.ToString(), DocX.w.NamespaceName));
+            if (tblMargin == null)
+            {
+                tblCellMar.AddFirst(new XElement(XName.Get(type.ToString(), DocX.w.NamespaceName)));
+                tblMargin = tblCellMar.Element(XName.Get(type.ToString(), DocX.w.NamespaceName));
+            }
+            
+            tblMargin.RemoveAttributes();
+            // set the value for the cell margin
+            tblMargin.Add(new XAttribute(XName.Get("w", DocX.w.NamespaceName), margin));
+            // set the side of cell margin
+            tblMargin.Add(new XAttribute(XName.Get("type", DocX.w.NamespaceName), "dxa"));
+        }
 
         /// <summary>
         /// Gets the column width for a given column index.
