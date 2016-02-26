@@ -4048,14 +4048,18 @@ namespace Novacode
                 documents.Add(footers.even.Xml);
             #endregion
 
+           var matchCustomPropertyName = customPropertyName;
+           if (customPropertyName.Contains(" ")) matchCustomPropertyName = "\"" + customPropertyName + "\"";
+           string match_value = string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", matchCustomPropertyName).Replace(" ", string.Empty);
+                    
             // Process each document in the list.
             foreach (XElement doc in documents)
             {
                 #region Word 2010+
                 foreach (XElement e in doc.Descendants(XName.Get("instrText", w.NamespaceName)))
                 {
+
                     string attr_value = e.Value.Replace(" ", string.Empty).Trim();
-                    string match_value = string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName).Replace(" ", string.Empty);
 
                     if (attr_value.Equals(match_value, StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -4102,8 +4106,7 @@ namespace Novacode
                 foreach (XElement e in doc.Descendants(XName.Get("fldSimple", w.NamespaceName)))
                 {
                     string attr_value = e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Replace(" ", string.Empty).Trim();
-                    string match_value = string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName).Replace(" ", string.Empty);
-
+  
                     if (attr_value.Equals(match_value, StringComparison.CurrentCultureIgnoreCase))
                     {
                         XElement firstRun = e.Element(w + "r");
