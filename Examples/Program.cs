@@ -24,6 +24,7 @@ namespace Examples
             HelloWorldKeepWithNext();
             HelloWorldAdvancedFormatting();
             HelloWorldProtectedDocument();
+            HelloWorldAddPictureToWord();
             RightToLeft();
             Indentation();
             HeadersAndFooters();
@@ -1825,7 +1826,58 @@ namespace Examples
 
         }
 
+        /// <summary>
+        /// Create a document with two pictures. One picture is inserted normal way, the other one with rotation
+        /// </summary>
+static void HelloWorldAddPictureToWord() {
+    Console.WriteLine("\tHelloWorldAddPictureToWord()");
 
+    // Create a document.
+    using (DocX document = DocX.Create(@"docs\HelloWorldAddPictureToWord.docx"))
+    {
+        // Add an image into the document.    
+        RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
+        rd.Up(2); 
+        Image image = document.AddImage(rd.Path + @"\images\logo_template.png");
+
+        // Create a picture (A custom view of an Image).
+        Picture picture = image.CreatePicture();
+        picture.Rotation = 10;
+        picture.SetPictureShape(BasicShapes.cube);
+
+        // Insert a new Paragraph into the document.
+        Paragraph title = document.InsertParagraph().Append("This is a test for a picture").FontSize(20).Font(new FontFamily("Comic Sans MS"));
+        title.Alignment = Alignment.center;
+
+        // Insert a new Paragraph into the document.
+        Paragraph p1 = document.InsertParagraph();
+
+        // Append content to the Paragraph
+        p1.AppendLine("Just below there should be a picture ").Append("picture").Bold().Append(" inserted in a non-conventional way.");
+        p1.AppendLine();
+        p1.AppendLine("Check out this picture ").AppendPicture(picture).Append(" its funky don't you think?");
+        p1.AppendLine();
+
+        // Insert a new Paragraph into the document.
+        Paragraph p2 = document.InsertParagraph();
+        // Append content to the Paragraph.
+
+        p2.AppendLine("Is it correct?");
+        p2.AppendLine();
+
+        // Lets add another picture (without the fancy stuff)
+        Picture pictureNormal = image.CreatePicture();
+
+        Paragraph p3 = document.InsertParagraph();
+        p3.AppendLine("Lets add another picture (without the fancy  rotation stuff)");
+        p3.AppendLine();
+        p3.AppendPicture(pictureNormal);
+
+        // Save this document.
+        document.Save();
+        Console.WriteLine("\tCreated: docs\\HelloWorldAddPictureToWord.docx\n");
+    }
+}
 
 
     }
