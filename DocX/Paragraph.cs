@@ -4670,5 +4670,22 @@ namespace Novacode
                     space.Remove();
             }
         }
+
+        public void InsertHorizontalLine(string lineType = "single", int size = 6, int space = 1, string color = "auto")
+        {
+            var pPr = this.GetOrCreate_pPr();
+            var border = pPr.Element(XName.Get("pBdr", DocX.w.NamespaceName));
+            if (border == null)
+            {
+                pPr.Add(new XElement(XName.Get("pBdr", DocX.w.NamespaceName)));
+                border = pPr.Element(XName.Get("pBdr", DocX.w.NamespaceName));
+                border.Add(new XElement(XName.Get("bottom", DocX.w.NamespaceName)));
+                var bottom = border.Element(XName.Get("bottom", DocX.w.NamespaceName));
+                bottom.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), lineType);
+                bottom.SetAttributeValue(XName.Get("sz", DocX.w.NamespaceName), size.ToString());
+                bottom.SetAttributeValue(XName.Get("space", DocX.w.NamespaceName), space.ToString());
+                bottom.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), color);
+            }
+        }
     }
 }
