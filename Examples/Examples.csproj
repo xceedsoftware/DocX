@@ -70,6 +70,9 @@
     <None Include="DocumentWithBookmarks.docx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="DocumentWithTemplateTable.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Input.docx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
