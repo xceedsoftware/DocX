@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using System.Threading.Tasks;
 using Novacode;
 using Image = Novacode.Image;
@@ -17,6 +18,16 @@ namespace Examples
         static void Main(string[] args)
         {
             Setup();
+            HelloWorld();
+            //Contents();
+            AddList();
+            Console.ReadLine();
+            //  Examples();
+        }
+
+        static void Examples()
+        {
+            //  Setup();
             // Easy
             Console.WriteLine("\nRunning Easy Examples");
             HelloWorld();
@@ -215,9 +226,49 @@ namespace Examples
         }
 
         #endregion
-
         /// <summary>
-        /// Create a document with two equations.
+        /// Load a document and set content controls.
+        /// </summary>
+        private static void Contents()
+        {
+            Console.WriteLine("\tContent()");
+
+            // Load a document.
+            using (DocX document = DocX.Load(@"docs\Content.docx"))
+            {
+                foreach (var c in document.Contents)
+                {
+                    Console.WriteLine(String.Format("Name : {0}, Tag : {1}", c.Name, c.Tag));
+                }
+
+                (from d in document.Contents
+                 where d.Name == "Name"
+                 select d).First().SetText("NewerText");
+
+                document.SaveAs(@"docs\ContentSetSingle.docx");
+
+                XElement el = new XElement("Root",
+                        new XElement("Name", "Claudia"),
+                        new XElement("Address", "17 Liberty St"),
+                        new XElement("Total", "123.45")
+
+                        );
+
+                XDocument doc = new XDocument(el);
+                document.SetContent(el);
+                document.SaveAs(@"docs\ContentSetWithElement.docx");
+
+
+                doc.Save(@"docs\elements.xml");
+
+                document.SetContent(@"docs\elements.xml");
+                document.SaveAs(@"docs\ContentSetWithPath.docx");
+                
+
+            }
+        }
+        /// <summary>
+        /// Create a document wit(h two equations.
         /// </summary>
         private static void Equations()
         {
@@ -272,7 +323,7 @@ namespace Examples
 
                 document.Save();
                 Console.WriteLine("\tCreated: docs\\Bookmarks.docx\n");
-            
+
             }
         }
         /// <summary>
@@ -465,7 +516,7 @@ namespace Examples
                 Paragraph title = document.InsertParagraph().Append("Test").FontSize(20).Font(new FontFamily("Comic Sans MS"));
                 title.Alignment = Alignment.center;
 
-              
+
 
                 // Insert a new Paragraph into the document.
                 Paragraph p1 = document.InsertParagraph();
@@ -496,7 +547,7 @@ namespace Examples
                 Paragraph p3 = document.InsertParagraph();
                 p3.AppendLine();
                 p3.AppendLine("Adding another table...");
-                
+
                 // Adding another table
                 Table table1 = document.AddTable(2, 2);
                 table1.Design = TableDesign.ColorfulGridAccent2;
@@ -510,7 +561,7 @@ namespace Examples
                 p4.InsertTableBeforeSelf(table1);
 
                 p4.AppendLine();
-        
+
 
                 // Insert numbered list after table
                 Paragraph p5 = document.InsertParagraph();
@@ -536,7 +587,7 @@ namespace Examples
             using (DocX document = DocX.Create(@"docs\DocumentMargins.docx"))
             {
 
-              // Create a float var that contains doc Margins properties.
+                // Create a float var that contains doc Margins properties.
                 float leftMargin = document.MarginLeft;
                 float rightMargin = document.MarginRight;
                 float topMargin = document.MarginTop;
@@ -551,8 +602,8 @@ namespace Examples
                 document.MarginLeft = leftMargin;
                 document.MarginRight = rightMargin;
                 document.MarginTop = topMargin;
-                document.MarginBottom = bottomMargin; 
-                
+                document.MarginBottom = bottomMargin;
+
                 // created bulleted lists
 
                 var bulletedList = document.AddList("First Bulleted Item.", 0, ListItemType.Bulleted);
@@ -563,7 +614,7 @@ namespace Examples
 
 
                 document.InsertList(bulletedList);
-                
+
                 // Save this document.
                 document.Save();
 
@@ -579,30 +630,31 @@ namespace Examples
             using (DocX document = DocX.Create(@"docs\DocumentsWithListsFontChange.docx"))
             {
 
-                 foreach ( FontFamily oneFontFamily in FontFamily.Families )  {
+                foreach (FontFamily oneFontFamily in FontFamily.Families)
+                {
 
-                 FontFamily fontFamily = oneFontFamily;
-                double fontSize = 15;
+                    FontFamily fontFamily = oneFontFamily;
+                    double fontSize = 15;
 
-                // created numbered lists 
-                var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered, 1);
-                document.AddListItem(numberedList, "First sub list item", 1);
-                document.AddListItem(numberedList, "Second List Item.");
-                document.AddListItem(numberedList, "Third list item.");
-                document.AddListItem(numberedList, "Nested item.", 1);
-                document.AddListItem(numberedList, "Second nested item.", 1);
+                    // created numbered lists 
+                    var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered, 1);
+                    document.AddListItem(numberedList, "First sub list item", 1);
+                    document.AddListItem(numberedList, "Second List Item.");
+                    document.AddListItem(numberedList, "Third list item.");
+                    document.AddListItem(numberedList, "Nested item.", 1);
+                    document.AddListItem(numberedList, "Second nested item.", 1);
 
-                // created bulleted lists
+                    // created bulleted lists
 
-                var bulletedList = document.AddList("First Bulleted Item.", 0, ListItemType.Bulleted);
-                document.AddListItem(bulletedList, "Second bullet item");
-                document.AddListItem(bulletedList, "Sub bullet item", 1);
-                document.AddListItem(bulletedList, "Second sub bullet item", 1);
-                document.AddListItem(bulletedList, "Third bullet item");
+                    var bulletedList = document.AddList("First Bulleted Item.", 0, ListItemType.Bulleted);
+                    document.AddListItem(bulletedList, "Second bullet item");
+                    document.AddListItem(bulletedList, "Sub bullet item", 1);
+                    document.AddListItem(bulletedList, "Second sub bullet item", 1);
+                    document.AddListItem(bulletedList, "Third bullet item");
 
-                document.InsertList(bulletedList);
-                document.InsertList(numberedList, fontFamily, fontSize);                              
-                 
+                    document.InsertList(bulletedList);
+                    document.InsertList(numberedList, fontFamily, fontSize);
+
                 }
                 // Save this document.
                 document.Save();
@@ -617,17 +669,19 @@ namespace Examples
 
             using (var document = DocX.Create(@"docs\Lists.docx"))
             {
-                var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered, 2);
-                document.AddListItem(numberedList, "First sub list item", 1);
+                var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered);
+                        //Add a numbered list starting at 2
                 document.AddListItem(numberedList, "Second List Item.");
                 document.AddListItem(numberedList, "Third list item.");
-                document.AddListItem(numberedList, "Nested item.", 1);
-                document.AddListItem(numberedList, "Second nested item.", 1);
+                document.AddListItem(numberedList, "First sub list item", 1);
 
+                document.AddListItem(numberedList, "Nested item.", 2);
+                document.AddListItem(numberedList, "Fourth nested item.");
+                
                 var bulletedList = document.AddList("First Bulleted Item.", 0, ListItemType.Bulleted);
                 document.AddListItem(bulletedList, "Second bullet item");
                 document.AddListItem(bulletedList, "Sub bullet item", 1);
-                document.AddListItem(bulletedList, "Second sub bullet item", 1);
+                document.AddListItem(bulletedList, "Second sub bullet item", 2);
                 document.AddListItem(bulletedList, "Third bullet item");
 
                 document.InsertList(numberedList);
@@ -761,14 +815,14 @@ namespace Examples
                 // Insert a Paragraph into the first Header.
                 Paragraph p0 = header_first.InsertParagraph();
                 p0.Append("Hello First Header.").Bold();
-                
+
 
 
                 // Insert a Paragraph into the odd Header.
                 Paragraph p1 = header_odd.InsertParagraph();
                 p1.Append("Hello Odd Header.").Bold();
 
-                
+
                 // Insert a Paragraph into the even Header.
                 Paragraph p2 = header_even.InsertParagraph();
                 p2.Append("Hello Even Header.").Bold();
@@ -1696,21 +1750,21 @@ namespace Examples
 
         static void HelloWorldKeepWithNext()
         {
-             // Create a Paragraph that will stay on the same page as the paragraph that comes next
+            // Create a Paragraph that will stay on the same page as the paragraph that comes next
             Console.WriteLine("\tHelloWorldKeepWithNext()");
-             // Create a new document.
+            // Create a new document.
             using (DocX document = DocX.Create("docs\\HelloWorldKeepWithNext.docx"))
-             
-             {
-                 // Create a new Paragraph with the text "Hello World".
-                 Paragraph p = document.InsertParagraph("Hello World.");
-                 p.KeepWithNext();
-                 document.InsertParagraph("Previous paragraph will appear on the same page as this paragraph");
-                 
-                 // Save all changes made to this document.
-                 document.Save();
-                 Console.WriteLine("\tCreated: docs\\HelloWorldKeepWithNext.docx\n");
-             }
+
+            {
+                // Create a new Paragraph with the text "Hello World".
+                Paragraph p = document.InsertParagraph("Hello World.");
+                p.KeepWithNext();
+                document.InsertParagraph("Previous paragraph will appear on the same page as this paragraph");
+
+                // Save all changes made to this document.
+                document.Save();
+                Console.WriteLine("\tCreated: docs\\HelloWorldKeepWithNext.docx\n");
+            }
         }
         static void HelloWorldKeepLinesTogether()
         {
@@ -1727,7 +1781,7 @@ namespace Examples
                 Console.WriteLine("\tCreated: docs\\HelloWorldKeepLinesTogether.docx\n");
             }
         }
-       
+
         static void LargeTable()
         {
             Console.WriteLine("\tLargeTable()");
@@ -1768,7 +1822,7 @@ namespace Examples
             Console.WriteLine("\tCreated: docs\\LargeTable.docx\n");
         }
 
-   
+
         static void TableWithSpecifiedWidths()
         {
             Console.WriteLine("\tTableSpecifiedWidths()");
@@ -1829,55 +1883,56 @@ namespace Examples
         /// <summary>
         /// Create a document with two pictures. One picture is inserted normal way, the other one with rotation
         /// </summary>
-static void HelloWorldAddPictureToWord() {
-    Console.WriteLine("\tHelloWorldAddPictureToWord()");
+        static void HelloWorldAddPictureToWord()
+        {
+            Console.WriteLine("\tHelloWorldAddPictureToWord()");
 
-    // Create a document.
-    using (DocX document = DocX.Create(@"docs\HelloWorldAddPictureToWord.docx"))
-    {
-        // Add an image into the document.    
-        RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
-        rd.Up(2); 
-        Image image = document.AddImage(rd.Path + @"\images\logo_template.png");
+            // Create a document.
+            using (DocX document = DocX.Create(@"docs\HelloWorldAddPictureToWord.docx"))
+            {
+                // Add an image into the document.    
+                RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
+                rd.Up(2);
+                Image image = document.AddImage(rd.Path + @"\images\logo_template.png");
 
-        // Create a picture (A custom view of an Image).
-        Picture picture = image.CreatePicture();
-        picture.Rotation = 10;
-        picture.SetPictureShape(BasicShapes.cube);
+                // Create a picture (A custom view of an Image).
+                Picture picture = image.CreatePicture();
+                picture.Rotation = 10;
+                picture.SetPictureShape(BasicShapes.cube);
 
-        // Insert a new Paragraph into the document.
-        Paragraph title = document.InsertParagraph().Append("This is a test for a picture").FontSize(20).Font(new FontFamily("Comic Sans MS"));
-        title.Alignment = Alignment.center;
+                // Insert a new Paragraph into the document.
+                Paragraph title = document.InsertParagraph().Append("This is a test for a picture").FontSize(20).Font(new FontFamily("Comic Sans MS"));
+                title.Alignment = Alignment.center;
 
-        // Insert a new Paragraph into the document.
-        Paragraph p1 = document.InsertParagraph();
+                // Insert a new Paragraph into the document.
+                Paragraph p1 = document.InsertParagraph();
 
-        // Append content to the Paragraph
-        p1.AppendLine("Just below there should be a picture ").Append("picture").Bold().Append(" inserted in a non-conventional way.");
-        p1.AppendLine();
-        p1.AppendLine("Check out this picture ").AppendPicture(picture).Append(" its funky don't you think?");
-        p1.AppendLine();
+                // Append content to the Paragraph
+                p1.AppendLine("Just below there should be a picture ").Append("picture").Bold().Append(" inserted in a non-conventional way.");
+                p1.AppendLine();
+                p1.AppendLine("Check out this picture ").AppendPicture(picture).Append(" its funky don't you think?");
+                p1.AppendLine();
 
-        // Insert a new Paragraph into the document.
-        Paragraph p2 = document.InsertParagraph();
-        // Append content to the Paragraph.
+                // Insert a new Paragraph into the document.
+                Paragraph p2 = document.InsertParagraph();
+                // Append content to the Paragraph.
 
-        p2.AppendLine("Is it correct?");
-        p2.AppendLine();
+                p2.AppendLine("Is it correct?");
+                p2.AppendLine();
 
-        // Lets add another picture (without the fancy stuff)
-        Picture pictureNormal = image.CreatePicture();
+                // Lets add another picture (without the fancy stuff)
+                Picture pictureNormal = image.CreatePicture();
 
-        Paragraph p3 = document.InsertParagraph();
-        p3.AppendLine("Lets add another picture (without the fancy  rotation stuff)");
-        p3.AppendLine();
-        p3.AppendPicture(pictureNormal);
+                Paragraph p3 = document.InsertParagraph();
+                p3.AppendLine("Lets add another picture (without the fancy  rotation stuff)");
+                p3.AppendLine();
+                p3.AppendPicture(pictureNormal);
 
-        // Save this document.
-        document.Save();
-        Console.WriteLine("\tCreated: docs\\HelloWorldAddPictureToWord.docx\n");
-    }
-}
+                // Save this document.
+                document.Save();
+                Console.WriteLine("\tCreated: docs\\HelloWorldAddPictureToWord.docx\n");
+            }
+        }
 
 
     }

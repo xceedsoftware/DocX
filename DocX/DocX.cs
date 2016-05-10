@@ -102,10 +102,10 @@ namespace Novacode
             }
         }
 
-		/// <summary>
-		/// Bottom margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-		/// </summary>
-		public float MarginBottom
+        /// <summary>
+        /// Bottom margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+        /// </summary>
+        public float MarginBottom
         {
             get
             {
@@ -118,10 +118,10 @@ namespace Novacode
             }
         }
 
-		/// <summary>
-		/// Left margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-		/// </summary>
-		public float MarginLeft
+        /// <summary>
+        /// Left margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+        /// </summary>
+        public float MarginLeft
         {
             get
             {
@@ -134,10 +134,10 @@ namespace Novacode
             }
         }
 
-		/// <summary>
-		/// Right margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-		/// </summary>
-		public float MarginRight
+        /// <summary>
+        /// Right margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+        /// </summary>
+        public float MarginRight
         {
             get
             {
@@ -150,10 +150,10 @@ namespace Novacode
             }
         }
 
-		/// <summary>
-		/// Page width value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-		/// </summary>
-		public float PageWidth
+        /// <summary>
+        /// Page width value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+        /// </summary>
+        public float PageWidth
         {
             get
             {
@@ -199,10 +199,10 @@ namespace Novacode
             }
         }
 
-		/// <summary>
-		/// Page height value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-		/// </summary>
-		public float PageHeight
+        /// <summary>
+        /// Page height value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+        /// </summary>
+        public float PageHeight
         {
             get
             {
@@ -224,7 +224,7 @@ namespace Novacode
                     }
                 }
 
-				return (15840.0f / 20.0f);
+                return (15840.0f / 20.0f);
             }
 
             set
@@ -1058,13 +1058,13 @@ namespace Novacode
                 return HelperFunctions.GetText(Xml);
             }
         }
-         /// <summary>
-         /// Get the text of each footnote from this document
-         /// </summary>
-         public IEnumerable<string> FootnotesText
-         {
-             get
-             {
+        /// <summary>
+        /// Get the text of each footnote from this document
+        /// </summary>
+        public IEnumerable<string> FootnotesText
+        {
+            get
+            {
                 foreach (XElement footnote in footnotes.Root.Elements(w + "footnote"))
                 {
                     yield return HelperFunctions.GetText(footnote);
@@ -1220,7 +1220,7 @@ namespace Novacode
                             merge_footnotes(remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes);
                             remote_footnotes = footnotes;
                             break;
- 
+
                         case "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml":
                             merge_endnotes(remote_pp, local_pp, remote_mainDoc, remote_document, remote_endnotes);
                             remote_endnotes = endnotes;
@@ -1359,13 +1359,13 @@ namespace Novacode
 
             // Add the remote documents contents to this document.
             XElement local_body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
-			if (append)
-				local_body.Add(remote_body.Elements());
-			else
-				local_body.AddFirst(remote_body.Elements());
+            if (append)
+                local_body.Add(remote_body.Elements());
+            else
+                local_body.AddFirst(remote_body.Elements());
 
-			// Copy any missing root attributes to the local document.
-			foreach (XAttribute a in remote_mainDoc.Root.Attributes())
+            // Copy any missing root attributes to the local document.
+            foreach (XAttribute a in remote_mainDoc.Root.Attributes())
             {
                 if (mainDoc.Root.Attribute(a.Name) == null)
                 {
@@ -1381,9 +1381,9 @@ namespace Novacode
             // In my testing I have found cases of Images inside documents that are not referenced
             var remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString.Replace("/word/", ""))).FirstOrDefault();
             if (remote_rel == null) {
-            	remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString)).FirstOrDefault();
-            	if (remote_rel == null)
-            		return;
+                remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString)).FirstOrDefault();
+                if (remote_rel == null)
+                    return;
             }
             String remote_Id = remote_rel.Id;
 
@@ -1479,30 +1479,30 @@ namespace Novacode
                 }
 
                 if (!defRelId.Success)
-				{
-	               	// Replace all instances of remote_Id in the local document with local_Id
-	                var elems_local = mainDoc.Descendants(XName.Get("blip", DocX.a.NamespaceName));
-	                foreach (var elem in elems_local)
-	                {
-	                    XAttribute embed = elem.Attribute(XName.Get("embed", DocX.r.NamespaceName));
-	                    if (embed != null && embed.Value == remote_Id)
-	                    {
-	                        embed.SetValue(new_Id);
-	                    }
-	                }
-					
-	                                
-	                // Replace all instances of remote_Id in the local document with local_Id
-	                var v_elems_local = mainDoc.Descendants(XName.Get("imagedata", DocX.v.NamespaceName));
-	                foreach (var elem in v_elems_local)
-	                {
-	                    XAttribute id = elem.Attribute(XName.Get("id", DocX.r.NamespaceName));
-	                    if (id != null && id.Value == remote_Id)
-	                    {
-	                        id.SetValue(new_Id);
-	                    }
-	                }
-				}
+                {
+                    // Replace all instances of remote_Id in the local document with local_Id
+                    var elems_local = mainDoc.Descendants(XName.Get("blip", DocX.a.NamespaceName));
+                    foreach (var elem in elems_local)
+                    {
+                        XAttribute embed = elem.Attribute(XName.Get("embed", DocX.r.NamespaceName));
+                        if (embed != null && embed.Value == remote_Id)
+                        {
+                            embed.SetValue(new_Id);
+                        }
+                    }
+
+
+                    // Replace all instances of remote_Id in the local document with local_Id
+                    var v_elems_local = mainDoc.Descendants(XName.Get("imagedata", DocX.v.NamespaceName));
+                    foreach (var elem in v_elems_local)
+                    {
+                        XAttribute id = elem.Attribute(XName.Get("id", DocX.r.NamespaceName));
+                        if (id != null && id.Value == remote_Id)
+                        {
+                            id.SetValue(new_Id);
+                        }
+                    }
+                }
 
 
                 // Replace all instances of remote_Id in the local document with local_Id (for shapes as well)
@@ -1727,10 +1727,10 @@ namespace Novacode
 
             // Checking whether there were more than 0 elements, helped me get rid of exceptions thrown while using InsertDocument
             if (numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName)).Count() > 0)
-            	numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_abstractNums);
-            
+                numbering.Root.Elements(XName.Get("abstractNum", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_abstractNums);
+
             if (numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName)).Count() > 0)
-            	numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_nums);
+                numbering.Root.Elements(XName.Get("num", DocX.w.NamespaceName)).Last().AddAfterSelf(remote_nums);
         }
 
         private void merge_fonts(PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote)
@@ -1903,7 +1903,7 @@ namespace Novacode
                         }
                     }
 
-                     // Replace all instances of remote_Id in the local document with local_Id (for shapes as well)
+                    // Replace all instances of remote_Id in the local document with local_Id (for shapes as well)
                     var v_elems = remote_mainDoc.Descendants(XName.Get("imagedata", DocX.v.NamespaceName));
                     foreach (var elem in v_elems)
                     {
@@ -2456,7 +2456,7 @@ namespace Novacode
                 if (!document.paragraphLookup.ContainsKey(paragraph.endIndex))
                     document.paragraphLookup.Add(paragraph.endIndex, paragraph);
             }
-            
+
             return document;
         }
 
@@ -3409,7 +3409,7 @@ namespace Novacode
         public void Save()
         {
             Headers headers = Headers;
-            
+
             // Save the main document
             using (TextWriter tw = new StreamWriter(mainPart.GetStream(FileMode.Create, FileAccess.Write)))
                 mainDoc.Save(tw, SaveOptions.None);
@@ -4011,7 +4011,7 @@ namespace Novacode
                 customPropDoc.Save(tw, SaveOptions.None);
 
             // Refresh all fields in this document which display this custom property.
-            UpdateCustomPropertyValue(this, cp.Name, (cp.Value ?? "").ToString()); 
+            UpdateCustomPropertyValue(this, cp.Name, (cp.Value ?? "").ToString());
         }
 
         /// <summary>
@@ -4048,10 +4048,10 @@ namespace Novacode
                 documents.Add(footers.even.Xml);
             #endregion
 
-           var matchCustomPropertyName = customPropertyName;
-           if (customPropertyName.Contains(" ")) matchCustomPropertyName = "\"" + customPropertyName + "\"";
-           string match_value = string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", matchCustomPropertyName).Replace(" ", string.Empty);
-                    
+            var matchCustomPropertyName = customPropertyName;
+            if (customPropertyName.Contains(" ")) matchCustomPropertyName = "\"" + customPropertyName + "\"";
+            string match_value = string.Format(@"DOCPROPERTY  {0}  \* MERGEFORMAT", matchCustomPropertyName).Replace(" ", string.Empty);
+
             // Process each document in the list.
             foreach (XElement doc in documents)
             {
@@ -4106,7 +4106,7 @@ namespace Novacode
                 foreach (XElement e in doc.Descendants(XName.Get("fldSimple", w.NamespaceName)))
                 {
                     string attr_value = e.Attribute(XName.Get("instr", w.NamespaceName)).Value.Replace(" ", string.Empty).Trim();
-  
+
                     if (attr_value.Equals(match_value, StringComparison.CurrentCultureIgnoreCase))
                     {
                         XElement firstRun = e.Element(w + "r");
@@ -4191,6 +4191,56 @@ namespace Novacode
                 paragraphs.Add(p);
             }
             return paragraphs.ToArray();
+        }
+
+        public override ReadOnlyCollection<Content> Contents
+        {
+            get
+            {
+                ReadOnlyCollection<Content> l = base.Contents;
+                foreach (var content in l)
+                {
+                    content.PackagePart = mainPart;
+                }
+                return l;
+            }
+        }
+
+        public void SetContent(XElement el)
+        {
+            foreach (XElement e in el.Elements())
+            {
+                (from d in Document.Contents
+                 where d.Name == e.Name
+                 select d).First().SetText(e.Value);
+            }
+        }
+
+        public void SetContent(Dictionary<string, string> dict)
+        {
+            foreach (KeyValuePair<string, string> item in dict)
+            {
+                (from d in Document.Contents
+                 where d.Name == item.Key
+                 select d).First().SetText(item.Value);
+            }
+        }
+
+        public void SetContent(string path)
+        {
+            XDocument doc = XDocument.Load(path);
+            SetContent(doc);
+        }
+
+        public void SetContent(XDocument xmlDoc)
+        {
+               
+            foreach (XElement e in xmlDoc.ElementsAfterSelf())
+            {
+                (from d in Document.Contents
+                 where d.Name == e.Name
+                 select d).First().SetText(e.Value);
+            }
         }
 
         public override ReadOnlyCollection<Paragraph> Paragraphs
