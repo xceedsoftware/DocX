@@ -31,6 +31,7 @@ namespace Examples
             HelloWorldAdvancedFormatting();
             HelloWorldProtectedDocument();
             HelloWorldAddPictureToWord();
+            HelloWorldInsertHorizontalLine();
             RightToLeft();
             Indentation();
             HeadersAndFooters();
@@ -313,7 +314,7 @@ namespace Examples
         {
             Console.WriteLine("\tCreateTableFromTemplate()");
 
-            using (DocX docX = DocX.Load("DocumentWithTemplateTable.docx"))
+            using (DocX docX = DocX.Load(@"docs\DocumentWithTemplateTable.docx"))
             {
                 //look for one specific table here
                 Table orderTable = docX.Tables.First(t => t.TableCaption == "ORDER_TABLE");
@@ -379,7 +380,7 @@ namespace Examples
         {
             Console.WriteLine("\tBookmarksReplaceTextOfBookmarkKeepingFormat()");
 
-            using (DocX docX = DocX.Load("DocumentWithBookmarks.docx"))
+            using (DocX docX = DocX.Load(@"docs\DocumentWithBookmarks.docx"))
             {
                 foreach (Bookmark bookmark in docX.Bookmarks)
                     Console.WriteLine("\t\tFound bookmark {0}", bookmark.Name);
@@ -1573,6 +1574,40 @@ namespace Examples
             }
         }
 
+        static void HelloWorldInsertHorizontalLine()
+        {
+            Console.WriteLine("\tHelloWorldInsertHorizontalLine()");
+
+            // Create a new document.
+            using (DocX document = DocX.Create(@"docs\HelloWorldInsertHorizontalLine.docx"))
+            {
+                // Insert a Paragraph into this document.
+                Paragraph p = document.InsertParagraph();
+
+                // Append some text and add formatting.
+                p.Append("Hello World!^011Hello World!")
+                .Font(new FontFamily("Times New Roman"))
+                .FontSize(32)
+                .Color(Color.Blue)
+                .Bold();
+                p.InsertHorizontalLine("double", 6, 1, "auto");
+
+                Paragraph p1 = document.InsertParagraph();
+                p1.InsertHorizontalLine("double", 6, 1, "red");
+                Paragraph p2 = document.InsertParagraph();
+                p2.InsertHorizontalLine("single", 6, 1, "red");
+                Paragraph p3 = document.InsertParagraph();
+                p3.InsertHorizontalLine("triple", 6, 1, "blue");
+                Paragraph p4 = document.InsertParagraph();
+                p4.InsertHorizontalLine("double", 3, 10, "red");
+
+
+                // Save this document to disk.
+                document.Save();
+                Console.WriteLine("\tCreated: docs\\HelloWorldInsertHorizontalLine.docx\n");
+            }
+        }
+
         static void HelloWorldProtectedDocument()
         {
             Console.WriteLine("\tHelloWorldPasswordProtected()");
@@ -1677,7 +1712,7 @@ namespace Examples
             const string str = "Hello World";
 
             // Open the document Input.docx.
-            using (DocX document = DocX.Load(@"Input.docx"))
+            using (DocX document = DocX.Load(@"docs\Input.docx"))
             {
                 // Make sure this document has at least one Image.
                 if (document.Images.Count() > 0)
