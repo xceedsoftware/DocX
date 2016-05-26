@@ -18,16 +18,11 @@ namespace Examples
         static void Main(string[] args)
         {
             Setup();
-            HelloWorld();
-            //Contents();
-            AddList();
-            Console.ReadLine();
-            //  Examples();
+            Examples();
         }
 
         static void Examples()
         {
-            //  Setup();
             // Easy
             Console.WriteLine("\nRunning Easy Examples");
             HelloWorld();
@@ -64,6 +59,7 @@ namespace Examples
             DocumentHeading();
             LargeTable();
             TableWithSpecifiedWidths();
+            //Contents();
 
             // Advanced
             Console.WriteLine("\nRunning Advanced Examples");
