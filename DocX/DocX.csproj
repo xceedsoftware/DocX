@@ -101,6 +101,8 @@
     <Compile Include="Charts\PieChart.cs" />
     <Compile Include="Charts\XElementHelpers.cs" />
     <Compile Include="Container.cs" />
+    <Compile Include="Content.cs" />
+    <Compile Include="ContentCollection.cs" />
     <Compile Include="DocumentTypes.cs" />
     <Compile Include="ExtensionsHeadings.cs" />
     <Compile Include="Footers.cs" />
@@ -112,6 +114,7 @@
     <Compile Include="Headers.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="Hyperlink.cs" />
+    <Compile Include="IContentContainer.cs" />
     <Compile Include="IParagraphContainer.cs" />
     <Compile Include="List.cs" />
     <Compile Include="PageLayout.cs" />

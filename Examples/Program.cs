@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using System.Threading.Tasks;
 using Image = Novacode.Image;
 
@@ -17,6 +18,16 @@ namespace Examples
         static void Main(string[] args)
         {
             Setup();
+            HelloWorld();
+            //Contents();
+            AddList();
+            Console.ReadLine();
+            //  Examples();
+        }
+
+        static void Examples()
+        {
+            //  Setup();
             // Easy
             Console.WriteLine("\nRunning Easy Examples");
             HelloWorld();
@@ -216,9 +227,49 @@ namespace Examples
         }
 
         #endregion
-
         /// <summary>
-        /// Create a document with two equations.
+        /// Load a document and set content controls.
+        /// </summary>
+        private static void Contents()
+        {
+            Console.WriteLine("\tContent()");
+
+            // Load a document.
+            using (DocX document = DocX.Load(@"docs\Content.docx"))
+            {
+                foreach (var c in document.Contents)
+                {
+                    Console.WriteLine(String.Format("Name : {0}, Tag : {1}", c.Name, c.Tag));
+                }
+
+                (from d in document.Contents
+                 where d.Name == "Name"
+                 select d).First().SetText("NewerText");
+
+                document.SaveAs(@"docs\ContentSetSingle.docx");
+
+                XElement el = new XElement("Root",
+                        new XElement("Name", "Claudia"),
+                        new XElement("Address", "17 Liberty St"),
+                        new XElement("Total", "123.45")
+
+                        );
+
+                XDocument doc = new XDocument(el);
+                document.SetContent(el);
+                document.SaveAs(@"docs\ContentSetWithElement.docx");
+
+
+                doc.Save(@"docs\elements.xml");
+
+                document.SetContent(@"docs\elements.xml");
+                document.SaveAs(@"docs\ContentSetWithPath.docx");
+                
+
+            }
+        }
+        /// <summary>
+        /// Create a document wit(h two equations.
         /// </summary>
         private static void Equations()
         {
@@ -667,17 +718,19 @@ namespace Examples
 
             using (var document = DocX.Create(@"docs\Lists.docx"))
             {
-                var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered, 2);
-                document.AddListItem(numberedList, "First sub list item", 1);
+                var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered);
+                        //Add a numbered list starting at 2
                 document.AddListItem(numberedList, "Second List Item.");
                 document.AddListItem(numberedList, "Third list item.");
-                document.AddListItem(numberedList, "Nested item.", 1);
-                document.AddListItem(numberedList, "Second nested item.", 1);
+                document.AddListItem(numberedList, "First sub list item", 1);
 
+                document.AddListItem(numberedList, "Nested item.", 2);
+                document.AddListItem(numberedList, "Fourth nested item.");
+                
                 var bulletedList = document.AddList("First Bulleted Item.", 0, ListItemType.Bulleted);
                 document.AddListItem(bulletedList, "Second bullet item");
                 document.AddListItem(bulletedList, "Sub bullet item", 1);
-                document.AddListItem(bulletedList, "Second sub bullet item", 1);
+                document.AddListItem(bulletedList, "Second sub bullet item", 2);
                 document.AddListItem(bulletedList, "Third bullet item");
 
                 document.InsertList(numberedList);

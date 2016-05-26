@@ -11,6 +11,18 @@ namespace Novacode
 {
     public abstract class Container : DocXElement
     {
+
+        public virtual ReadOnlyCollection<Content> Contents
+        {
+            get
+            {
+                List<Content> contents = GetContents();
+
+                
+
+                return contents.AsReadOnly();
+            }
+        }
         /// <summary>
         /// Returns a list of all Paragraphs inside this container.
         /// </summary>
@@ -224,14 +236,51 @@ namespace Novacode
 
         public ContainerType ParentContainer;
 
+        internal List<Content> GetContents(bool deepSearch = false)
+        {
+            // Need some memory that can be updated by the recursive search.
+            //int index = 0;
+            List<Content> contents = new List<Content>();
+            foreach (XElement e in Xml.Descendants(XName.Get("sdt", DocX.w.NamespaceName)))
+            {
+                Content content = new Content(Document, e, 0);
+                XElement el = e.Elements(XName.Get("sdtPr", DocX.w.NamespaceName)).First();
+                content.Name = GetAttribute(el, "alias", "val");
+                content.Tag = GetAttribute(el, "tag", "val");
+
+                contents.Add(content);
+            }
+
+
+            return contents;
+        }
+        private string GetAttribute(XElement e, string localName, string attributeName)
+        {
+            string val = string.Empty;
+            try
+            {
+                val = e.Elements(XName.Get(localName, DocX.w.NamespaceName)).Attributes(XName.Get(attributeName, DocX.w.NamespaceName)).FirstOrDefault().Value;
+            }
+            catch (Exception)
+            {
+                val = "Missing";             
+            }
+
+            return val;
+        }
 
         internal List<Paragraph> GetParagraphs(bool deepSearch=false)
         {
             // Need some memory that can be updated by the recursive search.
             int index = 0;
             List<Paragraph> paragraphs = new List<Paragraph>();
-
-            GetParagraphsRecursive(Xml, ref index, ref paragraphs, deepSearch);
+            foreach (XElement e in Xml.Descendants(XName.Get("p", DocX.w.NamespaceName)))
+            {
+                index += HelperFunctions.GetText(e).Length;
+                Paragraph paragraph = new Paragraph(Document, e, index);
+                paragraphs.Add(paragraph);
+            }
+              //  GetParagraphsRecursive(Xml, ref index, ref paragraphs, deepSearch);
 
             return paragraphs;
         }
@@ -241,6 +290,7 @@ namespace Novacode
             // sdtContent are for PageNumbers inside Headers or Footers, don't go any deeper.
             //if (Xml.Name.LocalName == "sdtContent")
             //    return;
+
             var keepSearching = true;
             if (Xml.Name.LocalName == "p")
             {
