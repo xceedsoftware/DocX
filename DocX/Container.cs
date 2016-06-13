@@ -650,7 +650,7 @@ namespace Novacode
                 if (!Document.package.PartExists(style_package_uri))
                 {
                     PackagePart style_package = Document.package.CreatePart(style_package_uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml", CompressionOption.Maximum);
-                    using (TextWriter tw = new StreamWriter(style_package.GetStream()))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(style_package.GetStream())))
                     {
                         style_document = new XDocument
                         (
@@ -682,7 +682,7 @@ namespace Novacode
                     }
                 }
 
-                using (TextWriter tw = new StreamWriter(styles_document.GetStream()))
+                using (TextWriter tw = new StreamWriter(new PackagePartStream(styles_document.GetStream())))
                     style_document.Save(tw);
             }
             #endregion

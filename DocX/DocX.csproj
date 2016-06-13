@@ -117,6 +117,7 @@
     <Compile Include="IContentContainer.cs" />
     <Compile Include="IParagraphContainer.cs" />
     <Compile Include="List.cs" />
+    <Compile Include="PackagePartStream.cs" />
     <Compile Include="PageLayout.cs" />
     <Compile Include="Section.cs" />
     <Compile Include="TableOfContents.cs" />
