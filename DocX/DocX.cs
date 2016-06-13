@@ -675,7 +675,7 @@ namespace Novacode
                         evenAndOddHeaders.Remove();
                 }
 
-                using (TextWriter tw = new StreamWriter(settingsPart.GetStream()))
+                using (TextWriter tw = new StreamWriter(new PackagePartStream(settingsPart.GetStream())))
                     settings.Save(tw);
             }
         }
@@ -1449,7 +1449,7 @@ namespace Novacode
 
                 using (Stream s_read = remote_pp.GetStream())
                 {
-                    using (Stream s_write = new_pp.GetStream(FileMode.Create))
+                    using (Stream s_write = new PackagePartStream(new_pp.GetStream(FileMode.Create)))
                     {
                         byte[] buffer = new byte[32768];
                         int read;
@@ -1647,7 +1647,7 @@ namespace Novacode
             }
 
             // Save the modified local custom styles.xml file.
-            using (TextWriter tw = new StreamWriter(local_pp.GetStream(FileMode.Create, FileAccess.Write)))
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(local_pp.GetStream(FileMode.Create, FileAccess.Write))))
                 local_custom_document.Save(tw, SaveOptions.None);
         }
 
@@ -1924,7 +1924,7 @@ namespace Novacode
 
             using (Stream s_read = pp.GetStream())
             {
-                using (Stream s_write = new_pp.GetStream(FileMode.Create))
+                using (Stream s_write = new PackagePartStream(new_pp.GetStream(FileMode.Create)))
                 {
                     byte[] buffer = new byte[32768];
                     int read;
@@ -2132,7 +2132,7 @@ namespace Novacode
                 wordStyles.Element(w + "styles").Add(style);
 
                 // Save the styles document.
-                using (TextWriter tw = new StreamWriter(package.GetPart(wordStylesUri).GetStream()))
+                using (TextWriter tw = new StreamWriter(new PackagePartStream(package.GetPart(wordStylesUri).GetStream())))
                     wordStyles.Save(tw);
             }
 
@@ -2413,7 +2413,7 @@ namespace Novacode
             }
 
             // Save the main document
-            using (TextWriter tw = new StreamWriter(mainDocumentPart.GetStream(FileMode.Create, FileAccess.Write)))
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(mainDocumentPart.GetStream(FileMode.Create, FileAccess.Write))))
                 mainDoc.Save(tw, SaveOptions.None);
             #endregion
 
@@ -2796,7 +2796,7 @@ namespace Novacode
                             {
                                 using (
                                   StreamWriter tw = new StreamWriter(
-                                    globalRelsPart.GetStream(FileMode.Create, FileAccess.Write), Encoding.UTF8))
+                                    new PackagePartStream(globalRelsPart.GetStream(FileMode.Create, FileAccess.Write)), Encoding.UTF8))
                                 {
                                     tw.Write(tr.ReadToEnd());
                                 }
@@ -2821,7 +2821,7 @@ namespace Novacode
                             {
                                 using (
                                   StreamWriter tw = new StreamWriter(
-                                    nativePart.GetStream(FileMode.Create, FileAccess.Write), tr.CurrentEncoding))
+                                    new PackagePartStream(nativePart.GetStream(FileMode.Create, FileAccess.Write)), tr.CurrentEncoding))
                                 {
                                     tw.Write(tr.ReadToEnd());
                                 }
@@ -2838,7 +2838,7 @@ namespace Novacode
                     }
                     PackagePart documentNewPart = this.package.CreatePart(
                       documentPart.Uri, mainContentType, documentPart.CompressionOption);
-                    using (XmlWriter xw = XmlWriter.Create(documentNewPart.GetStream(FileMode.Create, FileAccess.Write)))
+                    using (XmlWriter xw = XmlWriter.Create(new PackagePartStream(documentNewPart.GetStream(FileMode.Create, FileAccess.Write))))
                     {
                         documentDoc.WriteTo(xw);
                     }
@@ -3049,7 +3049,7 @@ namespace Novacode
                 word_styles.Element(w + "styles").Add(style);
 
                 // Save the styles document.
-                using (TextWriter tw = new StreamWriter(package.GetPart(word_styles_Uri).GetStream()))
+                using (TextWriter tw = new StreamWriter(new PackagePartStream(package.GetPart(word_styles_Uri).GetStream())))
                     word_styles.Save(tw);
             }
         }
@@ -3208,7 +3208,7 @@ namespace Novacode
                 }
 
                 // Save the main document
-                using (TextWriter tw = new StreamWriter(headerPart.GetStream(FileMode.Create, FileAccess.Write)))
+                using (TextWriter tw = new StreamWriter(new PackagePartStream(headerPart.GetStream(FileMode.Create, FileAccess.Write))))
                     header.Save(tw, SaveOptions.None);
 
                 string type;
@@ -3369,7 +3369,7 @@ namespace Novacode
             PackageRelationship rel = mainPart.CreateRelationship(img.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
 
             // Open a Stream to the newly created Image part.
-            using (Stream stream = img.GetStream(FileMode.Create, FileAccess.Write))
+            using (Stream stream = new PackagePartStream(img.GetStream(FileMode.Create, FileAccess.Write)))
             {
                 // Using the Stream to the real image, copy this streams data into the newly create Image part.
                 using (newImageStream)
@@ -3411,7 +3411,7 @@ namespace Novacode
             Headers headers = Headers;
 
             // Save the main document
-            using (TextWriter tw = new StreamWriter(mainPart.GetStream(FileMode.Create, FileAccess.Write)))
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(mainPart.GetStream(FileMode.Create, FileAccess.Write))))
                 mainDoc.Save(tw, SaveOptions.None);
 
             if (settings == null)
@@ -3443,7 +3443,7 @@ namespace Novacode
                         mainPart.GetRelationship(evenHeaderRef).TargetUri
                     );
 
-                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write))))
                     {
                         new XDocument
                         (
@@ -3472,7 +3472,7 @@ namespace Novacode
                     );
 
                     // Save header1
-                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write))))
                     {
                         new XDocument
                         (
@@ -3500,7 +3500,7 @@ namespace Novacode
                     );
 
                     // Save header3
-                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write))))
                     {
                         new XDocument
                         (
@@ -3528,7 +3528,7 @@ namespace Novacode
                     );
 
                     // Save header1
-                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write))))
                     {
                         new XDocument
                         (
@@ -3556,7 +3556,7 @@ namespace Novacode
                     );
 
                     // Save header2
-                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write))))
                     {
                         new XDocument
                         (
@@ -3584,7 +3584,7 @@ namespace Novacode
                     );
 
                     // Save header3
-                    using (TextWriter tw = new StreamWriter(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(package.GetPart(target).GetStream(FileMode.Create, FileAccess.Write))))
                     {
                         new XDocument
                         (
@@ -3595,42 +3595,42 @@ namespace Novacode
                 }
 
                 // Save the settings document.
-                using (TextWriter tw = new StreamWriter(settingsPart.GetStream(FileMode.Create, FileAccess.Write)))
+                using (TextWriter tw = new StreamWriter(new PackagePartStream(settingsPart.GetStream(FileMode.Create, FileAccess.Write))))
                     settings.Save(tw, SaveOptions.None);
 
                 if (endnotesPart != null)
                 {
-                    using (TextWriter tw = new StreamWriter(endnotesPart.GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(endnotesPart.GetStream(FileMode.Create, FileAccess.Write))))
                         endnotes.Save(tw, SaveOptions.None);
                 }
 
                 if (footnotesPart != null)
                 {
-                    using (TextWriter tw = new StreamWriter(footnotesPart.GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(footnotesPart.GetStream(FileMode.Create, FileAccess.Write))))
                         footnotes.Save(tw, SaveOptions.None);
                 }
 
                 if (stylesPart != null)
                 {
-                    using (TextWriter tw = new StreamWriter(stylesPart.GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(stylesPart.GetStream(FileMode.Create, FileAccess.Write))))
                         styles.Save(tw, SaveOptions.None);
                 }
 
                 if (stylesWithEffectsPart != null)
                 {
-                    using (TextWriter tw = new StreamWriter(stylesWithEffectsPart.GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(stylesWithEffectsPart.GetStream(FileMode.Create, FileAccess.Write))))
                         stylesWithEffects.Save(tw, SaveOptions.None);
                 }
 
                 if (numberingPart != null)
                 {
-                    using (TextWriter tw = new StreamWriter(numberingPart.GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(numberingPart.GetStream(FileMode.Create, FileAccess.Write))))
                         numbering.Save(tw, SaveOptions.None);
                 }
 
                 if (fontTablePart != null)
                 {
-                    using (TextWriter tw = new StreamWriter(fontTablePart.GetStream(FileMode.Create, FileAccess.Write)))
+                    using (TextWriter tw = new StreamWriter(new PackagePartStream(fontTablePart.GetStream(FileMode.Create, FileAccess.Write))))
                         fontTable.Save(tw, SaveOptions.None);
                 }
             }
@@ -3831,7 +3831,7 @@ namespace Novacode
                 corePropDoc.Root.Add(new XElement(XName.Get(propertyLocalName, propertyNamespace.NamespaceName), propertyValue));
             }
 
-            using (TextWriter tw = new StreamWriter(corePropPart.GetStream(FileMode.Create, FileAccess.Write)))
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(corePropPart.GetStream(FileMode.Create, FileAccess.Write))))
             {
                 corePropDoc.Save(tw);
             }
@@ -3885,7 +3885,7 @@ namespace Novacode
                     }
                 }
 
-                using (TextWriter tw = new StreamWriter(pp.GetStream(FileMode.Create, FileAccess.Write)))
+                using (TextWriter tw = new StreamWriter(new PackagePartStream(pp.GetStream(FileMode.Create, FileAccess.Write))))
                     header.Save(tw);
             }
             #endregion
@@ -3914,7 +3914,7 @@ namespace Novacode
                     }
                 }
 
-                using (TextWriter tw = new StreamWriter(pp.GetStream(FileMode.Create, FileAccess.Write)))
+                using (TextWriter tw = new StreamWriter(new PackagePartStream(pp.GetStream(FileMode.Create, FileAccess.Write))))
                     footer.Save(tw);
             }
             #endregion
@@ -4007,7 +4007,7 @@ namespace Novacode
             );
 
             // Save the custom properties
-            using (TextWriter tw = new StreamWriter(customPropPart.GetStream(FileMode.Create, FileAccess.Write)))
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(customPropPart.GetStream(FileMode.Create, FileAccess.Write))))
                 customPropDoc.Save(tw, SaveOptions.None);
 
             // Refresh all fields in this document which display this custom property.
@@ -4313,7 +4313,7 @@ namespace Novacode
             PackageRelationship rel = mainPart.CreateRelationship(chartPackagePart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", relID);
 
             // Save a chart info the chartPackagePart
-            using (TextWriter tw = new StreamWriter(chartPackagePart.GetStream(FileMode.Create, FileAccess.Write)))
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(chartPackagePart.GetStream(FileMode.Create, FileAccess.Write))))
                 chart.Xml.Save(tw);
 
             // Insert a new chart into a paragraph.

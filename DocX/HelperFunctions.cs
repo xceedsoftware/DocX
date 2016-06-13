@@ -49,7 +49,7 @@ namespace Novacode
         internal static void CreateRelsPackagePart(DocX Document, Uri uri)
         {
             PackagePart pp = Document.package.CreatePart(uri, "application/vnd.openxmlformats-package.relationships+xml", CompressionOption.Maximum);
-            using (TextWriter tw = new StreamWriter(pp.GetStream()))
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(pp.GetStream())))
             {
                 XDocument d = new XDocument
                 (
@@ -274,7 +274,7 @@ namespace Novacode
                 themeFontLang.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), CultureInfo.CurrentCulture);
 
                 // Save the settings document.
-                using (TextWriter tw = new StreamWriter(settingsPart.GetStream()))
+                using (TextWriter tw = new StreamWriter(new PackagePartStream(settingsPart.GetStream())))
                     settings.Save(tw);
             }
             else
@@ -296,7 +296,7 @@ namespace Novacode
                 )
             );
 
-            using (TextWriter tw = new StreamWriter(customPropertiesPart.GetStream(FileMode.Create, FileAccess.Write)))
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(customPropertiesPart.GetStream(FileMode.Create, FileAccess.Write))))
                 customPropDoc.Save(tw, SaveOptions.None);
 
             document.package.CreateRelationship(customPropertiesPart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties");
@@ -343,7 +343,7 @@ namespace Novacode
             numberingDoc = DecompressXMLResource("Novacode.Resources.numbering.xml.gz");
 
             // Save /word/numbering.xml
-            using (TextWriter tw = new StreamWriter(wordNumbering.GetStream(FileMode.Create, FileAccess.Write)))
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(wordNumbering.GetStream(FileMode.Create, FileAccess.Write))))
                 numberingDoc.Save(tw, SaveOptions.None);
 
             PackagePart mainDocumentPart = package.GetParts().Single(p => p.ContentType.Equals(DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase) ||
@@ -371,7 +371,7 @@ namespace Novacode
             lang.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), CultureInfo.CurrentCulture);
 
             // Save /word/styles.xml
-            using (TextWriter tw = new StreamWriter(word_styles.GetStream(FileMode.Create, FileAccess.Write)))
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(word_styles.GetStream(FileMode.Create, FileAccess.Write))))
                 stylesDoc.Save(tw, SaveOptions.None);
 
             PackagePart mainDocumentPart = package.GetParts().Where

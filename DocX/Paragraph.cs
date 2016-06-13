@@ -1686,7 +1686,7 @@ namespace Novacode
 
             int cx, cy;
 
-            using (System.Drawing.Image img = System.Drawing.Image.FromStream(part.GetStream()))
+            using (System.Drawing.Image img = System.Drawing.Image.FromStream(new PackagePartStream(part.GetStream())))
             {
                 cx = img.Width * 9526;
                 cy = img.Height * 9526;
