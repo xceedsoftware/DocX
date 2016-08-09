@@ -549,6 +549,8 @@ namespace Novacode
             {
                 return newRuns; //I dont wanna get an exception if text == null, so just return empy list
             }
+            
+            char lastChar;
 
             foreach (char c in text)
             {
@@ -565,7 +567,18 @@ namespace Novacode
                         newRuns.Add(new XElement(DocX.w + "r", rPr, tabRun));
                         break;
                     case '\r':
+                    	if (sb.Length > 0)
+                        {
+                            XElement t = new XElement(DocX.w + "t", sb.ToString());
+                            Novacode.Text.PreserveSpace(t);
+                            newRuns.Add(new XElement(DocX.w + "r", rPr, t));
+                            sb = new StringBuilder();
+                        }
+                        newRuns.Add(new XElement(DocX.w + "r", rPr, breakRun));
+                        break;
                     case '\n':
+                    	if (lastChar == '\r') break;
+                    	
                         if (sb.Length > 0)
                         {
                             XElement t = new XElement(DocX.w + "t", sb.ToString());
@@ -580,6 +593,8 @@ namespace Novacode
                         sb.Append(c);
                         break;
                 }
+                
+                lastChar = c;
             }
 
             if (sb.Length > 0)
