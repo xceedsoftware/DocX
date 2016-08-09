@@ -550,7 +550,7 @@ namespace Novacode
                 return newRuns; //I dont wanna get an exception if text == null, so just return empy list
             }
             
-            char lastChar = null;
+            char lastChar = '\0';
 
             foreach (char c in text)
             {
