@@ -5,4 +5,4 @@ install:
   - nuget install NUnit.Console -Version 3.4.1 -OutputDirectory testrunner
 script:
   - xbuild /p:Configuration=Debug DocX.sln
-  - mono --debug ./testrunner/NUnit.ConsoleRunner.3.4.1/tools/nunit3-console.exe ./UnitTests/bin/Release/UnitTests.dll
+  - mono --debug ./testrunner/NUnit.ConsoleRunner.3.4.1/tools/nunit3-console.exe ./UnitTests/bin/Debug/UnitTests.dll
