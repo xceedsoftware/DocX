@@ -379,7 +379,12 @@ namespace Novacode
                 p => p.ContentType.Equals(DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase)||p.ContentType.Equals(TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase)
             ).Single();
 
+			var p=
+
             mainDocumentPart.CreateRelationship(word_styles.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles");
+
+			Console.WriteLine($"X: {p.TargetUri.OriginalString}");
+
             return stylesDoc;
         }
 
