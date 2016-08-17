@@ -2549,6 +2549,9 @@ namespace Novacode
 
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles":
                         document.stylesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
+                        Console.WriteLine($"Passing: {document.stylesPart != null}");
+                        Console.WriteLine($"{rel.TargetUri.OriginalString}");
+                        
                         using (TextReader tr = new StreamReader(document.stylesPart.GetStream()))
                             document.styles = XDocument.Load(tr);
                         break;
