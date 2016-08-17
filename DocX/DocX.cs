@@ -2551,8 +2551,7 @@ namespace Novacode
 
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles":
 						document.stylesPart = package.GetPart(new Uri(url, UriKind.Relative));
-						Console.WriteLine(new Uri(url, UriKind.Relative));
-                        using (TextReader tr = new StreamReader(document.stylesPart.GetStream()))
+						using (TextReader tr = new StreamReader(document.stylesPart.GetStream()))
                             document.styles = XDocument.Load(tr);
                         break;
 
