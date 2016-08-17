@@ -2533,43 +2533,43 @@ namespace Novacode
 
             foreach (var rel in document.mainPart.GetRelationships())
             {
-                switch (rel.RelationshipType)
+				string url = "/word/" + rel.TargetUri.OriginalString.Replace("/word/", "").Replace("file://", "");
+
+				switch (rel.RelationshipType)
                 {
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes":
-                        document.endnotesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
+                        document.endnotesPart = package.GetPart(new Uri(url, UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.endnotesPart.GetStream()))
                             document.endnotes = XDocument.Load(tr);
                         break;
 
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes":
-                        document.footnotesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
+                        document.footnotesPart = package.GetPart(new Uri(url, UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.footnotesPart.GetStream()))
                             document.footnotes = XDocument.Load(tr);
                         break;
 
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles":
-                        document.stylesPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
-                        Console.WriteLine($"Passing: {document.stylesPart != null}");
-                        Console.WriteLine($"{rel.TargetUri.OriginalString}");
-                        
+						document.stylesPart = package.GetPart(new Uri(url, UriKind.Relative));
+						Console.WriteLine(new Uri(url, UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.stylesPart.GetStream()))
                             document.styles = XDocument.Load(tr);
                         break;
 
                     case "http://schemas.microsoft.com/office/2007/relationships/stylesWithEffects":
-                        document.stylesWithEffectsPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
+                        document.stylesWithEffectsPart = package.GetPart(new Uri(url, UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.stylesWithEffectsPart.GetStream()))
                             document.stylesWithEffects = XDocument.Load(tr);
                         break;
 
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable":
-                        document.fontTablePart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
+                        document.fontTablePart = package.GetPart(new Uri(url, UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.fontTablePart.GetStream()))
                             document.fontTable = XDocument.Load(tr);
                         break;
 
                     case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering":
-                        document.numberingPart = package.GetPart(new Uri("/word/" + rel.TargetUri.OriginalString.Replace("/word/", ""), UriKind.Relative));
+                        document.numberingPart = package.GetPart(new Uri(url, UriKind.Relative));
                         using (TextReader tr = new StreamReader(document.numberingPart.GetStream()))
                             document.numbering = XDocument.Load(tr);
                         break;
@@ -2808,7 +2808,7 @@ namespace Novacode
                         case "/word/_rels/document.xml.rels":
                             break;
                         default:
-                            if (!this.package.PartExists(packagePart.Uri))
+							if (!this.package.PartExists(packagePart.Uri))
                             {
                                 this.package.CreatePart(packagePart.Uri, packagePart.ContentType, packagePart.CompressionOption);
                             }
@@ -2841,10 +2841,10 @@ namespace Novacode
                     }
                     PackagePart documentNewPart = this.package.CreatePart(
                       documentPart.Uri, mainContentType, documentPart.CompressionOption);
-                    using (XmlWriter xw = XmlWriter.Create(new PackagePartStream(documentNewPart.GetStream(FileMode.Create, FileAccess.Write))))
-                    {
-                        documentDoc.WriteTo(xw);
-                    }
+					
+					using (TextWriter tw = new StreamWriter(new PackagePartStream(documentNewPart.GetStream(FileMode.Create, FileAccess.Write))))
+						documentDoc.Save(tw, SaveOptions.None);
+					
                     foreach (PackageRelationship documentPartRel in documentPart.GetRelationships())
                     {
                         documentNewPart.CreateRelationship(
@@ -2875,6 +2875,7 @@ namespace Novacode
             {
                 this.package.Flush();
                 var documentRelsPart = this.package.GetPart(new Uri("/word/_rels/document.xml.rels", UriKind.Relative));
+
                 using (TextReader tr = new StreamReader(documentRelsPart.GetStream(FileMode.Open, FileAccess.Read)))
                 {
                     tr.Read();
