@@ -210,6 +210,18 @@ namespace Novacode
             }
         }
 
+        /// <summary> 
+        /// Set Table column width by prescribing percent 
+        /// </summary> 
+        /// <param name="widthsPercentage">column width % list</param> 
+        /// <param name="totalWidth">Total table width. Will be calculated if null sent.</param>
+        public void SetWidthsPercentage(float[] widthsPercentage, float? totalWidth)
+        {
+            if (totalWidth == null) totalWidth = this.Document.PageWidth - this.Document.MarginLeft - this.Document.MarginRight; // calculate total table width 
+            List<float> widths = new List<float>(widthsPercentage.Length); // empty list, will hold actual width 
+            widthsPercentage.ToList().ForEach(pWidth => { widths.Add(pWidth * totalWidth.Value / 100); }); // convert percentage to actual width for all values in array 
+            SetWidths(widths.ToArray()); // set actual column width
+        }
 
 
         /// <summary>
@@ -3807,5 +3819,5 @@ namespace Novacode
         public bool NoHorizontalBanding { get; set; }
         public bool NoVerticalBanding { get; set; }
     }
-   
+ 
 }
