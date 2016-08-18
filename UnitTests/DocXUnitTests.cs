@@ -23,7 +23,6 @@ namespace UnitTests
     {
 
         private readonly string _directoryDocuments;
-        private const string FileTemp = "temp.docx";
         private readonly string _directoryWithFiles;
         private static Border BlankBorder = new Border(BorderStyle.Tcbs_none, 0, 0, Color.White);
 
@@ -31,7 +30,7 @@ namespace UnitTests
 
         public DocXUnitTests()
         {
-            _directoryDocuments = Path.Combine((new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory)).Parent.FullName, "documents");
+            _directoryDocuments = Path.Combine(Path.GetTempPath(), "DocXTests", "documents");
             Setup(_directoryDocuments); // prepare temp documents directory 
 
             _directoryWithFiles = TestHelper.DirectoryWithFiles;
@@ -1346,6 +1345,8 @@ namespace UnitTests
         [Test]
         public void Test_Document_Paragraphs()
         {
+            string temporaryFilePath = Path.Combine(_directoryDocuments, "temp.docx");
+
             // Load the document 'Paragraphs.docx'
             using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "Paragraphs.docx")))
             {
@@ -1376,13 +1377,12 @@ namespace UnitTests
                     Assert.IsTrue(paragraph.PackagePart.Uri.ToString() == package_part_document);
                 }
 
-
                 // Test the saving of the document.
-                document.SaveAs(FileTemp);
+                document.SaveAs(temporaryFilePath);
             }
 
             // Delete the tempory file.
-            File.Delete(FileTemp);
+            File.Delete(temporaryFilePath);
         }
 
         [Test]
