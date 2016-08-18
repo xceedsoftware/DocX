@@ -1498,12 +1498,12 @@ namespace UnitTests
         [Test]
         public void Saving_and_loading_a_template_should_work()
         {
-            using (DocX document = DocX.Create("test template.dotx", DocumentTypes.Template))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "test template.dotx"), DocumentTypes.Template))
             {
                 document.InsertParagraph("hello, this is a paragraph");
                 document.Save();
             }
-            using (DocX document = DocX.Load("test template.dotx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryDocuments, "test template.dotx")))
             {
                 Assert.IsTrue(document.Paragraphs.Count > 0);
             }
@@ -1866,7 +1866,7 @@ namespace UnitTests
         [Test]
         public void IfPreviousElementIsAListThenAddingANewListContinuesThePreviousList()
         {
-            using (DocX document = DocX.Create("TestAddListToPreviousList.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "TestAddListToPreviousList.docx")))
             {
                 var list = document.AddList("List Text");
                 document.AddListItem(list, "List Text2");
@@ -1957,7 +1957,7 @@ namespace UnitTests
         [Test]
         public void WhenICreateAHeaderItShouldHaveAStyle()
         {
-            using (var document = DocX.Create("CreateHeaderElement.docx"))
+            using (var document = DocX.Create(Path.Combine(_directoryDocuments, "CreateHeaderElement.docx")))
             {
                 document.InsertParagraph("Header Text 1").StyleName = "Header1";
                 Assert.IsNotNull(document.styles.Root.Descendants().FirstOrDefault(d => d.GetAttribute(DocX.w + "styleId").ToLowerInvariant() == "heading1"));
@@ -1968,7 +1968,7 @@ namespace UnitTests
         [Test]
         public void ParagraphAppendHyperLink_ParagraphIsListItem_ShouldNotThrow()
         {
-            using (var document = DocX.Create("HyperlinkList.docx"))
+            using (var document = DocX.Create(Path.Combine(_directoryDocuments, "HyperlinkList.docx")))
             {
                 var list = document.AddList("Item 1", listType: ListItemType.Numbered);
                 document.AddListItem(list, "Item 2");
@@ -2037,7 +2037,7 @@ namespace UnitTests
         [Test]
         public void InsertingANextPageBreakShouldAddADocumentSection()
         {
-            using (DocX document = DocX.Create("SectionPageBreak.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "SectionPageBreak.docx")))
             {
                 document.InsertSectionPageBreak();
 
@@ -2050,7 +2050,7 @@ namespace UnitTests
         [Test]
         public void InsertANextPageBreakWithParagraphTextsShouldAddProperParagraphsToProperSections()
         {
-            using (DocX document = DocX.Create("SectionPageBreakWithParagraphs.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "SectionPageBreakWithParagraphs.docx")))
             {
                 document.InsertParagraph("First paragraph.");
                 document.InsertParagraph("Second paragraph.");
@@ -2070,7 +2070,7 @@ namespace UnitTests
         [Test]
         public void WhenAFontFamilyIsSpecifiedForAParagraphItShouldSetTheFontOfTheParagraphTextToTheFontFamily()
         {
-            using (DocX document = DocX.Create("FontTest.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "FontTest.docx")))
             {
                 Paragraph p = document.InsertParagraph();
 
@@ -2172,7 +2172,7 @@ namespace UnitTests
         [Test]
         public void GenerateHeadingTestDocument()
         {
-            using (DocX document = DocX.Create(@"Document Header Test.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, @"Document Header Test.docx")))
             {
 
                 foreach (HeadingType heading in (HeadingType[])Enum.GetValues(typeof(HeadingType)))
