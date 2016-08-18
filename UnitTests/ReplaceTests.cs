@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Novacode;
 
 namespace UnitTests
 {
-    [TestClass]
+    [TestFixture]
     public class RegExTest
     {
         private readonly Dictionary<string, string> _testPatterns = new Dictionary<string, string>
@@ -13,17 +14,11 @@ namespace UnitTests
             { "COURT NAME", "Fred Frump" },
             { "Case Number", "cr-md-2011-1234567" }
         };
-        private readonly TestHelper _testHelper;
 
-        public RegExTest()
-        {
-            _testHelper = new TestHelper();
-        }
-
-        [TestMethod]
+        [Test]
         public void ReplaceText_Can_ReplaceViaFunctionHandler()
         {
-            using (var replaceDoc = DocX.Load(_testHelper.DirectoryWithFiles + "ReplaceTests.docx"))
+            using (var replaceDoc = DocX.Load(Path.Combine(TestHelper.DirectoryWithFiles, "ReplaceTests.docx")))
             {
                 foreach (var t in replaceDoc.Tables)
                 {

@@ -1,14 +1,17 @@
-﻿namespace UnitTests
-{
-    public class TestHelper
-    {
-        public string DirectoryWithFiles { get; }
+﻿using System;
+using System.IO;
 
-        public TestHelper()
+namespace UnitTests
+{
+    public static class TestHelper
+    {
+        static TestHelper()
         {
-            var relativeDirectory = new RelativeDirectory(); // prepares the files for testing
-            relativeDirectory.Up(3);
-            DirectoryWithFiles = relativeDirectory.Path + @"\UnitTests\documents\";
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+            DirectoryWithFiles = Path.Combine(baseDirectory, "documents");
         }
+
+        public static string DirectoryWithFiles { get; }
     }
 }

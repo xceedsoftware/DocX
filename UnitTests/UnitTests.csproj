@@ -48,7 +48,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DocX\bin\Debug\DocX.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="nunit.framework, Version=3.4.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUnit.3.4.1\lib\net40\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core">
@@ -75,35 +78,85 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DocXUnitTests.cs" />
-    <Compile Include="RelativeDirectory.cs" />
     <Compile Include="ReplaceTests.cs" />
     <Compile Include="TestHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="documents\EverybodyHasAHome.docx" />
-    <None Include="documents\FontFormat.docx" />
-    <None Include="documents\Hyperlinks.docx" />
-    <None Include="documents\Images.docx" />
-    <None Include="documents\MovePicture.docx" />
-    <None Include="documents\Paragraphs.docx" />
-    <None Include="documents\ReplaceTests.docx" />
-    <None Include="documents\Tables.docx" />
-    <None Include="documents\Template.dotx" />
-    <None Include="documents\testdoc_OrderedList.docx" />
-    <None Include="documents\testdoc_OrderedUnorderedLists.docx" />
-    <None Include="documents\testdoc_SectionsWithHeadingBreaks.docx" />
-    <None Include="documents\testdoc_SectionsWithSectionBreaks.docx" />
-    <None Include="documents\testdoc_SectionsWithSectionBreaksMultiParagraph.docx" />
-    <None Include="documents\testdoc_UnorderedList.docx" />
-    <None Include="documents\TestParent.docx" />
-    <None Include="documents\VariousTextFormatting.docx" />
+    <None Include="documents\EverybodyHasAHome.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\FontFormat.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\Hyperlinks.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\Images.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\LargeTable.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\MovePicture.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\Paragraphs.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\ReplaceTests.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\Tables.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\TableSpecifiedWidths.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\Template.dotx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\testdoc_OrderedList.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\testdoc_OrderedUnorderedLists.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\testdoc_SectionsWithHeadingBreaks.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\testdoc_SectionsWithSectionBreaks.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\testdoc_SectionsWithSectionBreaksMultiParagraph.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\testdoc_UnorderedList.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\TestParent.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="documents\VariousTextFormatting.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="documents\green.jpg" />
-    <Content Include="documents\orange.gif" />
-    <Content Include="documents\purple.png" />
-    <Content Include="documents\red.bmp" />
-    <Content Include="documents\yellow.tif" />
+    <Content Include="documents\green.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="documents\orange.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="documents\purple.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="documents\red.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="documents\yellow.tif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

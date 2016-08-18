@@ -2,14 +2,14 @@
 using Novacode;
 using System.Linq;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace UnitTests
 {
-    [TestClass]
+    [TestFixture]
     public class InsertAtBookmark
     {
-        [TestMethod]
+        [Test]
         public void Inserting_at_bookmark_should_add_text_in_paragraph()
         {
             using (var document = DocX.Create(""))
@@ -25,7 +25,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Inserting_at_bookmark_should_add_text_in_header()
         {
             using (var document = DocX.Create(""))
@@ -43,7 +43,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Inserting_at_bookmark_should_add_text_in_footer()
         {
             using (var document = DocX.Create(""))
