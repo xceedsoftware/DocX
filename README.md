@@ -3,10 +3,15 @@
 [Codeplex](https://docx.codeplex.com/) | [GitHub](https://github.com/WordDocX/DocX) | [Blog](http://cathalscorner.blogspot.com/) |  [Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GHSZDFX6JHS2A&lc=GB&item_name=DocX%20library&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted)
 
 
-
+<a href="https://www.nuget.org/packages/DocX/">
 <img alt="NuGet Version" src="https://img.shields.io/nuget/v/DocX.svg" /> 
+</a>
+<a href="https://travis-ci.org/WordDocX/DocX">
 <img alt="Travis CI Testing" src="https://travis-ci.org/WordDocX/DocX.svg?branch=master" />
+</a>
+<a href="https://ci.appveyor.com/project/PrzemyslawKlys/docx">
 <img alt="AppVeyor Testing" src="https://ci.appveyor.com/api/projects/status/vxpnp8ivvvq2l39m?svg=true" />
+</a>
 
 
 
