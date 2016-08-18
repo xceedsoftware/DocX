@@ -7,9 +7,10 @@ using System.Xml.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System.Collections.ObjectModel;
 using System.Xml;
+
 using Formatting = Novacode.Formatting;
 
 namespace UnitTests
@@ -17,10 +18,10 @@ namespace UnitTests
     /// <summary>
     /// Summary description for DocXUnitTest
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class DocXUnitTests
     {
-        
+
         private readonly string _directoryDocuments;
         private const string FileTemp = "temp.docx";
         private readonly string _directoryWithFiles;
@@ -30,14 +31,10 @@ namespace UnitTests
 
         public DocXUnitTests()
         {
-            string directoryExecutingAssembly = Assembly.GetExecutingAssembly().Location; // Get the fullpath to the executing assembly.
-            List<string> steps = directoryExecutingAssembly.Split('\\').ToList(); // The documents directory
-            steps.RemoveRange(steps.Count() - 2, 2);
-            _directoryDocuments = String.Join("\\", steps) + "\\documents\\";
+            _directoryDocuments = Path.Combine((new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory)).Parent.FullName, "documents");
             Setup(_directoryDocuments); // prepare temp documents directory 
-            RelativeDirectory rd = new RelativeDirectory(); // prepares the files for testing
-            rd.Up(3);
-            _directoryWithFiles = rd.Path + @"\UnitTests\documents\";
+
+            _directoryWithFiles = TestHelper.DirectoryWithFiles;
         }
         private static void Setup(string path)
         {
@@ -46,19 +43,19 @@ namespace UnitTests
                 Directory.CreateDirectory(path);
             }
         }
-        [TestMethod]
+        [Test]
         public void LargeTable()
         {
-            using (var output = File.Open(_directoryWithFiles + "LargeTable.docx", FileMode.Create))
+            using (var output = File.Open(Path.Combine(_directoryWithFiles, "LargeTable.docx"), FileMode.Create))
             {
                 using (var doc = DocX.Create(output))
                 {
                     var tbl = doc.InsertTable(1, 18);
-                    
+
                     var wholeWidth = doc.PageWidth - doc.MarginLeft - doc.MarginRight;
                     var colWidth = wholeWidth / tbl.ColumnCount;
                     var colWidths = new int[tbl.ColumnCount];
-                    tbl.AutoFit=AutoFit.Contents;
+                    tbl.AutoFit = AutoFit.Contents;
                     var r = tbl.Rows[0];
                     var cx = 0;
                     foreach (var cell in r.Cells)
@@ -84,14 +81,14 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TableWithSpecifiedWidths()
         {
-            using (var output = File.Open(_directoryWithFiles + "TableSpecifiedWidths.docx", FileMode.Create))
+            using (var output = File.Open(Path.Combine(_directoryWithFiles, "TableSpecifiedWidths.docx"), FileMode.Create))
             {
                 using (var doc = DocX.Create(output))
                 {
-                    var widths = new float[] {200f, 100f, 300f};
+                    var widths = new float[] { 200f, 100f, 300f };
                     var tbl = doc.InsertTable(1, widths.Length);
                     tbl.SetWidths(widths);
                     var wholeWidth = doc.PageWidth - doc.MarginLeft - doc.MarginRight;
@@ -136,12 +133,12 @@ namespace UnitTests
                     doc.Save();
                 }
             }
-            
+
         }
 
         public void TestPatternFuncReplacement()
         {
-            
+
         }
 
         public string ReplaceFunc(string findStr)
@@ -159,26 +156,26 @@ namespace UnitTests
             return findStr;
         }
 
-        [TestMethod]
+        [Test]
         public void RegexTest()
         {
             var findPattern = "<(.*?)>";
             var sample = "<Match This> text";
-            var matchCollection = Regex.Matches(sample, findPattern,RegexOptions.IgnoreCase);
+            var matchCollection = Regex.Matches(sample, findPattern, RegexOptions.IgnoreCase);
             int i = 1;
 
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Pattern_Replacement()
         {
             Dictionary<string, string> testPatterns = new Dictionary<string, string>()
             {
-                {"COURT NAME","Fred Frump"}, 
+                {"COURT NAME","Fred Frump"},
                 {"Case Number","cr-md-2011-1234567"}
             };
 
-            using (DocX replaceDoc = DocX.Load(_directoryWithFiles + "ReplaceTests.docx"))
+            using (DocX replaceDoc = DocX.Load(Path.Combine(_directoryWithFiles, "ReplaceTests.docx")))
             {
                 foreach (var t in replaceDoc.Tables)
                 {   // each table has 1 row and 3 columns
@@ -202,7 +199,7 @@ namespace UnitTests
                 // Do the replacing
                 foreach (var p in testPatterns)
                 {
-                    replaceDoc.ReplaceText("<(.*?)>", ReplaceFunc,false,RegexOptions.IgnoreCase);
+                    replaceDoc.ReplaceText("<(.*?)>", ReplaceFunc, false, RegexOptions.IgnoreCase);
                     //replaceDoc.ReplaceText("<" + p.Key + ">", p.Value, false, RegexOptions.IgnoreCase);
                 }
 
@@ -220,7 +217,7 @@ namespace UnitTests
 
         }
 
-        [TestMethod]
+        [Test]
         public void Test_CustomProperty_Add()
         {
             // Load a document.
@@ -260,11 +257,11 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_EverybodyHasAHome_Loaded()
         {
             // Load a document.
-            using (DocX document = DocX.Load(_directoryWithFiles + "EverybodyHasAHome.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "EverybodyHasAHome.docx")))
             {
                 // Main document tests.
                 string document_xml_file = document.mainPart.Uri.OriginalString;
@@ -341,14 +338,14 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Insert_Picture_ParagraphBeforeSelf()
         {
             // Create test document.
-            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Test.docx")))
             {
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(_directoryWithFiles + "purple.png");
+                Novacode.Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -364,14 +361,14 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Insert_Picture_ParagraphAfterSelf()
         {
             // Create test document.
-            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Test.docx")))
             {
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(_directoryWithFiles + "purple.png");
+                Novacode.Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -387,7 +384,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_EverybodyHasAHome_Created()
         {
             // Create a new document.
@@ -494,78 +491,78 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Document_AddImage_FromDisk()
         {
-            using (DocX document = DocX.Create(_directoryDocuments + "test_add_images.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "test_add_images.docx")))
             {
                 // Add a png to into this document
-                Novacode.Image png = document.AddImage(_directoryWithFiles + "purple.png");
+                Novacode.Image png = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
                 Assert.IsTrue(document.Images.Count == 1);
                 Assert.IsTrue(Path.GetExtension(png.pr.TargetUri.OriginalString) == ".png");
 
                 // Add a tiff into to this document
-                Novacode.Image tif = document.AddImage(_directoryWithFiles + "yellow.tif");
+                Novacode.Image tif = document.AddImage(Path.Combine(_directoryWithFiles, "yellow.tif"));
                 Assert.IsTrue(document.Images.Count == 2);
                 Assert.IsTrue(Path.GetExtension(tif.pr.TargetUri.OriginalString) == ".tif");
 
                 // Add a gif into to this document
-                Novacode.Image gif = document.AddImage(_directoryWithFiles + "orange.gif");
+                Novacode.Image gif = document.AddImage(Path.Combine(_directoryWithFiles, "orange.gif"));
                 Assert.IsTrue(document.Images.Count == 3);
                 Assert.IsTrue(Path.GetExtension(gif.pr.TargetUri.OriginalString) == ".gif");
 
                 // Add a jpg into to this document
-                Novacode.Image jpg = document.AddImage(_directoryWithFiles + "green.jpg");
+                Novacode.Image jpg = document.AddImage(Path.Combine(_directoryWithFiles, "green.jpg"));
                 Assert.IsTrue(document.Images.Count == 4);
                 Assert.IsTrue(Path.GetExtension(jpg.pr.TargetUri.OriginalString) == ".jpg");
 
                 // Add a bitmap to this document
-                Novacode.Image bitmap = document.AddImage(_directoryWithFiles + "red.bmp");
+                Novacode.Image bitmap = document.AddImage(Path.Combine(_directoryWithFiles, "red.bmp"));
                 Assert.IsTrue(document.Images.Count == 5);
                 // Word does not allow bmp make sure it was inserted as a png.
                 Assert.IsTrue(Path.GetExtension(bitmap.pr.TargetUri.OriginalString) == ".png");
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Document_AddImage_FromStream()
         {
-            using (DocX document = DocX.Create(_directoryDocuments + "test_add_images.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "test_add_images.docx")))
             {
                 // DocX will always insert Images that come from Streams as jpeg.
 
                 // Add a png to into this document
-                Novacode.Image png = document.AddImage(new FileStream(_directoryWithFiles + "purple.png", FileMode.Open));
+                Novacode.Image png = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "purple.png"), FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 1);
                 Assert.IsTrue(Path.GetExtension(png.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a tiff into to this document
-                Novacode.Image tif = document.AddImage(new FileStream(_directoryWithFiles + "yellow.tif", FileMode.Open));
+                Novacode.Image tif = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "yellow.tif"), FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 2);
                 Assert.IsTrue(Path.GetExtension(tif.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a gif into to this document
-                Novacode.Image gif = document.AddImage(new FileStream(_directoryWithFiles + "orange.gif", FileMode.Open));
+                Novacode.Image gif = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "orange.gif"), FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 3);
                 Assert.IsTrue(Path.GetExtension(gif.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a jpg into to this document
-                Novacode.Image jpg = document.AddImage(new FileStream(_directoryWithFiles + "green.jpg", FileMode.Open));
+                Novacode.Image jpg = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "green.jpg"), FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 4);
                 Assert.IsTrue(Path.GetExtension(jpg.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a bitmap to this document
-                Novacode.Image bitmap = document.AddImage(new FileStream(_directoryWithFiles + "red.bmp", FileMode.Open));
+                Novacode.Image bitmap = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "red.bmp"), FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 5);
                 // Word does not allow bmp make sure it was inserted as a png.
                 Assert.IsTrue(Path.GetExtension(bitmap.pr.TargetUri.OriginalString) == ".jpeg");
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Tables()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "Tables.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "Tables.docx")))
             {
                 // There is only one Paragraph at the document level.
                 Assert.IsTrue(document.Paragraphs.Count() == 13);
@@ -581,10 +578,10 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Images()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "Images.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "Images.docx")))
             {
                 // Extract Images from Document.
                 List<Novacode.Image> document_images = document.Images;
@@ -624,11 +621,11 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Insert_Picture()
         {
             // Load test document.
-            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Test.docx")))
             {
                 // Add Headers and Footers into this document.
                 document.AddHeaders();
@@ -637,7 +634,7 @@ namespace UnitTests
                 document.DifferentOddAndEvenPages = true;
 
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(_directoryWithFiles + "purple.png");
+                Novacode.Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -675,11 +672,11 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Insert_Hyperlink()
         {
             // Load test document.
-            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Test.docx")))
             {
                 // Add Headers and Footers into this document.
                 document.AddHeaders();
@@ -723,11 +720,11 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Get_Set_Hyperlink()
         {
             // Load test document.
-            using (DocX document = DocX.Load(_directoryWithFiles + "Hyperlinks.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "Hyperlinks.docx")))
             {
                 // Hyperlinks in the document.
                 Assert.IsTrue(document.Hyperlinks.Count == 3);
@@ -814,11 +811,11 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Append_Hyperlink()
         {
             // Load test document.
-            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Test.docx")))
             {
                 // Add Headers and Footers into this document.
                 document.AddHeaders();
@@ -869,11 +866,11 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Append_Picture()
         {
             // Create test document.
-            using (DocX document = DocX.Create(_directoryDocuments + "Test.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Test.docx")))
             {
                 // Add Headers and Footers into this document.
                 document.AddHeaders();
@@ -882,7 +879,7 @@ namespace UnitTests
                 document.DifferentOddAndEvenPages = true;
 
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(_directoryWithFiles + "purple.png");
+                Novacode.Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -920,11 +917,11 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Move_Picture_Load()
         {
             // Load test document.
-            using (DocX document = DocX.Load(_directoryWithFiles + "MovePicture.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "MovePicture.docx")))
             {
                 // Extract the first Picture from the first Paragraph.
                 Picture picture = document.Paragraphs.First().Pictures.First();
@@ -954,11 +951,11 @@ namespace UnitTests
                 footer_odd.Paragraphs.First().AppendPicture(picture);
 
                 // Save this as MovedPicture.docx
-                document.SaveAs(_directoryDocuments + "MovedPicture.docx");
+                document.SaveAs(Path.Combine(_directoryDocuments, "MovedPicture.docx"));
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Paragraph_InsertHyperlink()
         {
             // Create a new document
@@ -989,7 +986,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Paragraph_RemoveHyperlink()
         {
             // Create a new document
@@ -1030,7 +1027,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Paragraph_ReplaceText()
         {
             // Create a new document
@@ -1055,11 +1052,11 @@ namespace UnitTests
             }
         }
 
-         [TestMethod]
+        [Test]
         public void Test_Paragraph_ReplaceTextInGivenFormat()
         {
             // Load a document.
-            using (DocX document = DocX.Load(_directoryWithFiles + "VariousTextFormatting.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "VariousTextFormatting.docx")))
             {
                 // Removing red text highlighted with yellow
                 var formatting = new Formatting();
@@ -1108,7 +1105,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Paragraph_RemoveText()
         {
             // Create a new document
@@ -1219,11 +1216,11 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Document_RemoveTextInGivenFormat()
         {
             // Load a document.
-            using (DocX document = DocX.Load(_directoryWithFiles + "VariousTextFormatting.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "VariousTextFormatting.docx")))
             {
                 var formatting = new Formatting();
                 formatting.FontColor = Color.Blue;
@@ -1243,7 +1240,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Paragraph_InsertText()
         {
             // Create a new document
@@ -1346,11 +1343,11 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Document_Paragraphs()
         {
             // Load the document 'Paragraphs.docx'
-            using (DocX document = DocX.Load(_directoryWithFiles + "Paragraphs.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "Paragraphs.docx")))
             {
                 // Extract the Paragraphs from this document.
                 ReadOnlyCollection<Paragraph> paragraphs = document.Paragraphs;
@@ -1374,11 +1371,11 @@ namespace UnitTests
                 Assert.IsTrue(p3_text == "Paragraph 3");
 
                 // Its important that each Paragraph knows the PackagePart it belongs to.
-                 foreach (var paragraph in document.Paragraphs)
+                foreach (var paragraph in document.Paragraphs)
                 {
                     Assert.IsTrue(paragraph.PackagePart.Uri.ToString() == package_part_document);
                 }
- 
+
 
                 // Test the saving of the document.
                 document.SaveAs(FileTemp);
@@ -1388,7 +1385,7 @@ namespace UnitTests
             File.Delete(FileTemp);
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Table_mainPart_bug9526()
         {
             using (DocX document = DocX.Create("test.docx"))
@@ -1402,11 +1399,11 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Table_InsertRowAndColumn()
         {
             // Create a table
-            using (DocX document = DocX.Create(_directoryDocuments + "Tables2.docx"))
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Tables2.docx")))
             {
                 // Add a Table to a document.
                 Table t = document.AddTable(2, 2);
@@ -1428,7 +1425,7 @@ namespace UnitTests
             }
 
             // Check table
-            using (DocX document = DocX.Load(_directoryDocuments + "Tables2.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryDocuments, "Tables2.docx")))
             {
                 // Get a table from a document
                 Table t = document.Tables[0];
@@ -1449,14 +1446,14 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Document_ApplyTemplate()
         {
             using (MemoryStream documentStream = new MemoryStream())
             {
                 using (DocX document = DocX.Create(documentStream))
                 {
-                    document.ApplyTemplate(_directoryWithFiles + "Template.dotx");
+                    document.ApplyTemplate(Path.Combine(_directoryWithFiles, "Template.dotx"));
                     document.Save();
 
                     Header firstHeader = document.Headers.first;
@@ -1490,15 +1487,15 @@ namespace UnitTests
                 }
             }
         }
-        [TestMethod]
+        [Test]
         public void When_opening_a_template_no_error_should_be_thrown()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "Template.dotx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "Template.dotx")))
             {
                 Assert.IsTrue(document.Paragraphs.Count > 0);
             }
         }
-        [TestMethod]
+        [Test]
         public void Saving_and_loading_a_template_should_work()
         {
             using (DocX document = DocX.Create("test template.dotx", DocumentTypes.Template))
@@ -1510,9 +1507,9 @@ namespace UnitTests
             {
                 Assert.IsTrue(document.Paragraphs.Count > 0);
             }
-            
+
         }
-        [TestMethod]
+        [Test]
         public void Test_ParentContainer_When_Creating_Doc()
         {
             using (DocX document = DocX.Create("Test.docx"))
@@ -1524,7 +1521,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Section_Count_When_Creating_Doc()
         {
             //This adds a section break - so insert paragraphs, and follow it up by a section break/paragraph
@@ -1539,7 +1536,7 @@ namespace UnitTests
 
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Sections_And_Paragraphs_When_Creating_Doc()
         {
             //This adds a section break - so insert paragraphs, and follow it up by a section break/paragraph
@@ -1559,10 +1556,10 @@ namespace UnitTests
 
         }
 
-        [TestMethod]
+        [Test]
         public void Test_ParentContainer_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "Tables.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "Tables.docx")))
             {
                 ReadOnlyCollection<Paragraph> paragraphs = document.Paragraphs;
 
@@ -1573,10 +1570,10 @@ namespace UnitTests
 
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Section_Count_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_SectionsWithSectionBreaks.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "testdoc_SectionsWithSectionBreaks.docx")))
             {
                 var sections = document.GetSections();
 
@@ -1585,10 +1582,10 @@ namespace UnitTests
 
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Section_Paragraph_Count_Match_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_SectionsWithSectionBreaksMultiParagraph.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "testdoc_SectionsWithSectionBreaksMultiParagraph.docx")))
             {
 
                 var sections = document.GetSections();
@@ -1600,10 +1597,10 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Section_Paragraph_Content_Match_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_SectionsWithSectionBreaks.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "testdoc_SectionsWithSectionBreaks.docx")))
             {
 
                 var sections = document.GetSections();
@@ -1616,10 +1613,10 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Ordered_List_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_OrderedList.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "testdoc_OrderedList.docx")))
             {
 
                 var sections = document.GetSections();
@@ -1634,10 +1631,10 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Unordered_List_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_UnorderedList.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "testdoc_UnorderedList.docx")))
             {
 
                 var sections = document.GetSections();
@@ -1652,10 +1649,10 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Test_Ordered_Unordered_Lists_When_Reading_Doc()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_OrderedUnorderedLists.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "testdoc_OrderedUnorderedLists.docx")))
             {
 
                 var sections = document.GetSections();
@@ -1679,7 +1676,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void WhenCreatingAnOrderedListTheListXmlShouldHaveNumberedListItemType()
         {
 
@@ -1702,7 +1699,7 @@ namespace UnitTests
 
         }
 
-        [TestMethod]
+        [Test]
         public void WhenCreatingAnUnOrderedListTheListXmlShouldHaveBulletListItemType()
         {
 
@@ -1719,7 +1716,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void WhenCreatingAListWithTextTheListXmlShouldHaveTheCorrectRunItemText()
         {
             using (DocX document = DocX.Create("TestListCreate.docx"))
@@ -1738,7 +1735,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void WhenCreatingAnOrderedListTheListShouldHaveNumberedListItemType()
         {
 
@@ -1751,7 +1748,7 @@ namespace UnitTests
 
         }
 
-        [TestMethod]
+        [Test]
         public void WhenCreatingAnUnOrderedListTheListShouldHaveBulletListItemType()
         {
 
@@ -1764,7 +1761,7 @@ namespace UnitTests
 
         }
 
-        [TestMethod]
+        [Test]
         public void WhenCreatingAListWithTextTheListShouldHaveTheCorrectRunItemText()
         {
 
@@ -1777,13 +1774,13 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void WhenCreatingAListTheNumberingShouldGetSaved()
         {
 
         }
 
-        [TestMethod]
+        [Test]
         public void WhenCreatingAListTheListStyleShouldExistOrBeCreated()
         {
 
@@ -1806,7 +1803,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ANewListItemShouldCreateAnAbstractNumberingEntry()
         {
             using (DocX document = DocX.Create("TestNumbering.docx"))
@@ -1821,7 +1818,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ANewListItemShouldCreateANewNumEntry()
         {
             using (DocX document = DocX.Create("TestNumEntry.docx"))
@@ -1836,7 +1833,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreateNewNumberingNumIdShouldAddNumberingDataToTheDocument()
         {
             using (DocX document = DocX.Create("TestCreateNumbering.docx"))
@@ -1851,7 +1848,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreateNewNumberingNumIdShouldAddNumberingAbstractDataToTheDocument()
         {
             using (DocX document = DocX.Create("TestCreateNumberingAbstract.docx"))
@@ -1866,7 +1863,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void IfPreviousElementIsAListThenAddingANewListContinuesThePreviousList()
         {
             using (DocX document = DocX.Create("TestAddListToPreviousList.docx"))
@@ -1895,11 +1892,11 @@ namespace UnitTests
 
         }
 
-        [TestMethod]
+        [Test]
         public void WhenADocumentHasListsTheListPropertyReturnsTheCorrectNumberOfLists()
         {
 
-            using (DocX document = DocX.Load(_directoryWithFiles + "testdoc_OrderedUnorderedLists.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "testdoc_OrderedUnorderedLists.docx")))
             {
                 var lists = document.Lists;
 
@@ -1908,7 +1905,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void WhenADocumentIsCreatedWithAListItemThatHasASpecifiedStartNumber()
         {
             using (DocX document = DocX.Create("CreateListItemFromDifferentStartValue.docx"))
@@ -1923,7 +1920,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void WhenANumberedAndBulletedListIsCreatedThereShouldBeTwoNumberingXmls()
         {
             using (DocX document = DocX.Create("NumberAndBulletListInOne.docx"))
@@ -1943,7 +1940,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void WhenICreateAnEmptyListAndAddEntriesToIt()
         {
             using (DocX document = DocX.Create("CreateEmptyListAndAddItemsToIt.docx"))
@@ -1957,7 +1954,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void WhenICreateAHeaderItShouldHaveAStyle()
         {
             using (var document = DocX.Create("CreateHeaderElement.docx"))
@@ -1968,7 +1965,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ParagraphAppendHyperLink_ParagraphIsListItem_ShouldNotThrow()
         {
             using (var document = DocX.Create("HyperlinkList.docx"))
@@ -1993,10 +1990,10 @@ namespace UnitTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void WhileReadingWhenTextIsBoldItalicUnderlineItShouldReadTheProperFormatting()
         {
-            using (DocX document = DocX.Load(_directoryWithFiles + "FontFormat.docx"))
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "FontFormat.docx")))
             {
                 var underlinedTextFormatting = document.Paragraphs[0].MagicText[0].formatting;
                 var boldTextFormatting = document.Paragraphs[0].MagicText[2].formatting;
@@ -2013,7 +2010,7 @@ namespace UnitTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void WhileWritingWhenTextIsBoldItalicUnderlineItShouldReadTheProperFormatting()
         {
             using (DocX document = DocX.Create("FontFormatWrite.docx"))
@@ -2037,7 +2034,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void InsertingANextPageBreakShouldAddADocumentSection()
         {
             using (DocX document = DocX.Create("SectionPageBreak.docx"))
@@ -2050,50 +2047,50 @@ namespace UnitTests
             }
         }
 
-      [TestMethod]
-      public void InsertANextPageBreakWithParagraphTextsShouldAddProperParagraphsToProperSections()
-      {
-        using (DocX document = DocX.Create("SectionPageBreakWithParagraphs.docx"))
+        [Test]
+        public void InsertANextPageBreakWithParagraphTextsShouldAddProperParagraphsToProperSections()
         {
-          document.InsertParagraph("First paragraph.");
-          document.InsertParagraph("Second paragraph.");
-          document.InsertSectionPageBreak();
-          document.InsertParagraph("Third paragraph.");
-          document.InsertParagraph("Fourth paragraph.");
+            using (DocX document = DocX.Create("SectionPageBreakWithParagraphs.docx"))
+            {
+                document.InsertParagraph("First paragraph.");
+                document.InsertParagraph("Second paragraph.");
+                document.InsertSectionPageBreak();
+                document.InsertParagraph("Third paragraph.");
+                document.InsertParagraph("Fourth paragraph.");
 
-          var sections = document.GetSections();
-          Assert.AreEqual(sections.Count, 2);
+                var sections = document.GetSections();
+                Assert.AreEqual(sections.Count, 2);
 
-          Assert.AreEqual(sections[0].SectionParagraphs.Count(p => !string.IsNullOrWhiteSpace(p.Text)), 2);
-          Assert.AreEqual(sections[1].SectionParagraphs.Count(p => !string.IsNullOrWhiteSpace(p.Text)), 2);
-          document.Save();
+                Assert.AreEqual(sections[0].SectionParagraphs.Count(p => !string.IsNullOrWhiteSpace(p.Text)), 2);
+                Assert.AreEqual(sections[1].SectionParagraphs.Count(p => !string.IsNullOrWhiteSpace(p.Text)), 2);
+                document.Save();
+            }
         }
-      }
 
-      [TestMethod]
+        [Test]
         public void WhenAFontFamilyIsSpecifiedForAParagraphItShouldSetTheFontOfTheParagraphTextToTheFontFamily()
         {
-          using (DocX document = DocX.Create("FontTest.docx"))
-          {
-            Paragraph p = document.InsertParagraph();
+            using (DocX document = DocX.Create("FontTest.docx"))
+            {
+                Paragraph p = document.InsertParagraph();
 
-            p.Append("Hello World").Font(new FontFamily("Symbol"));
+                p.Append("Hello World").Font(new FontFamily("Symbol"));
 
-            Assert.AreEqual(p.MagicText[0].formatting.FontFamily.Name, "Symbol");
+                Assert.AreEqual(p.MagicText[0].formatting.FontFamily.Name, "Symbol");
 
-            document.Save();
-          }
+                document.Save();
+            }
         }
 
-      [TestMethod]
-      public void Test_Paragraph_RemoveTextManyLetters()
-      {
-          using (DocX document = DocX.Create(@"HelloWorldRemovingManyLetters.docx"))
-          {
+        [Test]
+        public void Test_Paragraph_RemoveTextManyLetters()
+        {
+            using (DocX document = DocX.Create(@"HelloWorldRemovingManyLetters.docx"))
+            {
 
-              Paragraph p3 = document.InsertParagraph("");
-              p3.Xml = XElement.Parse(
-                  @"<w:p xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                Paragraph p3 = document.InsertParagraph("");
+                p3.Xml = XElement.Parse(
+                    @"<w:p xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
                     <w:pPr>
                     <w:ind />
                     </w:pPr>
@@ -2120,82 +2117,82 @@ namespace UnitTests
                     </w:r>
                     </w:p>");
 
-              int l1 = p3.Text.Length; //960
-              p3.RemoveText(318, 99);
-              int l2 = p3.Text.Length; //should be 861
-              Assert.AreEqual(l1 - 99, l2);
-          }
-      }
+                int l1 = p3.Text.Length; //960
+                p3.RemoveText(318, 99);
+                int l2 = p3.Text.Length; //should be 861
+                Assert.AreEqual(l1 - 99, l2);
+            }
+        }
 
-      [TestMethod]
-      public void Test_Table_RemoveParagraphs()
-      {
-          MemoryStream memoryStream;
-          DocX document;
- 
-          memoryStream = new MemoryStream();
-          document = DocX.Create(memoryStream);
-          // Add a Table into the document.
-          Table table = document.AddTable(1, 4); // 1 row, 4 cells
-          table.Design = TableDesign.TableGrid;
-          table.Alignment = Alignment.center;
-          // Edit row
-          var row = table.Rows[0];
+        [Test]
+        public void Test_Table_RemoveParagraphs()
+        {
+            MemoryStream memoryStream;
+            DocX document;
 
-          // Fill 1st paragraph
-          row.Cells[0].Paragraphs.ElementAt(0).Append("Paragraph 1");
-          // Fill 2nd paragraph
-          var secondParagraph = row.Cells[0].InsertParagraph("Paragraph 2");
+            memoryStream = new MemoryStream();
+            document = DocX.Create(memoryStream);
+            // Add a Table into the document.
+            Table table = document.AddTable(1, 4); // 1 row, 4 cells
+            table.Design = TableDesign.TableGrid;
+            table.Alignment = Alignment.center;
+            // Edit row
+            var row = table.Rows[0];
 
-          // Check number of paragraphs
-          Assert.AreEqual(2, row.Cells[0].Paragraphs.Count());
+            // Fill 1st paragraph
+            row.Cells[0].Paragraphs.ElementAt(0).Append("Paragraph 1");
+            // Fill 2nd paragraph
+            var secondParagraph = row.Cells[0].InsertParagraph("Paragraph 2");
 
-          // Remove 1st paragraph
-          var deleted = row.Cells[0].RemoveParagraphAt(0);
-          Assert.IsTrue(deleted);
-          // Check number of paragraphs
-          Assert.AreEqual(1, row.Cells[0].Paragraphs.Count());
+            // Check number of paragraphs
+            Assert.AreEqual(2, row.Cells[0].Paragraphs.Count());
 
-          // Remove 3rd (nonexisting) paragraph
-          deleted = row.Cells[0].RemoveParagraphAt(3);
-          Assert.IsFalse(deleted);
-          //check number of paragraphs
-          Assert.AreEqual(1, row.Cells[0].Paragraphs.Count());
+            // Remove 1st paragraph
+            var deleted = row.Cells[0].RemoveParagraphAt(0);
+            Assert.IsTrue(deleted);
+            // Check number of paragraphs
+            Assert.AreEqual(1, row.Cells[0].Paragraphs.Count());
 
-          // Remove secondParagraph (this time the only one) paragraph
-          deleted = row.Cells[0].RemoveParagraph(secondParagraph);
-          Assert.IsTrue(deleted);
-          Assert.AreEqual(0, row.Cells[0].Paragraphs.Count());
+            // Remove 3rd (nonexisting) paragraph
+            deleted = row.Cells[0].RemoveParagraphAt(3);
+            Assert.IsFalse(deleted);
+            //check number of paragraphs
+            Assert.AreEqual(1, row.Cells[0].Paragraphs.Count());
 
-          // Remove last paragraph once again - this time this paragraph does not exists
-          deleted = row.Cells[0].RemoveParagraph(secondParagraph);
-          Assert.IsFalse(deleted);
-          Assert.AreEqual(0, row.Cells[0].Paragraphs.Count());
-      }
-      [TestMethod]
-      public void GenerateHeadingTestDocument()
-      {
-          using (DocX document = DocX.Create(@"Document Header Test.docx"))
-          {
+            // Remove secondParagraph (this time the only one) paragraph
+            deleted = row.Cells[0].RemoveParagraph(secondParagraph);
+            Assert.IsTrue(deleted);
+            Assert.AreEqual(0, row.Cells[0].Paragraphs.Count());
 
-              foreach (HeadingType heading in (HeadingType[])Enum.GetValues(typeof(HeadingType)))
-              {
-                  string text = string.Format("{0} - The quick brown fox jumps over the lazy dog", heading.EnumDescription());
+            // Remove last paragraph once again - this time this paragraph does not exists
+            deleted = row.Cells[0].RemoveParagraph(secondParagraph);
+            Assert.IsFalse(deleted);
+            Assert.AreEqual(0, row.Cells[0].Paragraphs.Count());
+        }
+        [Test]
+        public void GenerateHeadingTestDocument()
+        {
+            using (DocX document = DocX.Create(@"Document Header Test.docx"))
+            {
 
-                  Paragraph p = document.InsertParagraph();
-                  p.AppendLine(text).Heading(heading);
-              }
+                foreach (HeadingType heading in (HeadingType[])Enum.GetValues(typeof(HeadingType)))
+                {
+                    string text = string.Format("{0} - The quick brown fox jumps over the lazy dog", heading.EnumDescription());
+
+                    Paragraph p = document.InsertParagraph();
+                    p.AppendLine(text).Heading(heading);
+                }
 
 
-              document.Save();
-          }
-      }
+                document.Save();
+            }
+        }
 
-      
 
-        [TestMethod]
+
+        [Test]
         public void CreateTableOfContents_WithTitleAndSwitches_SetsExpectedXml()
-        {            
+        {
             using (var document = DocX.Create("TableOfContents Test.docx"))
             {
                 const string title = "TestTitle";
@@ -2209,13 +2206,13 @@ namespace UnitTests
                 const string switchString = @"TOC \h \o '1-3' \u \z";
                 var expectedString = string.Format(XmlTemplateBases.TocXmlBase, "TOCHeading", title, rightPos, switchString);
                 var expectedReader = XmlReader.Create(new StringReader(expectedString));
-                var expected = XElement.Load(expectedReader);                
+                var expected = XElement.Load(expectedReader);
 
                 Assert.IsTrue(XNode.DeepEquals(expected, toc.Xml));
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreateTableOfContents_WithTitleSwitchesHeaderStyleLastIncludeLevelRightTabPos_SetsExpectedXml()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2239,7 +2236,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreateTableOfContents_WhenCalled_AddsUpdateFieldsWithValueTrueToSettings()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2257,7 +2254,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreateTableOfContents_WhenCalledSettingsAlreadyHasUpdateFields_DoesNotAddUpdateFields()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2276,7 +2273,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_TocHeadingStyleIsNotPresent_AddsTocHeaderStyle()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2303,7 +2300,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_Toc1StyleIsNotPresent_AddsToc1Style()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2329,7 +2326,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_Toc2StyleIsNotPresent_AddsToc2Style()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2355,7 +2352,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_Toc3StyleIsNotPresent_AddsToc3tyle()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2381,7 +2378,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_Toc4StyleIsNotPresent_AddsToc4Style()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2407,7 +2404,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_HyperlinkStyleIsNotPresent_AddsHyperlinkStyle()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2433,7 +2430,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_TocHeadingStyleIsPresent_DoesNotAddTocHeaderStyle()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2446,7 +2443,7 @@ namespace UnitTests
 
                 var xElement = XElement.Load(XmlReader.Create(new StringReader(string.Format(XmlTemplateBases.TocHeadingStyleBase, headerStyle))));
                 document.styles.Root.Add(xElement);
-                
+
                 TableOfContents.CreateTableOfContents(document, title, switches, headerStyle);
 
                 var actual = document.styles.Root.Descendants().Single(x =>
@@ -2458,7 +2455,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_Toc1StyleIsPresent_DoesNotAddToc1Style()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2483,7 +2480,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_Toc2StyleIsPresent_DoesNotAddToc2Style()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2508,7 +2505,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_Toc3StyleIsPresent_DoesNotAddToc3Style()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2533,7 +2530,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_Toc4StyleIsPresent_DoesNotAddToc4Style()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2558,7 +2555,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreteTableOfContents_HyperlinkStyleIsPresent_DoesNotAddHyperlinkStyle()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2582,7 +2579,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void InsertDefaultTableOfContents_WhenCalled_AddsTocToDocument()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2592,12 +2589,12 @@ namespace UnitTests
                 var toc = TableOfContents.CreateTableOfContents(document, "Table of contents",
                     TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z |
                     TableOfContentsSwitches.U);
-                
+
                 Assert.IsTrue(document.Xml.Descendants().FirstOrDefault(x => XNode.DeepEquals(toc.Xml, x)) != null);
             }
         }
 
-        [TestMethod]
+        [Test]
         public void InsertTableOfContents_WhenCalledWithTitleSwitchesHeaderStyleMaxIncludeLevelAndRightTabPos_AddsTocToDocument()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2607,7 +2604,7 @@ namespace UnitTests
                 const string headerStyle = "HeaderStyle";
                 const int lastIncludeLevel = 4;
                 const int rightTabPos = 1337;
-                
+
                 document.InsertTableOfContents(tableOfContentsTitle, tableOfContentsSwitches, headerStyle, lastIncludeLevel, rightTabPos);
 
                 var toc = TableOfContents.CreateTableOfContents(document, tableOfContentsTitle, tableOfContentsSwitches, headerStyle, lastIncludeLevel, rightTabPos);
@@ -2616,7 +2613,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void InsertTableOfContents_WhenCalledWithReferenceTitleSwitchesHeaderStyleMaxIncludeLevelAndRightTabPos_AddsTocToDocumentAtExpectedLocation()
         {
             using (var document = DocX.Create("TableOfContents Test.docx"))
@@ -2644,7 +2641,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ValidateBookmark_WhenCalledWithNameOfNonMatchingBookmark_ReturnsFalse()
         {
             using (var document = DocX.Create("Bookmark validate.docx"))
@@ -2655,7 +2652,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ValidateBookmark_WhenCalledWithNameOfMatchingBookmark_ReturnsTrue()
         {
             using (var document = DocX.Create("Bookmark validate.docx"))
@@ -2669,7 +2666,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ValidateBookmarks_WhenCalledWithMatchingBookmarkNameInHeader_ReturnsEmpty()
         {
             using (var document = DocX.Create("Bookmark validate.docx"))
@@ -2684,7 +2681,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ValidateBookmarks_WhenCalledWithMatchingBookmarkNameInMainDocument_ReturnsEmpty()
         {
             using (var document = DocX.Create("Bookmark validate.docx"))
@@ -2698,7 +2695,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ValidateBookmarks_WhenCalledWithMatchingBookmarkNameInFooters_ReturnsEmpty()
         {
             using (var document = DocX.Create("Bookmark validate.docx"))
@@ -2713,7 +2710,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ValidateBookmarks_WhenCalledWithNoMatchingBookmarkNames_ReturnsExpected()
         {
             using (var document = DocX.Create("Bookmark validate.docx"))
@@ -2723,7 +2720,7 @@ namespace UnitTests
 
                 p.AppendBookmark("Not in search");
 
-                var bookmarkNames = new[] {"Team Rubberduck", "is", "the most", "awesome people"};
+                var bookmarkNames = new[] { "Team Rubberduck", "is", "the most", "awesome people" };
 
                 var result = document.ValidateBookmarks(bookmarkNames);
                 for (var i = 0; i < bookmarkNames.Length; i++)
@@ -2733,7 +2730,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreateTable_WhenCalledSetColumnWidth_ReturnsExpected()
         {
             using (var document = DocX.Create("Set column width.docx"))
@@ -2744,11 +2741,11 @@ namespace UnitTests
                 table.SetColumnWidth(1, 2000);
 
                 Assert.AreEqual(1000, table.GetColumnWidth(0));
-                Assert.AreEqual(2000, table.GetColumnWidth(1));                
+                Assert.AreEqual(2000, table.GetColumnWidth(1));
             }
         }
 
-        [TestMethod]
+        [Test]
         public void UpdateParagraphFontSize_WhenSetFontSize_ReturnsExpected()
         {
             using (var document = DocX.Create("Update paragraph font size.docx"))
@@ -2769,12 +2766,12 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void SetTableCellMargin_WhenSetTwoCellMargins_ContainsTwoCellMargins()
         {
             using (var document = DocX.Create("Set table cell margins.docx"))
             {
-                Table table = document.InsertTable(1,1);
+                Table table = document.InsertTable(1, 1);
 
                 table.SetTableCellMargin(TableCellMarginType.left, 20);
                 table.SetTableCellMargin(TableCellMarginType.right, 40);
@@ -2800,7 +2797,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void SetTableCellMargin_WhenReSetCellMargin_ContainsOneCellMargin()
         {
             using (var document = DocX.Create("Set table cell margin.docx"))
@@ -2829,4 +2826,3 @@ namespace UnitTests
         }
     }
 }
-       
