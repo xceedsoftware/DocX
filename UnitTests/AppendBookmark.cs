@@ -1,16 +1,16 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Novacode;
+﻿using Novacode;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NUnit.Framework;
 
 namespace UnitTests
 {
-    [TestClass]
+    [TestFixture]
     public class AppendBookmark
     {
-        [TestMethod]
+        [Test]
         public void Bookmark_should_be_appended()
         {
             using (var doc = DocX.Create(""))
@@ -22,7 +22,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Bookmark_should_be_named_correctly()
         {
             using (var doc = DocX.Create(""))
@@ -34,7 +34,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Bookmark_should_reference_paragraph()
         {
             using (var doc = DocX.Create(""))
