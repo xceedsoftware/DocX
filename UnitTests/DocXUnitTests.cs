@@ -2074,9 +2074,11 @@ namespace UnitTests
             {
                 Paragraph p = document.InsertParagraph();
 
-                p.Append("Hello World").Font(new FontFamily("Symbol"));
+                var fontFamily = new FontFamily("Symbol");
 
-                Assert.AreEqual(p.MagicText[0].formatting.FontFamily.Name, "Symbol");
+                p.Append("Hello World").Font(fontFamily);
+
+                Assert.AreEqual(p.MagicText[0].formatting.FontFamily.Name, fontFamily.Name);
 
                 document.Save();
             }
