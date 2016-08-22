@@ -135,6 +135,7 @@ namespace UnitTests
 
         }
 
+        [Test]
         public void TestPatternFuncReplacement()
         {
 
@@ -1424,6 +1425,36 @@ namespace UnitTests
                 document.Save();
             }
 
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Tables3.docx")))
+            {
+                //Add A table
+                Table t = document.AddTable(2, 2);
+                t.Design = TableDesign.TableGrid;
+
+                Table t1 = document.InsertTable(t);
+
+                t1.InsertColumn(2);
+                t1.InsertColumn(2);
+                t1.InsertColumn(2);
+                t1.InsertColumn(2);
+                t1.Rows[0].MergeCells(1, 4);
+
+                Assert.AreEqual(t1.Rows[1].Cells.Count, 6);
+                Assert.AreEqual(t1.ColumnCount, 6);
+
+                foreach(Row r in t1.Rows)
+                {
+                    foreach(Cell c in r.Cells)
+                    {
+                        c.Paragraphs[0].InsertText("Hello");
+                    }
+                }
+                t1.InsertColumn(6);
+                Assert.AreEqual(t1.ColumnCount, 7);
+                Assert.IsTrue(String.IsNullOrEmpty(t1.Rows[0].Cells[3].Paragraphs[0].Text));
+                Assert.IsTrue(String.IsNullOrEmpty(t1.Rows[1].Cells[6].Paragraphs[0].Text));
+            }
+            
             // Check table
             using (DocX document = DocX.Load(Path.Combine(_directoryDocuments, "Tables2.docx")))
             {

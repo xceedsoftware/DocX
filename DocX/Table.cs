@@ -1547,18 +1547,55 @@ namespace Novacode
         {
             if (RowCount > 0)
             {
-                _cachedColCount = -1;
-                foreach (Row r in Rows)
+                if(index <= this.ColumnCount)
                 {
-                    // create cell
-                    XElement cell = HelperFunctions.CreateTableCell();
+                    _cachedColCount = -1;
+                    foreach (Row r in Rows)
+                    {
+                        // create cell
+                        XElement cell = HelperFunctions.CreateTableCell();
 
-                    // insert cell 
-                    if (r.Cells.Count == index)
-                        r.Cells[index - 1].Xml.AddAfterSelf(cell);
-                    else
-                        r.Cells[index].Xml.AddBeforeSelf(cell);
+                        // insert cell 
+                        // checks if it is in bounds of index
+                        // TODO: Check for gridspan of cells in row to check if merged cells
+                        if (r.Cells.Count < index || r.Cells.Count < this.ColumnCount)
+                        {
+                            var position = 0;
+                            foreach(Cell rowCell in r.Cells)
+                            {
+                                position += 1;
+                                var grid = 0;
+                                XElement tcPr = rowCell.Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                                if (tcPr != null)
+                                {
+                                    XElement gridSpan = tcPr.Element(XName.Get("gridSpan", DocX.w.NamespaceName));
+                                    if (gridSpan != null)
+                                    {
+                                        XAttribute val = gridSpan.Attribute(XName.Get("val", DocX.w.NamespaceName));
+
+                                        int value = 0;
+                                        if (val != null)
+                                            if (int.TryParse(val.Value, out value))
+                                                grid = value;
+                                    }
+                                }
+                                if(position + grid >= index)
+                                {
+                                    r.Cells[r.Cells.Count - 1].Xml.AddAfterSelf(cell);
+                                    break;
+                                }
+                            }                                                    
+                        }
+                        else if (r.Cells.Count == index)
+                            r.Cells[index - 1].Xml.AddAfterSelf(cell);
+                        else
+                            r.Cells[index].Xml.AddBeforeSelf(cell);
+                    }
                 }
+                else
+                {
+                    throw new NullReferenceException("Out of index bounds, column count is " + this.ColumnCount + " you input " + index);
+                }                
             }
         }
 
@@ -2555,7 +2592,7 @@ namespace Novacode
 
             // The sum of all merged gridSpans.
             int gridSpanSum = 0;
-
+                     
             // Foreach each Cell between startIndex and endIndex inclusive.
             foreach (Cell c in Cells.Where((z, i) => i > startIndex && i <= endIndex))
             {
@@ -2622,6 +2659,7 @@ namespace Novacode
     public class Cell : Container
     {
         internal Row row;
+    
         internal Cell(Row row, DocX document, XElement xml)
             : base(document, xml)
         {
@@ -2640,6 +2678,15 @@ namespace Novacode
 
                 return paragraphs;
             }
+        }
+
+        public int GridSpan
+        {
+            get
+            {
+                var somethin = int.Parse(this.Xml.Element(XName.Get("gridSpan", DocX.w.NamespaceName)).Attribute(XName.Get("Value",DocX.w.NamespaceName)).Value);
+                return somethin; 
+            }            
         }
 
         /// <summary>

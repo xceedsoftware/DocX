@@ -1,0 +1,555 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:ve="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml">
+  <w:body>
+    <w:tbl>
+      <w:tblPr>
+        <w:tblStyle w:val="TableGrid"/>
+        <w:tblW w:w="14629" w:type="dxa"/>
+        <w:tblInd w:w="-459" w:type="dxa"/>
+        <w:tblLayout w:type="fixed"/>
+        <w:tblLook w:val="04A0"/>
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="2722"/>
+        <w:gridCol w:w="709"/>
+        <w:gridCol w:w="5927"/>
+        <w:gridCol w:w="1757"/>
+        <w:gridCol w:w="878"/>
+        <w:gridCol w:w="879"/>
+        <w:gridCol w:w="1757"/>
+      </w:tblGrid>
+      
+      <w:tr w:rsidR="00156C90" w:rsidRPr="00156C90" w:rsidTr="00B16F01">
+        <w:trPr>
+          <w:tblHeader/>
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="9358" w:type="dxa"/>
+            <w:gridSpan w:val="3"/>
+            <w:shd w:val="clear" w:color="auto" w:fill="D9D9D9" w:themeFill="background1" w:themeFillShade="D9"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="00673925" w:rsidRPr="00B16F01" w:rsidRDefault="00673925" w:rsidP="0057642C">
+            <w:pPr>
+              <w:ind w:right="33"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00B16F01">
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+              </w:rPr>
+              <w:lastRenderedPageBreak/>
+              <w:t>Elements &amp; Performance</w:t>
+            </w:r>
+          </w:p>
+          <w:p w:rsidR="00673925" w:rsidRPr="00B16F01" w:rsidRDefault="00673925" w:rsidP="0057642C">
+            <w:pPr>
+              <w:ind w:right="33"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00B16F01">
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+              </w:rPr>
+              <w:t xml:space="preserve">Criteria  </w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="5271" w:type="dxa"/>
+            <w:gridSpan w:val="4"/>
+            <w:shd w:val="clear" w:color="auto" w:fill="D9D9D9" w:themeFill="background1" w:themeFillShade="D9"/>
+          </w:tcPr>
+          <w:p w:rsidR="00673925" w:rsidRPr="00B16F01" w:rsidRDefault="00673925" w:rsidP="005F50AD">
+            <w:pPr>
+              <w:ind w:right="34"/>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00B16F01">
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+              </w:rPr>
+              <w:t xml:space="preserve">Assessment event(s) </w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      
+      <w:tr w:rsidR="00156C90" w:rsidRPr="00156C90" w:rsidTr="00B16F01">
+        <w:trPr>
+          <w:trHeight w:val="624"/>
+          <w:tblHeader/>
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="2722" w:type="dxa"/>
+            <w:shd w:val="clear" w:color="auto" w:fill="F2F2F2" w:themeFill="background1" w:themeFillShade="F2"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="00C14077" w:rsidRPr="00B16F01" w:rsidRDefault="00C14077" w:rsidP="005F50AD">
+            <w:pPr>
+              <w:ind w:right="32"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00B16F01">
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+              </w:rPr>
+              <w:t xml:space="preserve">Element(s)  </w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="709" w:type="dxa"/>
+            <w:shd w:val="clear" w:color="auto" w:fill="F2F2F2" w:themeFill="background1" w:themeFillShade="F2"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="00C14077" w:rsidRPr="00B16F01" w:rsidRDefault="00C14077" w:rsidP="0057642C">
+            <w:pPr>
+              <w:ind w:right="33"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00B16F01">
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:eastAsia="Times New Roman" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+                <w:bCs/>
+                <w:lang w:eastAsia="en-AU"/>
+              </w:rPr>
+              <w:t>PC No</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="5927" w:type="dxa"/>
+            <w:shd w:val="clear" w:color="auto" w:fill="F2F2F2" w:themeFill="background1" w:themeFillShade="F2"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="00C14077" w:rsidRPr="00B16F01" w:rsidRDefault="00C14077" w:rsidP="0057642C">
+            <w:pPr>
+              <w:ind w:right="33"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00B16F01">
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:eastAsia="Times New Roman" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+                <w:bCs/>
+                <w:lang w:eastAsia="en-AU"/>
+              </w:rPr>
+              <w:t>Performance  Criteria (PC)</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="5271" w:type="dxa"/>
+            <w:gridSpan w:val="4"/>
+            <w:shd w:val="clear" w:color="auto" w:fill="F2F2F2" w:themeFill="background1" w:themeFillShade="F2"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="00C14077" w:rsidRPr="00B16F01" w:rsidRDefault="00ED0E43" w:rsidP="00027C76">
+            <w:pPr>
+              <w:ind w:right="33"/>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:eastAsia="Times New Roman" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:b/>
+                <w:bCs/>
+                <w:lang w:eastAsia="en-AU"/>
+              </w:rPr>
+            </w:pPr>
+            <w:fldSimple w:instr=" MERGEFIELD  Assessments \m  \* MERGEFORMAT ">
+              <w:r w:rsidR="007916DD">
+                <w:rPr>
+                  <w:b/>
+                  <w:noProof/>
+                </w:rPr>
+                <w:t>«</w:t>
+              </w:r>
+              <w:r w:rsidR="007916DD" w:rsidRPr="007916DD">
+                <w:rPr>
+                  <w:rFonts w:ascii="Arial" w:eastAsia="Times New Roman" w:hAnsi="Arial" w:cs="Arial"/>
+                  <w:b/>
+                  <w:bCs/>
+                  <w:noProof/>
+                  <w:lang w:eastAsia="en-AU"/>
+                </w:rPr>
+                <w:t>Assessments</w:t>
+              </w:r>
+              <w:r w:rsidR="007916DD">
+                <w:rPr>
+                  <w:b/>
+                  <w:noProof/>
+                </w:rPr>
+                <w:t>»</w:t>
+              </w:r>
+            </w:fldSimple>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      
+      <w:tr w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidTr="007916DD">
+        <w:trPr>
+          <w:trHeight w:val="848"/>
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="2722" w:type="dxa"/>
+            <w:vMerge w:val="restart"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:rPr>
+                <w:lang w:val="en-NZ"/>
+              </w:rPr>
+            </w:pPr>
+            <w:fldSimple w:instr=" MERGEFIELD  Elements  \* MERGEFORMAT ">
+              <w:r w:rsidRPr="007916DD">
+                <w:rPr>
+                  <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                  <w:noProof/>
+                  <w:lang w:eastAsia="en-AU"/>
+                </w:rPr>
+                <w:t>«Elements»</w:t>
+              </w:r>
+            </w:fldSimple>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="709" w:type="dxa"/>
+            <w:vMerge w:val="restart"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:rPr>
+                <w:lang w:val="en-NZ"/>
+              </w:rPr>
+            </w:pPr>
+            <w:fldSimple w:instr=" MERGEFIELD  PC_Number  \* MERGEFORMAT ">
+              <w:r w:rsidRPr="007916DD">
+                <w:rPr>
+                  <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                  <w:noProof/>
+                  <w:lang w:eastAsia="en-AU"/>
+                </w:rPr>
+                <w:t>«PC_Number»</w:t>
+              </w:r>
+            </w:fldSimple>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="5927" w:type="dxa"/>
+            <w:vMerge w:val="restart"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:rPr>
+                <w:lang w:val="en-NZ"/>
+              </w:rPr>
+            </w:pPr>
+            <w:fldSimple w:instr=" MERGEFIELD  Criterion  \* MERGEFORMAT ">
+              <w:r w:rsidRPr="007916DD">
+                <w:rPr>
+                  <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                  <w:noProof/>
+                  <w:lang w:eastAsia="en-AU"/>
+                </w:rPr>
+                <w:t>«Criterion»</w:t>
+              </w:r>
+            </w:fldSimple>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="1757" w:type="dxa"/>
+            <w:vMerge w:val="restart"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="008A3F3D">
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+              <w:t>&lt;</w:t>
+            </w:r>
+            <w:r w:rsidRPr="008A3F3D">
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+                <w:sz w:val="18"/>
+                <w:szCs w:val="18"/>
+              </w:rPr>
+              <w:t>Insert question number or task skill number from assessment tool that address the specific Performance criteria</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="878" w:type="dxa"/>
+            <w:vMerge w:val="restart"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="879" w:type="dxa"/>
+            <w:vMerge w:val="restart"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="1757" w:type="dxa"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      
+      <w:tr w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidTr="00AC5A44">
+        <w:trPr>
+          <w:trHeight w:val="847"/>
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="2722" w:type="dxa"/>
+            <w:vMerge/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="00ED0E43" w:rsidRDefault="007916DD" w:rsidP="00673925"/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="709" w:type="dxa"/>
+            <w:vMerge/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="00ED0E43" w:rsidRDefault="007916DD" w:rsidP="00673925"/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="5927" w:type="dxa"/>
+            <w:vMerge/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="00ED0E43" w:rsidRDefault="007916DD" w:rsidP="00673925"/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="1757" w:type="dxa"/>
+            <w:vMerge/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="878" w:type="dxa"/>
+            <w:vMerge/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="879" w:type="dxa"/>
+            <w:vMerge/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="1757" w:type="dxa"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      
+      <w:tr w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidTr="00336DE8">
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="2722" w:type="dxa"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="00ED0E43" w:rsidRDefault="007916DD" w:rsidP="00673925"/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="709" w:type="dxa"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="00ED0E43" w:rsidRDefault="007916DD" w:rsidP="00673925"/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="5927" w:type="dxa"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="00ED0E43" w:rsidRDefault="007916DD" w:rsidP="00673925"/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="1757" w:type="dxa"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="1757" w:type="dxa"/>
+            <w:gridSpan w:val="2"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="1757" w:type="dxa"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      
+      <w:tr w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidTr="00B16F01">
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="2722" w:type="dxa"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="00ED0E43" w:rsidRDefault="007916DD" w:rsidP="00673925"/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="709" w:type="dxa"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="00ED0E43" w:rsidRDefault="007916DD" w:rsidP="00673925"/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="5927" w:type="dxa"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="00ED0E43" w:rsidRDefault="007916DD" w:rsidP="00673925"/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="5271" w:type="dxa"/>
+            <w:gridSpan w:val="4"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p w:rsidR="007916DD" w:rsidRPr="008A3F3D" w:rsidRDefault="007916DD" w:rsidP="00673925">
+            <w:pPr>
+              <w:jc w:val="center"/>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+              </w:rPr>
+            </w:pPr>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    
+    </w:tbl>
+  </w:body>
+</w:document>
