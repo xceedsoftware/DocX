@@ -1543,7 +1543,7 @@ namespace UnitTests
                 t1.InsertColumn(6, true);
                 t1.InsertColumn(6, true);
                 t1.InsertColumn(5, true);
-                document.Save();
+                document.SaveAs(@"C:\\Meh\\ThisTest.docx");
             }
         }
 

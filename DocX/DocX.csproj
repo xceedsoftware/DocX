@@ -136,13 +136,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="License\License.html" />
-    <Content Include="XMLFile1.xml">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="XMLFile2.xml">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="XMLFile3.xml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\default_styles.xml.gz" />
