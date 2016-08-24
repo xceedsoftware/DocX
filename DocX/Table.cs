@@ -1677,7 +1677,11 @@ namespace Novacode
                 row.Cells[index].Xml.AddBeforeSelf(cell);
             }
         }
-
+        /// <summary>
+        /// Deletes a cell in a row
+        /// </summary>
+        /// <param name="rowIndex">index of the row you want to remove the cell</param>
+        /// <param name="celIndex">index of the cell you want to remove</param>
         public void DeleteAndShiftCellsLeft(int rowIndex, int celIndex)
         {
 

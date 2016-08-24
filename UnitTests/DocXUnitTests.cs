@@ -1417,7 +1417,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void Test_Table_MergeRowMergedCellsWithColumnMergedCells()
+        public void Test_Table_MergedRowCellsMergedWithColumnMergedCells()
         {
             using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Tables3.docx")))
             {
@@ -1543,7 +1543,7 @@ namespace UnitTests
                 t1.InsertColumn(6, true);
                 t1.InsertColumn(6, true);
                 t1.InsertColumn(5, true);
-                document.SaveAs(@"C:\\Meh\\ThisTest.docx");
+                document.Save();
             }
         }
 
