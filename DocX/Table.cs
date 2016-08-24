@@ -56,7 +56,7 @@ namespace Novacode
             * null will be returned if no such element exists.
              */
             XElement start_tcPr = null;
-            if(columnIndex > Rows[startRow].Cells.Count)
+            if (columnIndex > Rows[startRow].Cells.Count)
                 start_tcPr = Rows[startRow].Cells[Rows[startRow].Cells.Count - 1].Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
             else
                 start_tcPr = Rows[startRow].Cells[columnIndex].Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
@@ -206,7 +206,7 @@ namespace Novacode
                     if (r.Cells.Count > c)
                         r.Cells[c].Width = widths[c];
                 }
-                
+
             }
         }
 
@@ -269,7 +269,7 @@ namespace Novacode
                 tblCellMar.AddFirst(new XElement(XName.Get(type.ToString(), DocX.w.NamespaceName)));
                 tblMargin = tblCellMar.Element(XName.Get(type.ToString(), DocX.w.NamespaceName));
             }
-            
+
             tblMargin.RemoveAttributes();
             // set the value for the cell margin
             tblMargin.Add(new XAttribute(XName.Get("w", DocX.w.NamespaceName), margin));
@@ -284,7 +284,7 @@ namespace Novacode
         public Double GetColumnWidth(Int32 index)
         {
             List<Double> widths = ColumnWidths;
-            if (widths == null || index > widths.Count -1) return Double.NaN;
+            if (widths == null || index > widths.Count - 1) return Double.NaN;
 
             return widths[index];
         }
@@ -492,14 +492,14 @@ namespace Novacode
             }
         }
 
-         /// <summary>
-         /// String containing the Table Caption value (the table's Alternate Text Title)
-         /// </summary>
-         private string _tableCaption;
-         /// <summary>
-         /// Gets or Sets the value of the Table Caption (Alternate Text Title) of this table. 
-         /// </summary>
-         public string TableCaption
+        /// <summary>
+        /// String containing the Table Caption value (the table's Alternate Text Title)
+        /// </summary>
+        private string _tableCaption;
+        /// <summary>
+        /// Gets or Sets the value of the Table Caption (Alternate Text Title) of this table. 
+        /// </summary>
+        public string TableCaption
         {
             set
             {
@@ -514,7 +514,7 @@ namespace Novacode
 
                     tblCaption = new XElement(XName.Get("tblCaption", DocX.w.NamespaceName),
                         new XAttribute(XName.Get("val", DocX.w.NamespaceName), value));
-                   tblPr.Add(tblCaption);
+                    tblPr.Add(tblCaption);
                 }
             }
 
@@ -685,7 +685,7 @@ namespace Novacode
                             tableAttributeValue = columnAttributeValue = "dxa";
 
                             XElement tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
-                            XElement tblLayout  = tblPr.Element(XName.Get("tblLayout", DocX.w.NamespaceName));
+                            XElement tblLayout = tblPr.Element(XName.Get("tblLayout", DocX.w.NamespaceName));
 
                             if (tblLayout == null)
                             {
@@ -709,7 +709,9 @@ namespace Novacode
 
                                 break;
 
-                            } else {
+                            }
+                            else
+                            {
                                 var qry = from d in Xml.Descendants()
                                           let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
                                           where (d.Name.LocalName == "tblLayout") && type != null
@@ -1305,7 +1307,7 @@ namespace Novacode
         /// </example>
         public void InsertColumn()
         {
-            InsertColumn(ColumnCount);
+            InsertColumn(ColumnCount, true);
         }
 
         /// <summary>
@@ -1508,6 +1510,7 @@ namespace Novacode
         /// Insert a column into a table.
         /// </summary>
         /// <param name="index">The index to insert the column at.</param>
+        /// <param name="direction">The side in which you wish to place the colum(True right, false left)</param>
         /// <example>
         /// Insert a column to the left of a table.
         /// <code>
@@ -1518,7 +1521,7 @@ namespace Novacode
         ///     Table table = document.Tables[0];
         ///
         ///     // Insert a new column to this left of this table.
-        ///     table.InsertColumn(0);
+        ///     table.InsertColumn(0, false);
         ///
         ///     // Set the new columns text to "Row no."
         ///     table.Rows[0].Cells[table.ColumnCount - 1].Paragraph.InsertText("Row no.", false);
@@ -1543,11 +1546,12 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public void InsertColumn(int index)
+        public void InsertColumn(int index, bool direction)
         {
+            var columnCount = ColumnCount;
             if (RowCount > 0)
             {
-                if(index <= this.ColumnCount)
+                if (index > 0 && index <= columnCount)
                 {
                     _cachedColCount = -1;
                     foreach (Row r in Rows)
@@ -1558,44 +1562,148 @@ namespace Novacode
                         // insert cell 
                         // checks if it is in bounds of index
                         // TODO: Check for gridspan of cells in row to check if merged cells
-                        if (r.Cells.Count < index || r.Cells.Count < this.ColumnCount)
+                        if (r.Cells.Count < columnCount)
                         {
-                            var position = 0;
-                            foreach(Cell rowCell in r.Cells)
+                            if (index >= columnCount)
+                            {                                
+                                AddCellToRow(r, cell, r.Cells.Count, direction);
+                            }
+                            else
                             {
-                                position += 1;
-                                var grid = 0;
-                                XElement tcPr = rowCell.Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
-                                if (tcPr != null)
+                                bool directionTest = true;
+                                var positionIndex = 1;
+                                var actualPosition = 1;
+                                var gridAfterVal = 0;
+                                // checks to see if here is a deleted cell
+                                XElement trPr = r.Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                                if (trPr != null)
                                 {
-                                    XElement gridSpan = tcPr.Element(XName.Get("gridSpan", DocX.w.NamespaceName));
-                                    if (gridSpan != null)
+                                    XElement gridAfter = trPr.Element(XName.Get("gridAfter", DocX.w.NamespaceName));
+                                    if (gridAfter != null)
                                     {
-                                        XAttribute val = gridSpan.Attribute(XName.Get("val", DocX.w.NamespaceName));
-
-                                        int value = 0;
+                                        XAttribute val = gridAfter.Attribute(XName.Get("val", DocX.w.NamespaceName));
                                         if (val != null)
-                                            if (int.TryParse(val.Value, out value))
-                                                grid = value;
+                                        {
+                                            gridAfterVal = int.Parse(val.Value);
+                                        }
                                     }
                                 }
-                                if(position + grid >= index)
+                                // goes through iteration of cells to find the one the that contains the index number
+                                foreach (Cell rowCell in r.Cells)
                                 {
-                                    r.Cells[r.Cells.Count - 1].Xml.AddAfterSelf(cell);
-                                    break;
+                                    var gridSpanVal = 0;
+                                    XElement tcPr = rowCell.Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                                    if (tcPr != null)
+                                    {
+                                        XElement gridSpan = tcPr.Element(XName.Get("gridSpan", DocX.w.NamespaceName));
+                                        if (gridSpan != null)
+                                        {
+                                            XAttribute val = gridSpan.Attribute(XName.Get("val", DocX.w.NamespaceName));
+
+                                            int value = 0;
+                                            if (val != null)
+                                                if (int.TryParse(val.Value, out value))
+                                                    gridSpanVal = value -1;
+                                        }
+                                    }
+                                    
+                                    
+                                    // Sees if the cell has gridSpan and if the index is within its lowest and highest cell value
+                                    if ((index - gridAfterVal) >= actualPosition
+                                        && (index - gridAfterVal) <= (actualPosition + gridSpanVal))
+                                    {
+                                        if (index == (actualPosition + gridSpanVal) && direction == true)
+                                        {
+                                            directionTest = true;
+                                        }
+                                        else
+                                        {
+                                            directionTest = false;
+                                        }
+                                        AddCellToRow(r, cell, positionIndex, directionTest);
+                                        break;
+                                    }
+                                    positionIndex += 1;
+                                    actualPosition += gridSpanVal + 1;
                                 }
-                            }                                                    
+                            }
                         }
                         else if (r.Cells.Count == index)
-                            r.Cells[index - 1].Xml.AddAfterSelf(cell);
+                        {
+                            AddCellToRow(r, cell, index, direction);
+                        }
                         else
-                            r.Cells[index].Xml.AddBeforeSelf(cell);
+                            AddCellToRow(r, cell, index, direction);
                     }
                 }
                 else
                 {
-                    throw new NullReferenceException("Out of index bounds, column count is " + this.ColumnCount + " you input " + index);
-                }                
+                    throw new IndexOutOfRangeException("Out of index bounds, column count is " + columnCount + " you input " + index);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a cell to the right or left of a cell
+        /// </summary>
+        /// <param name="row">is the row you are adding</param>
+        /// <param name="cell">is the cell you are adding</param>
+        /// <param name="index">the cell index position you are refferencing from</param>
+        /// <param name="direction">which side of the cell you wish to add cell</param>
+
+        private void AddCellToRow(Row row, XElement cell, int index, bool direction)
+        {
+            index -= 1;
+            if (direction)
+            {
+                row.Cells[index].Xml.AddAfterSelf(cell);
+            }
+            else
+            {
+                row.Cells[index].Xml.AddBeforeSelf(cell);
+            }
+        }
+
+        public void DeleteAndShiftCellsLeft(int rowIndex, int celIndex)
+        {
+            
+            XAttribute gridAfterVal = new XAttribute(XName.Get("val", DocX.w.NamespaceName), 0);
+            var trPr = Rows[rowIndex].Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+            if (trPr != null)
+            {
+                var gridAfter = trPr.Element(XName.Get("gridAfter", DocX.w.NamespaceName));
+                if (gridAfter != null)
+                {
+                    var val = gridAfter.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                    if (val != null)
+                    {
+                        val.Value = int.Parse(val.Value + 1).ToString();
+                    }
+                    else
+                    {
+                        val.Value = "1";
+                    }
+                }
+                else
+                {
+                    var gridAfterElement = new XElement("gridAfter");
+                    var gridAfterValAttribute = new XAttribute("val", 1);
+                    gridAfter.SetAttributeValue("val", 1);
+                }
+            }
+            else
+            {
+                XElement trPrXElement = new XElement(XName.Get("trPr",DocX.w.NamespaceName));
+                XElement gridAfterElement = new XElement(XName.Get("gridAfter", DocX.w.NamespaceName));                
+                XAttribute gridAfterValAttribute = new XAttribute(XName.Get("val", DocX.w.NamespaceName), 1);
+                gridAfterElement.Add(gridAfterValAttribute);
+                trPrXElement.Add(gridAfterElement);
+                Rows[rowIndex].Xml.AddFirst(trPrXElement);
+            }
+            var columnCount = this.ColumnCount;
+            if (celIndex <= this.ColumnCount && this.Rows[rowIndex].ColumnCount <= this.ColumnCount)
+            {
+                Rows[rowIndex].Cells[celIndex].Xml.Remove();
             }
         }
 
@@ -2065,79 +2173,79 @@ namespace Novacode
         /// <param name="borderType">The table border to set</param>
         /// <param name="border">Border object to set the table border</param>
  		public void SetBorder(TableBorderType borderType, Border border)
-		{
-			/*
+        {
+            /*
 			 * Get the tblPr (table properties) element for this Table,
 			 * null will be return if no such element exists.
 			 */
-			XElement tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
-			if (tblPr == null)
-			{
-				Xml.SetElementValue(XName.Get("tblPr", DocX.w.NamespaceName), string.Empty);
-				tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
-			}
+            XElement tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
+            if (tblPr == null)
+            {
+                Xml.SetElementValue(XName.Get("tblPr", DocX.w.NamespaceName), string.Empty);
+                tblPr = Xml.Element(XName.Get("tblPr", DocX.w.NamespaceName));
+            }
 
-			/*
+            /*
 			 * Get the tblBorders (table borders) element for this Table,
 			 * null will be return if no such element exists.
 			 */
-			XElement tblBorders = tblPr.Element(XName.Get("tblBorders", DocX.w.NamespaceName));
-			if (tblBorders == null)
-			{
-				tblPr.SetElementValue(XName.Get("tblBorders", DocX.w.NamespaceName), string.Empty);
-				tblBorders = tblPr.Element(XName.Get("tblBorders", DocX.w.NamespaceName));
-			}
+            XElement tblBorders = tblPr.Element(XName.Get("tblBorders", DocX.w.NamespaceName));
+            if (tblBorders == null)
+            {
+                tblPr.SetElementValue(XName.Get("tblBorders", DocX.w.NamespaceName), string.Empty);
+                tblBorders = tblPr.Element(XName.Get("tblBorders", DocX.w.NamespaceName));
+            }
 
-			/*
+            /*
 			 * Get the 'borderType' (table border) element for this Table,
 			 * null will be return if no such element exists.
 			 */
-			string tbordertype;
-			tbordertype = borderType.ToString();
-			// only lower the first char of string (because of insideH and insideV)
-			tbordertype = tbordertype.Substring(0, 1).ToLower() + tbordertype.Substring(1);
+            string tbordertype;
+            tbordertype = borderType.ToString();
+            // only lower the first char of string (because of insideH and insideV)
+            tbordertype = tbordertype.Substring(0, 1).ToLower() + tbordertype.Substring(1);
 
-			XElement tblBorderType = tblBorders.Element(XName.Get(borderType.ToString(), DocX.w.NamespaceName));
-			if (tblBorderType == null)
-			{
-				tblBorders.SetElementValue(XName.Get(tbordertype, DocX.w.NamespaceName), string.Empty);
-				tblBorderType = tblBorders.Element(XName.Get(tbordertype, DocX.w.NamespaceName));
-			}
+            XElement tblBorderType = tblBorders.Element(XName.Get(borderType.ToString(), DocX.w.NamespaceName));
+            if (tblBorderType == null)
+            {
+                tblBorders.SetElementValue(XName.Get(tbordertype, DocX.w.NamespaceName), string.Empty);
+                tblBorderType = tblBorders.Element(XName.Get(tbordertype, DocX.w.NamespaceName));
+            }
 
-			// get string value of border style
-			string borderstyle = border.Tcbs.ToString().Substring(5);
-			borderstyle = borderstyle.Substring(0, 1).ToLower() + borderstyle.Substring(1);
+            // get string value of border style
+            string borderstyle = border.Tcbs.ToString().Substring(5);
+            borderstyle = borderstyle.Substring(0, 1).ToLower() + borderstyle.Substring(1);
 
-			// The val attribute is used for the border style
-			tblBorderType.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), borderstyle);
+            // The val attribute is used for the border style
+            tblBorderType.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), borderstyle);
 
-			if (border.Tcbs != BorderStyle.Tcbs_nil)
-			{
-				int size;
-				switch (border.Size)
-				{
-					case BorderSize.one: size = 2; break;
-					case BorderSize.two: size = 4; break;
-					case BorderSize.three: size = 6; break;
-					case BorderSize.four: size = 8; break;
-					case BorderSize.five: size = 12; break;
-					case BorderSize.six: size = 18; break;
-					case BorderSize.seven: size = 24; break;
-					case BorderSize.eight: size = 36; break;
-					case BorderSize.nine: size = 48; break;
-					default: size = 2; break;
-				}
+            if (border.Tcbs != BorderStyle.Tcbs_nil)
+            {
+                int size;
+                switch (border.Size)
+                {
+                    case BorderSize.one: size = 2; break;
+                    case BorderSize.two: size = 4; break;
+                    case BorderSize.three: size = 6; break;
+                    case BorderSize.four: size = 8; break;
+                    case BorderSize.five: size = 12; break;
+                    case BorderSize.six: size = 18; break;
+                    case BorderSize.seven: size = 24; break;
+                    case BorderSize.eight: size = 36; break;
+                    case BorderSize.nine: size = 48; break;
+                    default: size = 2; break;
+                }
 
-				// The sz attribute is used for the border size
-				tblBorderType.SetAttributeValue(XName.Get("sz", DocX.w.NamespaceName), (size).ToString());
+                // The sz attribute is used for the border size
+                tblBorderType.SetAttributeValue(XName.Get("sz", DocX.w.NamespaceName), (size).ToString());
 
-				// The space attribute is used for the cell spacing (probably '0')
-				tblBorderType.SetAttributeValue(XName.Get("space", DocX.w.NamespaceName), (border.Space).ToString());
+                // The space attribute is used for the cell spacing (probably '0')
+                tblBorderType.SetAttributeValue(XName.Get("space", DocX.w.NamespaceName), (border.Space).ToString());
 
-				// The color attribute is used for the border color
+                // The color attribute is used for the border color
                 tblBorderType.SetAttributeValue(XName.Get("color", DocX.w.NamespaceName), border.Color.ToHex());
-			}
-		}
+            }
+        }
 
         /// <summary>
         /// Get a table border
@@ -2279,7 +2387,7 @@ namespace Novacode
             }
             return b;
         }
-       
+
     }
 
     /// <summary>
@@ -2295,7 +2403,19 @@ namespace Novacode
             get
             {
                 int gridSpanSum = 0;
-
+                var trPr = Xml.Element(XName.Get("trPr",DocX.w.NamespaceName));
+                if(trPr !=null)
+                {
+                    var gridAfter = trPr.Element(XName.Get("gridAfter", DocX.w.NamespaceName));
+                    if(gridAfter != null)
+                    {
+                        var val = gridAfter.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                        if(val != null)
+                        {
+                            gridSpanSum += int.Parse(val.Value);
+                        }
+                    }
+                }
                 // Foreach each Cell between startIndex and endIndex inclusive.
                 foreach (Cell c in Cells)
                 {
@@ -2495,41 +2615,41 @@ namespace Novacode
 		/// Set to true to make this row the table header row that will be repeated on each page
 		/// </summary>
 		public bool TableHeader
-		{
-			get
-			{
-				XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
-				XElement tblHeader = trPr.Element(XName.Get("tblHeader", DocX.w.NamespaceName));
-				if (tblHeader == null)
-				{
-					return false;
-				}
-				else
-				{
-					return true;
-				}
-			}
-			set
-			{
-				XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
-				if (trPr == null)
-				{
-					Xml.SetElementValue(XName.Get("trPr", DocX.w.NamespaceName), string.Empty);
-					trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
-				}
-				XElement tblHeader = trPr.Element(XName.Get("tblHeader", DocX.w.NamespaceName));
-				if (tblHeader == null && value)
-				{
-					trPr.SetElementValue(XName.Get("tblHeader", DocX.w.NamespaceName), string.Empty);
-				}
-				if (tblHeader != null && !value)
-				{
-					tblHeader.Remove();
-				}
-			}
-		}
-		
-        
+        {
+            get
+            {
+                XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                XElement tblHeader = trPr.Element(XName.Get("tblHeader", DocX.w.NamespaceName));
+                if (tblHeader == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            set
+            {
+                XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                if (trPr == null)
+                {
+                    Xml.SetElementValue(XName.Get("trPr", DocX.w.NamespaceName), string.Empty);
+                    trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                }
+                XElement tblHeader = trPr.Element(XName.Get("tblHeader", DocX.w.NamespaceName));
+                if (tblHeader == null && value)
+                {
+                    trPr.SetElementValue(XName.Get("tblHeader", DocX.w.NamespaceName), string.Empty);
+                }
+                if (tblHeader != null && !value)
+                {
+                    tblHeader.Remove();
+                }
+            }
+        }
+
+
         /// <summary>
         /// Allow row to break across pages. 
         /// The default value is true: Word will break the contents of the row across pages. 
@@ -2537,48 +2657,48 @@ namespace Novacode
         /// </summary>
         public bool BreakAcrossPages
         {
-        	get
-        	{
-        		XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
-        		
-        		if (trPr == null)
-        			return true;
-        		
-        		XElement trCantSplit = trPr.Element(XName.Get("cantSplit", DocX.w.NamespaceName));
-        		
-        		if (trCantSplit == null)
-        			return true;
-        		
-        		return false;
-        	}
-        	
-        	set
-        	{
-        		if (value == false)
-        		{
-	        		XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
-	                if (trPr == null)
-	                {
-	                    Xml.SetElementValue(XName.Get("trPr", DocX.w.NamespaceName), string.Empty);
-	                    trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
-	                }
-	                
-	                XElement trCantSplit = trPr.Element(XName.Get("cantSplit", DocX.w.NamespaceName));
-	                if (trCantSplit == null)
-	                	trPr.SetElementValue(XName.Get("cantSplit", DocX.w.NamespaceName), string.Empty);
+            get
+            {
+                XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+
+                if (trPr == null)
+                    return true;
+
+                XElement trCantSplit = trPr.Element(XName.Get("cantSplit", DocX.w.NamespaceName));
+
+                if (trCantSplit == null)
+                    return true;
+
+                return false;
+            }
+
+            set
+            {
+                if (value == false)
+                {
+                    XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                    if (trPr == null)
+                    {
+                        Xml.SetElementValue(XName.Get("trPr", DocX.w.NamespaceName), string.Empty);
+                        trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                    }
+
+                    XElement trCantSplit = trPr.Element(XName.Get("cantSplit", DocX.w.NamespaceName));
+                    if (trCantSplit == null)
+                        trPr.SetElementValue(XName.Get("cantSplit", DocX.w.NamespaceName), string.Empty);
                 }
-        		
-        		if (value == true)
-        		{
-        			XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
-        			if (trPr != null)
-        			{
-        				XElement trCantSplit = trPr.Element(XName.Get("cantSplit", DocX.w.NamespaceName));
-        				if (trCantSplit != null)
-        					trCantSplit.Remove();
-        			}
-        		}
-        	}
+
+                if (value == true)
+                {
+                    XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                    if (trPr != null)
+                    {
+                        XElement trCantSplit = trPr.Element(XName.Get("cantSplit", DocX.w.NamespaceName));
+                        if (trCantSplit != null)
+                            trCantSplit.Remove();
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -2592,7 +2712,7 @@ namespace Novacode
 
             // The sum of all merged gridSpans.
             int gridSpanSum = 0;
-                     
+
             // Foreach each Cell between startIndex and endIndex inclusive.
             foreach (Cell c in Cells.Where((z, i) => i > startIndex && i <= endIndex))
             {
@@ -2659,7 +2779,7 @@ namespace Novacode
     public class Cell : Container
     {
         internal Row row;
-    
+
         internal Cell(Row row, DocX document, XElement xml)
             : base(document, xml)
         {
@@ -2684,9 +2804,9 @@ namespace Novacode
         {
             get
             {
-                var somethin = int.Parse(this.Xml.Element(XName.Get("gridSpan", DocX.w.NamespaceName)).Attribute(XName.Get("Value",DocX.w.NamespaceName)).Value);
-                return somethin; 
-            }            
+                var somethin = int.Parse(this.Xml.Element(XName.Get("gridSpan", DocX.w.NamespaceName)).Attribute(XName.Get("Value", DocX.w.NamespaceName)).Value);
+                return somethin;
+            }
         }
 
         /// <summary>
@@ -3866,5 +3986,5 @@ namespace Novacode
         public bool NoHorizontalBanding { get; set; }
         public bool NoVerticalBanding { get; set; }
     }
- 
+
 }

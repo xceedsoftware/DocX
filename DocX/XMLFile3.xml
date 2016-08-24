@@ -1,15 +1,10 @@
-﻿<?xml version="1.0"?>
-<w:tc xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-  <w:tcPr>
-    <w:tcW w:w="2310" w:type="dxa"/>
-  </w:tcPr>
-  <w:p>
-    <w:pPr/>
-    <w:r>
-      <w:rPr>
-        <w:lang w:val="en-GB"/>
-      </w:rPr>
-      <w:t>Hello</w:t>
-    </w:r>
-  </w:p>
-</w:tc>
+﻿<w:tr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:tc>
+    <w:tcPr>
+      <w:tcW w:w="2310" w:type="dxa" />
+    </w:tcPr>
+    <w:p>
+      <w:pPr />
+    </w:p>
+  </w:tc>
+</w:tr>
