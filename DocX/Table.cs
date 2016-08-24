@@ -1413,12 +1413,67 @@ namespace Novacode
         /// </code>
         /// </example>
         public void RemoveColumn(int index)
-        {
+        {           
             if (index < 0 || index > ColumnCount - 1)
                 throw new IndexOutOfRangeException();
 
             foreach (Row r in Rows)
-                r.Cells[index].Xml.Remove();
+                if(r.Cells.Count < ColumnCount)
+                {
+                    var positionIndex = 0;
+                    var actualPosition = 0;
+                    var gridAfterVal = 0;
+                    // checks to see if there is a deleted cell
+                    XElement trPr = r.Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                    if (trPr != null)
+                    {
+                        XElement gridAfter = trPr.Element(XName.Get("gridAfter", DocX.w.NamespaceName));
+                        if (gridAfter != null)
+                        {
+                            XAttribute val = gridAfter.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                            if (val != null)
+                            {
+                                gridAfterVal = int.Parse(val.Value);
+                            }
+                        }
+                    }
+                    // goes through iteration of cells to find the one the that contains the index number
+                    foreach (Cell rowCell in r.Cells)
+                    {
+                        // checks if the cell has a gridspan
+                        var gridSpanVal = 0;
+                        XElement tcPr = rowCell.Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
+                        if (tcPr != null)
+                        {
+                            XElement gridSpan = tcPr.Element(XName.Get("gridSpan", DocX.w.NamespaceName));
+                            if (gridSpan != null)
+                            {
+                                XAttribute val = gridSpan.Attribute(XName.Get("val", DocX.w.NamespaceName));
+
+                                int value = 0;
+                                if (val != null)
+                                    if (int.TryParse(val.Value, out value))
+                                        gridSpanVal = value - 1;
+                            }
+                        }
+
+
+                        // checks to see if the index is within its lowest and highest cell value
+                        if ((index - gridAfterVal) >= actualPosition
+                            && (index - gridAfterVal) <= (actualPosition + gridSpanVal))
+                        {
+                            r.Cells[positionIndex].Xml.Remove();
+                            break;
+                        }
+                        positionIndex += 1;
+                        actualPosition += gridSpanVal + 1;
+                    }
+                }
+                else
+                {
+                    r.Cells[index].Xml.Remove();
+                }
+                
             _cachedColCount = -1;
         }
 
@@ -1561,7 +1616,6 @@ namespace Novacode
 
                         // insert cell 
                         // checks if it is in bounds of index
-                        // TODO: Check for gridspan of cells in row to check if merged cells
                         if (r.Cells.Count < columnCount)
                         {
                             if (index >= columnCount)
@@ -1574,7 +1628,7 @@ namespace Novacode
                                 var positionIndex = 1;
                                 var actualPosition = 1;
                                 var gridAfterVal = 0;
-                                // checks to see if here is a deleted cell
+                                // checks to see if there is a deleted cell
                                 XElement trPr = r.Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
                                 if (trPr != null)
                                 {
@@ -1591,6 +1645,7 @@ namespace Novacode
                                 // goes through iteration of cells to find the one the that contains the index number
                                 foreach (Cell rowCell in r.Cells)
                                 {
+                                    // checks if the cell has a gridspan
                                     var gridSpanVal = 0;
                                     XElement tcPr = rowCell.Xml.Element(XName.Get("tcPr", DocX.w.NamespaceName));
                                     if (tcPr != null)
@@ -1606,9 +1661,9 @@ namespace Novacode
                                                     gridSpanVal = value -1;
                                         }
                                     }
-                                    
-                                    
-                                    // Sees if the cell has gridSpan and if the index is within its lowest and highest cell value
+
+
+                                    // checks to see if the index is within its lowest and highest cell value
                                     if ((index - gridAfterVal) >= actualPosition
                                         && (index - gridAfterVal) <= (actualPosition + gridSpanVal))
                                     {
@@ -1677,7 +1732,7 @@ namespace Novacode
                     var val = gridAfter.Attribute(XName.Get("val", DocX.w.NamespaceName));
                     if (val != null)
                     {
-                        val.Value = int.Parse(val.Value + 1).ToString();
+                        val.Value = (int.Parse(val.Value) + 1).ToString();
                     }
                     else
                     {
