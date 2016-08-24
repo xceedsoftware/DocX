@@ -1429,7 +1429,7 @@ namespace UnitTests
                 t1.Rows[0].MergeCells(0, 1);
                 t1.Rows[1].MergeCells(0, 1);
                 t1.MergeCellsInColumn(0, 0, 1);
-                document.SaveAs(@"C:\\Meh\\ThisTest.docx");
+                document.Save();
             }
         }
         
