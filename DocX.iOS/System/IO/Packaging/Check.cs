@@ -66,7 +66,7 @@ namespace System.IO.Packaging
         public static void Package(object package)
         {
             if (package == null)
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException(nameof(package));
         }
 
 
@@ -78,22 +78,22 @@ namespace System.IO.Packaging
         public static void PackageUriIsValid(Uri packageUri)
         {
             if (!packageUri.IsAbsoluteUri)
-                throw new ArgumentException("packageUri", "Uri must be absolute");
+                throw new ArgumentException(nameof(packageUri), "Uri must be absolute");
         }
 
         public static void PackUriIsValid(Uri packUri)
         {
             if (!packUri.IsAbsoluteUri)
-                throw new ArgumentException("packUri", "PackUris must be absolute");
+                throw new ArgumentException(nameof(packUri), "PackUris must be absolute");
 
             if (packUri.Scheme != PackUriHelper.UriSchemePack)
-                throw new ArgumentException("packUri", "Uri scheme is not a valid PackUri scheme");
+                throw new ArgumentException(nameof(packUri), "Uri scheme is not a valid PackUri scheme");
         }
 
         public static void PartUri(object partUri)
         {
             if (partUri == null)
-                throw new ArgumentNullException("partUri");
+                throw new ArgumentNullException(nameof(partUri));
         }
 
         public static void PartUriIsValid(Uri partUri)
@@ -108,7 +108,7 @@ namespace System.IO.Packaging
         public static void RelationshipTypeIsValid(string relationshipType)
         {
             if (relationshipType == null)
-                throw new ArgumentNullException("relationshipType");
+                throw new ArgumentNullException(nameof(relationshipType));
             if (EmptyOrBlank(relationshipType))
                 throw new ArgumentException("relationshipType", "Cannot be whitespace or empty");
         }
@@ -116,11 +116,11 @@ namespace System.IO.Packaging
         public static void PartUri(Uri partUri)
         {
             if (partUri == null)
-                throw new ArgumentNullException("partUri");
+                throw new ArgumentNullException(nameof(partUri));
             if (partUri.IsAbsoluteUri)
-                throw new ArgumentException("partUri", "Absolute URIs are not supported");
+                throw new ArgumentException(nameof(partUri), "Absolute URIs are not supported");
             if (string.IsNullOrEmpty(partUri.OriginalString))
-                throw new ArgumentException("partUri", "Part uri cannot be an empty string");
+                throw new ArgumentException(nameof(partUri), "Part uri cannot be an empty string");
         }
 
         public static void PackUri(Uri packUri)
@@ -143,21 +143,21 @@ namespace System.IO.Packaging
         public static void SourceUri(Uri sourceUri)
         {
             if (sourceUri == null)
-                throw new ArgumentNullException("sourceUri");
+                throw new ArgumentNullException(nameof(sourceUri));
             //			if (sourceUri.IsAbsoluteUri)
             //				throw new ArgumentException ("sourceUri", "Absolute URIs are not supported");
             if (string.IsNullOrEmpty(sourceUri.OriginalString))
-                throw new ArgumentException("sourceUri", "Part uri cannot be an empty string");
+                throw new ArgumentException(nameof(sourceUri), "Part uri cannot be an empty string");
         }
 
         public static void TargetUri(Uri targetUri)
         {
             if (targetUri == null)
-                throw new ArgumentNullException("targetUri");
+                throw new ArgumentNullException(nameof(targetUri));
             //			if (targetUri.IsAbsoluteUri)
             //				throw new ArgumentException ("targetUri", "Absolute URIs are not supported");
             if (string.IsNullOrEmpty(targetUri.OriginalString))
-                throw new ArgumentException("targetUri", "Part uri cannot be an empty string");
+                throw new ArgumentException(nameof(targetUri), "Part uri cannot be an empty string");
         }
     }
 }

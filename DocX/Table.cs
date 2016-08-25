@@ -1475,7 +1475,7 @@ namespace Novacode
         public Row InsertRow(Row row, int index)
         {
             if (row == null)
-                throw new ArgumentNullException("row");
+                throw new ArgumentNullException(nameof(row));
 
             if (index < 0 || index > RowCount)
                 throw new IndexOutOfRangeException();
