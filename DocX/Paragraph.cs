@@ -4619,7 +4619,7 @@ namespace Novacode
         internal static XElement[] SplitText(Text t, int index)
         {
             if (index < t.startIndex || index > t.EndIndex)
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
 
             XElement splitLeft = null, splitRight = null;
             if (t.Xml.Name.LocalName == "t" || t.Xml.Name.LocalName == "delText")

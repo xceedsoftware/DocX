@@ -51,7 +51,7 @@ namespace Novacode
                 return false;
 
             if (value == null)
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
 
             // Not as good as the .NET 4 version of this function, but should be good enough
             if (!Enum.IsDefined(variable.GetType(), value))

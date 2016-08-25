@@ -14,7 +14,7 @@ namespace Novacode
         internal static T GetValueToEnum<T>(XElement element)
         {
             if (element == null)
-                throw new ArgumentNullException("element");
+                throw new ArgumentNullException(nameof(element));
 
             String value = element.Attribute(XName.Get("val")).Value;
             foreach (T e in Enum.GetValues(typeof(T)))
@@ -36,7 +36,7 @@ namespace Novacode
         internal static void SetValueFromEnum<T>(XElement element, T value)
         {
             if (element == null)
-                throw new ArgumentNullException("element");
+                throw new ArgumentNullException(nameof(element));
             element.Attribute(XName.Get("val")).Value = GetXmlNameFromEnum<T>(value);
         }
 
@@ -47,7 +47,7 @@ namespace Novacode
         internal static String GetXmlNameFromEnum<T>(T value)
         {
             if (value == null)
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
 
             FieldInfo fi = typeof(T).GetField(value.ToString());
             if (fi.GetCustomAttributes(typeof(XmlNameAttribute), false).Count() == 0)
