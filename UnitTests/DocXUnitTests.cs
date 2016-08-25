@@ -135,6 +135,7 @@ namespace UnitTests
 
         }
 
+        [Test]
         public void TestPatternFuncReplacement()
         {
 
@@ -1400,6 +1401,153 @@ namespace UnitTests
         }
 
         [Test]
+        public void Test_Table_RemoveColumnWithMergedCells()
+        {
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Tables3.docx")))
+            {
+                //Add A table                
+                Table t = document.AddTable(2, 3);
+                t.Design = TableDesign.TableGrid;
+
+                Table t1 = document.InsertTable(t);
+                t1.Rows[0].MergeCells(1, 2);
+                t1.RemoveColumn();
+                document.Save();
+            }
+        }
+
+        [Test]
+        public void Test_Table_MergedRowCellsMergedWithColumnMergedCells()
+        {
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Tables3.docx")))
+            {
+                //Add A table                
+                Table t = document.AddTable(3, 3);
+                t.Design = TableDesign.TableGrid;
+
+                Table t1 = document.InsertTable(t);
+                t1.Rows[0].MergeCells(0, 1);
+                t1.Rows[1].MergeCells(0, 1);
+                t1.MergeCellsInColumn(0, 0, 1);
+                document.Save();
+            }
+        }
+        
+        [Test]
+        public void Test_Table_RemoveRowWithMergedCells()
+        {
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Tables3.docx")))
+            {
+                //Add A table                
+                Table t = document.AddTable(3, 4);
+                t.Design = TableDesign.TableGrid;
+
+                Table t1 = document.InsertTable(t);
+                t1.Rows[0].MergeCells(1, 2);
+                t1.RemoveRow();
+                t1.MergeCellsInColumn(0, 0, 1);
+                t1.InsertRow();
+                t1.RemoveRow(1);
+                document.Save();
+            }
+        }
+
+        [Test]
+        public void Test_Table_InsertRow()
+        {
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Tables3.docx")))
+            {
+                //Add A table                
+                Table t = document.AddTable(2, 3);
+                t.Design = TableDesign.TableGrid;
+
+                Table t1 = document.InsertTable(t);
+                t1.MergeCellsInColumn(1, 0, 1);
+                t1.InsertRow();
+                t1.Rows[2].MergeCells(1, 3);
+                t1.InsertRow(3);
+                document.Save();
+            }
+        }
+
+        [Test]
+        public void Test_Table_AddColumnWithCellDeleted()
+        {
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Tables3.docx")))
+            {
+                //Add A table                
+                Table t = document.AddTable(2, 3);
+                t.Design = TableDesign.TableGrid;
+
+                Table t1 = document.InsertTable(t);
+
+                t1.DeleteAndShiftCellsLeft(0, 1);
+                // 4 columns
+                t1.InsertColumn();
+                t1.DeleteAndShiftCellsLeft(0, 1);
+                // 5 columns
+                t1.InsertColumn();
+                t1.DeleteAndShiftCellsLeft(0, 1);
+
+                document.Save();            
+            }
+        }
+
+        [Test]
+        public void Test_Table_DeleteCellInRow()
+        {
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Tables3.docx")))
+            {
+                //Add A table                
+                Table t = document.AddTable(2, 2);
+                t.Design = TableDesign.TableGrid;
+
+                Table t1 = document.InsertTable(t);
+
+                t1.DeleteAndShiftCellsLeft(0, 1);
+                document.Save();
+                document.Save();
+            }
+        }
+
+        [Test]
+        public void Test_Table_InsertColumnWithMergedCells()
+        {
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Tables3.docx")))
+            {
+                //Add A table                
+                Table t = document.AddTable(2, 2);
+                t.Design = TableDesign.TableGrid;
+
+                Table t1 = document.InsertTable(t);
+
+                t1.InsertColumn(2, true);
+                t1.InsertColumn(2, true);
+                t1.InsertColumn(2, true);
+                t1.InsertColumn(2, true);
+                t1.Rows[0].MergeCells(1, 4);
+
+                Assert.AreEqual(t1.Rows[1].Cells.Count, 6);
+                Assert.AreEqual(t1.ColumnCount, 6);
+
+                foreach (Row r in t1.Rows)
+                {
+                    foreach (Cell c in r.Cells)
+                    {
+                        c.Paragraphs[0].InsertText("Hello");
+                    }
+                }
+                t1.InsertColumn(6, false);           
+                t1.InsertColumn();
+                t1.InsertColumn(3, true);
+                t1.InsertColumn(6, true);
+                t1.InsertColumn(6, true);
+                t1.InsertColumn(5, true);
+                document.Save();
+            }
+        }
+
+        [Test]
         public void Test_Table_InsertRowAndColumn()
         {
             // Create a table
@@ -1418,7 +1566,7 @@ namespace UnitTests
                 Table t1 = document.InsertTable(t);
                 // ... and add a column and a row
                 t1.InsertRow(1);
-                t1.InsertColumn(1);
+                t1.InsertColumn(1, true);
 
                 // Save the document.
                 document.Save();
