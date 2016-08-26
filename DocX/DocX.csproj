@@ -105,6 +105,7 @@
     <Compile Include="ContentCollection.cs" />
     <Compile Include="DocumentTypes.cs" />
     <Compile Include="ExtensionsHeadings.cs" />
+    <Compile Include="Font.cs" />
     <Compile Include="Footers.cs" />
     <Compile Include="Footer.cs" />
     <Compile Include="CustomProperty.cs" />

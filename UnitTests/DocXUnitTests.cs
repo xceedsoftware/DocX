@@ -1,17 +1,15 @@
 ﻿using System;
-using Novacode;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Drawing;
-using System.Xml.Linq;
-using System.Reflection;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using NUnit.Framework;
-using System.Collections.ObjectModel;
 using System.Xml;
-
-using Formatting = Novacode.Formatting;
+using System.Xml.Linq;
+using Novacode;
+using NUnit.Framework;
+using DocXFormatting = Novacode.Formatting;
+using WindowsColor = System.Drawing.Color;
 
 namespace UnitTests
 {
@@ -21,10 +19,9 @@ namespace UnitTests
     [TestFixture]
     public class DocXUnitTests
     {
-
         private readonly string _directoryDocuments;
         private readonly string _directoryWithFiles;
-        private static Border BlankBorder = new Border(BorderStyle.Tcbs_none, 0, 0, Color.White);
+        private static Border BlankBorder = new Border(BorderStyle.Tcbs_none, 0, 0, WindowsColor.White);
 
         const string package_part_document = "/word/document.xml";
 
@@ -1058,10 +1055,10 @@ namespace UnitTests
             using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "VariousTextFormatting.docx")))
             {
                 // Removing red text highlighted with yellow
-                var formatting = new Formatting();
-                formatting.FontColor = Color.Blue;
+                var formatting = new DocXFormatting();
+                formatting.FontColor = WindowsColor.Blue;
                 // IMPORTANT: default constructor of Formatting sets up language property - set it to NULL to be language independent
-                var desiredFormat = new Formatting() { Language = null, FontColor = Color.FromArgb(255, 0, 0), Highlight = Highlight.yellow };
+                var desiredFormat = new DocXFormatting() { Language = null, FontColor = WindowsColor.FromArgb(255, 0, 0), Highlight = Highlight.yellow };
                 var replaced = string.Empty;
                 foreach (var p in document.Paragraphs)
                 {
@@ -1075,11 +1072,13 @@ namespace UnitTests
                 Assert.AreEqual("New text highlighted with yellow", replaced);
 
                 // Removing red text with no other formatting (ExactMatch)
-                desiredFormat = new Formatting() { Language = null, FontColor = Color.FromArgb(255, 0, 0) };
+                desiredFormat = new DocXFormatting() { Language = null, FontColor = WindowsColor.FromArgb(255, 0, 0) };
                 var count = 0;
+
                 foreach (var p in document.Paragraphs)
                 {
                     p.ReplaceText("Text", "Replaced text", false, RegexOptions.None, null, desiredFormat, MatchFormattingOptions.ExactMatch);
+
                     if (p.Text.StartsWith("Replaced text"))
                     {
                         ++count;
@@ -1089,7 +1088,7 @@ namespace UnitTests
                 Assert.AreEqual(1, count);
 
                 // Removing just red text with any other formatting (SubsetMatch)
-                desiredFormat = new Formatting() { Language = null, FontColor = Color.FromArgb(255, 0, 0) };
+                desiredFormat = new DocXFormatting() { Language = null, FontColor = WindowsColor.FromArgb(255, 0, 0) };
                 count = 0;
                 foreach (var p in document.Paragraphs)
                 {
@@ -1221,20 +1220,20 @@ namespace UnitTests
             // Load a document.
             using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "VariousTextFormatting.docx")))
             {
-                var formatting = new Formatting();
-                formatting.FontColor = Color.Blue;
+                var formatting = new DocXFormatting();
+                formatting.FontColor = WindowsColor.Blue;
                 // IMPORTANT: default constructor of Formatting sets up language property - set it to NULL to be language independent
                 formatting.Language = null;
                 var deletedCount = document.RemoveTextInGivenFormat(formatting);
                 Assert.AreEqual(2, deletedCount);
 
-                deletedCount = document.RemoveTextInGivenFormat(new Formatting() { Highlight = Highlight.yellow, Language = null });
+                deletedCount = document.RemoveTextInGivenFormat(new DocXFormatting() { Highlight = Highlight.yellow, Language = null });
                 Assert.AreEqual(2, deletedCount);
 
-                deletedCount = document.RemoveTextInGivenFormat(new Formatting() { Highlight = Highlight.blue, Language = null, FontColor = Color.FromArgb(0, 255, 0) });
+                deletedCount = document.RemoveTextInGivenFormat(new DocXFormatting() { Highlight = Highlight.blue, Language = null, FontColor = WindowsColor.FromArgb(0, 255, 0) });
                 Assert.AreEqual(1, deletedCount);
 
-                deletedCount = document.RemoveTextInGivenFormat(new Formatting() { Language = null, FontColor = Color.FromArgb(123, 123, 123) }, MatchFormattingOptions.ExactMatch);
+                deletedCount = document.RemoveTextInGivenFormat(new DocXFormatting() { Language = null, FontColor = WindowsColor.FromArgb(123, 123, 123) }, MatchFormattingOptions.ExactMatch);
                 Assert.AreEqual(2, deletedCount);
             }
         }
@@ -2074,7 +2073,7 @@ namespace UnitTests
             {
                 Paragraph p = document.InsertParagraph();
 
-                var fontFamily = new FontFamily("Symbol");
+                var fontFamily = new Font("Symbol");
 
                 p.Append("Hello World").Font(fontFamily);
 

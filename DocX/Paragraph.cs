@@ -132,24 +132,24 @@ namespace Novacode
                     select new Picture(Document, p, img)
                 ).ToList();
 
-		        List<Picture> shapes =
-		        (
-		            from p in Xml.Descendants()
-		            where (p.Name.LocalName == "pict")
-		            let id =
-		            (
-		                from e in p.Descendants()
-		                where e.Name.LocalName.Equals("imagedata")
-		                select e.Attribute(XName.Get("id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
-		            ).SingleOrDefault()
-		            where id != null
-		            let img = new Image(Document, mainPart.GetRelationship(id))
-		            select new Picture(Document, p, img)
-		        ).ToList();
-		        
-		        foreach (Picture p in shapes)
-		            pictures.Add(p);
-                
+                List<Picture> shapes =
+                (
+                    from p in Xml.Descendants()
+                    where (p.Name.LocalName == "pict")
+                    let id =
+                    (
+                        from e in p.Descendants()
+                        where e.Name.LocalName.Equals("imagedata")
+                        select e.Attribute(XName.Get("id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")).Value
+                    ).SingleOrDefault()
+                    where id != null
+                    let img = new Image(Document, mainPart.GetRelationship(id))
+                    select new Picture(Document, p, img)
+                ).ToList();
+
+                foreach (Picture p in shapes)
+                    pictures.Add(p);
+
 
                 return pictures;
             }
@@ -2002,66 +2002,67 @@ namespace Novacode
             // Get the first run effected by this Insert
             Run run = GetFirstRunEffectedByEdit(index);
 
-			if (run == null)
-			{
-				object insert;
-				if (formatting != null) //not sure how to get original formatting here when run == null
-					insert = HelperFunctions.FormatInput(value, formatting.Xml);
-				else
-					insert = HelperFunctions.FormatInput(value, null);
+            if (run == null)
+            {
+                object insert;
+                if (formatting != null) //not sure how to get original formatting here when run == null
+                    insert = HelperFunctions.FormatInput(value, formatting.Xml);
+                else
+                    insert = HelperFunctions.FormatInput(value, null);
 
-				if (trackChanges)
-					insert = CreateEdit(EditType.ins, insert_datetime, insert);
-				Xml.Add(insert);
-			}
+                if (trackChanges)
+                    insert = CreateEdit(EditType.ins, insert_datetime, insert);
+                Xml.Add(insert);
+            }
 
-			else
-			{
-				object newRuns;
-				var rprel = run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName));
-				if (formatting != null)
-				{
-					//merge 2 formattings properly
-					Formatting finfmt = null;
-					Formatting oldfmt = null;
+            else
+            {
+                object newRuns;
+                var rprel = run.Xml.Element(XName.Get("rPr", DocX.w.NamespaceName));
+                if (formatting != null)
+                {
+                    //merge 2 formattings properly
+                    Formatting finfmt = null;
+                    Formatting oldfmt = null;
 
-					if (rprel != null)
-					{
-						oldfmt = Formatting.Parse(rprel);
-					}
+                    if (rprel != null)
+                    {
+                        oldfmt = Formatting.Parse(rprel);
+                    }
 
-					if (oldfmt != null)
-					{
-						finfmt = oldfmt.Clone();
-						if (formatting.Bold.HasValue) { finfmt.Bold = formatting.Bold; }
-						if (formatting.CapsStyle.HasValue) { finfmt.CapsStyle = formatting.CapsStyle; }
-						if (formatting.FontColor.HasValue) { finfmt.FontColor = formatting.FontColor; }
-						finfmt.FontFamily = formatting.FontFamily;
-						if (formatting.Hidden.HasValue) { finfmt.Hidden = formatting.Hidden; }
-						if (formatting.Highlight.HasValue) { finfmt.Highlight = formatting.Highlight; }
-						if (formatting.Italic.HasValue) { finfmt.Italic = formatting.Italic; }
-						if (formatting.Kerning.HasValue) { finfmt.Kerning = formatting.Kerning; }
-						finfmt.Language = formatting.Language;
-						if (formatting.Misc.HasValue) { finfmt.Misc = formatting.Misc; }
-						if (formatting.PercentageScale.HasValue) { finfmt.PercentageScale = formatting.PercentageScale; }
-						if (formatting.Position.HasValue) { finfmt.Position = formatting.Position; }
-						if (formatting.Script.HasValue) { finfmt.Script = formatting.Script; }
-						if (formatting.Size.HasValue) { finfmt.Size = formatting.Size; }
-						if (formatting.Spacing.HasValue) { finfmt.Spacing = formatting.Spacing; }
-						if (formatting.StrikeThrough.HasValue) { finfmt.StrikeThrough = formatting.StrikeThrough; }
-						if (formatting.UnderlineColor.HasValue) { finfmt.UnderlineColor = formatting.UnderlineColor; }
-						if (formatting.UnderlineStyle.HasValue) { finfmt.UnderlineStyle = formatting.UnderlineStyle; }
-					}
-					else {
-						finfmt = formatting;
-					}
+                    if (oldfmt != null)
+                    {
+                        finfmt = oldfmt.Clone();
+                        if (formatting.Bold.HasValue) { finfmt.Bold = formatting.Bold; }
+                        if (formatting.CapsStyle.HasValue) { finfmt.CapsStyle = formatting.CapsStyle; }
+                        if (formatting.FontColor.HasValue) { finfmt.FontColor = formatting.FontColor; }
+                        finfmt.FontFamily = formatting.FontFamily;
+                        if (formatting.Hidden.HasValue) { finfmt.Hidden = formatting.Hidden; }
+                        if (formatting.Highlight.HasValue) { finfmt.Highlight = formatting.Highlight; }
+                        if (formatting.Italic.HasValue) { finfmt.Italic = formatting.Italic; }
+                        if (formatting.Kerning.HasValue) { finfmt.Kerning = formatting.Kerning; }
+                        finfmt.Language = formatting.Language;
+                        if (formatting.Misc.HasValue) { finfmt.Misc = formatting.Misc; }
+                        if (formatting.PercentageScale.HasValue) { finfmt.PercentageScale = formatting.PercentageScale; }
+                        if (formatting.Position.HasValue) { finfmt.Position = formatting.Position; }
+                        if (formatting.Script.HasValue) { finfmt.Script = formatting.Script; }
+                        if (formatting.Size.HasValue) { finfmt.Size = formatting.Size; }
+                        if (formatting.Spacing.HasValue) { finfmt.Spacing = formatting.Spacing; }
+                        if (formatting.StrikeThrough.HasValue) { finfmt.StrikeThrough = formatting.StrikeThrough; }
+                        if (formatting.UnderlineColor.HasValue) { finfmt.UnderlineColor = formatting.UnderlineColor; }
+                        if (formatting.UnderlineStyle.HasValue) { finfmt.UnderlineStyle = formatting.UnderlineStyle; }
+                    }
+                    else
+                    {
+                        finfmt = formatting;
+                    }
 
-					newRuns = HelperFunctions.FormatInput(value, finfmt.Xml);
-				}
-				else
-				{
-					newRuns = HelperFunctions.FormatInput(value, rprel);
-				}
+                    newRuns = HelperFunctions.FormatInput(value, finfmt.Xml);
+                }
+                else
+                {
+                    newRuns = HelperFunctions.FormatInput(value, rprel);
+                }
 
                 // The parent of this Run
                 XElement parentElement = run.Xml.Parent;
@@ -2384,7 +2385,7 @@ namespace Novacode
                         new XElement
                         (
                             XName.Get("r", DocX.w.NamespaceName),
-                            new Formatting() { FontFamily = new System.Drawing.FontFamily("Cambria Math") }.Xml,    // create formatting
+                            new Formatting() { FontFamily = new Font("Cambria Math") }.Xml,    // create formatting
                             new XElement(XName.Get("t", DocX.m.NamespaceName), equation)                            // create equation string
                         )
                     )
@@ -2437,7 +2438,7 @@ namespace Novacode
                                 .Where(x => x.Attribute(XName.Get("name", DocX.w.NamespaceName)).Value == bookmarkName).SingleOrDefault();
             if (bookmark != null)
             {
-                
+
                 var run = HelperFunctions.FormatInput(toInsert, null);
                 bookmark.AddBeforeSelf(run);
                 runs = Xml.Elements(XName.Get("r", DocX.w.NamespaceName)).ToList();
@@ -2973,11 +2974,21 @@ namespace Novacode
 
             else
                 throw new ArgumentException("Size", "Value must be either a whole or half number, examples: 32, 32.5");
-            
+
             ApplyTextFormattingProperty(XName.Get("sz", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), fontSize * 2));
             ApplyTextFormattingProperty(XName.Get("szCs", DocX.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", DocX.w.NamespaceName), fontSize * 2));
 
             return this;
+        }
+
+        /// <summary>
+        /// For use with Append() and AppendLine()
+        /// </summary>
+        /// <param name="fontName">The font to use for the appended text.</param>
+        /// <returns>This Paragraph with the last appended text's font changed.</returns>
+        public Paragraph Font(string fontName)
+        {
+            return Font(new Font(fontName));
         }
 
         /// <summary>
@@ -3003,13 +3014,13 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        public Paragraph Font(FontFamily fontFamily)
+        public Paragraph Font(Font fontFamily)
         {
             ApplyTextFormattingProperty
             (
                 XName.Get("rFonts", DocX.w.NamespaceName),
                 string.Empty,
-                new[] 
+                new[]
                 {
                     new XAttribute(XName.Get("ascii", DocX.w.NamespaceName), fontFamily.Name),
                     new XAttribute(XName.Get("hAnsi", DocX.w.NamespaceName), fontFamily.Name), // Added by Maurits Elbers to support non-standard characters. See http://docx.codeplex.com/Thread/View.aspx?ThreadId=70097&ANCHOR#Post453865
@@ -3809,62 +3820,62 @@ namespace Novacode
             RemoveText(index, Text.Length - index, trackChanges);
         }
 
-		/// <summary>
-		/// Replaces all occurrences of a specified System.String in this instance, with another specified System.String.
-		/// </summary>
-		/// <example>
-		/// <code>
-		/// // Load a document using a relative filename.
-		/// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
-		/// {
-		///     // The formatting to match.
-		///     Formatting matchFormatting = new Formatting();
-		///     matchFormatting.Size = 10;
-		///     matchFormatting.Italic = true;
-		///     matchFormatting.FontFamily = new FontFamily("Times New Roman");
-		///
-		///     // The formatting to apply to the inserted text.
-		///     Formatting newFormatting = new Formatting();
-		///     newFormatting.Size = 22;
-		///     newFormatting.UnderlineStyle = UnderlineStyle.dotted;
-		///     newFormatting.Bold = true;
-		///
-		///     // Iterate through the paragraphs in this document.
-		///     foreach (Paragraph p in document.Paragraphs)
-		///     {
-		///         /* 
-		///          * Replace all instances of the string "wrong" with the string "right" and ignore case.
-		///          * Each inserted instance of "wrong" should use the Formatting newFormatting.
-		///          * Only replace an instance of "wrong" if it is Size 10, Italic and Times New Roman.
-		///          * SubsetMatch means that the formatting must contain all elements of the match formatting,
-		///          * but it can also contain additional formatting for example Color, UnderlineStyle, etc.
-		///          * ExactMatch means it must not contain additional formatting.
-		///          */
-		///         p.ReplaceText("wrong", "right", false, RegexOptions.IgnoreCase, newFormatting, matchFormatting, MatchFormattingOptions.SubsetMatch);
-		///     }
-		///
-		///     // Save all changes made to this document.
-		///     document.Save();
-		/// }// Release this document from memory.
-		/// </code>
-		/// </example>
-		/// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
-		/// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-		/// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
-		/// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
-		/// <param name="newValue">A System.String to replace all occurrences of oldValue.</param>
-		/// <param name="oldValue">A System.String to be replaced.</param>
-		/// <param name="options">A bitwise OR combination of RegexOption enumeration options.</param>
-		/// <param name="trackChanges">Track changes</param>
-		/// <param name="newFormatting">The formatting to apply to the text being inserted.</param>
-		/// <param name="matchFormatting">The formatting that the text must match in order to be replaced.</param>
-		/// <param name="fo">How should formatting be matched?</param>
-		/// <param name="escapeRegEx">True if the oldValue needs to be escaped, otherwise false. If it represents a valid RegEx pattern this should be false.</param>
-		/// <param name="useRegExSubstitutions">True if RegEx-like replace should be performed, i.e. if newValue contains RegEx substitutions. Does not perform named-group substitutions (only numbered groups).</param>
-		public void ReplaceText(string oldValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch, bool escapeRegEx = true, bool useRegExSubstitutions = false)
+        /// <summary>
+        /// Replaces all occurrences of a specified System.String in this instance, with another specified System.String.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// // Load a document using a relative filename.
+        /// using (DocX document = DocX.Load(@"C:\Example\Test.docx"))
+        /// {
+        ///     // The formatting to match.
+        ///     Formatting matchFormatting = new Formatting();
+        ///     matchFormatting.Size = 10;
+        ///     matchFormatting.Italic = true;
+        ///     matchFormatting.FontFamily = new FontFamily("Times New Roman");
+        ///
+        ///     // The formatting to apply to the inserted text.
+        ///     Formatting newFormatting = new Formatting();
+        ///     newFormatting.Size = 22;
+        ///     newFormatting.UnderlineStyle = UnderlineStyle.dotted;
+        ///     newFormatting.Bold = true;
+        ///
+        ///     // Iterate through the paragraphs in this document.
+        ///     foreach (Paragraph p in document.Paragraphs)
+        ///     {
+        ///         /* 
+        ///          * Replace all instances of the string "wrong" with the string "right" and ignore case.
+        ///          * Each inserted instance of "wrong" should use the Formatting newFormatting.
+        ///          * Only replace an instance of "wrong" if it is Size 10, Italic and Times New Roman.
+        ///          * SubsetMatch means that the formatting must contain all elements of the match formatting,
+        ///          * but it can also contain additional formatting for example Color, UnderlineStyle, etc.
+        ///          * ExactMatch means it must not contain additional formatting.
+        ///          */
+        ///         p.ReplaceText("wrong", "right", false, RegexOptions.IgnoreCase, newFormatting, matchFormatting, MatchFormattingOptions.SubsetMatch);
+        ///     }
+        ///
+        ///     // Save all changes made to this document.
+        ///     document.Save();
+        /// }// Release this document from memory.
+        /// </code>
+        /// </example>
+        /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+        /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
+        /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
+        /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
+        /// <param name="newValue">A System.String to replace all occurrences of oldValue.</param>
+        /// <param name="oldValue">A System.String to be replaced.</param>
+        /// <param name="options">A bitwise OR combination of RegexOption enumeration options.</param>
+        /// <param name="trackChanges">Track changes</param>
+        /// <param name="newFormatting">The formatting to apply to the text being inserted.</param>
+        /// <param name="matchFormatting">The formatting that the text must match in order to be replaced.</param>
+        /// <param name="fo">How should formatting be matched?</param>
+        /// <param name="escapeRegEx">True if the oldValue needs to be escaped, otherwise false. If it represents a valid RegEx pattern this should be false.</param>
+        /// <param name="useRegExSubstitutions">True if RegEx-like replace should be performed, i.e. if newValue contains RegEx substitutions. Does not perform named-group substitutions (only numbered groups).</param>
+        public void ReplaceText(string oldValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch, bool escapeRegEx = true, bool useRegExSubstitutions = false)
         {
-			string tText = Text;
-			MatchCollection mc = Regex.Matches(tText, escapeRegEx ? Regex.Escape(oldValue) : oldValue, options);
+            string tText = Text;
+            MatchCollection mc = Regex.Matches(tText, escapeRegEx ? Regex.Escape(oldValue) : oldValue, options);
 
             // Loop through the matches in reverse order
             foreach (Match m in mc.Cast<Match>().Reverse())
@@ -3908,40 +3919,40 @@ namespace Novacode
                 // If the formatting matches, do the replace.
                 if (formattingMatch)
                 {
-					string repl = newValue;
-					//perform RegEx substitutions. Only named groups are not supported. Everything else is supported. However character escapes are not covered.
-					if (useRegExSubstitutions && !String.IsNullOrEmpty(repl))
-					{
-						repl = repl.Replace("$&", m.Value);
-						if (m.Groups.Count > 0)
-						{
-							int lastcap = 0;
-							for (int k = 0; k < m.Groups.Count; k++)
-							{
-								var g = m.Groups[k];
-								if ((g == null) || (g.Value == ""))
-									continue;
-								repl = repl.Replace("$" + k.ToString(), g.Value);
-								lastcap = k;
-								//cannot get named groups ATM
-							}
-							repl = repl.Replace("$+", m.Groups[lastcap].Value);
-						}
-						if (m.Index > 0)
-						{
-							repl = repl.Replace("$`", tText.Substring(0, m.Index));
-						}
-						if ((m.Index + m.Length) < tText.Length)
-						{
-							repl = repl.Replace("$'", tText.Substring(m.Index + m.Length));
-						}
-						repl = repl.Replace("$_", tText);
-						repl = repl.Replace("$$", "$");
-					}
-					if (!String.IsNullOrEmpty(repl))
-						InsertText(m.Index + m.Length, repl, trackChanges, newFormatting);
-					if (m.Length > 0)
-						RemoveText(m.Index, m.Length, trackChanges);
+                    string repl = newValue;
+                    //perform RegEx substitutions. Only named groups are not supported. Everything else is supported. However character escapes are not covered.
+                    if (useRegExSubstitutions && !String.IsNullOrEmpty(repl))
+                    {
+                        repl = repl.Replace("$&", m.Value);
+                        if (m.Groups.Count > 0)
+                        {
+                            int lastcap = 0;
+                            for (int k = 0; k < m.Groups.Count; k++)
+                            {
+                                var g = m.Groups[k];
+                                if ((g == null) || (g.Value == ""))
+                                    continue;
+                                repl = repl.Replace("$" + k.ToString(), g.Value);
+                                lastcap = k;
+                                //cannot get named groups ATM
+                            }
+                            repl = repl.Replace("$+", m.Groups[lastcap].Value);
+                        }
+                        if (m.Index > 0)
+                        {
+                            repl = repl.Replace("$`", tText.Substring(0, m.Index));
+                        }
+                        if ((m.Index + m.Length) < tText.Length)
+                        {
+                            repl = repl.Replace("$'", tText.Substring(m.Index + m.Length));
+                        }
+                        repl = repl.Replace("$_", tText);
+                        repl = repl.Replace("$$", "$");
+                    }
+                    if (!String.IsNullOrEmpty(repl))
+                        InsertText(m.Index + m.Length, repl, trackChanges, newFormatting);
+                    if (m.Length > 0)
+                        RemoveText(m.Index, m.Length, trackChanges);
                 }
             }
         }
@@ -3956,7 +3967,7 @@ namespace Novacode
         /// <param name="newFormatting"></param>
         /// <param name="matchFormatting"></param>
         /// <param name="fo"></param>
-        public void ReplaceText(string findPattern, Func<string,string> regexMatchHandler, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch)
+        public void ReplaceText(string findPattern, Func<string, string> regexMatchHandler, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch)
         {
             var matchCollection = Regex.Matches(Text, findPattern, options);
 

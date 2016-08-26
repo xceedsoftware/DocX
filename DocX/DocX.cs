@@ -2063,7 +2063,7 @@ namespace Novacode
             base.InsertList(list);
             return list;
         }
-        public new List InsertList(List list, System.Drawing.FontFamily fontFamily, double fontSize)
+        public new List InsertList(List list, Font fontFamily, double fontSize)
         {
             base.InsertList(list, fontFamily, fontSize);
             return list;
