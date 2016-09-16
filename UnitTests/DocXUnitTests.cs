@@ -1595,6 +1595,29 @@ namespace UnitTests
         }
 
         [Test]
+        public void Test_Table_SetTableDesignNone()
+        {
+            using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "TablesDesign.docx")))
+            {
+                //Add A table                
+                Table t = document.AddTable(2, 3);
+                Table t1 = document.InsertTable(t);
+                t1.Design = TableDesign.None;
+                // requires FIX for .None/.Custom set in a row
+              //  t1.Design = TableDesign.None;
+              //  t1.Design = TableDesign.Custom;
+                t1.Design = TableDesign.Custom;
+                t1.Design = TableDesign.ColorfulGrid;
+                t1.Design = TableDesign.ColorfulGrid;
+                t1.MergeCellsInColumn(1, 0, 1);
+                t1.InsertRow();
+                t1.Rows[2].MergeCells(1, 3);
+                t1.InsertRow(3);
+                document.Save();
+            }
+        }
+
+        [Test]
         public void Test_Document_ApplyTemplate()
         {
             using (MemoryStream documentStream = new MemoryStream())
