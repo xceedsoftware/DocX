@@ -1,20 +1,25 @@
-﻿using Novacode;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
 using System.Threading.Tasks;
-using Image = Novacode.Image;
+using System.Xml.Linq;
+using Novacode;
+using WindowsBitmap = System.Drawing.Bitmap;
+using WindowsBrushes = System.Drawing.Brushes;
+using WindowsColor = System.Drawing.Color;
+using WindowsFont = System.Drawing.Font;
+using WindowsFontFamily = System.Drawing.FontFamily;
+using WindowsGraphics = System.Drawing.Graphics;
+using WindowsImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace Examples
 {
     class Program
     {
-        private static Border BlankBorder = new Border(BorderStyle.Tcbs_none, 0, 0, Color.White);
+        private static Border BlankBorder = new Border(BorderStyle.Tcbs_none, 0, 0, WindowsColor.White);
+
         static void Main(string[] args)
         {
             Setup();
@@ -124,7 +129,7 @@ namespace Examples
 
                 // Create and add series
                 Series s1 = new Series("Microsoft");
-                s1.Color = Color.GreenYellow;
+                s1.Color = WindowsColor.GreenYellow;
                 s1.Bind(company1, "Mounth", "Money");
                 c.AddSeries(s1);
                 Series s2 = new Series("Apple");
@@ -181,7 +186,7 @@ namespace Examples
 
                 // Create and add series
                 Series s1 = new Series("Microsoft");
-                s1.Color = Color.GreenYellow;
+                s1.Color = WindowsColor.GreenYellow;
                 s1.Bind(company1, "Mounth", "Money");
                 c.AddSeries(s1);
                 Series s2 = new Series("Apple");
@@ -211,7 +216,7 @@ namespace Examples
 
                 // Create and add series
                 Series s = new Series("Microsoft");
-                s.Color = Color.GreenYellow;
+                s.Color = WindowsColor.GreenYellow;
                 s.Bind(company1, "Mounth", "Money");
                 c.AddSeries(s);
 
@@ -224,6 +229,7 @@ namespace Examples
         }
 
         #endregion
+
         /// <summary>
         /// Load a document and set content controls.
         /// </summary>
@@ -261,7 +267,7 @@ namespace Examples
 
                 document.SetContent(@"docs\elements.xml");
                 document.SaveAs(@"docs\ContentSetWithPath.docx");
-                
+
 
             }
         }
@@ -279,7 +285,7 @@ namespace Examples
                 Paragraph pEquation1 = document.InsertEquation("x = y+z");
 
                 // Insert second Equation in this document and add formatting.
-                Paragraph pEquation2 = document.InsertEquation("x = (y+z)/t").FontSize(18).Color(Color.Blue);
+                Paragraph pEquation2 = document.InsertEquation("x = (y+z)/t").FontSize(18).Color(WindowsColor.Blue);
 
                 // Save this document to disk.
                 document.Save();
@@ -479,7 +485,7 @@ namespace Examples
                 picture.SetPictureShape(BasicShapes.cube);
 
                 // Insert a new Paragraph into the document.
-                Paragraph title = document.InsertParagraph().Append("Test").FontSize(20).Font(new FontFamily("Comic Sans MS"));
+                Paragraph title = document.InsertParagraph().Append("Test").FontSize(20).Font(new Font("Comic Sans MS"));
                 title.Alignment = Alignment.center;
 
                 // Insert a new Paragraph into the document.
@@ -559,7 +565,7 @@ namespace Examples
                 picture.SetPictureShape(BasicShapes.cube);
 
                 // Insert a new Paragraph into the document.
-                Paragraph title = document.InsertParagraph().Append("Test").FontSize(20).Font(new FontFamily("Comic Sans MS"));
+                Paragraph title = document.InsertParagraph().Append("Test").FontSize(20).Font(new Font("Comic Sans MS"));
                 title.Alignment = Alignment.center;
 
 
@@ -675,12 +681,10 @@ namespace Examples
             // Create a document.
             using (DocX document = DocX.Create(@"docs\DocumentsWithListsFontChange.docx"))
             {
-
-                foreach (FontFamily oneFontFamily in FontFamily.Families)
+                foreach (var oneFontFamily in WindowsFontFamily.Families)
                 {
-
-                    FontFamily fontFamily = oneFontFamily;
-                    double fontSize = 15;
+                    var fontFamily = new Font(oneFontFamily.Name);
+                    var fontSize = 15.0;
 
                     // created numbered lists 
                     var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered, 1);
@@ -700,8 +704,8 @@ namespace Examples
 
                     document.InsertList(bulletedList);
                     document.InsertList(numberedList, fontFamily, fontSize);
-
                 }
+
                 // Save this document.
                 document.Save();
 
@@ -716,14 +720,14 @@ namespace Examples
             using (var document = DocX.Create(@"docs\Lists.docx"))
             {
                 var numberedList = document.AddList("First List Item.", 0, ListItemType.Numbered);
-                        //Add a numbered list starting at 2
+                //Add a numbered list starting at 2
                 document.AddListItem(numberedList, "Second List Item.");
                 document.AddListItem(numberedList, "Third list item.");
                 document.AddListItem(numberedList, "First sub list item", 1);
 
                 document.AddListItem(numberedList, "Nested item.", 2);
                 document.AddListItem(numberedList, "Fourth nested item.");
-                
+
                 var bulletedList = document.AddList("First Bulleted Item.", 0, ListItemType.Bulleted);
                 document.AddListItem(bulletedList, "Second bullet item");
                 document.AddListItem(bulletedList, "Sub bullet item", 1);
@@ -1295,13 +1299,13 @@ namespace Examples
             Formatting dark_formatting = new Formatting();
             dark_formatting.Bold = true;
             dark_formatting.Size = 12;
-            dark_formatting.FontColor = Color.FromArgb(31, 73, 125);
+            dark_formatting.FontColor = WindowsColor.FromArgb(31, 73, 125);
 
             // Light formatting
             Formatting light_formatting = new Formatting();
             light_formatting.Italic = true;
             light_formatting.Size = 11;
-            light_formatting.FontColor = Color.FromArgb(79, 129, 189);
+            light_formatting.FontColor = WindowsColor.FromArgb(79, 129, 189);
 
             #region Company Name
             // Get the upper left Paragraph in the layout_table.
@@ -1561,9 +1565,9 @@ namespace Examples
 
                 // Append some text and add formatting.
                 p.Append("Hello World!^011Hello World!")
-                .Font(new FontFamily("Times New Roman"))
+                .Font(new Font("Times New Roman"))
                 .FontSize(32)
-                .Color(Color.Blue)
+                .Color(WindowsColor.Blue)
                 .Bold();
 
 
@@ -1586,9 +1590,9 @@ namespace Examples
 
                 // Append some text and add formatting.
                 p.Append("Hello World!^011Hello World!")
-                .Font(new FontFamily("Times New Roman"))
+                .Font(new Font("Times New Roman"))
                 .FontSize(32)
-                .Color(Color.Blue)
+                .Color(WindowsColor.Blue)
                 .Bold();
                 p.InsertHorizontalLine("double", 6, 1, "auto");
 
@@ -1620,9 +1624,9 @@ namespace Examples
 
                 // Append some text and add formatting.
                 p.Append("Hello World!^011Hello World!")
-                .Font(new FontFamily("Times New Roman"))
+                .Font(new Font("Times New Roman"))
                 .FontSize(32)
-                .Color(Color.Blue)
+                .Color(WindowsColor.Blue)
                 .Bold();
 
 
@@ -1689,12 +1693,12 @@ namespace Examples
                 .Append("italic").Italic().Append(".")
                 .AppendLine("I am ")
                 .Append("Arial Black")
-                .Font(new FontFamily("Arial Black"))
+                .Font(new Font("Arial Black"))
                 .Append(" and I am not.")
                 .AppendLine("I am ")
-                .Append("BLUE").Color(Color.Blue)
+                .Append("BLUE").Color(WindowsColor.Blue)
                 .Append(" and I am")
-                .Append("Red").Color(Color.Red).Append(".");
+                .Append("Red").Color(WindowsColor.Red).Append(".");
 
                 // Save this document.
                 document.Save();
@@ -1720,25 +1724,25 @@ namespace Examples
                     Image img = document.Images[0];
 
                     // Write "Hello World" into this Image.
-                    Bitmap b = new Bitmap(img.GetStream(FileMode.Open, FileAccess.ReadWrite));
+                    var b = new WindowsBitmap(img.GetStream(FileMode.Open, FileAccess.ReadWrite));
 
                     /*
                      * Get the Graphics object for this Bitmap.
                      * The Graphics object provides functions for drawing.
                      */
-                    Graphics g = Graphics.FromImage(b);
+                    var g = WindowsGraphics.FromImage(b);
 
                     // Draw the string "Hello World".
                     g.DrawString
                     (
                         str,
-                        new Font("Tahoma", 20),
-                        Brushes.Blue,
-                        new PointF(0, 0)
+                        new WindowsFont("Tahoma", 20),
+                        WindowsBrushes.Blue,
+                        0.0f, 0.0f
                     );
 
                     // Save this Bitmap back into the document using a Create\Write stream.
-                    b.Save(img.GetStream(FileMode.Create, FileAccess.Write), ImageFormat.Png);
+                    b.Save(img.GetStream(FileMode.Create, FileAccess.Write), WindowsImageFormat.Png);
                 }
                 else
                     Console.WriteLine("The provided document contains no Images.");
@@ -1981,7 +1985,7 @@ namespace Examples
                 picture.SetPictureShape(BasicShapes.cube);
 
                 // Insert a new Paragraph into the document.
-                Paragraph title = document.InsertParagraph().Append("This is a test for a picture").FontSize(20).Font(new FontFamily("Comic Sans MS"));
+                Paragraph title = document.InsertParagraph().Append("This is a test for a picture").FontSize(20).Font(new Font("Comic Sans MS"));
                 title.Alignment = Alignment.center;
 
                 // Insert a new Paragraph into the document.

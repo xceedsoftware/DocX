@@ -23,7 +23,7 @@ namespace Novacode
 		private UnderlineStyle? underlineStyle;
 		private Misc? misc;
 		private CapsStyle? capsStyle;
-		private FontFamily fontFamily;
+		private Font fontFamily;
 		private int? percentageScale;
 		private int? kerning;
 		private int? position;
@@ -133,7 +133,7 @@ namespace Novacode
 
                     case "rFonts": 
                         formatting.FontFamily = 
-                            new FontFamily(
+                            new Font(
                                 option.GetAttribute(XName.Get("cs", DocX.w.NamespaceName), null) ??
                                 option.GetAttribute(XName.Get("ascii", DocX.w.NamespaceName), null) ??
                                 option.GetAttribute(XName.Get("hAnsi", DocX.w.NamespaceName), null) ??
@@ -478,7 +478,7 @@ namespace Novacode
         /// Bug found and fixed by krugs525 on August 12 2009.
         /// Use TFS compare to see exact code change.
         /// -->
-        public FontFamily FontFamily { get { return fontFamily; } set { fontFamily = value; } }
+        public Font FontFamily { get { return fontFamily; } set { fontFamily = value; } }
 
         public int CompareTo(object obj)
         {
