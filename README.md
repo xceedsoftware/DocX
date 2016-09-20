@@ -117,7 +117,7 @@ sql4csv is a python library that offers an SQL "like" interface for .csv files.
 
 ## Our supporters
 
-<a href=https://www.jetbrains.com/"
+<a href="https://www.jetbrains.com/"
 <img alt="ReSharper" src="https://evotec.xyz/resources/resharper_logos/logo_ReSharper.png" height = 100 />
 </a>
 
