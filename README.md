@@ -13,8 +13,6 @@
 <img alt="AppVeyor Testing" src="https://ci.appveyor.com/api/projects/status/vxpnp8ivvvq2l39m?svg=true" />
 </a>
 
-
-
 ***
 
 ## What is DocX?
@@ -117,8 +115,10 @@ My email address is coffey.cathal@gmail.com
 Cathal has another open source project [sql4csv](https://github.com/ccoffey/sql4csv/wiki). 
 sql4csv is a python library that offers an SQL "like" interface for .csv files. 
 
-Cathal also has [3 android applications](https://play.google.com/store/apps/developer?id=Cathal+Coffey&hl=en) on GooglePlay.
+## Our supporters
+
+<a href=https://jetbrains.com">
+<img alt="ReSharper" src="https://evotec.xyz/resources/resharper_logos/logo_ReSharper.png" height = 100 />
+</a>
 
 ***
-
-Last edited 23/11/2015 by [CPonty](https://github.com/CPonty), version 88
