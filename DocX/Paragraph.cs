@@ -2966,7 +2966,9 @@ namespace Novacode
         /// </example>
         public Paragraph FontSize(double fontSize)
         {
-            if (fontSize - (int)fontSize == 0)
+            double temp = fontSize * 2;
+
+            if (temp - (int)temp == 0)
             {
                 if (!(fontSize > 0 && fontSize < 1639))
                     throw new ArgumentException("Size", "Value must be in the range 0 - 1638");
