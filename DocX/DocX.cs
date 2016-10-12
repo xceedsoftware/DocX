@@ -151,6 +151,38 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Header margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+        /// </summary>
+        public float MarginHeader
+        {
+            get
+            {
+                return getMarginAttribute(XName.Get("header", DocX.w.NamespaceName));
+            }
+
+            set
+            {
+                setMarginAttribute(XName.Get("header", DocX.w.NamespaceName), value);
+            }
+        }
+
+        /// <summary>
+        /// Footer margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
+        /// </summary>
+        public float MarginFooter
+        {
+            get
+            {
+                return getMarginAttribute(XName.Get("footer", DocX.w.NamespaceName));
+            }
+
+            set
+            {
+                setMarginAttribute(XName.Get("footer", DocX.w.NamespaceName), value);
+            }
+        }
+
+        /// <summary>
         /// Page width value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
         /// </summary>
         public float PageWidth
