@@ -441,12 +441,12 @@ namespace Novacode
 
                 if (val != null)
                 {
-                    try
+                    String cleanValue = val.Value.Replace("-", string.Empty);
+                    if (Enum.IsDefined(typeof(TableDesign), cleanValue))
                     {
-                        design = (TableDesign)Enum.Parse(typeof(TableDesign), val.Value.Replace("-", string.Empty));
+                        design = (TableDesign)Enum.Parse(typeof(TableDesign), cleanValue);
                     }
-
-                    catch (Exception)
+                    else
                     {
                         design = TableDesign.Custom;
                     }
