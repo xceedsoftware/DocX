@@ -150,8 +150,11 @@ namespace Novacode
                     case "vanish": formatting.hidden = true; break;
                     case "b": formatting.Bold = true; break;
                     case "i": formatting.Italic = true; break;
-                    case "u": formatting.UnderlineStyle = HelperFunctions.GetUnderlineStyle(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName)));
-                              break;
+                    case "u": formatting.UnderlineStyle = HelperFunctions.GetUnderlineStyle(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))); break;
+                    case "vertAlign":
+                        var script = option.GetAttribute(XName.Get("val", DocX.w.NamespaceName), null);
+                        formatting.Script = (Script)Enum.Parse(typeof(Script), script);
+                        break;
                     default: break;
                 }
             }
