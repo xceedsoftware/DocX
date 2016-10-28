@@ -18,7 +18,7 @@ namespace Novacode
             {
                 List<Content> contents = GetContents();
 
-                
+
 
                 return contents.AsReadOnly();
             }
@@ -129,9 +129,9 @@ namespace Novacode
                     return true;
                 }
                 ++i;
- 
+
             }
- 
+
             return false;
         }
 
@@ -204,32 +204,32 @@ namespace Novacode
             //find num node in numbering 
             var numNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "num");
             XElement numNode = numNodes.FirstOrDefault(node => node.Attribute(DocX.w + "numId").Value.Equals(numIdValue));
-           
-	        if (numNode != null)
+
+            if (numNode != null)
             {
-               //Get abstractNumId node and its value from numNode
-	            var abstractNumIdNode = numNode.Descendants().First(n => n.Name.LocalName == "abstractNumId");
-	            var abstractNumNodeValue = abstractNumIdNode.Attribute(DocX.w + "val").Value;
-	
-	            var abstractNumNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "abstractNum");
-	            XElement abstractNumNode =
-	              abstractNumNodes.FirstOrDefault(node => node.Attribute(DocX.w + "abstractNumId").Value.Equals(abstractNumNodeValue));
-	
-	            //Find lvl node
-	            var lvlNodes = abstractNumNode.Descendants().Where(n => n.Name.LocalName == "lvl");
-	            XElement lvlNode = null;
-	            foreach (XElement node in lvlNodes)
-	            {
-	                if (node.Attribute(DocX.w + "ilvl").Value.Equals(ilvlValue))
-	                {
-	                    lvlNode = node;
-	                    break;
-	                }
-	            }
-	           
-	           	var numFmtNode = lvlNode.Descendants().First(n => n.Name.LocalName == "numFmt");
-	          		p.ListItemType = GetListItemType(numFmtNode.Attribute(DocX.w + "val").Value);
-            }         
+                //Get abstractNumId node and its value from numNode
+                var abstractNumIdNode = numNode.Descendants().First(n => n.Name.LocalName == "abstractNumId");
+                var abstractNumNodeValue = abstractNumIdNode.Attribute(DocX.w + "val").Value;
+
+                var abstractNumNodes = Document.numbering.Descendants().Where(n => n.Name.LocalName == "abstractNum");
+                XElement abstractNumNode =
+                  abstractNumNodes.FirstOrDefault(node => node.Attribute(DocX.w + "abstractNumId").Value.Equals(abstractNumNodeValue));
+
+                //Find lvl node
+                var lvlNodes = abstractNumNode.Descendants().Where(n => n.Name.LocalName == "lvl");
+                XElement lvlNode = null;
+                foreach (XElement node in lvlNodes)
+                {
+                    if (node.Attribute(DocX.w + "ilvl").Value.Equals(ilvlValue))
+                    {
+                        lvlNode = node;
+                        break;
+                    }
+                }
+
+                var numFmtNode = lvlNode.Descendants().First(n => n.Name.LocalName == "numFmt");
+                p.ListItemType = GetListItemType(numFmtNode.Attribute(DocX.w + "val").Value);
+            }
 
         }
 
@@ -263,13 +263,13 @@ namespace Novacode
             }
             catch (Exception)
             {
-                val = "Missing";             
+                val = "Missing";
             }
 
             return val;
         }
 
-        internal List<Paragraph> GetParagraphs(bool deepSearch=false)
+        internal List<Paragraph> GetParagraphs(bool deepSearch = false)
         {
             // Need some memory that can be updated by the recursive search.
             int index = 0;
@@ -280,12 +280,12 @@ namespace Novacode
                 Paragraph paragraph = new Paragraph(Document, e, index);
                 paragraphs.Add(paragraph);
             }
-              //  GetParagraphsRecursive(Xml, ref index, ref paragraphs, deepSearch);
+            //  GetParagraphsRecursive(Xml, ref index, ref paragraphs, deepSearch);
 
             return paragraphs;
         }
 
-        internal void GetParagraphsRecursive(XElement Xml, ref int index, ref List<Paragraph> paragraphs, bool deepSearch=false)
+        internal void GetParagraphsRecursive(XElement Xml, ref int index, ref List<Paragraph> paragraphs, bool deepSearch = false)
         {
             // sdtContent are for PageNumbers inside Headers or Footers, don't go any deeper.
             //if (Xml.Name.LocalName == "sdtContent")
@@ -508,14 +508,14 @@ namespace Novacode
         /// <param name="newFormatting"></param>
         /// <param name="matchFormatting"></param>
         /// <param name="formattingOptions"></param>
-        public virtual void ReplaceText(string searchValue, Func<string,string> regexMatchHandler, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch)
+        public virtual void ReplaceText(string searchValue, Func<string, string> regexMatchHandler, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch)
         {
             if (string.IsNullOrEmpty(searchValue))
                 throw new ArgumentException("oldValue cannot be null or empty", "searchValue");
 
             if (regexMatchHandler == null)
                 throw new ArgumentException("regexMatchHandler cannot be null", "regexMatchHandler");
-            
+
             // ReplaceText in Headers/Footers of the document.
             var containerList = new List<IParagraphContainer> {
                 Document.Headers.first, Document.Headers.even, Document.Headers.odd,
@@ -588,8 +588,8 @@ namespace Novacode
 
         public string[] ValidateBookmarks(params string[] bookmarkNames)
         {
-            var headers = new[] {Document.Headers.first, Document.Headers.even, Document.Headers.odd}.Where(h => h != null).ToList();
-            var footers = new[] {Document.Footers.first, Document.Footers.even, Document.Footers.odd}.Where(f => f != null).ToList();
+            var headers = new[] { Document.Headers.first, Document.Headers.even, Document.Headers.odd }.Where(h => h != null).ToList();
+            var footers = new[] { Document.Footers.first, Document.Footers.even, Document.Footers.odd }.Where(f => f != null).ToList();
 
             var nonMatching = new List<string>();
             foreach (var bookmarkName in bookmarkNames)
@@ -599,7 +599,7 @@ namespace Novacode
                 if (Paragraphs.Any(p => p.ValidateBookmark(bookmarkName))) return new string[0];
                 nonMatching.Add(bookmarkName);
             }
-            
+
             return nonMatching.ToArray();
         }
 
@@ -719,21 +719,22 @@ namespace Novacode
 
             if (firstPar != null)
             {
-				var splitindex = index - firstPar.startIndex;
-				if (splitindex <= 0)
-				{
-					firstPar.Xml.ReplaceWith(newParagraph.Xml, firstPar.Xml);
-				}
-				else {
-					XElement[] splitParagraph = HelperFunctions.SplitParagraph(firstPar, splitindex);
+                var splitindex = index - firstPar.startIndex;
+                if (splitindex <= 0)
+                {
+                    firstPar.Xml.ReplaceWith(newParagraph.Xml, firstPar.Xml);
+                }
+                else
+                {
+                    XElement[] splitParagraph = HelperFunctions.SplitParagraph(firstPar, splitindex);
 
-					firstPar.Xml.ReplaceWith
-					(
-						splitParagraph[0],
-						newParagraph.Xml,
-						splitParagraph[1]
-					);
-				}
+                    firstPar.Xml.ReplaceWith
+                    (
+                        splitParagraph[0],
+                        newParagraph.Xml,
+                        splitParagraph[1]
+                    );
+                }
             }
 
             else
@@ -929,7 +930,7 @@ namespace Novacode
             XElement newTable = HelperFunctions.CreateTable(rowCount, columnCount);
             Xml.Add(newTable);
 
-            return new Table(Document, newTable) { mainPart = mainPart};
+            return new Table(Document, newTable) { mainPart = mainPart };
         }
 
         public Table InsertTable(int index, int rowCount, int columnCount)
@@ -1017,7 +1018,7 @@ namespace Novacode
             return list;
         }
 
-        public List InsertList(List list, System.Drawing.FontFamily fontFamily, double fontSize)
+        public List InsertList(List list, Font fontFamily, double fontSize)
         {
             foreach (var item in list.Items)
             {
