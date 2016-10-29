@@ -724,7 +724,7 @@ namespace Novacode
                     XElement pPr = GetOrCreate_pPr();
                     XElement ind = GetOrCreate_pPr_ind();
 
-                    string indentation = ((indentationBefore / 0.1) * 57).ToString();
+                    string indentation = ((indentationBefore / 0.1) * 57).ToString(CultureInfo.GetCultureInfo("en-GB"));
 
                     XAttribute left = ind.Attribute(XName.Get("left", DocX.w.NamespaceName));
                     if (left != null)
