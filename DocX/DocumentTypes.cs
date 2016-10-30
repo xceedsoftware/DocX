@@ -1,8 +1,4 @@
-﻿﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-
-namespace Novacode
+﻿namespace Novacode
 {
     public enum DocumentTypes
     {

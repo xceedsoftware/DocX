@@ -794,10 +794,7 @@ namespace Novacode
                 design = value;
 
                 if (design == TableDesign.None)
-                {
-                    if (style != null)
-                        style.Remove();
-                }
+                    style.Remove();
 
                 if (design == TableDesign.Custom)
                 {
@@ -815,7 +812,6 @@ namespace Novacode
                 }
                 else
                 {
-
                     switch (design)
                     {
                         case TableDesign.TableNormal:
