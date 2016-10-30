@@ -4,21 +4,17 @@ namespace Novacode
 {
     public class CustomProperty
     {
-        private string name;
-        private object value;
-        private string type;
-
         /// <summary>
         /// The name of this CustomProperty.
         /// </summary>
-        public string Name { get { return name;} }
+        public string Name { get; }
 
         /// <summary>
         /// The value of this CustomProperty.
         /// </summary>
-        public object Value { get { return value; } }
+        public object Value { get; }
 
-        internal string Type { get { return type; } }
+        internal string Type { get; }
 
         internal CustomProperty(string name, string type, string value)
         {
@@ -58,16 +54,16 @@ namespace Novacode
                 default: throw new Exception();
             }
 
-            this.name = name;
-            this.type = type;
-            this.value = realValue;
+            Name = name;
+            Type = type;
+            Value = realValue;
         }
 
         private CustomProperty(string name, string type, object value)
         {
-            this.name = name;
-            this.type = type;
-            this.value = value;
+            Name = name;
+            Type = type;
+            Value = value;
         }
 
         /// <summary>
@@ -83,7 +79,7 @@ namespace Novacode
         /// </summary>
         /// <param name="name">The name of this CustomProperty.</param>
         /// <param name="value">The value of this CustomProperty.</param>
-        public CustomProperty(string name, int value) : this(name, "i4", value as object) { }
+        public CustomProperty(string name, int value) : this(name, "i4", value) { }
 
 
         /// <summary>
@@ -91,7 +87,7 @@ namespace Novacode
         /// </summary>
         /// <param name="name">The name of this CustomProperty.</param>
         /// <param name="value">The value of this CustomProperty.</param>
-        public CustomProperty(string name, double value) : this(name, "r8", value as object) { }
+        public CustomProperty(string name, double value) : this(name, "r8", value) { }
 
 
         /// <summary>
@@ -99,13 +95,13 @@ namespace Novacode
         /// </summary>
         /// <param name="name">The name of this CustomProperty.</param>
         /// <param name="value">The value of this CustomProperty.</param>
-        public CustomProperty(string name, DateTime value) : this(name, "filetime", value.ToUniversalTime() as object) { }
+        public CustomProperty(string name, DateTime value) : this(name, "filetime", value.ToUniversalTime()) { }
 
         /// <summary>
         /// Create a new CustomProperty to hold a bool.
         /// </summary>
         /// <param name="name">The name of this CustomProperty.</param>
         /// <param name="value">The value of this CustomProperty.</param>
-        public CustomProperty(string name, bool value) : this(name, "bool", value as object) { }
+        public CustomProperty(string name, bool value) : this(name, "bool", value) { }
     }
 }

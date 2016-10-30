@@ -22,11 +22,7 @@ namespace Novacode
 
         public void SetText(string newText)
         {
-            
-            string x = this.Tag;
-            XElement el = Xml;
             Xml.Descendants(XName.Get("t", DocX.w.NamespaceName)).First().Value = newText;
-
         }
 
     }

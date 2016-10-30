@@ -254,13 +254,10 @@ namespace Novacode
             {
                 var element = this.GetOrCreate_pPr();
                 var styleElement = element.Element(XName.Get("pStyle", DocX.w.NamespaceName));
-                if (styleElement != null)
+                var attr = styleElement?.Attribute(XName.Get("val", DocX.w.NamespaceName));
+                if (!string.IsNullOrEmpty(attr?.Value))
                 {
-                    var attr = styleElement.Attribute(XName.Get("val", DocX.w.NamespaceName));
-                    if (attr != null && !string.IsNullOrEmpty(attr.Value))
-                    {
-                        return attr.Value;
-                    }
+                    return attr.Value;
                 }
                 return "Normal";
             }
@@ -408,11 +405,7 @@ namespace Novacode
                 XElement pPr = GetOrCreate_pPr();
                 XElement bidi = pPr.Element(XName.Get("bidi", DocX.w.NamespaceName));
 
-                if (bidi == null)
-                    return Direction.LeftToRight;
-
-                else
-                    return Direction.RightToLeft;
+                return bidi == null ? Direction.LeftToRight : Direction.RightToLeft;
             }
 
             set
@@ -427,11 +420,9 @@ namespace Novacode
                     if (bidi == null)
                         pPr.Add(new XElement(XName.Get("bidi", DocX.w.NamespaceName)));
                 }
-
                 else
                 {
-                    if (bidi != null)
-                        bidi.Remove();
+                    bidi?.Remove();
                 }
             }
         }
@@ -514,9 +505,9 @@ namespace Novacode
             {
                 pPr.Add(new XElement(XName.Get("keepLines", DocX.w.NamespaceName)));
             }
-            if (!keepTogether && keepLinesE != null)
+            if (!keepTogether)
             {
-                keepLinesE.Remove();
+                keepLinesE?.Remove();
             }
             return this;
         }
@@ -586,7 +577,7 @@ namespace Novacode
         {
             get
             {
-                XElement pPr = GetOrCreate_pPr();
+                GetOrCreate_pPr();
                 XElement ind = GetOrCreate_pPr_ind();
                 XAttribute firstLine = ind.Attribute(XName.Get("firstLine", DocX.w.NamespaceName));
 
@@ -607,8 +598,7 @@ namespace Novacode
 
                     // Paragraph can either be firstLine or hanging (Remove hanging).
                     XAttribute hanging = ind.Attribute(XName.Get("hanging", DocX.w.NamespaceName));
-                    if (hanging != null)
-                        hanging.Remove();
+                    hanging?.Remove();
 
                     string indentation = ((indentationFirstLine / 0.1) * 57).ToString();
                     XAttribute firstLine = ind.Attribute(XName.Get("firstLine", DocX.w.NamespaceName));
@@ -645,7 +635,7 @@ namespace Novacode
         {
             get
             {
-                XElement pPr = GetOrCreate_pPr();
+                GetOrCreate_pPr();
                 XElement ind = GetOrCreate_pPr_ind();
                 XAttribute hanging = ind.Attribute(XName.Get("hanging", DocX.w.NamespaceName));
 
@@ -734,7 +724,7 @@ namespace Novacode
             }
         }
 
-        private float indentationAfter = 0.0f;
+        private float indentationAfter;
         /// <summary>
         /// Set the after indentation in cm for this Paragraph.
         /// </summary>
@@ -762,7 +752,7 @@ namespace Novacode
         {
             get
             {
-                XElement pPr = GetOrCreate_pPr();
+                GetOrCreate_pPr();
                 XElement ind = GetOrCreate_pPr_ind();
 
                 XAttribute right = ind.Attribute(XName.Get("right", DocX.w.NamespaceName));

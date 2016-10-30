@@ -79,7 +79,6 @@ namespace Novacode
         {
             XNamespace ab = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
             var tempElement = document.PageLayout.Xml.Descendants(ab + "pgMar");
-            var e = tempElement.GetEnumerator();
 
             foreach (var item in tempElement)
             {
