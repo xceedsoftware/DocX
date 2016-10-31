@@ -146,9 +146,7 @@ namespace Novacode
             Xml.AddBeforeSelf(newParagraph);
             XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
-            Paragraph p = new Paragraph(Document, newlyInserted, -1);
-
-            return p;
+            return new Paragraph(Document, newlyInserted, -1);
         }
 
         public virtual Paragraph InsertParagraphAfterSelf(string text, bool trackChanges, Formatting formatting)
@@ -202,9 +200,6 @@ namespace Novacode
 
             //Dmitchern
             return new Table(Document, newlyInserted) { mainPart=mainPart}; //return new table, dont affect parameter table
-
-            //t.Xml = newlyInserted;
-            //return t;
         }
     }
 
