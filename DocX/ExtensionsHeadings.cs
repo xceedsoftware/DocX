@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Xml.Linq;
-using Novacode;
-
 
 namespace Novacode
 {
@@ -32,10 +25,7 @@ namespace Novacode
             {
                 return enumAttributes[0].Description;
             }
-            else
-            {
-                return enumValue.ToString();
-            }
+            return enumValue.ToString();
         }
 
         /// <summary>
@@ -66,5 +56,4 @@ namespace Novacode
 
         }
     }
-    
 }

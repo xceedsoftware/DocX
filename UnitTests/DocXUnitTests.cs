@@ -21,7 +21,7 @@ namespace UnitTests
     {
         private readonly string _directoryDocuments;
         private readonly string _directoryWithFiles;
-        private static Border BlankBorder = new Border(BorderStyle.Tcbs_none, 0, 0, WindowsColor.White);
+        private static readonly Border BlankBorder = new Border(BorderStyle.Tcbs_none, 0, 0, WindowsColor.White);
 
         const string package_part_document = "/word/document.xml";
 
@@ -57,7 +57,6 @@ namespace UnitTests
                     foreach (var cell in r.Cells)
                     {
                         cell.Paragraphs.First().Append("Col " + cx);
-                        //cell.Width = colWidth;
                         cell.MarginBottom = 0;
                         cell.MarginLeft = 0;
                         cell.MarginRight = 0;
@@ -94,7 +93,6 @@ namespace UnitTests
                     foreach (var cell in r.Cells)
                     {
                         cell.Paragraphs.First().Append("Col " + cx);
-                        //cell.Width = colWidth;
                         cell.MarginBottom = 0;
                         cell.MarginLeft = 0;
                         cell.MarginRight = 0;
@@ -110,7 +108,6 @@ namespace UnitTests
                         foreach (var cell in r.Cells)
                         {
                             cell.Paragraphs.First().Append("Col " + cx);
-                            //cell.Width = colWidth;
                             cell.MarginBottom = 0;
                             cell.MarginLeft = 0;
                             cell.MarginRight = 0;
@@ -129,18 +126,11 @@ namespace UnitTests
                     doc.Save();
                 }
             }
-
-        }
-
-        [Test]
-        public void TestPatternFuncReplacement()
-        {
-
         }
 
         public string ReplaceFunc(string findStr)
         {
-            Dictionary<string, string> testPatterns = new Dictionary<string, string>()
+            var testPatterns = new Dictionary<string, string>
             {
                 {"COURT NAME","Fred Frump"},
                 {"Case Number","cr-md-2011-1234567"}
@@ -159,14 +149,12 @@ namespace UnitTests
             var findPattern = "<(.*?)>";
             var sample = "<Match This> text";
             var matchCollection = Regex.Matches(sample, findPattern, RegexOptions.IgnoreCase);
-            int i = 1;
-
         }
 
         [Test]
         public void Test_Pattern_Replacement()
         {
-            Dictionary<string, string> testPatterns = new Dictionary<string, string>()
+            var testPatterns = new Dictionary<string, string>
             {
                 {"COURT NAME","Fred Frump"},
                 {"Case Number","cr-md-2011-1234567"}
@@ -226,7 +214,7 @@ namespace UnitTests
 
                 Assert.IsTrue(document.CustomProperties.Count == 1);
                 Assert.IsTrue(document.CustomProperties.ContainsKey("fname"));
-                Assert.IsTrue((String)document.CustomProperties["fname"].Value == "cathal");
+                Assert.IsTrue((string)document.CustomProperties["fname"].Value == "cathal");
 
                 document.AddCustomProperty(new CustomProperty("age", 24));
 
@@ -238,7 +226,7 @@ namespace UnitTests
 
                 Assert.IsTrue(document.CustomProperties.Count == 3);
                 Assert.IsTrue(document.CustomProperties.ContainsKey("male"));
-                Assert.IsTrue((bool)document.CustomProperties["male"].Value == true);
+                Assert.IsTrue((bool)document.CustomProperties["male"].Value);
 
                 document.AddCustomProperty(new CustomProperty("newyear2012", new DateTime(2012, 1, 1)));
 
@@ -342,7 +330,7 @@ namespace UnitTests
             using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Test.docx")))
             {
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
+                Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -365,7 +353,7 @@ namespace UnitTests
             using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "Test.docx")))
             {
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
+                Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -494,27 +482,27 @@ namespace UnitTests
             using (DocX document = DocX.Create(Path.Combine(_directoryDocuments, "test_add_images.docx")))
             {
                 // Add a png to into this document
-                Novacode.Image png = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
+                Image png = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
                 Assert.IsTrue(document.Images.Count == 1);
                 Assert.IsTrue(Path.GetExtension(png.pr.TargetUri.OriginalString) == ".png");
 
                 // Add a tiff into to this document
-                Novacode.Image tif = document.AddImage(Path.Combine(_directoryWithFiles, "yellow.tif"));
+                Image tif = document.AddImage(Path.Combine(_directoryWithFiles, "yellow.tif"));
                 Assert.IsTrue(document.Images.Count == 2);
                 Assert.IsTrue(Path.GetExtension(tif.pr.TargetUri.OriginalString) == ".tif");
 
                 // Add a gif into to this document
-                Novacode.Image gif = document.AddImage(Path.Combine(_directoryWithFiles, "orange.gif"));
+                Image gif = document.AddImage(Path.Combine(_directoryWithFiles, "orange.gif"));
                 Assert.IsTrue(document.Images.Count == 3);
                 Assert.IsTrue(Path.GetExtension(gif.pr.TargetUri.OriginalString) == ".gif");
 
                 // Add a jpg into to this document
-                Novacode.Image jpg = document.AddImage(Path.Combine(_directoryWithFiles, "green.jpg"));
+                Image jpg = document.AddImage(Path.Combine(_directoryWithFiles, "green.jpg"));
                 Assert.IsTrue(document.Images.Count == 4);
                 Assert.IsTrue(Path.GetExtension(jpg.pr.TargetUri.OriginalString) == ".jpg");
 
                 // Add a bitmap to this document
-                Novacode.Image bitmap = document.AddImage(Path.Combine(_directoryWithFiles, "red.bmp"));
+                Image bitmap = document.AddImage(Path.Combine(_directoryWithFiles, "red.bmp"));
                 Assert.IsTrue(document.Images.Count == 5);
                 // Word does not allow bmp make sure it was inserted as a png.
                 Assert.IsTrue(Path.GetExtension(bitmap.pr.TargetUri.OriginalString) == ".png");
@@ -529,27 +517,27 @@ namespace UnitTests
                 // DocX will always insert Images that come from Streams as jpeg.
 
                 // Add a png to into this document
-                Novacode.Image png = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "purple.png"), FileMode.Open));
+                Image png = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "purple.png"), FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 1);
                 Assert.IsTrue(Path.GetExtension(png.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a tiff into to this document
-                Novacode.Image tif = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "yellow.tif"), FileMode.Open));
+                Image tif = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "yellow.tif"), FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 2);
                 Assert.IsTrue(Path.GetExtension(tif.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a gif into to this document
-                Novacode.Image gif = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "orange.gif"), FileMode.Open));
+                Image gif = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "orange.gif"), FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 3);
                 Assert.IsTrue(Path.GetExtension(gif.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a jpg into to this document
-                Novacode.Image jpg = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "green.jpg"), FileMode.Open));
+                Image jpg = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "green.jpg"), FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 4);
                 Assert.IsTrue(Path.GetExtension(jpg.pr.TargetUri.OriginalString) == ".jpeg");
 
                 // Add a bitmap to this document
-                Novacode.Image bitmap = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "red.bmp"), FileMode.Open));
+                Image bitmap = document.AddImage(new FileStream(Path.Combine(_directoryWithFiles, "red.bmp"), FileMode.Open));
                 Assert.IsTrue(document.Images.Count == 5);
                 // Word does not allow bmp make sure it was inserted as a png.
                 Assert.IsTrue(Path.GetExtension(bitmap.pr.TargetUri.OriginalString) == ".jpeg");
@@ -581,7 +569,7 @@ namespace UnitTests
             using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "Images.docx")))
             {
                 // Extract Images from Document.
-                List<Novacode.Image> document_images = document.Images;
+                List<Image> document_images = document.Images;
 
                 // Make sure there are 3 Images in this document.
                 Assert.IsTrue(document_images.Count() == 3);
@@ -594,7 +582,7 @@ namespace UnitTests
 
                 #region Header_First
                 // Extract Images from the first Header.
-                List<Novacode.Image> header_first_images = header_first.Images;
+                List<Image> header_first_images = header_first.Images;
 
                 // Make sure there is 1 Image in the first header.
                 Assert.IsTrue(header_first_images.Count() == 1);
@@ -602,7 +590,7 @@ namespace UnitTests
 
                 #region Header_Odd
                 // Extract Images from the odd Header.
-                List<Novacode.Image> header_odd_images = header_odd.Images;
+                List<Image> header_odd_images = header_odd.Images;
 
                 // Make sure there is 1 Image in the first header.
                 Assert.IsTrue(header_odd_images.Count() == 1);
@@ -610,7 +598,7 @@ namespace UnitTests
 
                 #region Header_Even
                 // Extract Images from the odd Header.
-                List<Novacode.Image> header_even_images = header_even.Images;
+                List<Image> header_even_images = header_even.Images;
 
                 // Make sure there is 1 Image in the first header.
                 Assert.IsTrue(header_even_images.Count() == 1);
@@ -631,7 +619,7 @@ namespace UnitTests
                 document.DifferentOddAndEvenPages = true;
 
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
+                Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -876,7 +864,7 @@ namespace UnitTests
                 document.DifferentOddAndEvenPages = true;
 
                 // Add an Image to this document.
-                Novacode.Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
+                Image img = document.AddImage(Path.Combine(_directoryWithFiles, "purple.png"));
 
                 // Create a Picture from this Image.
                 Picture pic = img.CreatePicture();
@@ -965,13 +953,13 @@ namespace UnitTests
                 Paragraph p1 = document.InsertParagraph("AC");
                 p1.InsertHyperlink(h); Assert.IsTrue(p1.Text == "linkAC");
                 p1.InsertHyperlink(h, p1.Text.Length); Assert.IsTrue(p1.Text == "linkAClink");
-                p1.InsertHyperlink(h, p1.Text.IndexOf("C")); Assert.IsTrue(p1.Text == "linkAlinkClink");
+                p1.InsertHyperlink(h, p1.Text.IndexOf("C", StringComparison.Ordinal)); Assert.IsTrue(p1.Text == "linkAlinkClink");
 
                 // Difficult
                 Paragraph p2 = document.InsertParagraph("\tA\tC\t");
                 p2.InsertHyperlink(h); Assert.IsTrue(p2.Text == "link\tA\tC\t");
                 p2.InsertHyperlink(h, p2.Text.Length); Assert.IsTrue(p2.Text == "link\tA\tC\tlink");
-                p2.InsertHyperlink(h, p2.Text.IndexOf("C")); Assert.IsTrue(p2.Text == "link\tA\tlinkC\tlink");
+                p2.InsertHyperlink(h, p2.Text.IndexOf("C", StringComparison.Ordinal)); Assert.IsTrue(p2.Text == "link\tA\tlinkC\tlink");
 
                 // Contrived
                 // Add a contrived Hyperlink to this document.
@@ -979,7 +967,7 @@ namespace UnitTests
                 Paragraph p3 = document.InsertParagraph("\tA\tC\t");
                 p3.InsertHyperlink(h2); Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t");
                 p3.InsertHyperlink(h2, p3.Text.Length); Assert.IsTrue(p3.Text == "\tlink\t\tA\tC\t\tlink\t");
-                p3.InsertHyperlink(h2, p3.Text.IndexOf("C")); Assert.IsTrue(p3.Text == "\tlink\t\tA\t\tlink\tC\t\tlink\t");
+                p3.InsertHyperlink(h2, p3.Text.IndexOf("C", StringComparison.Ordinal)); Assert.IsTrue(p3.Text == "\tlink\t\tA\t\tlink\tC\t\tlink\t");
             }
         }
 
@@ -996,7 +984,7 @@ namespace UnitTests
                 Paragraph p1 = document.InsertParagraph("AC");
                 p1.InsertHyperlink(h); Assert.IsTrue(p1.Text == "linkAC");
                 p1.InsertHyperlink(h, p1.Text.Length); Assert.IsTrue(p1.Text == "linkAClink");
-                p1.InsertHyperlink(h, p1.Text.IndexOf("C")); Assert.IsTrue(p1.Text == "linkAlinkClink");
+                p1.InsertHyperlink(h, p1.Text.IndexOf("C", StringComparison.Ordinal)); Assert.IsTrue(p1.Text == "linkAlinkClink");
 
                 // Try and remove a Hyperlink using a negative index.
                 // This should throw an exception.
@@ -1093,7 +1081,7 @@ namespace UnitTests
                 count = 0;
                 foreach (var p in document.Paragraphs)
                 {
-                    p.ReplaceText("Text", "Replaced text", false, RegexOptions.None, null, desiredFormat, MatchFormattingOptions.SubsetMatch);
+                    p.ReplaceText("Text", "Replaced text", false, RegexOptions.None, null, desiredFormat);
                     if (p.Text.StartsWith("Replaced text"))
                     {
                         ++count;
@@ -1117,7 +1105,7 @@ namespace UnitTests
                 Paragraph p1 = document.InsertParagraph("HelloWorld");
                 p1.RemoveText(0, 1); Assert.IsTrue(p1.Text == "elloWorld");
                 p1.RemoveText(p1.Text.Length - 1, 1); Assert.IsTrue(p1.Text == "elloWorl");
-                p1.RemoveText(p1.Text.IndexOf("o"), 1); Assert.IsTrue(p1.Text == "ellWorl");
+                p1.RemoveText(p1.Text.IndexOf("o", StringComparison.Ordinal), 1); Assert.IsTrue(p1.Text == "ellWorl");
 
                 // Try and remove text at an index greater than the last.
                 // This should throw an exception.
@@ -1148,7 +1136,7 @@ namespace UnitTests
                 Paragraph p2 = document.InsertParagraph("A\tB\tC");
                 p2.RemoveText(0, 1); Assert.IsTrue(p2.Text == "\tB\tC");
                 p2.RemoveText(p2.Text.Length - 1, 1); Assert.IsTrue(p2.Text == "\tB\t");
-                p2.RemoveText(p2.Text.IndexOf("B"), 1); Assert.IsTrue(p2.Text == "\t\t");
+                p2.RemoveText(p2.Text.IndexOf("B", StringComparison.Ordinal), 1); Assert.IsTrue(p2.Text == "\t\t");
                 p2.RemoveText(0, 1); Assert.IsTrue(p2.Text == "\t");
                 p2.RemoveText(0, 1); Assert.IsTrue(p2.Text == "");
 
@@ -1252,7 +1240,7 @@ namespace UnitTests
                 Paragraph p1 = document.InsertParagraph("HelloWorld");
                 p1.InsertText(0, "-"); Assert.IsTrue(p1.Text == "-HelloWorld");
                 p1.InsertText(p1.Text.Length, "-"); Assert.IsTrue(p1.Text == "-HelloWorld-");
-                p1.InsertText(p1.Text.IndexOf("W"), "-"); Assert.IsTrue(p1.Text == "-Hello-World-");
+                p1.InsertText(p1.Text.IndexOf("W", StringComparison.Ordinal), "-"); Assert.IsTrue(p1.Text == "-Hello-World-");
 
                 // Try and insert text at an index greater than the last + 1.
                 // This should throw an exception.
@@ -1283,8 +1271,8 @@ namespace UnitTests
                 Paragraph p2 = document.InsertParagraph("A\tB\tC");
                 p2.InsertText(0, "-"); Assert.IsTrue(p2.Text == "-A\tB\tC");
                 p2.InsertText(p2.Text.Length, "-"); Assert.IsTrue(p2.Text == "-A\tB\tC-");
-                p2.InsertText(p2.Text.IndexOf("B"), "-"); Assert.IsTrue(p2.Text == "-A\t-B\tC-");
-                p2.InsertText(p2.Text.IndexOf("C"), "-"); Assert.IsTrue(p2.Text == "-A\t-B\t-C-");
+                p2.InsertText(p2.Text.IndexOf("B", StringComparison.Ordinal), "-"); Assert.IsTrue(p2.Text == "-A\t-B\tC-");
+                p2.InsertText(p2.Text.IndexOf("C", StringComparison.Ordinal), "-"); Assert.IsTrue(p2.Text == "-A\t-B\t-C-");
 
                 // Contrived 1
                 //<p>
@@ -1310,8 +1298,8 @@ namespace UnitTests
 
                 p3.InsertText(0, "-"); Assert.IsTrue(p3.Text == "-ABC");
                 p3.InsertText(p3.Text.Length, "-"); Assert.IsTrue(p3.Text == "-ABC-");
-                p3.InsertText(p3.Text.IndexOf("B"), "-"); Assert.IsTrue(p3.Text == "-A-BC-");
-                p3.InsertText(p3.Text.IndexOf("C"), "-"); Assert.IsTrue(p3.Text == "-A-B-C-");
+                p3.InsertText(p3.Text.IndexOf("B", StringComparison.Ordinal), "-"); Assert.IsTrue(p3.Text == "-A-BC-");
+                p3.InsertText(p3.Text.IndexOf("C", StringComparison.Ordinal), "-"); Assert.IsTrue(p3.Text == "-A-B-C-");
 
                 // Contrived 2
                 //<p>
@@ -1337,8 +1325,8 @@ namespace UnitTests
 
                 p4.InsertText(0, "\t"); Assert.IsTrue(p4.Text == "\tABC");
                 p4.InsertText(p4.Text.Length, "\t"); Assert.IsTrue(p4.Text == "\tABC\t");
-                p4.InsertText(p4.Text.IndexOf("B"), "\t"); Assert.IsTrue(p4.Text == "\tA\tBC\t");
-                p4.InsertText(p4.Text.IndexOf("C"), "\t"); Assert.IsTrue(p4.Text == "\tA\tB\tC\t");
+                p4.InsertText(p4.Text.IndexOf("B", StringComparison.Ordinal), "\t"); Assert.IsTrue(p4.Text == "\tA\tBC\t");
+                p4.InsertText(p4.Text.IndexOf("C", StringComparison.Ordinal), "\t"); Assert.IsTrue(p4.Text == "\tA\tB\tC\t");
             }
         }
 
@@ -1854,7 +1842,7 @@ namespace UnitTests
             {
                 const int level = 0;
                 XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
-                var list = document.AddList("First Item", level, ListItemType.Numbered);
+                var list = document.AddList("First Item");
                 document.InsertList(list);
 
                 var listNumPropNode = document.mainDoc.Descendants().First(s => s.Name.LocalName == "numPr");
@@ -1943,13 +1931,7 @@ namespace UnitTests
                 Assert.AreEqual(list.Items.First().runs.First().Value, "RunText");
             }
         }
-
-        [Test]
-        public void WhenCreatingAListTheNumberingShouldGetSaved()
-        {
-
-        }
-
+        
         [Test]
         public void WhenCreatingAListTheListStyleShouldExistOrBeCreated()
         {
@@ -2140,7 +2122,7 @@ namespace UnitTests
         {
             using (var document = DocX.Create(Path.Combine(_directoryDocuments, "HyperlinkList.docx")))
             {
-                var list = document.AddList("Item 1", listType: ListItemType.Numbered);
+                var list = document.AddList("Item 1");
                 document.AddListItem(list, "Item 2");
                 document.AddListItem(list, "Item 3");
 
@@ -2299,11 +2281,8 @@ namespace UnitTests
         [Test]
         public void Test_Table_RemoveParagraphs()
         {
-            MemoryStream memoryStream;
-            DocX document;
-
-            memoryStream = new MemoryStream();
-            document = DocX.Create(memoryStream);
+            var memoryStream = new MemoryStream();
+            var document = DocX.Create(memoryStream);
             // Add a Table into the document.
             Table table = document.AddTable(1, 4); // 1 row, 4 cells
             table.Design = TableDesign.TableGrid;

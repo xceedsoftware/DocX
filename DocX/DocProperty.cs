@@ -9,17 +9,16 @@ namespace Novacode
     public class DocProperty: DocXElement
     {
         internal Regex extractName = new Regex(@"DOCPROPERTY  (?<name>.*)  ");
-        private string name;
 
         /// <summary>
         /// The custom property to display.
         /// </summary>
-        public string Name { get { return name; } }
+        public string Name { get; }
 
         internal DocProperty(DocX document, XElement xml):base(document, xml)
         {           
             string instr = Xml.Attribute(XName.Get("instr", "http://schemas.openxmlformats.org/wordprocessingml/2006/main")).Value;
-            this.name = extractName.Match(instr.Trim()).Groups["name"].Value;
+            Name = extractName.Match(instr.Trim()).Groups["name"].Value;
         }
     }
 }

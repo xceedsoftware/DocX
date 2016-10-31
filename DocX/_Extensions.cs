@@ -1,10 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
-using System.ComponentModel;
-using System.IO;
-using System.Reflection;
-using System.Text;
 using System.Xml.Linq;
 
 namespace Novacode
@@ -83,7 +79,6 @@ namespace Novacode
         {
             XNamespace ab = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
             var tempElement = document.PageLayout.Xml.Descendants(ab + "pgMar");
-            var e = tempElement.GetEnumerator();
 
             foreach (var item in tempElement)
             {

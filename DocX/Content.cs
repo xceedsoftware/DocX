@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 using System.Xml.Linq;
 
@@ -23,11 +22,7 @@ namespace Novacode
 
         public void SetText(string newText)
         {
-            
-            string x = this.Tag;
-            XElement el = Xml;
             Xml.Descendants(XName.Get("t", DocX.w.NamespaceName)).First().Value = newText;
-
         }
 
     }

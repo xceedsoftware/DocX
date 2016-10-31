@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using System.Xml.Linq;
-using System.Xml;
 
 namespace Novacode
 {

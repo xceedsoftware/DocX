@@ -108,11 +108,9 @@ namespace Novacode
             {
                 return new Paragraph(Document, newlyInserted, (this as Paragraph).endIndex);
             }
-            else
-            {
-                p.Xml = newlyInserted; //IMPORTANT: I think we have return new paragraph in any case, but I dont know what to put as startIndex parameter into Paragraph constructor
-                return p;
-            }
+
+            p.Xml = newlyInserted; //IMPORTANT: I think we have return new paragraph in any case, but I dont know what to put as startIndex parameter into Paragraph constructor
+            return p;
         }
 
         public virtual Paragraph InsertParagraphBeforeSelf(string text)
@@ -148,9 +146,7 @@ namespace Novacode
             Xml.AddBeforeSelf(newParagraph);
             XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
-            Paragraph p = new Paragraph(Document, newlyInserted, -1);
-
-            return p;
+            return new Paragraph(Document, newlyInserted, -1);
         }
 
         public virtual Paragraph InsertParagraphAfterSelf(string text, bool trackChanges, Formatting formatting)
@@ -186,9 +182,6 @@ namespace Novacode
             XElement newlyInserted = Xml.ElementsAfterSelf().First();
             //Dmitchern
             return new Table(Document, newlyInserted) { mainPart = mainPart }; //return new table, dont affect parameter table
-
-            //t.Xml = newlyInserted;
-            //return t;
         }
 
         public virtual Table InsertTableBeforeSelf(int rowCount, int columnCount)
@@ -207,9 +200,6 @@ namespace Novacode
 
             //Dmitchern
             return new Table(Document, newlyInserted) { mainPart=mainPart}; //return new table, dont affect parameter table
-
-            //t.Xml = newlyInserted;
-            //return t;
         }
     }
 
