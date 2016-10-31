@@ -2975,5 +2975,20 @@ namespace UnitTests
                 Assert.AreEqual("dxa", left.Attribute(XName.Get("type", DocX.w.NamespaceName)).Value);
             }
         }
+
+        [Test]
+        public void WhileReadingWhenTextIsSuperAndSubscript()
+        {
+            using (DocX document = DocX.Load(Path.Combine(_directoryWithFiles, "Super_Subscript.docx")))
+            {
+                var normalText = document.Paragraphs[0].MagicText[0].formatting;
+                var superscriptText = document.Paragraphs[0].MagicText[3].formatting;
+                var subscriptText = document.Paragraphs[0].MagicText[5].formatting;
+
+                Assert.IsTrue(normalText.Script.HasValue && normalText.Script == Script.none);
+                Assert.IsTrue(superscriptText.Script.HasValue && superscriptText.Script == Script.superscript);
+                Assert.IsTrue(subscriptText.Script.HasValue && subscriptText.Script == Script.subscript);
+            }
+        }
     }
 }
