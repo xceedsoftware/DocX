@@ -168,6 +168,59 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Mirror Margins boolean value. True when margins has to be mirrored.
+        /// </summary>
+        internal bool getMirrorMargins(XName name)
+        {
+            XElement body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
+            XElement sectPr = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+            if (sectPr != null)
+            {
+                XElement MarMirror = sectPr.Element(XName.Get("mirrorMargins", DocX.w.NamespaceName));
+                if (MarMirror != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+
+        }
+
+        internal void setMirrorMargins(XName name, bool value)
+        {
+            XElement body = mainDoc.Root.Element(XName.Get("body", DocX.w.NamespaceName));
+            XElement sectPr = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+            if (sectPr != null)
+            {
+                XElement MarMirror = sectPr.Element(XName.Get("mirrorMargins", DocX.w.NamespaceName));
+                if (MarMirror != null)
+                {
+                    if (!value)
+                    {
+                        MarMirror.Remove();
+                    }
+                }
+                else
+                {
+                    sectPr.Add(new XElement(w + "mirrorMargins", string.Empty));
+                }
+            }
+        }
+
+        public bool MirrorMargins
+        {
+            get
+            {
+                return getMirrorMargins(XName.Get("mirrorMargins", DocX.w.NamespaceName));
+            }
+
+            set
+            {
+                setMirrorMargins(XName.Get("mirrorMargins", DocX.w.NamespaceName), value);
+            }
+        }
+
+        /// <summary>
         /// Page width value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
         /// </summary>
         public float PageWidth
