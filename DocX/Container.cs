@@ -184,10 +184,12 @@ namespace Novacode
                 }
 
                 XElement body = Xml.Element(XName.Get("body", DocX.w.NamespaceName));
-                XElement baseSectionXml = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
-                var baseSection = new Section(Document, baseSectionXml) { SectionParagraphs = parasInASection };
-                sections.Add(baseSection);
-
+                if (body != null)
+                {
+                    XElement baseSectionXml = body.Element(XName.Get("sectPr", DocX.w.NamespaceName));
+                    var baseSection = new Section(Document, baseSectionXml) { SectionParagraphs = parasInASection };
+                    sections.Add(baseSection);
+                }
                 return sections;
             }
         }

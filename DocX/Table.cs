@@ -2593,6 +2593,8 @@ namespace Novacode
             get
             {
                 XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
+                if (trPr == null)
+                    return false;
                 XElement tblHeader = trPr.Element(XName.Get("tblHeader", DocX.w.NamespaceName));
                 return tblHeader != null;
             }
