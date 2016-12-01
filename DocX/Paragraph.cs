@@ -1672,6 +1672,17 @@ namespace Novacode
             while (existingIds.Contains(newDocPrId.ToString()))
                 newDocPrId++;
 
+            //also loop thru all docPr ids 
+            foreach (var bookmarkId in document.Xml.Descendants(XName.Get("docPr", DocX.wp.NamespaceName)))
+            {
+                var idAtt = bookmarkId.Attributes().FirstOrDefault(x => x.Name.LocalName == "id");
+                if (idAtt != null)
+                    existingIds.Add(idAtt.Value);
+            }
+
+            while (existingIds.Contains(newDocPrId.ToString()))
+                newDocPrId++;
+
 
             int cx, cy;
 
