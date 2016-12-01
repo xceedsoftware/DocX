@@ -219,7 +219,7 @@ namespace Novacode
         {
             if (totalWidth == null) totalWidth = this.Document.PageWidth - this.Document.MarginLeft - this.Document.MarginRight; // calculate total table width 
             List<float> widths = new List<float>(widthsPercentage.Length); // empty list, will hold actual width 
-            widthsPercentage.ToList().ForEach(pWidth => { widths.Add(pWidth * totalWidth.Value / 100); }); // convert percentage to actual width for all values in array 
+            widthsPercentage.ToList().ForEach(pWidth => { widths.Add((pWidth * totalWidth.Value / 100) * (96 / 72)); }); // convert percentage to actual width for all values in array 
             SetWidths(widths.ToArray()); // set actual column width
         }
 

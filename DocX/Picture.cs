@@ -348,11 +348,11 @@ namespace Novacode
             get { return cx / EmusInPixel; }
             
             set 
-            { 
-                cx = value;
+            {
+                cx = value * EmusInPixel;
 
                 foreach (XAttribute a in Xml.Descendants().Attributes(XName.Get("cx")))
-                    a.Value = (cx * EmusInPixel).ToString();
+                    a.Value = (cx).ToString();
             } 
         }
 
@@ -364,11 +364,11 @@ namespace Novacode
             get { return cy / EmusInPixel; }
             
             set 
-            { 
-                cy = value;
+            {
+                cy = value * EmusInPixel;
 
                 foreach (XAttribute a in Xml.Descendants().Attributes(XName.Get("cy")))
-                    a.Value = (cy * EmusInPixel).ToString();
+                    a.Value = (cy).ToString();
             } 
         }
 

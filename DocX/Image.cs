@@ -21,9 +21,9 @@ namespace Novacode
             string temp = pr.SourceUri.OriginalString;
             string start = temp.Remove(temp.LastIndexOf('/'));
             string end = pr.TargetUri.OriginalString;
-            string full = start + "/" + end;
+            string full = end.Contains(start) ? end : start + "/" + end;
 
-            return(new PackagePartStream(document.package.GetPart(new Uri(full, UriKind.Relative)).GetStream(mode, access)));
+            return (new PackagePartStream(document.package.GetPart(new Uri(full, UriKind.Relative)).GetStream(mode, access)));
         }
 
         /// <summary>
