@@ -524,13 +524,13 @@ namespace Novacode
         internal static Paragraph GetFirstParagraphEffectedByInsert(DocX document, int index)
         {
             // This document contains no Paragraphs and insertion is at index 0
-            if (document.paragraphLookup.Keys.Count() == 0 && index == 0)
+            if (document.Paragraphs.Count() == 0 && index == 0)
                 return null;
 
-            foreach (int paragraphEndIndex in document.paragraphLookup.Keys)
+            foreach (Paragraph p in document.Paragraphs)
             {
-                if (paragraphEndIndex >= index)
-                    return document.paragraphLookup[paragraphEndIndex];
+                if (p.endIndex >= index)
+                    return p;
             }
 
             throw new ArgumentOutOfRangeException();
