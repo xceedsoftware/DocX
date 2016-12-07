@@ -278,9 +278,9 @@ namespace Novacode
             List<Paragraph> paragraphs = new List<Paragraph>();
             foreach (XElement e in Xml.Descendants(XName.Get("p", DocX.w.NamespaceName)))
             {
-                index += HelperFunctions.GetText(e).Length;
                 Paragraph paragraph = new Paragraph(Document, e, index);
                 paragraphs.Add(paragraph);
+                index += HelperFunctions.GetText(e).Length;
             }
             //  GetParagraphsRecursive(Xml, ref index, ref paragraphs, deepSearch);
 
@@ -435,7 +435,7 @@ namespace Novacode
                 List<int> indexes = p.FindAll(str, options);
 
                 for (int i = 0; i < indexes.Count(); i++)
-                    indexes[0] += p.startIndex;
+                    indexes[i] += p.startIndex;
 
                 list.AddRange(indexes);
             }
