@@ -4379,6 +4379,60 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Insert a chart in document after paragraph
+        /// </summary>
+        public void InsertChartAfterParagraph(Chart chart, Paragraph paragraph) {
+            // Create a new chart part uri.
+            String chartPartUriPath = String.Empty;
+            Int32 chartIndex = 1;
+            do {
+                chartPartUriPath = String.Format
+                (
+                    "/word/charts/chart{0}.xml",
+                    chartIndex
+                );
+                chartIndex++;
+            } while (package.PartExists(new Uri(chartPartUriPath, UriKind.Relative)));
+
+            // Create chart part.
+            PackagePart chartPackagePart = package.CreatePart(new Uri(chartPartUriPath, UriKind.Relative), "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", CompressionOption.Normal);
+
+            // Create a new chart relationship
+            String relID = GetNextFreeRelationshipID();
+            PackageRelationship rel = mainPart.CreateRelationship(chartPackagePart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", relID);
+
+            // Save a chart info the chartPackagePart
+            using (TextWriter tw = new StreamWriter(chartPackagePart.GetStream(FileMode.Create, FileAccess.Write)))
+                chart.Xml.Save(tw);
+
+            // Insert a new chart into a paragraph.
+            Paragraph p = paragraph;
+            XElement chartElement = new XElement(
+                XName.Get("r", DocX.w.NamespaceName),
+                new XElement(
+                    XName.Get("drawing", DocX.w.NamespaceName),
+                    new XElement(
+                        XName.Get("inline", DocX.wp.NamespaceName),
+                        new XElement(XName.Get("extent", DocX.wp.NamespaceName), new XAttribute("cx", "5486400"), new XAttribute("cy", "3200400")),
+                        new XElement(XName.Get("effectExtent", DocX.wp.NamespaceName), new XAttribute("l", "0"), new XAttribute("t", "0"), new XAttribute("r", "19050"), new XAttribute("b", "19050")),
+                        new XElement(XName.Get("docPr", DocX.wp.NamespaceName), new XAttribute("id", "1"), new XAttribute("name", "chart")),
+                        new XElement(
+                            XName.Get("graphic", DocX.a.NamespaceName),
+                            new XElement(
+                                XName.Get("graphicData", DocX.a.NamespaceName),
+                                new XAttribute("uri", DocX.c.NamespaceName),
+                                new XElement(
+                                    XName.Get("chart", DocX.c.NamespaceName),
+                                    new XAttribute(XName.Get("id", DocX.r.NamespaceName), relID)
+                                )
+                            )
+                        )
+                    )
+               ));
+            p.Xml.Add(chartElement);
+        }
+
+        /// <summary>
         /// Inserts a default TOC into the current document.
         /// Title: Table of contents
         /// Swithces will be: TOC \h \o '1-3' \u \z
