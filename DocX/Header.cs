@@ -149,7 +149,7 @@ namespace Novacode
         {
             get
             {
-                PackageRelationshipCollection imageRelationships = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+                PackageRelationshipCollection imageRelationships = mainPart.GetRelationshipsByType(DocX.relationshipImage);
                 if (imageRelationships.Count() > 0)
                 {
                     return

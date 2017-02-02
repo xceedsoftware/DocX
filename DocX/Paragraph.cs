@@ -7,6 +7,7 @@ using System.IO.Packaging;
 using System.Globalization;
 using System.Security.Principal;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 
 
@@ -1660,39 +1661,17 @@ namespace Novacode
         {
             PackagePart part = document.package.GetPart(document.mainPart.GetRelationship(id).TargetUri);
 
-            int newDocPrId = 1;
-            List<string> existingIds = new List<string>();
-            foreach (var bookmarkId in document.Xml.Descendants(XName.Get("bookmarkStart", DocX.w.NamespaceName)))
-            {
-                var idAtt = bookmarkId.Attributes().FirstOrDefault(x => x.Name.LocalName == "id");
-                if (idAtt != null)
-                    existingIds.Add(idAtt.Value);
-            }
-
-            while (existingIds.Contains(newDocPrId.ToString()))
-                newDocPrId++;
-
-            //also loop thru all docPr ids 
-            foreach (var bookmarkId in document.Xml.Descendants(XName.Get("docPr", DocX.wp.NamespaceName)))
-            {
-                var idAtt = bookmarkId.Attributes().FirstOrDefault(x => x.Name.LocalName == "id");
-                if (idAtt != null)
-                    existingIds.Add(idAtt.Value);
-            }
-
-            while (existingIds.Contains(newDocPrId.ToString()))
-                newDocPrId++;
-
-
+            long newDocPrId = document.GetNextFreeDocPrId();
             int cx, cy;
 
-            using (System.Drawing.Image img = System.Drawing.Image.FromStream(new PackagePartStream(part.GetStream())))
+            using (PackagePartStream packagePartStream = new PackagePartStream(part.GetStream()))
             {
-                cx = img.Width * 9526;
-                cy = img.Height * 9526;
+                using (System.Drawing.Image img = System.Drawing.Image.FromStream(packagePartStream, useEmbeddedColorManagement: false, validateImageData: false))
+                {
+                    cx = img.Width*9526;
+                    cy = img.Height*9526;
+                }
             }
-
-            XElement e = new XElement(DocX.w + "drawing");
 
             XElement xml = XElement.Parse
                  (string.Format(@"<w:r xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
@@ -2493,21 +2472,24 @@ namespace Novacode
             string image_uri_string = p.img.pr.TargetUri.OriginalString;
 
             // Search for a relationship with a TargetUri that points at this Image.
-            var Id =
-            (
-                from r in mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
-                where r.TargetUri.OriginalString == image_uri_string
-                select r.Id
-            ).SingleOrDefault();
+            string id = null;
+            foreach (var r in mainPart.GetRelationshipsByType(DocX.relationshipImage))
+            {
+                if (string.Equals(r.TargetUri.OriginalString, image_uri_string, StringComparison.Ordinal))
+                {
+                    id = r.Id;
+                    break;
+                }
+            }
 
-            // If such a relation dosen't exist, create one.
-            if (Id == null)
+            // If such a relation doesn't exist, create one.
+            if (id == null)
             {
                 // Check to see if a relationship for this Picture exists and create it if not.
-                PackageRelationship pr = mainPart.CreateRelationship(p.img.pr.TargetUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
-                Id = pr.Id;
+                PackageRelationship pr = mainPart.CreateRelationship(p.img.pr.TargetUri, TargetMode.Internal, DocX.relationshipImage);
+                id = pr.Id;
             }
-            return Id;
+            return id;
         }
 
         internal string GetOrGenerateRel(Hyperlink h)
