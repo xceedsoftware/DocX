@@ -35,6 +35,9 @@ namespace Novacode
         internal static XNamespace n = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering";
         #endregion
 
+        internal const string relationshipImage = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
+        internal const string contentTypeApplicationRelationShipXml = "application/vnd.openxmlformats-package.relationships+xml";
+
         internal float getMarginAttribute(XName name)
         {
             XElement body = mainDoc.Root.Element(XName.Get("body", w.NamespaceName));
@@ -314,7 +317,7 @@ namespace Novacode
         ///         Console.WriteLine("Protected");
         ///     else
         ///         Console.WriteLine("Not protected");
-        ///         
+        ///
         ///     // Save the document.
         ///     document.Save();
         /// }
@@ -371,7 +374,7 @@ namespace Novacode
         }
 
         /// <summary>
-        /// Add editing protection to this document. 
+        /// Add editing protection to this document.
         /// </summary>
         /// <param name="er">The type of protection to add to this document.</param>
         /// <example>
@@ -381,7 +384,7 @@ namespace Novacode
         /// {
         ///     // Allow no editing, only the adding of comment.
         ///     document.AddProtection(EditRestrictions.comments);
-        ///     
+        ///
         ///     // Save the document.
         ///     document.Save();
         /// }
@@ -690,12 +693,12 @@ namespace Novacode
         ///     // Content can be added to the Headers in the same manor that it would be added to the main document.
         ///     Paragraph p1 = odd.InsertParagraph();
         ///     p1.Append("This is the odd pages header.");
-        ///     
+        ///
         ///     Paragraph p2 = even.InsertParagraph();
         ///     p2.Append("This is the even pages header.");
         ///
         ///     // Save all changes to this document.
-        ///     document.Save();    
+        ///     document.Save();
         /// }// Release this document from memory.
         /// </code>
         /// </example>
@@ -750,13 +753,13 @@ namespace Novacode
         ///
         ///     // Force the document to use a different header for first page.
         ///     document.DifferentFirstPage = true;
-        ///     
+        ///
         ///     // Content can be added to the Headers in the same manor that it would be added to the main document.
         ///     Paragraph p = first.InsertParagraph();
         ///     p.Append("This is the first pages header.");
         ///
         ///     // Save all changes to this document.
-        ///     document.Save();    
+        ///     document.Save();
         /// }// Release this document from memory.
         /// </example>
         public bool DifferentFirstPage
@@ -947,15 +950,15 @@ namespace Novacode
         ///
         /// </code>
         /// </example>
-        /// <seealso cref="AddImage(string)"/>
-        /// <seealso cref="AddImage(Stream)"/>
+        /// <seealso cref="AddImage(string, string)"/>
+        /// <seealso cref="AddImage(Stream, string)"/>
         /// <seealso cref="Paragraph.Pictures"/>
         /// <seealso cref="Paragraph.InsertPicture"/>
         public List<Image> Images
         {
             get
             {
-                PackageRelationshipCollection imageRelationships = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+                PackageRelationshipCollection imageRelationships = mainPart.GetRelationshipsByType(relationshipImage);
                 if (imageRelationships.Any())
                 {
                     return
@@ -1003,7 +1006,7 @@ namespace Novacode
         /// <code>
         /// // Load Example.docx
         /// DocX document = DocX.Load(@"C:\Example\Test.docx");
-        /// 
+        ///
         /// /*
         ///  * No two custom properties can have the same name,
         ///  * so a Dictionary is the perfect data structure to store them in.
@@ -1173,7 +1176,7 @@ namespace Novacode
         }
 
         /// <summary>
-        /// Insert the contents of another document at the end of this document. 
+        /// Insert the contents of another document at the end of this document.
         /// </summary>
         /// <param name="remote_document">The document to insert at the end of this document.</param>
 		/// <param name="append">If true, document is inserted at the end, otherwise document is inserted at the beginning.</param>
@@ -1228,7 +1231,7 @@ namespace Novacode
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml",
                 "application/vnd.openxmlformats-package.core-properties+xml",
                 "application/vnd.openxmlformats-officedocument.extended-properties+xml",
-                "application/vnd.openxmlformats-package.relationships+xml"
+                contentTypeApplicationRelationShipXml
             };
 
             List<String> imageContentTypes = new List<string>
@@ -1493,16 +1496,11 @@ namespace Novacode
                 {
                     using (Stream s_write = new PackagePartStream(new_pp.GetStream(FileMode.Create)))
                     {
-                        byte[] buffer = new byte[32768];
-                        int read;
-                        while ((read = s_read.Read(buffer, 0, buffer.Length)) > 0)
-                        {
-                            s_write.Write(buffer, 0, read);
-                        }
+                        CopyStream(s_read, s_write);
                     }
                 }
 
-                PackageRelationship pr = mainPart.CreateRelationship(new Uri(new_uri, UriKind.Relative), TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+                PackageRelationship pr = mainPart.CreateRelationship(new Uri(new_uri, UriKind.Relative), TargetMode.Internal, relationshipImage);
 
                 String new_Id = pr.Id;
 
@@ -1962,12 +1960,7 @@ namespace Novacode
             {
                 using (Stream s_write = new PackagePartStream(new_pp.GetStream(FileMode.Create)))
                 {
-                    byte[] buffer = new byte[32768];
-                    int read;
-                    while ((read = s_read.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        s_write.Write(buffer, 0, read);
-                    }
+                    CopyStream(s_read, s_write);
                 }
             }
 
@@ -2053,7 +2046,7 @@ namespace Novacode
         /// <param name="continueNumbering">Set to true if you want to continue numbering from the previous numbered list</param>
         /// <returns>
         /// The created List. Call AddListItem(...) to add more elements to the list.
-        /// Write the list to the Document with InsertList(...) once the list has all the desired 
+        /// Write the list to the Document with InsertList(...) once the list has all the desired
         /// elements, otherwise the list will not be included in the working Document.
         /// </returns>
         public List AddList(string listText = null, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false)
@@ -2073,7 +2066,7 @@ namespace Novacode
         /// /// <param name="continueNumbering">Set to true if you want to continue numbering from the previous numbered list</param>
         /// <returns>
         /// The created List. Call AddListItem(...) to add more elements to the list.
-        /// Write the list to the Document with InsertList(...) once the list has all the desired 
+        /// Write the list to the Document with InsertList(...) once the list has all the desired
         /// elements, otherwise the list will not be included in the working Document.
         /// </returns>
         public List AddListItem(List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false)
@@ -2197,8 +2190,8 @@ namespace Novacode
         /// // Load document b.
         /// using (DocX documentB = DocX.Load(@"C:\Example\b.docx"))
         /// {
-        ///     /* 
-        ///      * Insert the Table that was extracted from document a, into document b. 
+        ///     /*
+        ///      * Insert the Table that was extracted from document a, into document b.
         ///      * This creates a new Table that is now associated with document b.
         ///      */
         ///     Table newTable = documentB.InsertTable(10, t);
@@ -2236,8 +2229,8 @@ namespace Novacode
         /// // Load document b.
         /// using (DocX documentB = DocX.Load(@"C:\Example\b.docx"))
         /// {
-        ///     /* 
-        ///      * Insert the Table that was extracted from document a, into document b. 
+        ///     /*
+        ///      * Insert the Table that was extracted from document a, into document b.
         ///      * This creates a new Table that is now associated with document b.
         ///      */
         ///     Table newTable = documentB.InsertTable(t);
@@ -2651,7 +2644,7 @@ namespace Novacode
         ///     using (DocX document = DocX.Load(fs))
         ///     {
         ///         // Do something with the document here.
-        ///            
+        ///
         ///         // Save all changes made to the document.
         ///         document.Save();
         ///     }// Release this document from memory.
@@ -2727,9 +2720,9 @@ namespace Novacode
         /// <code>
         /// // Load a document using its relative filename.
         /// using(DocX document = DocX.Load(@"..\..\Test.docx"))
-        /// { 
+        /// {
         ///     // Do something with the document here.
-        ///                
+        ///
         ///     // Save all changes made to document.
         ///     document.Save();
         /// }// Release this document from memory.
@@ -2746,9 +2739,7 @@ namespace Novacode
 
             using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                byte[] data = new byte[fs.Length];
-                fs.Read(data, 0, (int)fs.Length);
-                ms.Write(data, 0, (int)fs.Length);
+                CopyStream(fs, ms);
             }
 
             // Open the docx package
@@ -2892,8 +2883,8 @@ namespace Novacode
                     mainDoc = documentDoc;
                     PopulateDocument(this, templatePackage);
 
-                    // DragonFire: I added next line and recovered ApplyTemplate method. 
-                    // I do it, becouse  PopulateDocument(...) writes into field "settingsPart" the part of Template's package 
+                    // DragonFire: I added next line and recovered ApplyTemplate method.
+                    // I do it, becouse  PopulateDocument(...) writes into field "settingsPart" the part of Template's package
                     //  and after line "templatePackage.Close();" in finally, field "settingsPart" becomes not available and method "Save" throw an exception...
                     // That's why I recreated settingsParts and unlinked it from Template's package =)
                     settingsPart = HelperFunctions.CreateOrGetSettingsPart(package);
@@ -2923,6 +2914,7 @@ namespace Novacode
         /// Add an Image into this document from a fully qualified or relative filename.
         /// </summary>
         /// <param name="filename">The fully qualified or relative filename.</param>
+        /// <param name="contentType">MIME type of image, guessed if not given.</param>
         /// <returns>An Image file.</returns>
         /// <example>
         /// Add an Image into this document from a fully qualified filename.
@@ -2938,23 +2930,24 @@ namespace Novacode
         /// }// Release this document from memory.
         /// </code>
         /// </example>
-        /// <seealso cref="AddImage(System.IO.Stream)"/>
+        /// <seealso cref="AddImage(Stream, string)"/>
         /// <seealso cref="Paragraph.InsertPicture"/>
-        public Image AddImage(string filename)
+        public Image AddImage(string filename, string contentType = "image/jpeg")
         {
-            string contentType = "";
-
-            // The extension this file has will be taken to be its format.
-            switch (Path.GetExtension(filename))
+            if (string.IsNullOrEmpty(contentType))
             {
-                case ".tiff": contentType = "image/tif"; break;
-                case ".tif": contentType = "image/tif"; break;
-                case ".png": contentType = "image/png"; break;
-                case ".bmp": contentType = "image/png"; break;
-                case ".gif": contentType = "image/gif"; break;
-                case ".jpg": contentType = "image/jpg"; break;
-                case ".jpeg": contentType = "image/jpeg"; break;
-                default: contentType = "image/jpg"; break;
+                // The extension this file has will be taken to be its format.
+                switch (Path.GetExtension(filename))
+                {
+                    case ".tiff": contentType = "image/tif"; break;
+                    case ".tif": contentType = "image/tif"; break;
+                    case ".png": contentType = "image/png"; break;
+                    case ".bmp": contentType = "image/png"; break;
+                    case ".gif": contentType = "image/gif"; break;
+                    case ".jpg": contentType = "image/jpg"; break;
+                    case ".jpeg": contentType = "image/jpeg"; break;
+                    default: contentType = "image/jpg"; break;
+                }
             }
 
             return AddImage(filename, contentType);
@@ -2964,9 +2957,10 @@ namespace Novacode
         /// Add an Image into this document from a Stream.
         /// </summary>
         /// <param name="stream">A Stream stream.</param>
+        /// <param name="contentType">MIME type of image.</param>
         /// <returns>An Image file.</returns>
         /// <example>
-        /// Add an Image into a document using a Stream. 
+        /// Add an Image into a document using a Stream.
         /// <code>
         /// // Open a FileStream fs to an Image.
         /// using (FileStream fs = new FileStream(@"C:\Example\Image.jpg", FileMode.Open))
@@ -2983,11 +2977,11 @@ namespace Novacode
         /// }
         /// </code>
         /// </example>
-        /// <seealso cref="AddImage(string)"/>
+        /// <seealso cref="AddImage(string, string)"/>
         /// <seealso cref="Paragraph.InsertPicture"/>
-        public Image AddImage(Stream stream)
+        public Image AddImage(Stream stream, string contentType = "image/jpeg")
         {
-            return AddImage(stream as object);
+            return AddImage(stream as object, contentType);
         }
 
         /// <summary>
@@ -3004,7 +2998,7 @@ namespace Novacode
         /// {
         ///    // Add a hyperlink to this document.
         ///    Hyperlink h = document.AddHyperlink("Google", new Uri("http://www.google.com"));
-        ///    
+        ///
         ///    // Add a new Paragraph to this document.
         ///    Paragraph p = document.InsertParagraph();
         ///    p.Append("My favourite search engine is ");
@@ -3144,7 +3138,7 @@ namespace Novacode
         ///     p.Append("This is the first pages header.");
         ///
         ///     // Save all changes to this document.
-        ///     document.Save();    
+        ///     document.Save();
         /// }// Release this document from memory.
         /// </example>
         public void AddHeaders()
@@ -3187,7 +3181,7 @@ namespace Novacode
         ///     p.Append("This is the first pages footer.");
         ///
         ///     // Save all changes to this document.
-        ///     document.Save();    
+        ///     document.Save();
         /// }// Release this document from memory.
         /// </example>
         public void AddFooters()
@@ -3318,30 +3312,58 @@ namespace Novacode
                 newImageStream = o as Stream;
 
             // Get all image parts in word\document.xml
+            PackagePartCollection packagePartCollection = package.GetParts();
 
-            PackageRelationshipCollection relationshipsByImages = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
-            List<PackagePart> imageParts = relationshipsByImages.Select(ir => package.GetParts().FirstOrDefault(p => p.Uri.ToString().EndsWith(ir.TargetUri.ToString()))).Where(e => e != null).ToList();
+            // Cache Uri.ToString which is expensive to be used in two loops
+            var parts = packagePartCollection.Select(x => new
+            {
+                UriString = x.Uri.ToString(),
+                Part = x
+            }).ToList();
 
-            foreach (PackagePart relsPart in package.GetParts().Where(part => part.Uri.ToString().Contains("/word/")).Where(part => part.ContentType.Equals("application/vnd.openxmlformats-package.relationships+xml")))
+            var partLookup = parts.ToDictionary(x => x.UriString, x => x.Part, StringComparer.Ordinal);
+
+            // Gather results manually to minimize closure allocation overhead
+            List<PackagePart> imageParts = new List<PackagePart>();
+            foreach (var ir in mainPart.GetRelationshipsByType(relationshipImage))
+            {
+                var targetUri = ir.TargetUri.ToString();
+                PackagePart part;
+                if (partLookup.TryGetValue(targetUri, out part))
+                {
+                    imageParts.Add(part);
+                }
+            }
+
+            IEnumerable<PackagePart> relsParts = parts
+                .Where(
+                    part =>
+                        part.Part.ContentType.Equals(contentTypeApplicationRelationShipXml, StringComparison.Ordinal) &&
+                        part.UriString.IndexOf("/word/", StringComparison.Ordinal) > -1)
+                .Select(part => part.Part);
+
+            XName xNameTarget = XName.Get("Target");
+            XName xNameTargetMode = XName.Get("TargetMode");
+
+            foreach (PackagePart relsPart in relsParts)
             {
                 XDocument relsPartContent;
                 using (TextReader tr = new StreamReader(relsPart.GetStream(FileMode.Open, FileAccess.Read)))
+                {
                     relsPartContent = XDocument.Load(tr);
+                }
 
-                IEnumerable<XElement> imageRelationships =
-                relsPartContent.Root.Elements().Where
-                (
-                    imageRel =>
-                    imageRel.Attribute(XName.Get("Type")).Value.Equals("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
-                );
+                IEnumerable<XElement> imageRelationships = relsPartContent.Root.Elements()
+                    .Where(imageRel => imageRel.Attribute(XName.Get("Type")).Value.Equals(relationshipImage));
 
                 foreach (XElement imageRelationship in imageRelationships)
                 {
-                    if (imageRelationship.Attribute(XName.Get("Target")) != null)
+                    XAttribute attribute = imageRelationship.Attribute(xNameTarget);
+                    if (attribute != null)
                     {
                         string targetMode = string.Empty;
 
-                        XAttribute targetModeAttibute = imageRelationship.Attribute(XName.Get("TargetMode"));
+                        XAttribute targetModeAttibute = imageRelationship.Attribute(xNameTargetMode);
                         if (targetModeAttibute != null)
                         {
                             targetMode = targetModeAttibute.Value;
@@ -3349,12 +3371,15 @@ namespace Novacode
 
                         if (!targetMode.Equals("External"))
                         {
-                            string imagePartUri = Path.Combine(Path.GetDirectoryName(relsPart.Uri.ToString()), imageRelationship.Attribute(XName.Get("Target")).Value);
+                            string imagePartUri = Path.Combine(Path.GetDirectoryName(relsPart.Uri.ToString()),
+                                attribute.Value);
                             imagePartUri = Path.GetFullPath(imagePartUri.Replace("\\_rels", string.Empty));
                             imagePartUri = imagePartUri.Replace(Path.GetFullPath("\\"), string.Empty).Replace("\\", "/");
 
                             if (!imagePartUri.StartsWith("/"))
+                            {
                                 imagePartUri = "/" + imagePartUri;
+                            }
 
                             PackagePart imagePart = package.GetPart(new Uri(imagePartUri, UriKind.Relative));
                             imageParts.Add(imagePart);
@@ -3366,19 +3391,18 @@ namespace Novacode
             // Loop through each image part in this document.
             foreach (PackagePart pp in imageParts)
             {
+                // Get the image object for this image part
                 // Open a tempory Stream to this image part.
                 using (Stream tempStream = pp.GetStream(FileMode.Open, FileAccess.Read))
                 {
                     // Compare this image to the new image being added.
                     if (HelperFunctions.IsSameFile(tempStream, newImageStream))
                     {
-                        // Get the image object for this image part
-                        string id = mainPart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
-                        .Where(r => r.TargetUri == pp.Uri)
-                        .Select(r => r.Id).First();
-
                         // Return the Image object
-                        return Images.Where(i => i.Id == id).First();
+                        PackageRelationship relationship = mainPart.GetRelationshipsByType(relationshipImage)
+                            .First(x => x.TargetUri == pp.Uri);
+
+                        return new Image(this, relationship);
                     }
                 }
             }
@@ -3394,14 +3418,14 @@ namespace Novacode
                     Guid.NewGuid(), // The unique part.
                     extension
                 );
-
             } while (package.PartExists(new Uri(imgPartUriPath, UriKind.Relative)));
 
             // We are now guareenteed that imgPartUriPath is unique.
-            PackagePart img = package.CreatePart(new Uri(imgPartUriPath, UriKind.Relative), contentType, CompressionOption.Normal);
+            PackagePart img = package.CreatePart(new Uri(imgPartUriPath, UriKind.Relative), contentType,
+                CompressionOption.Normal);
 
             // Create a new image relationship
-            PackageRelationship rel = mainPart.CreateRelationship(img.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+            PackageRelationship rel = mainPart.CreateRelationship(img.Uri, TargetMode.Internal, relationshipImage);
 
             // Open a Stream to the newly created Image part.
             using (Stream stream = new PackagePartStream(img.GetStream(FileMode.Create, FileAccess.Write)))
@@ -3409,11 +3433,9 @@ namespace Novacode
                 // Using the Stream to the real image, copy this streams data into the newly create Image part.
                 using (newImageStream)
                 {
-                    byte[] bytes = new byte[newImageStream.Length];
-                    newImageStream.Read(bytes, 0, (int)newImageStream.Length);
-                    stream.Write(bytes, 0, (int)newImageStream.Length);
-                }// Close the Stream to the new image.
-            }// Close the Stream to the new image part.
+                    CopyStream(newImageStream, stream, bufferSize: 4096);
+                } // Close the Stream to the new image.
+            } // Close the Stream to the new image part.
 
             return new Image(this, rel);
         }
@@ -3436,8 +3458,8 @@ namespace Novacode
         /// </example>
         /// <seealso cref="DocX.SaveAs(string)"/>
         /// <seealso cref="DocX.Load(System.IO.Stream)"/>
-        /// <seealso cref="DocX.Load(string)"/> 
-        /// <!-- 
+        /// <seealso cref="DocX.Load(string)"/>
+        /// <!--
         /// Bug found and fixed by krugs525 on August 12 2009.
         /// Use TFS compare to see exact code change.
         /// -->
@@ -3678,7 +3700,7 @@ namespace Novacode
             {
                 using (FileStream fs = new FileStream(filename, FileMode.Create))
                 {
-                    fs.Write(memoryStream.ToArray(), 0, (int)memoryStream.Length);
+                    CopyStream(memoryStream, fs);
                 }
             }
             else
@@ -3727,7 +3749,7 @@ namespace Novacode
         ///     // Insert a new Paragraph
         ///     document.InsertParagraph("Hello world again!", false);
         /// }
-        ///    
+        ///
         /// // Save the document to a new location.
         /// document.SaveAs(@"C:\Example\Test2.docx");
         /// </code>
@@ -3783,7 +3805,7 @@ namespace Novacode
         ///     // Insert a new Paragraph
         ///     document.InsertParagraph("Hello world again!", false);
         /// }
-        /// 
+        ///
         /// using (FileStream fs2 = new FileStream(@"C:\Example\Test2.docx", FileMode.Create))
         /// {
         ///     // Save the document to a different stream.
@@ -3824,7 +3846,7 @@ namespace Novacode
         ///
         ///     // Print all of the information about this core property to Console.
         ///     Console.WriteLine(string.Format("Name: '{0}', Value: '{1}'\nPress any key...", "forename", forenameValue));
-        ///     
+        ///
         ///     // Save all changes made to this document.
         ///     document.Save();
         /// } // Release this document from memory.
@@ -3981,7 +4003,7 @@ namespace Novacode
         ///
         ///     // Print all of the information about this CustomProperty to Console.
         ///     Console.WriteLine(string.Format("Name: '{0}', Value: '{1}'\nPress any key...", forename.Name, forename.Value));
-        ///     
+        ///
         ///     // Save all changes made to this document.
         ///     document.Save();
         /// } // Release this document from memory.
@@ -4269,7 +4291,7 @@ namespace Novacode
 
         public void SetContent(XDocument xmlDoc)
         {
-               
+
             foreach (XElement e in xmlDoc.ElementsAfterSelf())
             {
                 (from d in Document.Contents
@@ -4314,7 +4336,7 @@ namespace Novacode
 
         /// <summary>
         /// Create an equation and insert it in the new paragraph
-        /// </summary>        
+        /// </summary>
         public override Paragraph InsertEquation(String equation)
         {
             Paragraph p = base.InsertEquation(equation);
@@ -4442,7 +4464,7 @@ namespace Novacode
         {
             return InsertTableOfContents("Table of contents", TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z | TableOfContentsSwitches.U);
         }
-        
+
         /// <summary>
         /// Inserts a TOC into the current document.
         /// </summary>
@@ -4476,6 +4498,62 @@ namespace Novacode
             return toc;
         }
 
+        private static void CopyStream(Stream input, Stream output, int bufferSize = 32768)
+        {
+            byte[] buffer = new byte[bufferSize];
+            int read;
+            while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                output.Write(buffer, 0, read);
+            }
+        }
+
+        private readonly object nextFreeDocPrIdLock = new object();
+        private long? nextFreeDocPrId;
+
+        /// <summary>
+        /// Finds next free id for bookmarkStart/docPr.
+        /// </summary>
+        internal long GetNextFreeDocPrId()
+        {
+            lock (nextFreeDocPrIdLock)
+            {
+                if (nextFreeDocPrId != null)
+                {
+                    nextFreeDocPrId++;
+                    return nextFreeDocPrId.Value;
+                }
+
+                // also loop thru all docPr ids
+                var xNameBookmarkStart = XName.Get("bookmarkStart", DocX.w.NamespaceName);
+                var xNameDocPr = XName.Get("docPr", DocX.wp.NamespaceName);
+
+                long newDocPrId = 1;
+                HashSet<string> existingIds = new HashSet<string>();
+                foreach (var bookmarkId in Xml.Descendants())
+                {
+                    if (bookmarkId.Name != xNameBookmarkStart
+                        && bookmarkId.Name != xNameDocPr)
+                    {
+                        continue;
+                    }
+
+                    var idAtt = bookmarkId.Attributes().FirstOrDefault(x => x.Name.LocalName == "id");
+                    if (idAtt != null)
+                    {
+                        existingIds.Add(idAtt.Value);
+                    }
+                }
+
+                while (existingIds.Contains(newDocPrId.ToString()))
+                {
+                    newDocPrId++;
+                }
+                nextFreeDocPrId = newDocPrId;
+                return nextFreeDocPrId.Value;
+            }
+        }
+
         #region IDisposable Members
 
         /// <summary>
@@ -4497,7 +4575,7 @@ namespace Novacode
         /// <code>
         /// // Load document.
         /// DocX document = DocX.Load(@"C:\Example\Test.docx");
-        /// 
+        ///
         /// // Do something with the document here.
         ///
         /// // Dispose of the document.

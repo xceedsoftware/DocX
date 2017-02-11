@@ -46,10 +46,6 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DocX, Version=1.0.0.21, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DocX\bin\Debug\DocX.dll</HintPath>
-    </Reference>
     <Reference Include="nunit.framework, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\nunit.framework.2.63.0\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
@@ -164,6 +160,12 @@
     <Content Include="documents\yellow.tif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DocX\DocX.csproj">
+      <Project>{e863d072-aa8b-4108-b5f1-785241b37f67}</Project>
+      <Name>DocX</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

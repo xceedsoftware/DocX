@@ -1,14 +1,14 @@
 ﻿using System.IO;
-using System.Threading;
 
 namespace Novacode
 {
     /// <summary>
-    /// See <a href="https://support.microsoft.com/en-gb/kb/951731" /> for explanation
+    /// OpenXML Isolated Storage access is not thread safe.
+    /// Use app domain wide lock for writing.
     /// </summary>
     public class PackagePartStream : Stream
     {
-        private static readonly Mutex Mutex = new Mutex(false);
+        private static readonly object lockObject = new object();
 
         private readonly Stream stream;
 
@@ -60,16 +60,18 @@ namespace Novacode
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            Mutex.WaitOne(Timeout.Infinite, false);
-            this.stream.Write(buffer, offset, count);
-            Mutex.ReleaseMutex();
+            lock (lockObject)
+            {
+                this.stream.Write(buffer, offset, count);
+            }
         }
 
         public override void Flush()
         {
-            Mutex.WaitOne(Timeout.Infinite, false);
-            this.stream.Flush();
-            Mutex.ReleaseMutex();
+            lock (lockObject)
+            {
+                this.stream.Flush();
+            }
         }
 
         public override void Close()

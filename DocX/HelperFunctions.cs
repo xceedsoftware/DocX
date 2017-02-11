@@ -47,7 +47,7 @@ namespace Novacode
         }
         internal static void CreateRelsPackagePart(DocX Document, Uri uri)
         {
-            PackagePart pp = Document.package.CreatePart(uri, "application/vnd.openxmlformats-package.relationships+xml", CompressionOption.Maximum);
+            PackagePart pp = Document.package.CreatePart(uri, DocX.contentTypeApplicationRelationShipXml, CompressionOption.Maximum);
             using (TextWriter tw = new StreamWriter(new PackagePartStream(pp.GetStream())))
             {
                 XDocument d = new XDocument
