@@ -15,7 +15,12 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 
 // Allow the UnitTests to get at internal stuff.
-[assembly: InternalsVisibleTo("UnitTests")]
+[assembly: InternalsVisibleTo( "UnitTests, PublicKey=" +
+"0024000004800000940000000602000000240000525341310004000001000100b739555cdacfd1" +
+"f59b61e7fb189ed886849ae10d0f8a876cd700d36286addf1d4a6854bb23b12fad5700b64787e9" +
+"9b0b9f0ed0d64d86d591a32e58080470bdc9a61845301edf6cbb447c3578718763d3f93694a2ac" +
+"fdac1c2d096343f3d7085ea1c20fcfeb1d8bac4153204c9faa40c29be2dc38056116e756ff7bbf" +
+"9d82e3ab" )]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
