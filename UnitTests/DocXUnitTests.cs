@@ -1222,8 +1222,25 @@ namespace UnitTests
                 p4.RemoveText(1, 1); Assert.IsTrue(p4.Text == "AB");
                 p4.RemoveText(p4.Text.Length - 1, 1); Assert.IsTrue(p4.Text == "A");
                 p4.RemoveText(p4.Text.Length - 1, 1); Assert.IsTrue(p4.Text == "");
-            }
-        }
+
+				// Checks for parameter removeEmptyParagraph
+				int originalParagraphCount = document.Paragraphs.Count;
+				string paraToDelText = "text to delete";
+
+				Paragraph paraToDel = document.InsertParagraph( paraToDelText );
+				Assert.IsTrue( document.Paragraphs.Count == originalParagraphCount + 1 );
+				// Remove text with paragraph
+				paraToDel.RemoveText( 0, paraToDelText.Length, false, true );
+				Assert.IsTrue( document.Paragraphs.Count == originalParagraphCount );
+				originalParagraphCount = document.Paragraphs.Count;
+
+				paraToDel = document.InsertParagraph( paraToDelText );
+				Assert.IsTrue( document.Paragraphs.Count == originalParagraphCount + 1 );
+				// Remove text and keep paragraph
+				paraToDel.RemoveText( 0, paraToDelText.Length, false, false );
+				Assert.IsTrue( document.Paragraphs.Count == originalParagraphCount + 1 );
+			}
+		}
 
         [Test]
         public void Test_Document_RemoveTextInGivenFormat()
