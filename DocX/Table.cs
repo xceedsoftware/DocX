@@ -244,6 +244,7 @@ namespace Novacode
             return tblPr;
         }
 
+#pragma warning disable CS1584 // XML comment has syntactically incorrect cref attribute
         /// <summary>
         /// Set the specified cell margin for the table-level.
         /// </summary>
@@ -251,6 +252,7 @@ namespace Novacode
         /// <param name="margin">The value for the specified cell margin.</param>
         /// <remarks>More information can be found <see cref="http://msdn.microsoft.com/en-us/library/documentformat.openxml.wordprocessing.tablecellmargindefault.aspx">here</see></remarks>
         public void SetTableCellMargin(TableCellMarginType type, double margin)
+#pragma warning restore CS1584 // XML comment has syntactically incorrect cref attribute
         {
             XElement tblPr = GetOrCreate_tblPr();
 

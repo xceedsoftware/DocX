@@ -64,13 +64,14 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <DebugSymbols>true</DebugSymbols>
+    <DocumentationFile>bin\Release\DocX.XML</DocumentationFile>
+    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>KeyWithoutPassword.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -166,6 +167,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\numbering.default_bullet_abstract.xml.gz" />
     <EmbeddedResource Include="Resources\numbering.default_decimal_abstract.xml.gz" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="KeyWithoutPassword.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

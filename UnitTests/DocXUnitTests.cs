@@ -76,7 +76,29 @@ namespace UnitTests
             }
         }
 
-        [Test]
+		[Test]
+		public void Test_DocX_SaveAs()
+		{
+			string temporaryFilePath = Path.Combine( _directoryDocuments, "temp.docx" );
+
+			// Load the document 'Paragraphs.docx'
+			using( DocX document = DocX.Load( Path.Combine( _directoryWithFiles, "Paragraphs.docx" ) ) )
+			{
+				document.InsertParagraph( "text" );
+
+				// Test the saving of the document.
+				document.SaveAs( temporaryFilePath );
+
+				// Check file size
+				FileInfo f = new FileInfo( temporaryFilePath );
+				Assert.IsTrue( f.Length == 9659 );
+			}
+
+			// Delete the tempory file.
+			File.Delete( temporaryFilePath );
+		}
+
+		[Test]
         public void TableWithSpecifiedWidths()
         {
             using (var output = File.Open(Path.Combine(_directoryWithFiles, "TableSpecifiedWidths.docx"), FileMode.Create))
@@ -1200,8 +1222,25 @@ namespace UnitTests
                 p4.RemoveText(1, 1); Assert.IsTrue(p4.Text == "AB");
                 p4.RemoveText(p4.Text.Length - 1, 1); Assert.IsTrue(p4.Text == "A");
                 p4.RemoveText(p4.Text.Length - 1, 1); Assert.IsTrue(p4.Text == "");
-            }
-        }
+
+				// Checks for parameter removeEmptyParagraph
+				int originalParagraphCount = document.Paragraphs.Count;
+				string paraToDelText = "text to delete";
+
+				Paragraph paraToDel = document.InsertParagraph( paraToDelText );
+				Assert.IsTrue( document.Paragraphs.Count == originalParagraphCount + 1 );
+				// Remove text with paragraph
+				paraToDel.RemoveText( 0, paraToDelText.Length, false, true );
+				Assert.IsTrue( document.Paragraphs.Count == originalParagraphCount );
+				originalParagraphCount = document.Paragraphs.Count;
+
+				paraToDel = document.InsertParagraph( paraToDelText );
+				Assert.IsTrue( document.Paragraphs.Count == originalParagraphCount + 1 );
+				// Remove text and keep paragraph
+				paraToDel.RemoveText( 0, paraToDelText.Length, false, false );
+				Assert.IsTrue( document.Paragraphs.Count == originalParagraphCount + 1 );
+			}
+		}
 
         [Test]
         public void Test_Document_RemoveTextInGivenFormat()
