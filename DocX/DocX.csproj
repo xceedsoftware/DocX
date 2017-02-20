@@ -138,7 +138,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bin\Release\DocX.XML" />
     <Content Include="License\License.html" />
   </ItemGroup>
   <ItemGroup>
