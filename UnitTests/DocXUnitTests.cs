@@ -76,7 +76,29 @@ namespace UnitTests
             }
         }
 
-        [Test]
+		[Test]
+		public void Test_DocX_SaveAs()
+		{
+			string temporaryFilePath = Path.Combine( _directoryDocuments, "temp.docx" );
+
+			// Load the document 'Paragraphs.docx'
+			using( DocX document = DocX.Load( Path.Combine( _directoryWithFiles, "Paragraphs.docx" ) ) )
+			{
+				document.InsertParagraph( "text" );
+
+				// Test the saving of the document.
+				document.SaveAs( temporaryFilePath );
+
+				// Check file size
+				FileInfo f = new FileInfo( temporaryFilePath );
+				Assert.IsTrue( f.Length == 9659 );
+			}
+
+			// Delete the tempory file.
+			File.Delete( temporaryFilePath );
+		}
+
+		[Test]
         public void TableWithSpecifiedWidths()
         {
             using (var output = File.Open(Path.Combine(_directoryWithFiles, "TableSpecifiedWidths.docx"), FileMode.Create))

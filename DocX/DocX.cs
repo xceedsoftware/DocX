@@ -3700,8 +3700,20 @@ namespace Novacode
             {
                 using (FileStream fs = new FileStream(filename, FileMode.Create))
                 {
-                    CopyStream(memoryStream, fs);
-                }
+					// Original code
+					// fs.Write( memoryStream.ToArray(), 0, (int)memoryStream.Length );
+					// was replaced by save using small buffer
+					// CopyStream( memoryStream, fs);
+					// Corection is to make position equal to 0
+					if(memoryStream.CanSeek)
+					{
+						// Write to the beginning of the stream
+						memoryStream.Position = 0;
+						CopyStream(memoryStream, fs);
+					}
+					else
+						fs.Write(memoryStream.ToArray(), 0, (int)memoryStream.Length);
+				}
             }
             else
             {
