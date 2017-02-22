@@ -1239,13 +1239,16 @@ namespace Novacode
             return InsertRow(RowCount);
         }
 
-        /// <summary>
-        /// Insert a copy of a row at the end of this table.
-        /// </summary>      
-        /// <returns>A new row.</returns>
-        public Row InsertRow(Row row)
+		/// <summary>
+		/// Insert a copy of a row at the end of this table.
+		/// </summary>      
+		/// <returns>A new row.</returns>
+		/// <param name="row">The row to insert</param>
+		/// <param name="keepFormatting">True to clone everithing, False to clone cell structure only.</param>
+		/// <returns></returns>
+		public Row InsertRow(Row row, bool keepFormatting = false)
         {
-            return InsertRow(row, RowCount);
+            return InsertRow(row, RowCount, keepFormatting);
         }
 
         /// <summary>
@@ -1482,13 +1485,14 @@ namespace Novacode
             return InsertRow(content, index);
         }
 
-        /// <summary>
-        /// Insert a copy of a row into this table.
-        /// </summary>
-        /// <param name="row">Row to copy and insert.</param>
-        /// <param name="index">Index to insert row at.</param>
-        /// <returns>A new Row</returns>
-        public Row InsertRow(Row row, int index)
+		/// <summary>
+		/// Insert a copy of a row into this table.
+		/// </summary>
+		/// <param name="row">Row to copy and insert.</param>
+		/// <param name="index">Index to insert row at.</param>
+		/// <param name="keepFormatting">True to clone everithing, False to clone cell structure only.</param>
+		/// <returns>A new Row</returns>
+		public Row InsertRow(Row row, int index, bool keepFormatting = false)
         {
             if (row == null)
                 throw new ArgumentNullException(nameof(row));
@@ -1496,8 +1500,13 @@ namespace Novacode
             if (index < 0 || index > RowCount)
                 throw new IndexOutOfRangeException();
 
-            List<XElement> content = row.Xml.Elements(XName.Get("tc", DocX.w.NamespaceName)).Select(element => HelperFunctions.CloneElement(element)).ToList();
-            return InsertRow(content, index);
+			List<XElement> content;
+			if( keepFormatting )
+				content = row.Xml.Elements().Select(element => HelperFunctions.CloneElement(element)).ToList();
+			else
+				content = row.Xml.Elements(XName.Get("tc", DocX.w.NamespaceName)).Select(element => HelperFunctions.CloneElement(element)).ToList();
+
+			return InsertRow(content, index);
         }
 
         private Row InsertRow(List<XElement> content, Int32 index)
@@ -2545,15 +2554,23 @@ namespace Novacode
             XElement trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
             if (trPr == null)
             {
-                Xml.SetElementValue(XName.Get("trPr", DocX.w.NamespaceName), string.Empty);
-                trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
-            }
+				Xml.SetElementValue(XName.Get("trPr", DocX.w.NamespaceName), string.Empty);
+				trPr = Xml.Element(XName.Get("trPr", DocX.w.NamespaceName));
 
-            /*
+				// Swapping trPr and tc elements - making trPr the first
+				XElement tc = Xml.Element( XName.Get( "tc", DocX.w.NamespaceName ) );
+				if( tc != null )
+				{
+					trPr.Remove();
+					tc.AddBeforeSelf( trPr );
+				}
+			}
+
+			/*
              * Get the trHeight element for this Row,
              * null will be return if no such element exists.
              */
-            XElement trHeight = trPr.Element(XName.Get("trHeight", DocX.w.NamespaceName));
+			XElement trHeight = trPr.Element(XName.Get("trHeight", DocX.w.NamespaceName));
             if (trHeight == null)
             {
                 trPr.SetElementValue(XName.Get("trHeight", DocX.w.NamespaceName), string.Empty);
@@ -2564,7 +2581,8 @@ namespace Novacode
             trHeight.SetAttributeValue(XName.Get("hRule", DocX.w.NamespaceName), exact ? _hRule_Exact : _hRule_AtLeast);
 
             // 15 "word units" is equal to one pixel. 
-            trHeight.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName), (height * 15).ToString());
+            trHeight.SetAttributeValue(XName.Get("val", DocX.w.NamespaceName),
+				((int)(Math.Round(height * 15,0))).ToString( CultureInfo.InvariantCulture ));	// national separators anf fraction should be avoided
         }
         /// <summary>
         /// Min-Height in pixels. // Added by Nick Kusters.

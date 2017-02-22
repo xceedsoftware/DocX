@@ -150,7 +150,131 @@ namespace UnitTests
             }
         }
 
-        public string ReplaceFunc(string findStr)
+		/// <summary>
+		/// TextRemove should not remove empty paragraphs in case the paragraph is alone in the cell.
+		/// In the rest cases empty paragraph may be removed.
+		/// </summary>
+		[Test]
+		public void Test_Table_Paragraph_RemoveText()
+		{
+			using( var input = File.Open( Path.Combine( _directoryWithFiles, "TableSpecifiedHeights.docx" ), FileMode.Open ) )
+			{
+				using( var doc = DocX.Load( input ) )
+				{
+					// Make sure content of the file is ok for test
+					Assert.IsTrue( doc.Tables.Count == 1 );
+					Assert.IsTrue( doc.Tables[ 0 ].RowCount == 3 );
+
+					string text = "paragraph";
+
+					// == Paragraph in the cell is not alone ==
+					doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].InsertParagraph( text );
+					Assert.IsTrue( doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs.Count == 2 );
+
+					doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].ReplaceText( text, "", removeEmptyParagraph: true );
+					Assert.IsTrue( doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs.Count == 1 );
+
+					doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].InsertParagraph( text );
+					Assert.IsTrue( doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs.Count == 2 );
+
+					doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].ReplaceText( text, "", removeEmptyParagraph: false );
+					Assert.IsTrue( doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs.Count == 2 );
+
+					// == Paragraph in the cell is alone ==
+					doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].InsertParagraph( text );
+					doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs[ 0 ].Remove( false );
+					doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs[ 0 ].Remove( false );
+					Assert.IsTrue( doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs.Count == 1 );
+
+					doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].ReplaceText( text, "", removeEmptyParagraph: true );
+					Assert.IsTrue( doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs.Count == 1 );
+
+					doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].InsertParagraph( text );
+					Assert.IsTrue( doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs.Count == 2 );
+
+					doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].ReplaceText( text, "", removeEmptyParagraph: false );
+					Assert.IsTrue( doc.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs.Count == 2 );
+				}
+			}
+		}
+
+		[Test]
+		public void Test_Table_MinHeight()
+		{
+			using( var input = File.Open( Path.Combine( _directoryWithFiles, "TableSpecifiedHeights.docx" ), FileMode.Open ) )
+			{
+				using( var doc = DocX.Load( input ) )
+				{
+					// Make sure content of the file is ok for test
+					Assert.IsTrue( doc.Tables.Count == 1 );
+					Assert.IsTrue( doc.Tables[ 0 ].RowCount == 3 );
+
+					// Check heights load is ok
+					Assert.IsTrue( double.IsNaN( doc.Tables[ 0 ].Rows[ 0 ].Height ) );
+					Assert.IsTrue( double.IsNaN( doc.Tables[ 0 ].Rows[ 0 ].MinHeight ) );
+					Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ 1 ].Height - 37.8f ) < 0.0001f );
+					Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ 1 ].MinHeight - 37.8f ) < 0.0001f );
+					Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ 2 ].Height - 37.8f ) < 0.0001f );
+					Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ 2 ].MinHeight - 37.8f ) < 0.0001f );
+
+					// Set MinHeight
+					doc.Tables[ 0 ].Rows[ 0 ].MinHeight = 37.8f;
+					Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ 0 ].Height - 37.8f ) < 0.0001f );
+					Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ 0 ].MinHeight - 37.8f ) < 0.0001f );
+				}
+			}
+		}
+
+		[Test]
+		public void Test_Table_InsertRow_Keeps_Formatting()
+		{
+			using( var input = File.Open( Path.Combine( _directoryWithFiles, "TableSpecifiedHeights.docx" ), FileMode.Open ) )
+			{
+				using( var doc = DocX.Load( input ) )
+				{
+					// Make sure content of the file is ok for test
+					Assert.IsTrue( doc.Tables.Count == 1 );
+					Assert.IsTrue( doc.Tables[ 0 ].RowCount == 3 );
+
+					// Check heights load is ok
+					Assert.IsTrue( double.IsNaN( doc.Tables[ 0 ].Rows[ 0 ].Height ) );
+					Assert.IsTrue( double.IsNaN( doc.Tables[ 0 ].Rows[ 0 ].MinHeight ) );
+					Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ 1 ].Height - 37.8f ) < 0.0001f );
+					Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ 1 ].MinHeight - 37.8f ) < 0.0001f );
+					Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ 2 ].Height - 37.8f ) < 0.0001f );
+					Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ 2 ].MinHeight - 37.8f ) < 0.0001f );
+
+					// Clone all rows and check heights
+					int n = doc.Tables[ 0 ].RowCount;
+					for( int index = 0; index < n; index++ )
+					{
+						doc.Tables[ 0 ].InsertRow( doc.Tables[ 0 ].Rows[ index ], true );
+					}
+					Assert.IsTrue( doc.Tables[ 0 ].RowCount == 2 * n );
+					for( int index = 0; index < n; index++ )
+					{
+						// Compare height of original row and cloned
+						Assert.IsTrue( double.IsNaN( doc.Tables[ 0 ].Rows[ n + index ].Height ) == double.IsNaN( doc.Tables[ 0 ].Rows[ index ].Height ) );
+						if( !double.IsNaN( doc.Tables[ 0 ].Rows[ n + index ].Height ) && !double.IsNaN( doc.Tables[ 0 ].Rows[ index ].Height ) )
+							Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ n + index ].Height - doc.Tables[ 0 ].Rows[ index ].Height ) < 0.0001f );
+						Assert.IsTrue( double.IsNaN( doc.Tables[ 0 ].Rows[ n + index ].MinHeight ) == double.IsNaN( doc.Tables[ 0 ].Rows[ index ].MinHeight ) );
+						if( !double.IsNaN( doc.Tables[ 0 ].Rows[ n + index ].MinHeight ) && !double.IsNaN( doc.Tables[ 0 ].Rows[ index ].MinHeight ) )
+							Assert.IsTrue( Math.Abs( doc.Tables[ 0 ].Rows[ n + index ].MinHeight - doc.Tables[ 0 ].Rows[ index ].MinHeight ) < 0.0001f );
+					}
+					// Remove original rows
+					for( int index = 0; index < n; index++ )
+					{
+						doc.Tables[ 0 ].Rows[ 0 ].Remove();
+					}
+
+					// At this point we shuold have document visually equal to original
+
+					doc.SaveAs( Path.Combine( _directoryWithFiles, "TableSpecifiedHeights_out.docx" ) );
+				}
+			}
+		}
+
+		public string ReplaceFunc(string findStr)
         {
             var testPatterns = new Dictionary<string, string>
             {

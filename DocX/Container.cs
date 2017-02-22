@@ -474,7 +474,7 @@ namespace Novacode
             return uniqueResults.Keys.ToList();  // return the unique list of results
         }
 
-        public virtual void ReplaceText(string searchValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch, bool escapeRegEx = true, bool useRegExSubstitutions = false)
+        public virtual void ReplaceText(string searchValue, string newValue, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch, bool escapeRegEx = true, bool useRegExSubstitutions = false, bool removeEmptyParagraph = true)
         {
             if (string.IsNullOrEmpty(searchValue))
                 throw new ArgumentException("oldValue cannot be null or empty", "searchValue");
@@ -486,31 +486,32 @@ namespace Novacode
             foreach (var header in headerList)
                 if (header != null)
                     foreach (var paragraph in header.Paragraphs)
-                        paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions, escapeRegEx, useRegExSubstitutions);
+                        paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph);
 
             // ReplaceText int main body of document.
             foreach (var paragraph in Paragraphs)
-                paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions, escapeRegEx, useRegExSubstitutions);
+                paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph);
 
             // ReplaceText in Footers of the document.
             var footerList = new List<Footer> { Document.Footers.first, Document.Footers.even, Document.Footers.odd };
             foreach (var footer in footerList)
                 if (footer != null)
                     foreach (var paragraph in footer.Paragraphs)
-                        paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions, escapeRegEx, useRegExSubstitutions);
+                        paragraph.ReplaceText(searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, formattingOptions, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="searchValue">Value to find</param>
-        /// <param name="regexMatchHandler">A Func that accepts the matching regex search group value and passes it to this to return the replacement string</param>
-        /// <param name="trackChanges">Enable trackchanges</param>
-        /// <param name="options">Regex options</param>
-        /// <param name="newFormatting"></param>
-        /// <param name="matchFormatting"></param>
-        /// <param name="formattingOptions"></param>
-        public virtual void ReplaceText(string searchValue, Func<string, string> regexMatchHandler, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="searchValue">Value to find</param>
+		/// <param name="regexMatchHandler">A Func that accepts the matching regex search group value and passes it to this to return the replacement string</param>
+		/// <param name="trackChanges">Enable trackchanges</param>
+		/// <param name="options">Regex options</param>
+		/// <param name="newFormatting"></param>
+		/// <param name="matchFormatting"></param>
+		/// <param name="formattingOptions"></param>
+		/// <param name="removeEmptyParagraph">Remove empty paragraph</param>
+		public virtual void ReplaceText(string searchValue, Func<string, string> regexMatchHandler, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch, bool removeEmptyParagraph = true)
         {
             if (string.IsNullOrEmpty(searchValue))
                 throw new ArgumentException("oldValue cannot be null or empty", "searchValue");
@@ -525,11 +526,11 @@ namespace Novacode
             foreach (var container in containerList)
                 if (container != null)
                     foreach (var paragraph in container.Paragraphs)
-                        paragraph.ReplaceText(searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, formattingOptions);
+                        paragraph.ReplaceText(searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, formattingOptions, removeEmptyParagraph);
 
             // ReplaceText int main body of document.
             foreach (var paragraph in Paragraphs)
-                paragraph.ReplaceText(searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, formattingOptions);
+                paragraph.ReplaceText(searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, formattingOptions, removeEmptyParagraph);
         }
 
         /// <summary>

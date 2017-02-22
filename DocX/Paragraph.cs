@@ -3679,7 +3679,7 @@ namespace Novacode
 		/// <param name="count">The number of characters to delete</param>
 		/// <param name="trackChanges">Track changes</param>
 		/// <param name="removeEmptyParagraph">Remove empty paragraph</param>
-		public void RemoveText(int index, int count, bool trackChanges = false, bool removeEmptyParagraph=true)
+		public void RemoveText(int index, int count, bool trackChanges = false, bool removeEmptyParagraph = true)
         {
             // Timestamp to mark the start of insert
             DateTime now = DateTime.Now;
@@ -3759,17 +3759,20 @@ namespace Novacode
                         }
                 }
 
-                // If after this remove the parent element is empty, remove it.
-                if (removeEmptyParagraph && GetElementTextLength(parentElement) == 0)
-                {
-                    if (parentElement.Parent != null && parentElement.Parent.Name.LocalName != "tc")
-                    {
-                        // Need to make sure there is no drawing element within the parent element.
-                        // Picture elements contain no text length but they are still content.
-                        if (parentElement.Descendants(XName.Get("drawing", DocX.w.NamespaceName)).Count() == 0)
-                            parentElement.Remove();
-                    }
-                }
+				// Removing of empty paragraph is allowed if text is empty and removeEmptyParagraph=true
+				bool removeEmpty = removeEmptyParagraph && GetElementTextLength( parentElement ) == 0;
+				if( parentElement.Parent != null )
+				{
+					// Need to make sure there is another paragraph in parent cell
+					removeEmpty &= parentElement.Parent.Name.LocalName == "tc" &&
+						parentElement.Parent.Elements( XName.Get( "p", DocX.w.NamespaceName ) ).Count() > 1;
+
+					// Need to make sure there is no drawing element within the parent element.
+					// Picture elements contain no text length but they are still content.
+					removeEmpty &= parentElement.Descendants( XName.Get( "drawing", DocX.w.NamespaceName ) ).Count() == 0;
+				}
+				if( removeEmpty )
+					parentElement.Remove();
             }
             while (processed < count);
 

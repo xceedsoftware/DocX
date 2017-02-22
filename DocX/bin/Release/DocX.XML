@@ -370,7 +370,7 @@
             <param name="options"></param>
             <returns></returns>
         </member>
-        <member name="M:Novacode.Container.ReplaceText(System.String,System.Func{System.String,System.String},System.Boolean,System.Text.RegularExpressions.RegexOptions,Novacode.Formatting,Novacode.Formatting,Novacode.MatchFormattingOptions)">
+        <member name="M:Novacode.Container.ReplaceText(System.String,System.Func{System.String,System.String},System.Boolean,System.Text.RegularExpressions.RegexOptions,Novacode.Formatting,Novacode.Formatting,Novacode.MatchFormattingOptions,System.Boolean)">
             <summary>
             
             </summary>
@@ -381,6 +381,7 @@
             <param name="newFormatting"></param>
             <param name="matchFormatting"></param>
             <param name="formattingOptions"></param>
+            <param name="removeEmptyParagraph">Remove empty paragraph</param>
         </member>
         <member name="M:Novacode.Container.RemoveTextInGivenFormat(Novacode.Formatting,Novacode.MatchFormattingOptions)">
             <summary>
@@ -988,11 +989,14 @@
              </example>
              <returns>A new row.</returns>
         </member>
-        <member name="M:Novacode.Table.InsertRow(Novacode.Row)">
+        <member name="M:Novacode.Table.InsertRow(Novacode.Row,System.Boolean)">
             <summary>
             Insert a copy of a row at the end of this table.
             </summary>      
             <returns>A new row.</returns>
+            <param name="row">The row to insert</param>
+            <param name="keepFormatting">True to clone everithing, False to clone cell structure only.</param>
+            <returns></returns>
         </member>
         <member name="M:Novacode.Table.InsertColumn">
              <summary>
@@ -1153,12 +1157,13 @@
              <param name="index">Index to insert row at.</param>
              <returns>A new Row</returns>
         </member>
-        <member name="M:Novacode.Table.InsertRow(Novacode.Row,System.Int32)">
+        <member name="M:Novacode.Table.InsertRow(Novacode.Row,System.Int32,System.Boolean)">
             <summary>
             Insert a copy of a row into this table.
             </summary>
             <param name="row">Row to copy and insert.</param>
             <param name="index">Index to insert row at.</param>
+            <param name="keepFormatting">True to clone everithing, False to clone cell structure only.</param>
             <returns>A new Row</returns>
         </member>
         <member name="M:Novacode.Table.InsertColumn(System.Int32,System.Boolean)">
