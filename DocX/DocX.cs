@@ -2950,7 +2950,7 @@ namespace Novacode
                 }
             }
 
-            return AddImage(filename, contentType);
+            return AddImage(filename as object, contentType);
         }
 
         /// <summary>
