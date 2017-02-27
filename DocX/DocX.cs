@@ -2932,27 +2932,25 @@ namespace Novacode
         /// </example>
         /// <seealso cref="AddImage(Stream, string)"/>
         /// <seealso cref="Paragraph.InsertPicture"/>
-        public Image AddImage(string filename, string contentType = "image/jpeg")
+        public Image AddImage(string filename)
         {
-            if (string.IsNullOrEmpty(contentType))
+            string contentType = "";
+
+            // The extension this file has will be taken to be its format.
+            switch (Path.GetExtension(filename))
             {
-                // The extension this file has will be taken to be its format.
-                switch (Path.GetExtension(filename))
-                {
-                    case ".tiff": contentType = "image/tif"; break;
-                    case ".tif": contentType = "image/tif"; break;
-                    case ".png": contentType = "image/png"; break;
-                    case ".bmp": contentType = "image/png"; break;
-                    case ".gif": contentType = "image/gif"; break;
-                    case ".jpg": contentType = "image/jpg"; break;
-                    case ".jpeg": contentType = "image/jpeg"; break;
-                    default: contentType = "image/jpg"; break;
-                }
+                case ".tiff": contentType = "image/tif"; break;
+                case ".tif": contentType = "image/tif"; break;
+                case ".png": contentType = "image/png"; break;
+                case ".bmp": contentType = "image/png"; break;
+                case ".gif": contentType = "image/gif"; break;
+                case ".jpg": contentType = "image/jpg"; break;
+                case ".jpeg": contentType = "image/jpeg"; break;
+                default: contentType = "image/jpg"; break;
             }
 
             return AddImage(filename as object, contentType);
         }
-
         /// <summary>
         /// Add an Image into this document from a Stream.
         /// </summary>
