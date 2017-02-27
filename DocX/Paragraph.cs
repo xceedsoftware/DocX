@@ -117,6 +117,11 @@ namespace Novacode
         {
             get
             {
+                if (Xml == null)
+                {
+                    return new List<Picture>();
+                }
+
                 List<Picture> pictures =
                 (
                     from p in Xml.Descendants()
@@ -1713,6 +1718,37 @@ namespace Novacode
                     ", cx, cy, id, name, descr, newDocPrId.ToString()));
 
             return new Picture(document, xml, new Image(document, document.mainPart.GetRelationship(id)));
+        }
+
+        /// <summary>
+        /// Replaces a Picture with a new one.
+        /// </summary>
+        /// <remarks>
+        /// Only the content of the picture will be replaced - positioning inside the document and all other attributes will be preserved.
+        /// </remarks>
+        /// <param name="toBeReplaced">The picture object to be replaced.</param>
+        /// <param name="replaceWith">The picture object that should be inserted instead of <paramref name="toBeReplaced"/>.</param>
+        /// <returns>The new <see cref="Picture"/> object that replaces the old one.</returns>
+        public Picture ReplacePicture(Picture toBeReplaced, Picture replaceWith)
+        {
+            var document = this.Document;
+            var newDocPrId = document.GetNextFreeDocPrId();
+
+            var xml = XElement.Parse(toBeReplaced.Xml.ToString());
+            foreach (var element in xml.Descendants(XName.Get("docPr", DocX.wp.NamespaceName)))
+            {
+                element.SetAttributeValue(XName.Get("id"), newDocPrId);
+            }
+
+            foreach (var element in xml.Descendants(XName.Get("blip", DocX.a.NamespaceName)))
+            {
+                element.SetAttributeValue(XName.Get("embed", DocX.r.NamespaceName), replaceWith.Id);
+            }
+
+            var replacePicture = new Picture(document, xml, new Image(document, document.mainPart.GetRelationship(replaceWith.Id)));
+            this.AppendPicture(replacePicture);
+            toBeReplaced.Remove();
+            return replacePicture;
         }
 
         // Removed because it confusses the API.
