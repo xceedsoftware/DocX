@@ -150,6 +150,28 @@ namespace UnitTests
             }
         }
 
+		[Test]
+		public void Test_InvalidCharacter()
+		{
+			using( var output = File.Open( Path.Combine( _directoryWithFiles, "InvalidCharacters.docx" ), FileMode.Create ) )
+			{
+				using( var doc = DocX.Create( output ) )
+				{
+					doc.InsertParagraph( "\b" );
+					Exception ex = null;
+					try
+					{
+						doc.Save();
+					}
+					catch( Exception e )
+					{
+						ex = e;
+					}
+					Assert.IsTrue( ex == null );
+				}
+			}
+		}
+
 		/// <summary>
 		/// TextRemove should not remove empty paragraphs in case the paragraph is alone in the cell.
 		/// In the rest cases empty paragraph may be removed.
