@@ -785,19 +785,29 @@ namespace Novacode
 
                 if (design == TableDesign.Custom)
                 {
-                    if (string.IsNullOrEmpty(_customTableDesignName))
-                    {
-                        design = TableDesign.None;
-                        if (style != null)
-                            style.Remove();
+					#region Code is commented out
+					// The code gives a problem while copiing a table.
+					// Look at Test_Clone_Table_Twice method in test.
+					//Example:
+					//Table tab1 = doc.Tables[ 0 ];
+					//Table tab2 = doc.InsertTable( tab1 );
+					//Table tab3 = doc.InsertTable( tab2 ); - here we have exception at "var styleElement =" line below in this method
+					// The source of the problem is loosing the "<w:tblStyle w:val="a3"/>" by the commented code
 
-                    }
-                    else
-                    {
-                        val.Value = _customTableDesignName;
-                    }
-                }
-                else
+					//if (string.IsNullOrEmpty(_customTableDesignName))
+					//{
+					//    design = TableDesign.None;
+					//    if (style != null)
+					//        style.Remove();
+
+					//}
+					//else
+					//{
+					//    val.Value = _customTableDesignName;
+					//}
+					#endregion
+				}
+				else
                 {
                     switch (design)
                     {
@@ -1132,9 +1142,10 @@ namespace Novacode
                         let styleId = e.Attribute(XName.Get("styleId", DocX.w.NamespaceName))
                         where (styleId != null && styleId.Value == val.Value)
                         select e
-                    ).First();
+                    ).FirstOrDefault();
 
-                    Document.styles.Element(XName.Get("styles", DocX.w.NamespaceName)).Add(styleElement);
+					if( styleElement != null )
+						Document.styles.Element(XName.Get("styles", DocX.w.NamespaceName)).Add(styleElement);
                 }
             }
         }

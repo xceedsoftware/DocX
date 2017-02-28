@@ -296,6 +296,29 @@ namespace UnitTests
 			}
 		}
 
+		[Test]
+		public void Test_Clone_Table_Twice()
+		{
+			using( var input = File.Open( Path.Combine( _directoryWithFiles, "TableSpecifiedHeights.docx" ), FileMode.Open ) )
+			{
+				using( var doc = DocX.Load( input ) )
+				{
+					// Make sure content of the file is ok for test
+					Assert.IsTrue( doc.Tables.Count == 1 );
+
+					Table tab1 = doc.Tables[ 0 ];
+					doc.InsertParagraph( "" );
+					Table tab2 = doc.InsertTable( tab1 );
+					Assert.IsTrue( doc.Tables.Count == 2 );
+					doc.InsertParagraph( "" );
+					Table tab3 = doc.InsertTable( tab2 );
+					Assert.IsTrue( doc.Tables.Count == 3 );
+
+					doc.SaveAs( Path.Combine( _directoryWithFiles, "TwoClonedTables.docx" ) );
+				}
+			}
+		}
+
 		public string ReplaceFunc(string findStr)
         {
             var testPatterns = new Dictionary<string, string>
