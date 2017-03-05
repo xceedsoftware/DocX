@@ -17,7 +17,18 @@ namespace Novacode
         public const string DOCUMENT_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
         public const string TEMPLATE_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml";
 
-            public static bool IsNullOrWhiteSpace(this string value)
+		/// <summary>
+		///  List of restricted character in xml: [#x1-#x8] | [#xB-#xC] | [#xE-#x1F] | [#x7F-#x84] | [#x86-#x9F]
+		///  See:  https://www.w3.org/TR/xml11/#sec-xml11
+		/// </summary>
+		public static readonly char[] RestrictedXmlChar = new char[] {
+			'\x1','\x2','\x3','\x4','\x5','\x6','\x7','\x8','\xb','\xc','\xe','\xf',
+			'\x10','\x11','\x12','\x13','\x14','\x15','\x16','\x17','\x18','\x19','\x1a','\x1b','\x1c','\x1e','\x1f',
+			'\x7f','\x80','\x81','\x82','\x83','\x84','\x86','\x87','\x88','\x89','\x8a','\x8b','\x8c','\x8d','\x8e','\x8f',
+			'\x90','\x91','\x92','\x93','\x94','\x95','\x96','\x97','\x98','\x99','\x9a','\x9b','\x9c','\x9d','\x9e','\x9f'
+		};
+
+		public static bool IsNullOrWhiteSpace(this string value)
             {
                 if (value == null) return true;
                 return string.IsNullOrEmpty(value.Trim());
@@ -589,7 +600,15 @@ namespace Novacode
                         break;
 
                     default:
-                        sb.Append(c);
+						// Check the character against restricted list:
+						// RestrictedChar	   ::=   	[#x1-#x8] | [#xB-#xC] | [#xE-#x1F] | [#x7F-#x84] | [#x86-#x9F]
+						// See https://www.w3.org/TR/xml11/#sec-xml11 
+						if( RestrictedXmlChar.Contains( c ) )
+						{
+							// skip the character
+						}
+						else
+							sb.Append(c);
                         break;
                 }
                 

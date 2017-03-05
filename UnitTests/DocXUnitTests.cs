@@ -150,6 +150,28 @@ namespace UnitTests
             }
         }
 
+		[Test]
+		public void Test_InvalidCharacter()
+		{
+			using( var output = File.Open( Path.Combine( _directoryWithFiles, "InvalidCharacters.docx" ), FileMode.Create ) )
+			{
+				using( var doc = DocX.Create( output ) )
+				{
+					doc.InsertParagraph( "\b" );
+					Exception ex = null;
+					try
+					{
+						doc.Save();
+					}
+					catch( Exception e )
+					{
+						ex = e;
+					}
+					Assert.IsTrue( ex == null );
+				}
+			}
+		}
+
 		/// <summary>
 		/// TextRemove should not remove empty paragraphs in case the paragraph is alone in the cell.
 		/// In the rest cases empty paragraph may be removed.
@@ -270,6 +292,29 @@ namespace UnitTests
 					// At this point we shuold have document visually equal to original
 
 					doc.SaveAs( Path.Combine( _directoryWithFiles, "TableSpecifiedHeights_out.docx" ) );
+				}
+			}
+		}
+
+		[Test]
+		public void Test_Clone_Table_Twice()
+		{
+			using( var input = File.Open( Path.Combine( _directoryWithFiles, "TableSpecifiedHeights.docx" ), FileMode.Open ) )
+			{
+				using( var doc = DocX.Load( input ) )
+				{
+					// Make sure content of the file is ok for test
+					Assert.IsTrue( doc.Tables.Count == 1 );
+
+					Table tab1 = doc.Tables[ 0 ];
+					doc.InsertParagraph( "" );
+					Table tab2 = doc.InsertTable( tab1 );
+					Assert.IsTrue( doc.Tables.Count == 2 );
+					doc.InsertParagraph( "" );
+					Table tab3 = doc.InsertTable( tab2 );
+					Assert.IsTrue( doc.Tables.Count == 3 );
+
+					doc.SaveAs( Path.Combine( _directoryWithFiles, "TwoClonedTables.docx" ) );
 				}
 			}
 		}
@@ -803,7 +848,105 @@ namespace UnitTests
             }
         }
 
-        [Test]
+		/// <summary>
+		/// This test fills two tables with hyperlinks.
+		/// </summary>
+		[Test]
+		public void Test_Insert_Hyperlink_In_Tables()
+		{
+			using( var input = File.Open( Path.Combine( _directoryWithFiles, "TableSpecifiedHeights.docx" ), FileMode.Open ) )
+			{
+				using( var doc = DocX.Load( input ) )
+				{
+					// Make sure content of the file is ok for test
+					Assert.IsTrue( doc.Tables.Count > 0 );
+					Table tab1 = doc.Tables[ 0 ];
+					Assert.IsTrue( tab1.RowCount > 0 );
+					Assert.IsTrue( tab1.Rows[0].ColumnCount > 0 );
+					doc.InsertParagraph( "" );
+					Table tab2 = doc.InsertTable( tab1 );
+					Assert.IsTrue( tab2.RowCount > 0 );
+
+					Row row1 = tab1.Rows[ 0 ];
+					Row row2 = tab2.Rows[ 0 ];
+
+					// 10 times insert hyperlinks in both tables in tic-tak order
+					for( int index = 0; index < 10; index++ )
+					{
+						Row newRow1 = tab1.InsertRow( row1 );
+						Row newRow2 = tab2.InsertRow( row2 );
+
+						Hyperlink h1 = doc.AddHyperlink(
+							string.Format( "Table {0}, Row {1}. Google searches for {0} {1}", 1, index + 1 ),
+							new Uri( string.Format( "https://www.google.com/search?q=Table{0}Row{1}", 1, index + 1 ) ) );
+						newRow1.Cells[ 0 ].Paragraphs[ 0 ].InsertHyperlink( h1 );
+
+						Hyperlink h2 = doc.AddHyperlink(
+							string.Format( "Table {0}, Row {1}. Google searches for {0} {1}", 2, index + 1 ),
+							new Uri( string.Format( "https://www.google.com/search?q=Table{0}Row{1}", 2, index + 1 ) ) );
+						newRow2.Cells[ 0 ].Paragraphs[ 0 ].InsertHyperlink( h2 );
+
+					}
+					//Make sure links are ok and in right order
+					for( int index = 0; index < doc.Hyperlinks.Count; index++ )
+					{
+						Hyperlink h = doc.Hyperlinks[ index ];
+						string text = string.Format( "Table {0}, Row {1}. Google searches for {0} {1}", ( index / 10 ) + 1, ( index ) % 10 + 1 );
+						string uri = string.Format( "https://www.google.com/search?q=Table{0}Row{1}", ( index / 10 ) + 1, ( index ) % 10 + 1 );
+						Assert.IsTrue( string.Compare( h.Text, text ) == 0 );
+						Assert.IsTrue( h.Uri != null );
+						Assert.IsTrue( string.Compare( h.Uri.ToString(), uri ) == 0 );
+					}
+					doc.SaveAs( Path.Combine( _directoryDocuments, "Test_Insert_Hyperlink_In_Tables.docx" ) );
+				}
+			}
+		}
+
+		/// <summary>
+		/// This test makes 2 file. The first uses InsertHyperlink. The second uses AppendHyperlink.
+		/// The both hyperlink collections should be equal to each other.
+		/// We need be sure the bug in InsertHyperlink is fixed (id attribute in hyperlink was empty and order of inserteed hyperlinks was broken).
+		/// </summary>
+		[Test]
+		public void Test_Compare_InsertHyperlink_And_AppendHyperLinks()
+		{
+			string fileName1 = Path.Combine( _directoryDocuments, "Test_InsertHyperLinks.docx" );
+			string fileName2 = Path.Combine( _directoryDocuments, "Test_AppendHyperlinks.docx" );
+			using( DocX document1 = DocX.Create( fileName1 ) )
+			{
+				using( DocX document2 = DocX.Create( fileName2 ) )
+				{
+					for( int index = 0; index < 10; index++ )
+					{
+						Hyperlink h = document1.AddHyperlink(
+							string.Format( "Google searches for {0}", index + 1 ),
+							new Uri( string.Format( "https://www.google.com/search?q={0}", index + 1 ) ) );
+						document1.InsertParagraph( "" ).InsertHyperlink( h );
+					}
+					document1.Save();
+
+					for( int index = 0; index < 10; index++ )
+					{
+						Hyperlink h = document2.AddHyperlink(
+							string.Format( "Google searches for {0}", index + 1 ),
+							new Uri( string.Format( "https://www.google.com/search?q={0}", index + 1 ) ) );
+						document2.InsertParagraph( "" ).AppendHyperlink( h );
+					}
+					document2.Save();
+
+					Assert.IsTrue( document1.Hyperlinks.Count == document2.Hyperlinks.Count );
+					for( int index = 0; index < document1.Hyperlinks.Count; index++ )
+					{
+						Hyperlink h1 = document1.Hyperlinks[ index ];
+						Hyperlink h2 = document2.Hyperlinks[ index ];
+						Assert.IsTrue( string.Compare( h1.Text, h2.Text ) == 0 );
+						Assert.IsTrue( string.Compare( h1.Uri.ToString(), h2.Uri.ToString() ) == 0 );
+					}
+				}
+			}
+		}
+
+		[Test]
         public void Test_Insert_Hyperlink()
         {
             // Load test document.

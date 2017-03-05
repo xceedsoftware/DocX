@@ -475,6 +475,12 @@
             The custom property to display.
             </summary>
         </member>
+        <member name="F:Novacode.HelperFunctions.RestrictedXmlChar">
+            <summary>
+             List of restricted character in xml: [#x1-#x8] | [#xB-#xC] | [#xE-#x1F] | [#x7F-#x84] | [#x86-#x9F]
+             See:  https://www.w3.org/TR/xml11/#sec-xml11
+            </summary>
+        </member>
         <member name="M:Novacode.HelperFunctions.ContainsEveryChildOf(System.Xml.Linq.XElement,System.Xml.Linq.XElement,Novacode.MatchFormattingOptions)">
             <summary>
             Checks whether 'toCheck' has all children that 'desired' has and values of 'val' attributes are the same

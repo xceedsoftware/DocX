@@ -1097,7 +1097,7 @@ namespace Novacode
             XElement h_xml;
             if (index == 0)
             {
-                // Add this hyperlink as the last element.
+                // Add this hyperlink as the first element.
                 Xml.AddFirst(h.Xml);
 
                 // Extract the picture back out of the DOM.
@@ -1138,10 +1138,12 @@ namespace Novacode
                     h_xml = (XElement)run.Xml.NextNode;
                 }
 
-                h_xml.SetAttributeValue(DocX.r + "id", Id);
-            }
+			}
+			h_xml.SetAttributeValue( DocX.r + "id", Id );
 
-            return this;
+			this.runs = Xml.Elements().Last().Elements( XName.Get( "r", DocX.w.NamespaceName ) ).ToList();
+
+			return this;
         }
 
         /// <summary>
