@@ -2464,11 +2464,7 @@ namespace Novacode
             document.Document = document;
 
             #region MainDocumentPart
-            document.mainPart = package.GetParts().Where
-            (
-                     p => p.ContentType.Equals(HelperFunctions.DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase) ||
-                     p.ContentType.Equals(HelperFunctions.TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase)
-            ).Single();
+            document.mainPart = HelperFunctions.GetMainDocumentPart(package);
 
             using (TextReader tr = new StreamReader(document.mainPart.GetStream(FileMode.Open, FileAccess.Read)))
                 document.mainDoc = XDocument.Load(tr, LoadOptions.PreserveWhitespace);
