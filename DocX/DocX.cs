@@ -3871,7 +3871,7 @@ namespace Novacode
 
             // If this document does not contain a coreFilePropertyPart create one.)
             if (!package.PartExists(new Uri("/docProps/core.xml", UriKind.Relative)))
-                throw new Exception("Core properties part doesn't exist.");
+                HelperFunctions.CreateCorePropertiesPart(this);
 
             XDocument corePropDoc;
             PackagePart corePropPart = package.GetPart(new Uri("/docProps/core.xml", UriKind.Relative));
