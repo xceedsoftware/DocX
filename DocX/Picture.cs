@@ -338,7 +338,7 @@ namespace Novacode
           {
             return img.FileName;
           }
-        }
+        }        
 
         /// <summary>
         /// Get or sets the Width of this Image.
@@ -372,11 +372,47 @@ namespace Novacode
             } 
         }
 
+        // refs:
+        // https://startbigthinksmall.wordpress.com/2010/01/04/points-inches-and-emus-measuring-units-in-office-open-xml/
+        // http://lcorneliussen.de/raw/dashboards/ooxml/
+        private const int InchToEmuFactor = 914400;
+        private const double EmuToInchFactor = 1d / InchToEmuFactor;
+
+        /// <summary>
+        /// Get or sets the Width of this Image (inches).
+        /// </summary>
+        public double WidthInches
+        {
+            get
+            {
+                return Width * EmusInPixel * EmuToInchFactor;
+            }
+            set
+            {
+                Width = (int)(value * InchToEmuFactor / EmusInPixel);
+            }
+        }
+
+        /// <summary>
+        /// Get or sets the Height of this Image (inches).        
+        /// </summary>
+        public double HeightInches
+        {
+            get
+            {
+                return Height * EmusInPixel * EmuToInchFactor;
+            }
+            set
+            {
+                Height = (int)(value * InchToEmuFactor / EmusInPixel);
+            }
+        }
+
         //public void Delete()
         //{
         //    // Remove xml
         //    i.Remove();
-   
+
         //    // Rebuild the image collection for this paragraph
         //    // Requires that every Image have a link to its paragraph
 
