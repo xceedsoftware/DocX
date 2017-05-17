@@ -299,6 +299,29 @@ namespace Novacode
             return settingsPart;
         }
 
+        internal static void CreateCorePropertiesPart(DocX document)
+        {
+            PackagePart corePropertiesPart = document.package.CreatePart(new Uri("/docProps/core.xml", UriKind.Relative), "application/vnd.openxmlformats-package.core-properties+xml", CompressionOption.Maximum);
+
+            XDocument corePropDoc = XDocument.Parse(@"<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<cp:coreProperties xmlns:cp='http://schemas.openxmlformats.org/package/2006/metadata/core-properties' xmlns:dc='http://purl.org/dc/elements/1.1/' xmlns:dcterms='http://purl.org/dc/terms/' xmlns:dcmitype='http://purl.org/dc/dcmitype/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'> 
+   <dc:title></dc:title>
+   <dc:subject></dc:subject>
+   <dc:creator></dc:creator>
+   <cp:keywords></cp:keywords>
+   <dc:description></dc:description>
+   <cp:lastModifiedBy></cp:lastModifiedBy>
+   <cp:revision>1</cp:revision>
+   <dcterms:created xsi:type='dcterms:W3CDTF'>"+ DateTime.UtcNow.ToString("s") + "Z" + @"</dcterms:created>
+   <dcterms:modified xsi:type='dcterms:W3CDTF'>" + DateTime.UtcNow.ToString("s") + "Z" + @"</dcterms:modified>
+</cp:coreProperties>");
+
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(corePropertiesPart.GetStream(FileMode.Create, FileAccess.Write))))
+                corePropDoc.Save(tw, SaveOptions.None);
+
+            document.package.CreateRelationship(corePropertiesPart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties");
+        }
+
         internal static void CreateCustomPropertiesPart(DocX document)
         {
             PackagePart customPropertiesPart = document.package.CreatePart(new Uri("/docProps/custom.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.custom-properties+xml", CompressionOption.Maximum);
