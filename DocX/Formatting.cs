@@ -30,6 +30,7 @@ namespace Novacode
 		private double? spacing;
 
 		private CultureInfo language;
+		private bool? noProof;
 
         /// <summary>
         /// A text formatting.
@@ -66,6 +67,22 @@ namespace Novacode
         }
 
 		/// <summary>
+		/// Text proofing
+		/// </summary>
+		public bool? NoProof
+		{
+			get
+			{
+				return noProof;
+			}
+
+			set
+			{
+				noProof = value;
+			}
+		}
+
+		/// <summary>
 		/// Returns a new identical instance of Formatting.
 		/// </summary>
 		/// <returns></returns>
@@ -81,6 +98,7 @@ namespace Novacode
 			newf.Italic = italic;
 			if (kerning.HasValue) { newf.Kerning = kerning; }
 			newf.Language = language;
+			newf.NoProof = noProof;
 			newf.Misc = misc;
 			if (percentageScale.HasValue) { newf.PercentageScale = percentageScale; }
 			if (position.HasValue) { newf.Position = position; }
@@ -108,6 +126,8 @@ namespace Novacode
                             option.GetAttribute(XName.Get("eastAsia", DocX.w.NamespaceName), null) ?? 
                             option.GetAttribute(XName.Get("bidi", DocX.w.NamespaceName))); 
                         break;
+					case "noProof":
+						formatting.NoProof = true; break;
                     case "spacing": 
                         formatting.Spacing = Double.Parse(
                             option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 20.0; 
@@ -172,7 +192,10 @@ namespace Novacode
                 if (language != null)
                     rPr.Add(new XElement(XName.Get("lang", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), language.Name)));
                 
-                if(spacing.HasValue)
+				if (noProof.HasValue && noProof.Value)
+					rPr.Add(new XElement(XName.Get("noProof", DocX.w.NamespaceName)));
+
+				if(spacing.HasValue)
                     rPr.Add(new XElement(XName.Get("spacing", DocX.w.NamespaceName), new XAttribute(XName.Get("val", DocX.w.NamespaceName), spacing.Value * 20)));
 
                 if(position.HasValue)
@@ -541,6 +564,9 @@ namespace Novacode
 
             if (!other.language.Equals(this.language))
                 return -1;
+
+			if (other.noProof != this.noProof)
+				return -1;
 
             return 0;
         }
