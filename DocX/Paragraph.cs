@@ -2214,6 +2214,30 @@ namespace Novacode
             return this;
         }
 
+		/// <summary>
+		/// For use with Append() and AppendLine()
+		/// </summary>
+		/// <returns>This Paragraph with the last appended text with proofing disabled.</returns>
+		/// <example>
+		/// Add a new Paragraph to this document and then disable proofing on it.
+		/// <code>
+		/// // Load a document.
+		/// using (DocX document = DocX.Create(@"Test.docx"))
+		/// {
+		///     // Insert a new Paragraph and disable proofing on it.
+		///     Paragraph p = document.InsertParagraph("Hello, мир!").NoProof();
+		///       
+		///     // Save this document.
+		///     document.Save();
+		/// }
+		/// </code>
+		/// </example>
+		public Paragraph NoProof()
+        {
+            ApplyTextFormattingProperty(XName.Get("noProof", DocX.w.NamespaceName), string.Empty, null);
+            return this;
+        }
+
         /// <summary>
         /// Append text to this Paragraph.
         /// </summary>
