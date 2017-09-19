@@ -706,35 +706,21 @@ namespace Novacode
         {
             get
             {
-                XDocument settings;
-                using (TextReader tr = new StreamReader(settingsPart.GetStream()))
-                    settings = XDocument.Load(tr);
-
-                XElement evenAndOddHeaders = settings.Root.Element(w + "evenAndOddHeaders");
-
-                return evenAndOddHeaders != null;
+                return settings.Root.Element(w + "evenAndOddHeaders") != null;
             }
-
             set
             {
-                XDocument settings;
-                using (TextReader tr = new StreamReader(settingsPart.GetStream()))
-                    settings = XDocument.Load(tr);
-
                 XElement evenAndOddHeaders = settings.Root.Element(w + "evenAndOddHeaders");
-                if (evenAndOddHeaders == null)
+                if (evenAndOddHeaders != null)
                 {
-                    if (value)
-                        settings.Root.AddFirst(new XElement(w + "evenAndOddHeaders"));
+                    evenAndOddHeaders.Remove();
                 }
-                else
+                if (value)
                 {
-                    if (!value)
-                        evenAndOddHeaders.Remove();
+                    evenAndOddHeaders = new XElement(XName.Get("evenAndOddHeaders", w.NamespaceName));
+                    evenAndOddHeaders.Add(new XAttribute(XName.Get("val", w.NamespaceName), "1"));
+                    settings.Root.AddFirst(evenAndOddHeaders);
                 }
-
-                using (TextWriter tw = new StreamWriter(new PackagePartStream(settingsPart.GetStream())))
-                    settings.Save(tw);
             }
         }
 
@@ -1425,7 +1411,8 @@ namespace Novacode
             // Before doing any other work, check to see if this image is actually referenced in the document.
             // In my testing I have found cases of Images inside documents that are not referenced
             var remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString.Replace("/word/", ""))).FirstOrDefault();
-            if (remote_rel == null) {
+            if (remote_rel == null)
+            {
                 remote_rel = remote_document.mainPart.GetRelationships().Where(r => r.TargetUri.OriginalString.Equals(remote_pp.Uri.OriginalString)).FirstOrDefault();
                 if (remote_rel == null)
                     return;
@@ -3694,20 +3681,20 @@ namespace Novacode
             {
                 using (FileStream fs = new FileStream(filename, FileMode.Create))
                 {
-					// Original code
-					// fs.Write( memoryStream.ToArray(), 0, (int)memoryStream.Length );
-					// was replaced by save using small buffer
-					// CopyStream( memoryStream, fs);
-					// Corection is to make position equal to 0
-					if(memoryStream.CanSeek)
-					{
-						// Write to the beginning of the stream
-						memoryStream.Position = 0;
-						CopyStream(memoryStream, fs);
-					}
-					else
-						fs.Write(memoryStream.ToArray(), 0, (int)memoryStream.Length);
-				}
+                    // Original code
+                    // fs.Write( memoryStream.ToArray(), 0, (int)memoryStream.Length );
+                    // was replaced by save using small buffer
+                    // CopyStream( memoryStream, fs);
+                    // Corection is to make position equal to 0
+                    if (memoryStream.CanSeek)
+                    {
+                        // Write to the beginning of the stream
+                        memoryStream.Position = 0;
+                        CopyStream(memoryStream, fs);
+                    }
+                    else
+                        fs.Write(memoryStream.ToArray(), 0, (int)memoryStream.Length);
+                }
             }
             else
             {
@@ -4409,11 +4396,13 @@ namespace Novacode
         /// <summary>
         /// Insert a chart in document after paragraph
         /// </summary>
-        public void InsertChartAfterParagraph(Chart chart, Paragraph paragraph) {
+        public void InsertChartAfterParagraph(Chart chart, Paragraph paragraph)
+        {
             // Create a new chart part uri.
             String chartPartUriPath = String.Empty;
             Int32 chartIndex = 1;
-            do {
+            do
+            {
                 chartPartUriPath = String.Format
                 (
                     "/word/charts/chart{0}.xml",
