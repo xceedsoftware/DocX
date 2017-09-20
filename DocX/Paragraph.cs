@@ -424,7 +424,10 @@ namespace Novacode
                 if (direction == Direction.RightToLeft)
                 {
                     if (bidi == null)
+                    {
                         pPr.Add(new XElement(XName.Get("bidi", DocX.w.NamespaceName)));
+                    }
+                    ApplyTextFormattingProperty(XName.Get("rtl", DocX.w.NamespaceName), string.Empty, null);
                 }
                 else
                 {
