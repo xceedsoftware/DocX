@@ -22,6 +22,7 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 ## What are the main features of DocX?
 
 <table>
+
 <tr>
 <td><a href="">Edition</a></td>
 <td><a href=""><b>DocX</b></a></td>
@@ -37,6 +38,12 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td>Ms-PL</td>
 <td>Proprietary</td>
 </tr>
+<tr>
+<td>Email support</td>
+<td></td>
+<td>YES</td>
+</tr>
+
 <tr>
 <td>Create new Word documents</td>
 <td>YES</td>
@@ -57,6 +64,79 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td></td>
 <td>YES</td>
 </tr>
+<tr>
+<td>Supports .DOCX from Word 2007 and up</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Modify multiple documents in parallel for better performance</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Apply a template to a Word document</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Join documents, recreate portions from one to another</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Supports document protection with or without password</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Set document margins and page size</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Set line spacing, indentation, text direction, text alignment</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Manage fonts and font sizes</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Set text color, bold, underline, italic, strikethrough, highlighting</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Set page numbering</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Create sections</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+
+</table>
+
+**Supported Word document elements**
+
+* Add headers or footers which can be the same on all pages, or unique for the first page, or unique for odd/even pages. Can contain images, hyperlinks and more.
+* Insert/Modify paragraphs.
+* Insert/Modify numbered or bulleted lists.
+* Insert/Modify images. Flip, rotate, copy, modify, resize.
+* Insert/Modify tables. Insert/Remove rows, columns, change direction, column width, row height, borders, merge/delete cells.
+* Insert/Modify formatted equations or formulas.
+* Insert/Modify bookmarks.
+* Insert/Modify hyperlinks.
+* Insert/Modify horizontal lines.
+* Insert/Modify charts (bar, line, pie, 3D chart). Set colors, titles, legend, etc.
+* Find, remove or replace text. Supports case sensitivity and regular expressions.
+* Insert/Modify core or custom properties, such as author, address, subject, title, etc.
+* Insert a Table Of Contents. Set title, change formatting.
 
 ## Why would I use DocX?
 
