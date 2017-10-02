@@ -120,6 +120,7 @@ namespace Examples
                 BarChart c = new BarChart();
                 c.BarDirection = BarDirection.Column;
                 c.BarGrouping = BarGrouping.Standard;
+                c.showVal = true;
                 c.GapWidth = 400;
                 c.AddLegend(ChartLegendPosition.Bottom, false);
 

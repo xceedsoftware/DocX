@@ -155,6 +155,27 @@ namespace Novacode
         }
 
         /// <summary>
+        /// Get or set show values for this chart
+        /// </summary>
+        public Boolean showVal {
+            get {
+                XElement parentElement = ChartXml.Element(XName.Get("dLbls", DocX.c.NamespaceName));
+                XElement element = parentElement.Element(XName.Get("showVal", DocX.c.NamespaceName));
+                return(element.GetAttribute("val") == "1");
+            }
+            set {
+                XElement parentElement = ChartXml.Element(XName.Get("dLbls", DocX.c.NamespaceName));
+                XElement element = parentElement.Element(XName.Get("showVal", DocX.c.NamespaceName));
+                if (value) {
+                    element.SetAttributeValue("val", "1");
+                }
+                else {
+                    element.SetAttributeValue("val", "0");
+                }
+            }
+        }
+
+        /// <summary>
         /// Specifies how blank cells shall be plotted on a chart
         /// </summary>
         public DisplayBlanksAs DisplayBlanksAs
