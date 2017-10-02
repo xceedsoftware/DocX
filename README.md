@@ -1,25 +1,9 @@
-<img alt="DocX" src="https://download-codeplex.sec.s-msft.com/Download?ProjectName=docx&DownloadId=83756&Build=21031" />
-
-[Codeplex](https://docx.codeplex.com/) | [GitHub](https://github.com/WordDocX/DocX) | [Blog](http://cathalscorner.blogspot.com/) |  [Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GHSZDFX6JHS2A&lc=GB&item_name=DocX%20library&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted)
-
-
-<a href="https://www.nuget.org/packages/DocX/">
-<img alt="NuGet Version" src="https://img.shields.io/nuget/v/DocX.svg" /> 
-</a>
-<a href="https://travis-ci.org/WordDocX/DocX">
-<img alt="Travis CI Testing" src="https://travis-ci.org/WordDocX/DocX.svg?branch=master" />
-</a>
-<a href="https://ci.appveyor.com/project/PrzemyslawKlys/docx">
-<img alt="AppVeyor Testing" src="https://ci.appveyor.com/api/projects/status/vxpnp8ivvvq2l39m?svg=true" />
-</a>
-
 ***
 
 ## What is DocX?
 
 DocX is a .NET library that allows developers to manipulate Word 2007/2010/2013 files, in an easy and intuitive manner. DocX is fast, lightweight and best of all it does not require Microsoft Word or Office to be installed.
 
-DocX is available on both Codeplex and Github. We will try to update both.
 
 ## Install via Nuget
 ```
@@ -28,24 +12,10 @@ Install-Package DocX
 
 ## DocX Author
 
-DocX was written by a PhD student **Cathal Coffey** studying at the National University of Ireland Maynooth. 
-If you have found DocX useful and would like to buy Cathal lunch then you can do so via a paypal [donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GHSZDFX6JHS2A&lc=GB&item_name=DocX%20library&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted).
+DocX is the free, open source version of [Xceed Words for .NET](https://xceed.com/xceed-words-for-net). Originally written by Cathal Coffey, and maintained by Przemyslaw Klys, it is now maintained by Xceed. 
 
-To connect with Cathal on LinkedIn please follow: http://ie.linkedin.com/in/cathalcoffey
+Currently, the only difference between DocX and Xceed Words for .NET, is that Xceed Words for .NET can convert a Word document to PDF, and has professional technical support included in the subscription.  
 
-For Cathal's personal website follow: http://www.cathalcoffey.ie
-
-## DocX Maintenance
-
-Currently the development of DocX is mostly done by great support of community with project being maintained by Przemysław Kłys (MadBoy).
-
-To connect with Przemek on LinkedIn please follow http://www.linkedin.com/in/pklys
-
-For Przemek own little company website visit [Evotec](http://evotec.pl/)
-
-## Cutting Edge
-
-If you do not wish to wait for the next stable release of DocX.dll, you can build your own copy from the [latest source code](http://docx.codeplex.com/SourceControl/list/changesets#).
 
 ## What else do I need?
 
@@ -78,14 +48,14 @@ All standard [text formatting](http://cathalscorner.blogspot.com/2009/08/docx-v1
 
 DocX makes creating and manipulating documents a simple task. It does not use COM libraries nor does it require Microsoft Office to be installed. 
 
-The following [blog post](http://cathalscorner.blogspot.com/2010/06/cathal-why-did-you-create-docx.html) compares the code used to create a HelloWorld document using:
+The following [blog post](http://cathalscorner.blogspot.com/2010/06/cathal-why-did-you-create-docx.html) from Cathal Coffey compares the code used to create a HelloWorld document using:
  1. Office Interop libraries, 
  2. OOXML SDK, 
  3. DocX
 
 ## How can I learn more?
 
-I have dedicated a blog to DocX. I regularly post new code examples [here](http://cathalscorner.blogspot.com/). The below videos are also excellent tutorials on how to use DocX.
+Cathal Coffey's [blog](http://cathalscorner.blogspot.com/) contains some code examples . The below videos are also excellent tutorials on how to use DocX.
 
 [<img alt="Getting started" src="http://i3.codeplex.com/download?ProjectName=DocX&DownloadId=83768" />](http://docx.codeplex.com/Release/ProjectReleases.aspx?ReleaseId=32117#DownloadId=83636)
 [<img alt="Paragraphs and text formatting" src="http://i3.codeplex.com/download?ProjectName=DocX&DownloadId=83995">](http://docx.codeplex.com/Release/ProjectReleases.aspx?ReleaseId=32117#DownloadId=83996)
@@ -104,21 +74,8 @@ If you do, please email me.
 
 <img alt="Testimonials" src="http://download.codeplex.com/download?ProjectName=DocX&DownloadId=192124">
 
-## How can I send feedback!
-
-If you have found DocX useful at work or in a personal project, I would love to hear about it. Equally if you have decided not to use DocX, please send me and email stating why this is so. I will use this feedback to improve DocX in future releases. 
-
-My email address is coffey.cathal@gmail.com
-
-## Other Projects
-
-Cathal has another open source project [sql4csv](https://github.com/ccoffey/sql4csv/wiki). 
-sql4csv is a python library that offers an SQL "like" interface for .csv files. 
-
-## Our supporters
-
-<a href="https://www.jetbrains.com/">
-<img alt="ReSharper" src="https://evotec.xyz/resources/resharper_logos/logo_ReSharper.png" height = 100 />
-</a>
-
 ***
+
+<a href="https://www.nuget.org/packages/DocX/">
+<img alt="NuGet Version" src="https://img.shields.io/nuget/v/DocX.svg" /> 
+</a>
