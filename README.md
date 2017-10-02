@@ -1,5 +1,3 @@
-***
-
 ## What is DocX?
 
 DocX is a .NET library that allows developers to manipulate Word 2007/2010/2013 files, in an easy and intuitive manner. DocX is fast, lightweight and best of all it does not require Microsoft Word or Office to be installed.
@@ -23,26 +21,42 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 
 ## What are the main features of DocX?
 
-1. Insert, Remove or [Replace](http://cathalscorner.blogspot.com/2009/02/docx-net-library-for-manipulating-word.html) text in a document.  
-All standard [text formatting](http://cathalscorner.blogspot.com/2009/08/docx-v1008-released.html) is available:
- 1. Font {Family, Size, Color}, 
- 2. Bold, 
- 3. Italic, 
- 4. Underline, 
- 5. Strikethrough, 
- 6. Script {Sub, Super}, 
- 7. Highlight 
-2. Here’s a [cool example](http://cathalscorner.blogspot.com/2010/12/replace-text-across-many-documents-in.html) of replacing text across many documents in Parallel 
-3. Paragraph properties are exposed:
- 1. Direction LeftToRight or RightToLeft,
- 2. Indentation,
- 3. Alignment
-4. DocX also supports:
- 1. [Pictures](http://cathalscorner.blogspot.com/2009/04/docx-version-1002-released.html), 
- 2. [Hyperlinks](http://cathalscorner.blogspot.com/2010/06/docx-version-1009.html), 
- 3. [Tables](http://cathalscorner.blogspot.com/2010/06/docx-and-tables.html), 
- 4. [Headers & Footers](http://cathalscorner.blogspot.com/2010/06/docx-version-10010.html), 
- 5. [Custom Properties](http://cathalscorner.blogspot.com/2009/02/docx-net-library-for-manipulating-word.html)
+<table>
+<tr>
+<td><a href="">Edition</a></td>
+<td><a href=""><b>DocX</b></a></td>
+<td><a href="https://xceed.com/xceed-words-for-net"><b>Xceed Words for .NET</b></a></td>
+</tr>
+<tr>
+<td>Price</td>
+<td>Free</td>
+<td>$499.95</td>
+</tr>
+<tr>
+<td>License</td>
+<td>Ms-PL</td>
+<td>Proprietary</td>
+</tr>
+<tr>
+<td>Create new Word documents</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Modify Word documents</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Create new PDF documents</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Convert Word to PDF</td>
+<td></td>
+<td>YES</td>
+</tr>
 
 ## Why would I use DocX?
 
