@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F3022BB7-0E40-4C80-A495-37FEAF3671AB}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Examples</RootNamespace>
+    <AssemblyName>Examples</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Samples\Bookmark\BookmarkSample.cs" />
+    <Compile Include="Samples\Chart\ChartData.cs" />
+    <Compile Include="Samples\Chart\ChartSample.cs" />
+    <Compile Include="Samples\Document\DocumentSample.cs" />
+    <Compile Include="Samples\Equation\EquationSample.cs" />
+    <Compile Include="Samples\HeaderFooter\HeaderFooterSample.cs" />
+    <Compile Include="Samples\Hyperlink\HyperlinkSample.cs" />
+    <Compile Include="Samples\Image\ImageSample.cs" />
+    <Compile Include="Samples\Line\LineSample.cs" />
+    <Compile Include="Samples\List\ListSample.cs" />
+    <Compile Include="Samples\Margin\MarginSample.cs" />
+    <Compile Include="Samples\Miscellaneous\MiscellaneousSample.cs" />
+    <Compile Include="Samples\Paragraph\ParagraphSample.cs" />
+    <Compile Include="Samples\Parallel\ParallelSample.cs" />
+    <Compile Include="Samples\Protection\ProtectionSample.cs" />
+    <Compile Include="Samples\Section\SectionSample.cs" />
+    <Compile Include="Samples\TableOfContent\TableOfContentSample.cs" />
+    <Compile Include="Samples\Table\TableSample.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Samples\Bookmark\Resources\DocumentWithBookmarks.docx" />
+    <None Include="Samples\Document\Resources\First.docx" />
+    <None Include="Samples\Document\Resources\ReplaceText.docx" />
+    <None Include="Samples\Document\Resources\Second.docx" />
+    <None Include="Samples\Document\Resources\Template.docx" />
+    <None Include="Samples\Image\Resources\Input.docx" />
+    <None Include="Samples\Miscellaneous\Resources\TemplateInvoice.docx" />
+    <None Include="Samples\Parallel\Resources\Doc1.docx" />
+    <None Include="Samples\Parallel\Resources\Doc2.docx" />
+    <None Include="Samples\Parallel\Resources\Doc3.docx" />
+    <None Include="Samples\Table\Resources\DocumentWithTemplateTable.docx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Samples\Image\Resources\balloon.jpg" />
+    <Content Include="Samples\Miscellaneous\Resources\cupcake.png" />
+    <Content Include="Samples\Miscellaneous\Resources\Phone.png" />
+    <Content Include="Samples\Parallel\Resources\potato.jpg" />
+    <Content Include="Samples\Table\Resources\logo_xceed.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Xceed.Words.NET\Xceed.Words.NET.csproj">
+      <Project>{e863d072-aa8b-4108-b5f1-785241b37f67}</Project>
+      <Name>Xceed.Words.NET</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
