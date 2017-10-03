@@ -1,5 +1,0 @@
-before_build:
-  - nuget restore DocX.sln
-build:
-  project: DocX.sln
-  verbosity: minimal
