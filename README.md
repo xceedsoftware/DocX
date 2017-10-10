@@ -4,11 +4,6 @@ DocX is a .NET library that allows developers to manipulate Word 2007/2010/2013 
 
 **NOTE:** There is a new Master branch as of Oct. 3, 2017. Please read about the [Classic branch](../../wiki/Classic-Branch) if you were using this project before the change.
 
-## Install via Nuget
-```
-Install-Package DocX
-```
-
 ## DocX Author
 
 DocX is the free, open source version of [Xceed Words for .NET](https://xceed.com/xceed-words-for-net). Originally written by Cathal Coffey, and maintained by Przemyslaw Klys, it is now maintained by Xceed. 
