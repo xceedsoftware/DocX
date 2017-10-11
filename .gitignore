@@ -3,3 +3,7 @@
 ################################################################################
 
 *.config
+*.exe
+/Examples/bin/Debug/Examples.vshost.exe.manifest
+*.cache
+*.txt
