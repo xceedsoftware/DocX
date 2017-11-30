@@ -3468,14 +3468,14 @@ namespace Xceed.Words.NET
 
             processed += run.Value.Length;
           }
+        }
 
-          // Replace text when formatting matches.
-          if( formattingMatch )
-          {
+        // Replace text when formatting matches.
+        if( formattingMatch )
+        {
             var newValue = regexMatchHandler.Invoke( match.Groups[ 1 ].Value );
             this.InsertText( match.Index + match.Value.Length, newValue, trackChanges, newFormatting );
             this.RemoveText( match.Index, match.Value.Length, trackChanges );
-          }
         }
       }
     }
