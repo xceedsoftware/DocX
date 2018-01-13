@@ -3,3 +3,8 @@
 ################################################################################
 
 /.vs/Xceed.Words.NET/v15
+/Examples/bin
+/Examples/obj/x86/Debug
+/Examples/obj/x86/Release
+/Xceed.Words.NET/bin
+/Xceed.Words.NET/obj
