@@ -17,125 +17,125 @@ using System.Threading;
 
 namespace Xceed.Words.NET.Examples
 {
-  public class Program
-  {
-    internal const string SampleDirectory = @"..\..\Samples\";
-
-    private static void Main( string[] args )
+    public class Program
     {
+        internal const string SampleDirectory = @"..\..\Samples\";
 
-      Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo( "en-US" );
+        private static void Main(string[] args)
+        {
 
-      //Paragraphs      
-      ParagraphSample.SimpleFormattedParagraphs();
-      ParagraphSample.ForceParagraphOnSinglePage();
-      ParagraphSample.ForceMultiParagraphsOnSinglePage();
-      ParagraphSample.TextActions();
-      ParagraphSample.Heading();
+            Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
-      //Document
-      DocumentSample.AddCustomProperties();
-      DocumentSample.ReplaceText();
-      DocumentSample.ApplyTemplate();
-      DocumentSample.AppendDocument();
+            //Paragraphs      
+            ParagraphSample.SimpleFormattedParagraphs();
+            ParagraphSample.ForceParagraphOnSinglePage();
+            ParagraphSample.ForceMultiParagraphsOnSinglePage();
+            ParagraphSample.TextActions();
+            ParagraphSample.Heading();
 
-      //Images
-      ImageSample.AddPicture();
-      ImageSample.CopyPicture();
-      ImageSample.ModifyImage();
+            //Document
+            DocumentSample.AddCustomProperties();
+            DocumentSample.ReplaceText();
+            DocumentSample.ApplyTemplate();
+            DocumentSample.AppendDocument();
 
-      //Indentation/Direction/Margins
-      MarginSample.SetDirection();
-      MarginSample.Indentation();
-      MarginSample.Margins();
+            //Images
+            ImageSample.AddPicture();
+            ImageSample.CopyPicture();
+            ImageSample.ModifyImage();
 
-      //Header/Footers
-      HeaderFooterSample.HeadersFooters();     
+            //Indentation/Direction/Margins
+            MarginSample.SetDirection();
+            MarginSample.Indentation();
+            MarginSample.Margins();
 
-      //Tables
-      TableSample.InsertRowAndImageTable();
-      TableSample.TextDirectionTable();
-      TableSample.CreateRowsFromTemplate();
-      TableSample.ColumnsWidth();
-      TableSample.MergeCells();
+            //Header/Footers
+            HeaderFooterSample.HeadersFooters();
 
-      //Hyperlink
-      HyperlinkSample.Hyperlinks();
+            //Tables
+            TableSample.InsertRowAndImageTable();
+            TableSample.TextDirectionTable();
+            TableSample.CreateRowsFromTemplate();
+            TableSample.ColumnsWidth();
+            TableSample.MergeCells();
 
-      //Section
-      SectionSample.InsertSections();
+            //Hyperlink
+            HyperlinkSample.Hyperlinks();
 
-      //Lists
-      ListSample.AddList();
+            //Section
+            SectionSample.InsertSections();
 
-      //Equations
-      EquationSample.InsertEquation();
+            //Lists
+            ListSample.AddList();
 
-      //Bookmarks
-      BookmarkSample.InsertBookmarks();
-      BookmarkSample.ReplaceText();
+            //Equations
+            EquationSample.InsertEquation();
 
-      //Charts
-      ChartSample.BarChart();
-      ChartSample.LineChart();
-      ChartSample.PieChart();
-      ChartSample.Chart3D();
+            //Bookmarks
+            BookmarkSample.InsertBookmarks();
+            BookmarkSample.ReplaceText();
 
-      //Tale of Content
-      TableOfContentSample.InsertTableOfContent();
-      TableOfContentSample.InsertTableOfContentWithReference();
+            //Charts
+            ChartSample.BarChart();
+            ChartSample.LineChart();
+            ChartSample.PieChart();
+            ChartSample.Chart3D();
 
-      //Lines
-      LineSample.InsertHorizontalLine();
+            //Tale of Content
+            TableOfContentSample.InsertTableOfContent();
+            TableOfContentSample.InsertTableOfContentWithReference();
 
-      //Protection
-      ProtectionSample.AddPasswordProtection();
-      ProtectionSample.AddProtection();
+            //Lines
+            LineSample.InsertHorizontalLine();
 
-      //Parallel  
-      ParallelSample.DoParallelActions();
+            //Protection
+            ProtectionSample.AddPasswordProtection();
+            ProtectionSample.AddProtection();
 
-      //Others
-      MiscellaneousSample.CreateRecipe();
-      MiscellaneousSample.CompanyReport();
-      MiscellaneousSample.CreateInvoice();
+            //Parallel  
+            ParallelSample.DoParallelActions();
 
-      Console.WriteLine( "\nPress any key to exit." );
-      Console.ReadKey();
+            //Others
+            MiscellaneousSample.CreateRecipe();
+            MiscellaneousSample.CompanyReport();
+            MiscellaneousSample.CreateInvoice();
+
+            Console.WriteLine("\nPress any key to exit.");
+            Console.ReadKey(true);
+        }
+
+        #region Charts
+
+        private class ChartData
+        {
+            public String Mounth
+            {
+                get; set;
+            }
+            public Double Money
+            {
+                get; set;
+            }
+
+            public static List<ChartData> CreateCompanyList1()
+            {
+                List<ChartData> company1 = new List<ChartData>();
+                company1.Add(new ChartData() { Mounth = "January", Money = 100 });
+                company1.Add(new ChartData() { Mounth = "February", Money = 120 });
+                company1.Add(new ChartData() { Mounth = "March", Money = 140 });
+                return company1;
+            }
+
+            public static List<ChartData> CreateCompanyList2()
+            {
+                List<ChartData> company2 = new List<ChartData>();
+                company2.Add(new ChartData() { Mounth = "January", Money = 80 });
+                company2.Add(new ChartData() { Mounth = "February", Money = 160 });
+                company2.Add(new ChartData() { Mounth = "March", Money = 130 });
+                return company2;
+            }
+        }
+
+        #endregion
     }
-
-    #region Charts
-
-    private class ChartData
-    {
-      public String Mounth
-      {
-        get; set;
-      }
-      public Double Money
-      {
-        get; set;
-      }
-
-      public static List<ChartData> CreateCompanyList1()
-      {
-        List<ChartData> company1 = new List<ChartData>();
-        company1.Add( new ChartData() { Mounth = "January", Money = 100 } );
-        company1.Add( new ChartData() { Mounth = "February", Money = 120 } );
-        company1.Add( new ChartData() { Mounth = "March", Money = 140 } );
-        return company1;
-      }
-
-      public static List<ChartData> CreateCompanyList2()
-      {
-        List<ChartData> company2 = new List<ChartData>();
-        company2.Add( new ChartData() { Mounth = "January", Money = 80 } );
-        company2.Add( new ChartData() { Mounth = "February", Money = 160 } );
-        company2.Add( new ChartData() { Mounth = "March", Money = 130 } );
-        return company2;
-      }
-    }
-
-    #endregion
-  }
 }

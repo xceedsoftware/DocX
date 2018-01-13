@@ -14,36 +14,36 @@
 
 namespace Xceed.Words.NET
 {
-  public class Footers
-  {
-     #region Public Properties
-
-    public Footer Odd
+    public class Footers
     {
-      get;
-      set;
+        #region Public Properties
+
+        public Footer Odd
+        {
+            get;
+            set;
+        }
+
+        public Footer Even
+        {
+            get;
+            set;
+        }
+
+        public Footer First
+        {
+            get;
+            set;
+        }
+
+        #endregion
+
+        #region Constructors
+
+        internal Footers()
+        {
+        }
+
+        #endregion
     }
-
-    public Footer Even
-    {
-      get;
-      set;
-    }
-
-    public Footer First
-    {
-      get;
-      set;
-    }
-
-    #endregion
-
-    #region Constructors
-
-    internal Footers()
-    {
-    }
-
-    #endregion
-  }
 }

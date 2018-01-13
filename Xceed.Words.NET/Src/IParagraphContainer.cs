@@ -16,11 +16,11 @@ using System.Collections.ObjectModel;
 
 namespace Xceed.Words.NET
 {
-  public interface IParagraphContainer
-  {
-    ReadOnlyCollection<Paragraph> Paragraphs
+    public interface IParagraphContainer
     {
-      get;
+        ReadOnlyCollection<Paragraph> Paragraphs
+        {
+            get;
+        }
     }
-  }
 }
