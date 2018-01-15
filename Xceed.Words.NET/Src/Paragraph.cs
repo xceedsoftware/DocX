@@ -4021,7 +4021,9 @@ namespace Xceed.Words.NET
                 {
                     rList.Add(nextXElement);
                 }
-                else if ((nextXElement != null) && (nextXElement.Name.NamespaceName == DocX.w.NamespaceName) && (nextXElement.Name.LocalName == "bookmarkEnd" && nextXElement.Attribute("id")?.Value == curBookStartId))
+                else if ((nextXElement != null)
+                    && (nextXElement.Name.NamespaceName == DocX.w.NamespaceName)
+                    && (nextXElement.Name.LocalName == "bookmarkEnd" && nextXElement.Attribute(XName.Get("id", DocX.w.NamespaceName))?.Value == curBookStartId))
                 {
                     break;
                 }
