@@ -142,13 +142,6 @@ The following [blog post](http://cathalscorner.blogspot.com/2010/06/cathal-why-d
  2. OOXML SDK, 
  3. DocX
 
-## How can I learn more?
-
-Cathal Coffey's [blog](http://cathalscorner.blogspot.com/) contains some code examples . The below videos are also excellent tutorials on how to use DocX.
-
-[<img alt="Getting started" src="http://i3.codeplex.com/download?ProjectName=DocX&DownloadId=83768" />](http://docx.codeplex.com/Release/ProjectReleases.aspx?ReleaseId=32117#DownloadId=83636)
-[<img alt="Paragraphs and text formatting" src="http://i3.codeplex.com/download?ProjectName=DocX&DownloadId=83995">](http://docx.codeplex.com/Release/ProjectReleases.aspx?ReleaseId=32117#DownloadId=83996)
-
 ## Advanced Examples
 
  1. Step by step guide to create an invoice for a company. http://cathalscorner.blogspot.com/2009/08/docx-v1007-released.html
