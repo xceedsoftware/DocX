@@ -19,8 +19,8 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <table>
 
 <tr>
-<td><a href="">Edition</a></td>
-<td><a href=""><b>DocX</b></a></td>
+<td>Edition</td>
+<td><b>DocX</b></td>
 <td><a href="https://xceed.com/xceed-words-for-net"><b>Xceed Words for .NET</b></a></td>
 </tr>
 <tr>
