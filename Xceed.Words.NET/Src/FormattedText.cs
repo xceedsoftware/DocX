@@ -16,37 +16,37 @@ using System;
 
 namespace Xceed.Words.NET
 {
-  public class FormattedText : IComparable
-  {
-    #region Public Members
-
-    public int index;
-    public string text;
-    public Formatting formatting;
-
-    #endregion
-
-    #region Constructors
-
-    public FormattedText()
+    public class FormattedText : IComparable
     {
+        #region Public Members
+
+        public int index;
+        public string text;
+        public Formatting formatting;
+
+        #endregion
+
+        #region Constructors
+
+        public FormattedText()
+        {
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        public int CompareTo(object obj)
+        {
+            FormattedText other = (FormattedText)obj;
+            FormattedText tf = this;
+
+            if (other.formatting == null || tf.formatting == null)
+                return -1;
+
+            return tf.formatting.CompareTo(other.formatting);
+        }
+
+        #endregion
     }
-
-    #endregion
-
-    #region Public Methods
-
-    public int CompareTo( object obj )
-    {
-      FormattedText other = ( FormattedText )obj;
-      FormattedText tf = this;
-
-      if( other.formatting == null || tf.formatting == null )
-        return -1;
-
-      return tf.formatting.CompareTo( other.formatting );
-    }
-
-    #endregion
-  }
 }

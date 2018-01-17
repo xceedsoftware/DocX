@@ -21,28 +21,28 @@ using System.Collections.ObjectModel;
 
 namespace Xceed.Words.NET
 {
-  public class Header : Container, IParagraphContainer
-  {
-
-    #region Public Properties
-
-    public Paragraph PageNumberParagraph
+    public class Header : Container, IParagraphContainer
     {
-      get;
-      set;
-    }
 
-    public bool PageNumbers
-    {
-      get
-      {
-        return false;
-      }
+        #region Public Properties
 
-      set
-      {
-        XElement e = XElement.Parse
-        ( @"<w:sdt xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+        public Paragraph PageNumberParagraph
+        {
+            get;
+            set;
+        }
+
+        public bool PageNumbers
+        {
+            get
+            {
+                return false;
+            }
+
+            set
+            {
+                XElement e = XElement.Parse
+                (@"<w:sdt xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
                     <w:sdtPr>
                       <w:id w:val='157571950' />
                       <w:docPartObj>
@@ -67,167 +67,167 @@ namespace Xceed.Words.NET
                       </w:p>
                     </w:sdtContent>
                   </w:sdt>"
-       );
+               );
 
-        Xml.AddFirst( e );
+                Xml.AddFirst(e);
 
-        this.PageNumberParagraph = new Paragraph( this.Document, e.Descendants( XName.Get( "p", DocX.w.NamespaceName ) ).SingleOrDefault(), 0 );
-      }
-    }
-
-    public override ReadOnlyCollection<Paragraph> Paragraphs
-    {
-      get
-      {
-        var paragraphs = base.Paragraphs;
-        foreach( var paragraph in paragraphs )
-        {
-          paragraph.PackagePart = this.PackagePart;
-        }
-        return paragraphs;
-      }
-    }
-
-    public override List<Table> Tables
-    {
-      get
-      {
-        var l = base.Tables;
-        l.ForEach( x => x.PackagePart = this.PackagePart );
-        return l;
-      }
-    }
-
-    public List<Image> Images
-    {
-      get
-      {
-        var imageRelationships = this.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" );
-        if( imageRelationships.Count() > 0 )
-        {
-          return
-          (
-              from i in imageRelationships
-              select new Image( Document, i )
-          ).ToList();
+                this.PageNumberParagraph = new Paragraph(this.Document, e.Descendants(XName.Get("p", DocX.w.NamespaceName)).SingleOrDefault(), 0);
+            }
         }
 
-        return new List<Image>();
-      }
+        public override ReadOnlyCollection<Paragraph> Paragraphs
+        {
+            get
+            {
+                var paragraphs = base.Paragraphs;
+                foreach (var paragraph in paragraphs)
+                {
+                    paragraph.PackagePart = this.PackagePart;
+                }
+                return paragraphs;
+            }
+        }
+
+        public override List<Table> Tables
+        {
+            get
+            {
+                var l = base.Tables;
+                l.ForEach(x => x.PackagePart = this.PackagePart);
+                return l;
+            }
+        }
+
+        public List<Image> Images
+        {
+            get
+            {
+                var imageRelationships = this.PackagePart.GetRelationshipsByType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+                if (imageRelationships.Count() > 0)
+                {
+                    return
+                    (
+                        from i in imageRelationships
+                        select new Image(Document, i)
+                    ).ToList();
+                }
+
+                return new List<Image>();
+            }
+        }
+
+        #endregion
+
+        #region Constructors
+
+        internal Header(DocX document, XElement xml, PackagePart mainPart) : base(document, xml)
+        {
+            this.PackagePart = mainPart;
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        public override Paragraph InsertParagraph()
+        {
+            var p = base.InsertParagraph();
+            p.PackagePart = this.PackagePart;
+            return p;
+        }
+
+        public override Paragraph InsertParagraph(int index, string text, bool trackChanges)
+        {
+            var p = base.InsertParagraph(index, text, trackChanges);
+            p.PackagePart = this.PackagePart;
+            return p;
+        }
+
+        public override Paragraph InsertParagraph(Paragraph p)
+        {
+            p.PackagePart = this.PackagePart;
+            return base.InsertParagraph(p);
+        }
+
+        public override Paragraph InsertParagraph(int index, Paragraph p)
+        {
+            p.PackagePart = this.PackagePart;
+            return base.InsertParagraph(index, p);
+        }
+
+        public override Paragraph InsertParagraph(int index, string text, bool trackChanges, Formatting formatting)
+        {
+            var p = base.InsertParagraph(index, text, trackChanges, formatting);
+            p.PackagePart = this.PackagePart;
+            return p;
+        }
+
+        public override Paragraph InsertParagraph(string text)
+        {
+            var p = base.InsertParagraph(text);
+            p.PackagePart = this.PackagePart;
+            return p;
+        }
+
+        public override Paragraph InsertParagraph(string text, bool trackChanges)
+        {
+            var p = base.InsertParagraph(text, trackChanges);
+            p.PackagePart = this.PackagePart;
+            return p;
+        }
+
+        public override Paragraph InsertParagraph(string text, bool trackChanges, Formatting formatting)
+        {
+            var p = base.InsertParagraph(text, trackChanges, formatting);
+            p.PackagePart = this.PackagePart;
+
+            return p;
+        }
+
+        public override Paragraph InsertEquation(String equation)
+        {
+            var p = base.InsertEquation(equation);
+            p.PackagePart = this.PackagePart;
+            return p;
+        }
+
+        public override Table InsertTable(int rowCount, int columnCount)
+        {
+            var table = base.InsertTable(rowCount, columnCount);
+            return this.SetMainPart(table);
+        }
+
+        public override Table InsertTable(int index, Table t)
+        {
+            var table = base.InsertTable(index, t);
+            return this.SetMainPart(table);
+        }
+
+        public override Table InsertTable(Table t)
+        {
+            var table = base.InsertTable(t);
+            return this.SetMainPart(table);
+        }
+
+        public override Table InsertTable(int index, int rowCount, int columnCount)
+        {
+            var table = base.InsertTable(index, rowCount, columnCount);
+            return this.SetMainPart(table);
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private Table SetMainPart(Table table)
+        {
+            if (table != null)
+            {
+                table.PackagePart = this.PackagePart;
+            }
+            return table;
+        }
+
+        #endregion
     }
-
-    #endregion
-
-    #region Constructors
-
-    internal Header( DocX document, XElement xml, PackagePart mainPart ) : base( document, xml )
-    {
-      this.PackagePart = mainPart;
-    }
-
-    #endregion
-
-    #region Public Methods
-
-    public override Paragraph InsertParagraph()
-    {
-      var p = base.InsertParagraph();
-      p.PackagePart = this.PackagePart;
-      return p;
-    }
-
-    public override Paragraph InsertParagraph( int index, string text, bool trackChanges )
-    {
-      var p = base.InsertParagraph( index, text, trackChanges );
-      p.PackagePart = this.PackagePart;
-      return p;
-    }
-
-    public override Paragraph InsertParagraph( Paragraph p )
-    {
-      p.PackagePart = this.PackagePart;
-      return base.InsertParagraph( p );
-    }
-
-    public override Paragraph InsertParagraph( int index, Paragraph p )
-    {
-      p.PackagePart = this.PackagePart;
-      return base.InsertParagraph( index, p );
-    }
-
-    public override Paragraph InsertParagraph( int index, string text, bool trackChanges, Formatting formatting )
-    {
-      var p = base.InsertParagraph( index, text, trackChanges, formatting );
-      p.PackagePart = this.PackagePart;
-      return p;
-    }
-
-    public override Paragraph InsertParagraph( string text )
-    {
-      var p = base.InsertParagraph( text );
-      p.PackagePart = this.PackagePart;
-      return p;
-    }
-
-    public override Paragraph InsertParagraph( string text, bool trackChanges )
-    {
-      var p = base.InsertParagraph( text, trackChanges );
-      p.PackagePart = this.PackagePart;
-      return p;
-    }
-
-    public override Paragraph InsertParagraph( string text, bool trackChanges, Formatting formatting )
-    {
-      var p = base.InsertParagraph( text, trackChanges, formatting );
-      p.PackagePart = this.PackagePart;
-
-      return p;
-    }
-
-    public override Paragraph InsertEquation( String equation )
-    {
-      var p = base.InsertEquation( equation );
-      p.PackagePart = this.PackagePart;
-      return p;
-    }
-
-    public override Table InsertTable( int rowCount, int columnCount )
-    {
-      var table = base.InsertTable( rowCount, columnCount );
-      return this.SetMainPart( table );
-    }
-
-    public override Table InsertTable( int index, Table t )
-    {
-      var table = base.InsertTable( index, t );
-      return this.SetMainPart( table );
-    }
-
-    public override Table InsertTable( Table t )
-    {
-      var table = base.InsertTable( t );
-      return this.SetMainPart( table );
-    }
-
-    public override Table InsertTable( int index, int rowCount, int columnCount )
-    {
-      var table = base.InsertTable( index, rowCount, columnCount );
-      return this.SetMainPart( table );
-    }
-
-    #endregion
-
-    #region Private Methods
-
-    private Table SetMainPart( Table table )
-    {
-      if( table != null )
-      {
-        table.PackagePart = this.PackagePart;
-      }
-      return table;
-    }
-
-    #endregion
-  }
 }

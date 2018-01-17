@@ -14,36 +14,36 @@
 
 namespace Xceed.Words.NET
 {
-  public class Headers
-  {
-    #region Public Properties
-
-    public Header Odd
+    public class Headers
     {
-      get;
-      set;
+        #region Public Properties
+
+        public Header Odd
+        {
+            get;
+            set;
+        }
+
+        public Header Even
+        {
+            get;
+            set;
+        }
+
+        public Header First
+        {
+            get;
+            set;
+        }
+
+        #endregion
+
+        #region Constructors
+
+        internal Headers()
+        {
+        }
+
+        #endregion
     }
-
-    public Header Even
-    {
-      get;
-      set;
-    }
-
-    public Header First
-    {
-      get;
-      set;
-    }
-
-    #endregion
-
-    #region Constructors
-
-    internal Headers()
-    {
-    }
-
-    #endregion
-  }
 }

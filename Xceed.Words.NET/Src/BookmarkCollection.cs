@@ -17,18 +17,18 @@ using System.Linq;
 
 namespace Xceed.Words.NET
 {
-  public class BookmarkCollection : List<Bookmark>
-  {
-    public BookmarkCollection()
+    public class BookmarkCollection : List<Bookmark>
     {
-    }
+        public BookmarkCollection()
+        {
+        }
 
-    public Bookmark this[ string name ]
-    {
-      get
-      {
-        return this.FirstOrDefault( x => x.Name.Equals( name, System.StringComparison.CurrentCultureIgnoreCase ) );
-      }
+        public Bookmark this[string name]
+        {
+            get
+            {
+                return this.FirstOrDefault(x => x.Name.Equals(name, System.StringComparison.CurrentCultureIgnoreCase));
+            }
+        }
     }
-  }
 }

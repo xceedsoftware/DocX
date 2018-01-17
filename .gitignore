@@ -1,0 +1,10 @@
+﻿################################################################################
+# 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
+################################################################################
+
+/.vs/Xceed.Words.NET/v15
+/Examples/bin
+/Examples/obj/x86/Debug
+/Examples/obj/x86/Release
+/Xceed.Words.NET/bin
+/Xceed.Words.NET/obj

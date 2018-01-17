@@ -17,18 +17,18 @@ using System.Xml.Linq;
 
 namespace Xceed.Words.NET
 {
-  public class Section : Container
-  {
-
-    public SectionBreakType SectionBreakType;
-
-    internal Section( DocX document, XElement xml ) : base( document, xml )
+    public class Section : Container
     {
-    }
 
-    public List<Paragraph> SectionParagraphs
-    {
-      get; set;
+        public SectionBreakType SectionBreakType;
+
+        internal Section(DocX document, XElement xml) : base(document, xml)
+        {
+        }
+
+        public List<Paragraph> SectionParagraphs
+        {
+            get; set;
+        }
     }
-  }
 }
