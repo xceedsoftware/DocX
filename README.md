@@ -95,6 +95,16 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td>YES</td>
 </tr>
 <tr>
+<td>Wrap text around pictures</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Pictures with cropping</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
 <td>Manage fonts and font sizes</td>
 <td>YES</td>
 <td>YES</td>
