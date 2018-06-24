@@ -643,7 +643,8 @@ namespace Xceed.Words.NET
             formatting.Size = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2;
             break;
           case "rFonts":
-            formatting.FontFamily = new Font(option.GetAttribute(XName.Get("cs", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("ascii", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("hAnsi", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("eastAsia", DocX.w.NamespaceName)));
+            string fontFamily = option.GetAttribute(XName.Get("cs", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("ascii", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("hAnsi", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("eastAsia", DocX.w.NamespaceName), null);
+            formatting.FontFamily = (fontFamily != null) ? new Font(fontFamily) : null;
             break;
           case "color":
             try
