@@ -718,6 +718,9 @@ namespace Xceed.Words.NET
           case "strike":
             formatting.StrikeThrough = NET.StrikeThrough.strike;
             break;
+          case "dstrike":
+            formatting.StrikeThrough = NET.StrikeThrough.doubleStrike;
+            break;
           case "u":
             formatting.UnderlineStyle = HelperFunctions.GetUnderlineStyle(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName)));
             break;
