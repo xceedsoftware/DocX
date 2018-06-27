@@ -79,15 +79,33 @@ namespace Xceed.Words.NET.Examples
         p2.AppendHyperlink( h2 ).Color( Color.Blue ).UnderlineStyle( UnderlineStyle.singleLine );
         p2.Append( "." ).SpacingAfter( 40d );
 
-        // Add an Hyperlink to this document.
-        var h3 = document.AddHyperlink( "microsoft", new Uri( "http://www.microsoft.com" ) );
-        // Add a paragraph
-        var p3 = document.InsertParagraph( "The hyperlink from this paragraph has been removed. " );
+        // Create a bookmark anchor.
+        var bookmarkAnchor = "bookmarkAnchor";
+        // Add an Hyperlink to this document pointing to a bookmark anchor.
+        var h3 = document.AddHyperlink( "Special Data", bookmarkAnchor );
+        // Add a paragraph.
+        var p3 = document.InsertParagraph( "An hyperlink pointing to a bookmark of this Document has been added at the end of this paragraph: " );
         // Append an hyperlink to a paragraph.
-        p3.AppendHyperlink( h3 ).Color( Color.Green ).UnderlineStyle( UnderlineStyle.singleLine ).Italic();
+        p3.AppendHyperlink( h3 ).Color( Color.Red ).UnderlineStyle( UnderlineStyle.singleLine );
+        p3.Append( "." ).SpacingAfter( 40d );
 
-        // Remove the first hyperlink of paragraph 3.
-        p3.RemoveHyperlink( 0 );
+        // Add an Hyperlink to this document.
+        var h4 = document.AddHyperlink( "microsoft", new Uri( "http://www.microsoft.com" ) );
+        // Add a paragraph
+        var p4 = document.InsertParagraph( "The hyperlink from this paragraph has been removed. " );
+        // Append an hyperlink to a paragraph.
+        p4.AppendHyperlink( h4 ).Color( Color.Green ).UnderlineStyle( UnderlineStyle.singleLine ).Italic();
+
+        // Remove the first hyperlink of paragraph 4.
+        p4.RemoveHyperlink( 0 );
+
+        // Add a paragraph.
+        var p5 = document.InsertParagraph( "This is a paragraph containing a" );
+        // Add a bookmark into the paragraph by setting its bookmark anchor.
+        p5.AppendBookmark( bookmarkAnchor );
+        p5.Append( " bookmark " );
+        p5.Append( "referenced by a hyperlink defined in an earlier paragraph." );
+        p5.SpacingBefore( 200d );
 
         document.Save();
         Console.WriteLine( "\tCreated: Hyperlinks.docx\n" );

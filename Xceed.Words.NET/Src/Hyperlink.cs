@@ -148,7 +148,7 @@ namespace Xceed.Words.NET
     {
       get
       {
-        if( type == 0 && id != String.Empty )
+        if( (type == 0) && !String.IsNullOrEmpty(id) )
         {
           var r = this.PackagePart.GetRelationship( id );
           return r.TargetUri;
@@ -189,7 +189,11 @@ namespace Xceed.Words.NET
     internal Hyperlink( DocX document, PackagePart mainPart, XElement i ) : base( document, i )
     {
       this.type = 0;
-      this.id = i.Attribute( XName.Get( "id", DocX.r.NamespaceName ) ).Value;
+      var idAttribute = i.Attribute( XName.Get( "id", DocX.r.NamespaceName ) );
+      if( idAttribute != null )
+      {
+        this.id = idAttribute.Value;
+      }
 
       StringBuilder sb = new StringBuilder();
       HelperFunctions.GetTextRecursive( i, ref sb );
@@ -204,8 +208,10 @@ namespace Xceed.Words.NET
 
       try
       {
-        int start = instrText.Value.IndexOf( "HYPERLINK \"" ) + "HYPERLINK \"".Length;
-        int end = instrText.Value.IndexOf( "\"", start );
+        int start = instrText.Value.IndexOf( "HYPERLINK \"" );
+        if( start != -1 )
+          start += "HYPERLINK \"".Length;
+        int end = instrText.Value.IndexOf( "\"", Math.Max( 0, start ));
         if( start != -1 && end != -1 )
         {
           this.uri = new Uri( instrText.Value.Substring( start, end - start ), UriKind.Absolute );

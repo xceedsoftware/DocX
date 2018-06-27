@@ -55,6 +55,16 @@ namespace Xceed.Words.NET
 
     private float _pageSizeMultiplier = 20.0f;
 
+    private readonly object nextFreeDocPrIdLock = new object();
+    private long? nextFreeDocPrId;
+
+    #endregion
+
+    #region Internal Constants
+
+    internal const string RelationshipImage = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
+    internal const string ContentTypeApplicationRelationShipXml = "application/vnd.openxmlformats-package.relationships+xml";
+
     #endregion
 
     #region Internal Members
@@ -551,14 +561,14 @@ namespace Xceed.Words.NET
     /// </code>
     /// </example>
     /// <seealso cref="AddImage(string)"/>
-    /// <seealso cref="AddImage(Stream)"/>
+    /// <seealso cref="AddImage(Stream, string)"/>
     /// <seealso cref="Paragraph.Pictures"/>
     /// <seealso cref="Paragraph.InsertPicture"/>
     public List<Image> Images
     {
       get
       {
-        var imageRelationships = this.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" );
+        var imageRelationships = this.PackagePart.GetRelationshipsByType( RelationshipImage );
         if( imageRelationships.Any() )
         {
           return
@@ -940,7 +950,7 @@ namespace Xceed.Words.NET
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml",
                 "application/vnd.openxmlformats-package.core-properties+xml",
                 "application/vnd.openxmlformats-officedocument.extended-properties+xml",
-                "application/vnd.openxmlformats-package.relationships+xml"
+                ContentTypeApplicationRelationShipXml
             };
 
       var imageContentTypes = new List<string>
@@ -1520,9 +1530,7 @@ namespace Xceed.Words.NET
 
       using( FileStream fs = new FileStream( filename, FileMode.Open, FileAccess.Read, FileShare.Read ) )
       {
-        var data = new byte[ fs.Length ];
-        fs.Read( data, 0, ( int )fs.Length );
-        ms.Write( data, 0, ( int )fs.Length );
+        CopyStream( fs, ms );
       }
 
       // Open the docx package
@@ -1697,6 +1705,7 @@ namespace Xceed.Words.NET
     /// Add an Image into this document from a fully qualified or relative filename.
     /// </summary>
     /// <param name="filename">The fully qualified or relative filename.</param>
+    /// <param name="contentType">MIME type of image, guessed if not given.</param>
     /// <returns>An Image file.</returns>
     /// <example>
     /// Add an Image into this document from a fully qualified filename.
@@ -1712,7 +1721,7 @@ namespace Xceed.Words.NET
     /// }// Release this document from memory.
     /// </code>
     /// </example>
-    /// <seealso cref="AddImage(System.IO.Stream)"/>
+    /// <seealso cref="AddImage(Stream, string)"/>
     /// <seealso cref="Paragraph.InsertPicture"/>
     public Image AddImage( string filename )
     {
@@ -1747,13 +1756,14 @@ namespace Xceed.Words.NET
           break;
       }
 
-      return AddImage( filename, contentType );
+      return AddImage( filename as object, contentType );
     }
 
     /// <summary>
     /// Add an Image into this document from a Stream.
     /// </summary>
     /// <param name="stream">A Stream stream.</param>
+    /// <param name="contentType">MIME type of image.</param>
     /// <returns>An Image file.</returns>
     /// <example>
     /// Add an Image into a document using a Stream. 
@@ -1775,17 +1785,17 @@ namespace Xceed.Words.NET
     /// </example>
     /// <seealso cref="AddImage(string)"/>
     /// <seealso cref="Paragraph.InsertPicture"/>
-    public Image AddImage( Stream stream )
+    public Image AddImage( Stream stream, string contentType = "image/jpeg" )
     {
-      return AddImage( stream as object );
+      return AddImage( stream as object, contentType );
     }
 
     /// <summary>
-    /// Adds a hyperlink to a document and creates a Paragraph which uses it.
+    /// Adds a hyperlink with a uri to a document and creates a Paragraph which uses it.
     /// </summary>
     /// <param name="text">The text as displayed by the hyperlink.</param>
     /// <param name="uri">The hyperlink itself.</param>
-    /// <returns>Returns a hyperlink that can be inserted into a Paragraph.</returns>
+    /// <returns>Returns a hyperlink with a uri that can be inserted into a Paragraph.</returns>
     /// <example>
     /// Adds a hyperlink to a document and creates a Paragraph which uses it.
     /// <code>
@@ -1808,26 +1818,18 @@ namespace Xceed.Words.NET
     /// </example>
     public Hyperlink AddHyperlink( string text, Uri uri )
     {
-      var i = new XElement
-      (
-          XName.Get( "hyperlink", w.NamespaceName ),
-          new XAttribute( r + "id", string.Empty ),
-          new XAttribute( w + "history", "1" ),
-          new XElement( XName.Get( "r", w.NamespaceName ),
-          new XElement( XName.Get( "rPr", w.NamespaceName ),
-          new XElement( XName.Get( "rStyle", w.NamespaceName ),
-          new XAttribute( w + "val", "Hyperlink" ) ) ),
-          new XElement( XName.Get( "t", w.NamespaceName ), text ) )
-      );
+      return this.AddHyperlink( text, uri, null );     
+    }
 
-      var h = new Hyperlink( this, this.PackagePart, i );
-
-      h.text = text;
-      h.uri = uri;
-
-      this.AddHyperlinkStyleIfNotPresent();
-
-      return h;
+    /// <summary>
+    /// Adds a hyperlink with an anchor to a document and creates a Paragraph which uses it.
+    /// </summary>
+    /// <param name="text">The text as displayed by the hyperlink.</param>
+    /// <param name="anchor">The anchor to a bookmark.</param>
+    /// <returns>Returns a hyperlink with an anchor that can be inserted into a Paragraph.</returns>
+    public Hyperlink AddHyperlink( string text, string anchor )
+    {
+      return this.AddHyperlink( text, null, anchor );
     }
 
     /// <summary>
@@ -2194,7 +2196,14 @@ namespace Xceed.Words.NET
       {
         using( FileStream fs = new FileStream( _filename, FileMode.Create ) )
         {
-          fs.Write( _memoryStream.ToArray(), 0, ( int )_memoryStream.Length );
+          if( _memoryStream.CanSeek )
+          {
+            // Write to the beginning of the stream
+            _memoryStream.Position = 0;
+            CopyStream( _memoryStream, fs );
+          }
+          else
+            fs.Write( _memoryStream.ToArray(), 0, ( int )_memoryStream.Length );
         }
       }
       else if( _stream.CanSeek )  //Check if stream can be seeked to support System.Web.HttpResponseStream.
@@ -3040,11 +3049,7 @@ namespace Xceed.Words.NET
       document.Document = document;
 
       #region MainDocumentPart
-      document.PackagePart = package.GetParts().Where
-      (
-        p => p.ContentType.Equals( HelperFunctions.DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) ||
-             p.ContentType.Equals( HelperFunctions.TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase )
-      ).Single();
+      document.PackagePart = HelperFunctions.GetMainDocumentPart( package );
 
       using( TextReader tr = new StreamReader( document.PackagePart.GetStream( FileMode.Open, FileAccess.Read ) ) )
       {
@@ -3249,12 +3254,37 @@ namespace Xceed.Words.NET
       var newImageStream = ( o is string ) ? new FileStream( o as string, FileMode.Open, FileAccess.Read ) : o as Stream;
 
       // Get all image parts in word\document.xml
-      var ImageRelationships = this.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" );
-      var imageParts = ImageRelationships.Select( ir => _package.GetParts().FirstOrDefault( p => p.Uri.ToString().EndsWith( ir.TargetUri.ToString() ) ) )
-                                         .Where( x => ( x != null ) )
-                                         .ToList();
+      PackagePartCollection packagePartCollection = _package.GetParts();
+      var parts = packagePartCollection.Select( x => new
+      {
+        UriString = x.Uri.ToString(),
+        Part = x
+      } ).ToList();
 
-      foreach( PackagePart relsPart in _package.GetParts().Where( part => part.Uri.ToString().Contains( "/word/" ) ).Where( part => part.ContentType.Equals( "application/vnd.openxmlformats-package.relationships+xml" ) ) )
+      var partLookup = parts.ToDictionary( x => x.UriString, x => x.Part, StringComparer.Ordinal );
+
+      List<PackagePart> imageParts = new List<PackagePart>();
+      foreach( var item in this.PackagePart.GetRelationshipsByType( RelationshipImage ) )
+      {
+        var targetUri = item.TargetUri.ToString();
+        PackagePart part;
+        if( partLookup.TryGetValue( targetUri, out part ) )
+        {
+          imageParts.Add( part );
+        }
+      }
+
+      IEnumerable<PackagePart> relsParts = parts
+        .Where(
+          part =>
+          part.Part.ContentType.Equals( ContentTypeApplicationRelationShipXml, StringComparison.Ordinal ) &&
+          part.UriString.IndexOf( "/word/", StringComparison.Ordinal ) > -1 )
+        .Select( part => part.Part );
+
+      XName xNameTarget = XName.Get( "Target" );
+      XName xNameTargetMode = XName.Get( "TargetMode" );
+
+      foreach( PackagePart relsPart in relsParts )
       {
         XDocument relsPartContent;
         using( TextReader tr = new StreamReader( relsPart.GetStream( FileMode.Open, FileAccess.Read ) ) )
@@ -3271,14 +3301,15 @@ namespace Xceed.Words.NET
 
         foreach( XElement imageRelationship in imageRelationships )
         {
-          if( imageRelationship.Attribute( XName.Get( "Target" ) ) != null )
+          XAttribute attribute = imageRelationship.Attribute( xNameTarget );
+          if( attribute != null )
           {
-            var targetModeAttr = imageRelationship.Attribute( XName.Get( "TargetMode" ) );
+            var targetModeAttr = imageRelationship.Attribute( xNameTargetMode );
             var targetMode = ( targetModeAttr != null ) ? targetModeAttr.Value : string.Empty;
 
             if( !targetMode.Equals( "External" ) )
             {
-              var imagePartUri = Path.Combine( Path.GetDirectoryName( relsPart.Uri.ToString() ), imageRelationship.Attribute( XName.Get( "Target" ) ).Value );
+              var imagePartUri = Path.Combine( Path.GetDirectoryName( relsPart.Uri.ToString() ), attribute.Value );
               imagePartUri = Path.GetFullPath( imagePartUri.Replace( "\\_rels", string.Empty ) );
               imagePartUri = imagePartUri.Replace( Path.GetFullPath( "\\" ), string.Empty ).Replace( "\\", "/" );
 
@@ -3297,19 +3328,15 @@ namespace Xceed.Words.NET
       // Loop through each image part in this document.
       foreach( PackagePart pp in imageParts )
       {
-        // Open a tempory Stream to this image part.
+        // Get the image object for this image part.
         using( Stream tempStream = pp.GetStream( FileMode.Open, FileAccess.Read ) )
         {
           // Compare this image to the new image being added.
           if( HelperFunctions.IsSameFile( tempStream, newImageStream ) )
           {
-            // Get the image object for this image part
-            var id = this.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" )
-                             .Where( r => r.TargetUri == pp.Uri )
-                             .Select( r => r.Id ).First();
-
             // Return the Image object
-            return Images.Where( i => i.Id == id ).First();
+            PackageRelationship relationship = this.PackagePart.GetRelationshipsByType( RelationshipImage ).First( x => x.TargetUri == pp.Uri );
+            return new Image( this, relationship );
           }
         }
       }
@@ -3328,11 +3355,11 @@ namespace Xceed.Words.NET
 
       } while( _package.PartExists( new Uri( imgPartUriPath, UriKind.Relative ) ) );
 
-      // We are now guareenteed that imgPartUriPath is unique.
+      // We are now guaranteed that imgPartUriPath is unique.
       var img = _package.CreatePart( new Uri( imgPartUriPath, UriKind.Relative ), contentType, CompressionOption.Normal );
 
       // Create a new image relationship
-      var rel = this.PackagePart.CreateRelationship( img.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" );
+      var rel = this.PackagePart.CreateRelationship( img.Uri, TargetMode.Internal, RelationshipImage );
 
       // Open a Stream to the newly created Image part.
       using( Stream stream = new PackagePartStream( img.GetStream( FileMode.Create, FileAccess.Write ) ) )
@@ -3340,9 +3367,7 @@ namespace Xceed.Words.NET
         // Using the Stream to the real image, copy this streams data into the newly create Image part.
         using( newImageStream )
         {
-          byte[] bytes = new byte[ newImageStream.Length ];
-          newImageStream.Read( bytes, 0, ( int )newImageStream.Length );
-          stream.Write( bytes, 0, ( int )newImageStream.Length );
+          CopyStream( newImageStream, stream, bufferSize: 4096 );
         }// Close the Stream to the new image.
       }// Close the Stream to the new image part.
 
@@ -3634,6 +3659,42 @@ namespace Xceed.Words.NET
       }
     }
 
+    /// <summary>
+    /// Finds the next free Id for bookmarkStart/docPr.
+    /// </summary>
+    internal long GetNextFreeDocPrId()
+    {
+      lock( nextFreeDocPrIdLock )
+      {
+        if( nextFreeDocPrId != null )
+        {
+          nextFreeDocPrId++;
+          return nextFreeDocPrId.Value;
+        }
+
+        var xNameBookmarkStart = XName.Get( "bookmarkStart", DocX.w.NamespaceName );
+        var xNameDocPr = XName.Get( "docPr", DocX.wp.NamespaceName );
+
+        long newDocPrId = 1;
+        HashSet<string> existingIds = new HashSet<string>();
+        foreach( var bookmarkId in Xml.Descendants() )
+        {
+          if( bookmarkId.Name != xNameBookmarkStart && bookmarkId.Name != xNameDocPr )
+            continue;
+
+          var idAtt = bookmarkId.Attributes().FirstOrDefault( x => x.Name.LocalName == "id" );
+          if( idAtt != null )
+            existingIds.Add( idAtt.Value );
+        }
+
+        while( existingIds.Contains( newDocPrId.ToString() ) )
+          newDocPrId++;
+
+        nextFreeDocPrId = newDocPrId;
+        return nextFreeDocPrId.Value;
+      }
+    }
+
     #endregion
 
     #region Private Methods
@@ -3774,16 +3835,11 @@ namespace Xceed.Words.NET
         {
           using( Stream s_write = new PackagePartStream( new_pp.GetStream( FileMode.Create ) ) )
           {
-            var buffer = new byte[ 32768 ];
-            int read;
-            while( ( read = s_read.Read( buffer, 0, buffer.Length ) ) > 0 )
-            {
-              s_write.Write( buffer, 0, read );
-            }
+            CopyStream( s_read, s_write );
           }
         }
 
-        var pr = this.PackagePart.CreateRelationship( new Uri( new_uri, UriKind.Relative ), TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" );
+        var pr = this.PackagePart.CreateRelationship( new Uri( new_uri, UriKind.Relative ), TargetMode.Internal, RelationshipImage );
 
         var new_Id = pr.Id;
 
@@ -3965,9 +4021,11 @@ namespace Xceed.Words.NET
     private void merge_numbering( PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, DocX remote )
     {
       // Add each remote numbering to this document.
+      var abstractNumElement = _numbering.Root.Elements( XName.Get( "abstractNum", w.NamespaceName ) );
       var remote_abstractNums = remote._numbering.Root.Elements( XName.Get( "abstractNum", w.NamespaceName ) );
-      int guidd = 0;
-      foreach( var an in remote_abstractNums )
+
+      int guidd = -1;
+      foreach( var an in abstractNumElement )
       {
         var a = an.Attribute( XName.Get( "abstractNumId", w.NamespaceName ) );
         if( a != null )
@@ -3985,8 +4043,10 @@ namespace Xceed.Words.NET
       guidd++;
 
       var remote_nums = remote._numbering.Root.Elements( XName.Get( "num", w.NamespaceName ) );
+      var numElement = _numbering.Root.Elements( XName.Get( "num", w.NamespaceName ) );
+
       int guidd2 = 0;
-      foreach( var an in remote_nums )
+      foreach( var an in numElement )
       {
         var a = an.Attribute( XName.Get( "numId", w.NamespaceName ) );
         if( a != null )
@@ -4005,6 +4065,7 @@ namespace Xceed.Words.NET
 
       foreach( XElement remote_abstractNum in remote_abstractNums )
       {
+        var currentGuidd2 = guidd2;
         var abstractNumId = remote_abstractNum.Attribute( XName.Get( "abstractNumId", w.NamespaceName ) );
         if( abstractNumId != null )
         {
@@ -4013,38 +4074,51 @@ namespace Xceed.Words.NET
 
           foreach( XElement remote_num in remote_nums )
           {
+            // in document
             var numIds = remote_mainDoc.Descendants( XName.Get( "numId", w.NamespaceName ) );
             foreach( var numId in numIds )
             {
               var attr = numId.Attribute( XName.Get( "val", w.NamespaceName ) );
               if( attr != null && attr.Value.Equals( remote_num.Attribute( XName.Get( "numId", w.NamespaceName ) ).Value ) )
               {
-                attr.SetValue( guidd2 );
+                attr.SetValue( currentGuidd2 );
               }
-
             }
-            remote_num.SetAttributeValue( XName.Get( "numId", w.NamespaceName ), guidd2 );
-
+            remote_num.SetAttributeValue( XName.Get( "numId", w.NamespaceName ), currentGuidd2 );
+            //abstractNumId of this remote_num
             var e = remote_num.Element( XName.Get( "abstractNumId", w.NamespaceName ) );
             var a2 = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-            if ( a2 != null && a2.Value.Equals( abstractNumIdValue ) )
+            if( a2 != null && a2.Value.Equals( abstractNumIdValue ) )
               a2.SetValue( guidd );
-            guidd2++;
+            currentGuidd2++;
           }
         }
 
         guidd++;
       }
 
-      var abstractNumElement = _numbering.Root.Elements( XName.Get( "abstractNum", w.NamespaceName ) );
-      if( ( abstractNumElement != null ) && ( abstractNumElement.Count() > 0 ) )
+      if( abstractNumElement != null )
       {
-        abstractNumElement.Last().AddAfterSelf( remote_abstractNums );
+        if( abstractNumElement.Count() > 0 )
+        {
+          abstractNumElement.Last().AddAfterSelf( remote_abstractNums );
+        }
+        else
+        {
+          _numbering.Root.Add( remote_abstractNums );
+        }
       }
-      var numElement = _numbering.Root.Elements( XName.Get( "num", w.NamespaceName ) );
-      if( ( numElement != null ) && ( numElement.Count() > 0 ) )
+
+      if( numElement != null )
       {
-        numElement.Last().AddAfterSelf( remote_nums );
+        if( numElement.Count() > 0 )
+        {
+          numElement.Last().AddAfterSelf( remote_nums );
+        }
+        else
+        {
+          _numbering.Root.Add( remote_nums );
+        }
       }
     }
 
@@ -4222,12 +4296,7 @@ namespace Xceed.Words.NET
       {
         using( Stream s_write = new PackagePartStream( new_pp.GetStream( FileMode.Create ) ) )
         {
-          var buffer = new byte[ 32768 ];
-          int read;
-          while( ( read = s_read.Read( buffer, 0, buffer.Length ) ) > 0 )
-          {
-            s_write.Write( buffer, 0, read );
-          }
+          CopyStream( s_read, s_write );
         }
       }
 
@@ -4365,6 +4434,16 @@ namespace Xceed.Words.NET
       }
     }
 
+    private static void CopyStream( Stream input, Stream output, int bufferSize = 32768 )
+    {
+      byte[] buffer = new byte[ bufferSize ];
+      int read;
+      while( ( read = input.Read( buffer, 0, buffer.Length ) ) > 0 )
+      {
+        output.Write( buffer, 0, read );
+      }
+    }
+
     private string GetNextFreeRelationshipID()
     {
       int id =
@@ -4394,6 +4473,34 @@ namespace Xceed.Words.NET
       Buffer.BlockCopy( array2, 0, result, 0, array2.Length );
       Buffer.BlockCopy( array1, 0, result, array2.Length, array1.Length );
       return result;
+    }
+
+    private Hyperlink AddHyperlink( string text, Uri uri, string anchor )
+    {
+      var i = new XElement
+      (
+          XName.Get( "hyperlink", w.NamespaceName ),
+          new XAttribute( r + "id", string.Empty ),
+          new XAttribute( w + "history", "1" ),
+          !string.IsNullOrEmpty( anchor ) ? new XAttribute( w + "anchor", anchor ) : null,
+          new XElement( XName.Get( "r", w.NamespaceName ),
+          new XElement( XName.Get( "rPr", w.NamespaceName ),
+          new XElement( XName.Get( "rStyle", w.NamespaceName ),
+          new XAttribute( w + "val", "Hyperlink" ) ) ),
+          new XElement( XName.Get( "t", w.NamespaceName ), text ) )
+      );
+
+      var h = new Hyperlink( this, this.PackagePart, i );
+
+      h.text = text;
+      if( uri != null )
+      {
+        h.uri = uri;
+      }
+
+      this.AddHyperlinkStyleIfNotPresent();
+
+      return h;
     }
 
     #endregion

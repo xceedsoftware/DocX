@@ -159,7 +159,7 @@ namespace Xceed.Words.NET.Examples
         c.AddSeries( s1 );       
 
         // Insert chart into document
-        document.InsertParagraph( "Expenses(M$) for selected categories of Canada" ).FontSize( 15 ).SpacingAfter( 10d );
+        document.InsertParagraph( "Expenses(M$) for selected categories in Canada" ).FontSize( 15 ).SpacingAfter( 10d );
         document.InsertChart( c );
 
         document.Save();
@@ -195,7 +195,7 @@ namespace Xceed.Words.NET.Examples
         c.AddSeries( s1 );
 
         // Insert chart into document
-        document.InsertParagraph( "Expenses(M$) for selected categories of Brazil" ).FontSize( 15 ).SpacingAfter( 10d );
+        document.InsertParagraph( "Expenses(M$) for selected categories in Brazil" ).FontSize( 15 ).SpacingAfter( 10d );
         document.InsertChart( c );
 
         document.Save();

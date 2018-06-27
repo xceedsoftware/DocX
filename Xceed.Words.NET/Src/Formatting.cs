@@ -34,6 +34,7 @@ namespace Xceed.Words.NET
     private StrikeThrough? _strikethrough;
     private Script? _script;
     private Highlight? _highlight;
+    private Color? _shading;
     private double? _size;
     private Color? _fontColor;
     private Color? _underlineColor;
@@ -45,6 +46,7 @@ namespace Xceed.Words.NET
     private int? _kerning;
     private int? _position;
     private double? _spacing;
+    private string _styleName;
 
     private CultureInfo _language;
 
@@ -294,6 +296,33 @@ namespace Xceed.Words.NET
       }
     }
 
+      /// <summary>
+    /// Shading color.
+    /// </summary>
+    public Color? Shading
+    {
+      get
+      {
+        return _shading;
+      }
+      set
+      {
+        _shading = value;
+      }
+    }
+
+    public string StyleName
+    {
+      get
+      {
+        return _styleName;
+      }
+      set
+      {
+        _styleName = value;
+      }
+    }
+
     /// <summary>
     /// The Underline style that this formatting applies.
     /// </summary>
@@ -408,6 +437,11 @@ namespace Xceed.Words.NET
           _rPr.Add( new XElement( XName.Get( "spacing", DocX.w.NamespaceName ), new XAttribute( XName.Get( "val", DocX.w.NamespaceName ), _spacing.Value * 20 ) ) );
         }
 
+        if( !string.IsNullOrEmpty( _styleName ) )
+        {
+          _rPr.Add( new XElement( XName.Get( "rStyle", DocX.w.NamespaceName ), new XAttribute( XName.Get( "val", DocX.w.NamespaceName ), _styleName ) ) );
+        }
+
         if( _position.HasValue )
         {
           _rPr.Add( new XElement( XName.Get( "position", DocX.w.NamespaceName ), new XAttribute( XName.Get( "val", DocX.w.NamespaceName ), _position.Value * 2 ) ) );
@@ -429,7 +463,8 @@ namespace Xceed.Words.NET
           (
               new XElement( XName.Get( "rFonts", DocX.w.NamespaceName ), new XAttribute( XName.Get( "ascii", DocX.w.NamespaceName ), _fontFamily.Name ),
                                                                          new XAttribute( XName.Get( "hAnsi", DocX.w.NamespaceName ), _fontFamily.Name ),
-                                                                         new XAttribute( XName.Get( "cs", DocX.w.NamespaceName ), _fontFamily.Name ) )
+                                                                         new XAttribute( XName.Get( "cs", DocX.w.NamespaceName ), _fontFamily.Name ), 
+                                                                         new XAttribute( XName.Get( "eastAsia", DocX.w.NamespaceName ), _fontFamily.Name ) )
           );
         }
 
@@ -531,6 +566,11 @@ namespace Xceed.Words.NET
           }
         }
 
+        if( _shading.HasValue )
+        {
+          _rPr.Add( new XElement( XName.Get( "shd", DocX.w.NamespaceName ), new XAttribute( XName.Get( "fill", DocX.w.NamespaceName ), _shading.Value.ToHex() ) ) );
+        }
+
         if( _capsStyle.HasValue )
         {
           switch( _capsStyle )
@@ -583,6 +623,7 @@ namespace Xceed.Words.NET
       clone.FontFamily = _fontFamily;
       clone.Hidden = _hidden;
       clone.Highlight = _highlight;
+      clone.Shading = _shading;
       clone.Italic = _italic;
       if( _kerning.HasValue )
       {
@@ -607,6 +648,10 @@ namespace Xceed.Words.NET
       {
         clone.Spacing = _spacing;
       }
+      if( !string.IsNullOrEmpty( _styleName ) )
+      {
+        clone.StyleName = _styleName;
+      }
       clone.StrikeThrough = _strikethrough;
       clone.UnderlineColor = _underlineColor;
       clone.UnderlineStyle = _underlineStyle;
@@ -615,9 +660,15 @@ namespace Xceed.Words.NET
     }
 
 
-    public static Formatting Parse( XElement rPr )
+    public static Formatting Parse( XElement rPr, Formatting formatting = null )
     {
-      var formatting = new Formatting();
+      if( formatting == null )
+      {
+        formatting = new Formatting();
+      }
+
+      if( rPr == null )
+        return formatting;
 
       // Build up the Formatting object.
       foreach( XElement option in rPr.Elements() )
@@ -634,7 +685,7 @@ namespace Xceed.Words.NET
             formatting.Position = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2;
             break;
           case "kern":
-            formatting.Position = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2;
+            formatting.Kerning = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2;
             break;
           case "w":
             formatting.PercentageScale = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName)));
@@ -643,13 +694,18 @@ namespace Xceed.Words.NET
             formatting.Size = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2;
             break;
           case "rFonts":
-            formatting.FontFamily = new Font(option.GetAttribute(XName.Get("cs", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("ascii", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("hAnsi", DocX.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("eastAsia", DocX.w.NamespaceName)));
+            var fontName = option.GetAttribute( XName.Get( "cs", DocX.w.NamespaceName ), null )
+                                               ?? option.GetAttribute( XName.Get( "ascii", DocX.w.NamespaceName ), null )
+                                               ?? option.GetAttribute( XName.Get( "hAnsi", DocX.w.NamespaceName ), null )
+                                               ?? option.GetAttribute( XName.Get( "hint", DocX.w.NamespaceName ), null )
+                                               ?? option.GetAttribute( XName.Get( "eastAsia", DocX.w.NamespaceName ), null );
+            formatting.FontFamily = new Font( fontName ?? "Calibri" );
             break;
           case "color":
             try
             {
               var color = option.GetAttribute(XName.Get("val", DocX.w.NamespaceName));
-              formatting.FontColor = System.Drawing.ColorTranslator.FromHtml(string.Format("#{0}", color));
+              formatting.FontColor = ( color == "auto") ? Color.Black : ColorTranslator.FromHtml(string.Format("#{0}", color));
             }
             catch (Exception)
             {
@@ -660,7 +716,7 @@ namespace Xceed.Words.NET
             formatting._hidden = true;
             break;
           case "b":
-            formatting.Bold = true;
+            formatting.Bold = option.GetAttribute( XName.Get( "val", DocX.w.NamespaceName ) ) != "0";
             break;
           case "i":
             formatting.Italic = true;
@@ -718,12 +774,44 @@ namespace Xceed.Words.NET
           case "strike":
             formatting.StrikeThrough = NET.StrikeThrough.strike;
             break;
+          case "dstrike":
+            formatting.StrikeThrough = NET.StrikeThrough.doubleStrike;
+            break;
           case "u":
             formatting.UnderlineStyle = HelperFunctions.GetUnderlineStyle(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName)));
+            try
+            {
+              var color = option.GetAttribute( XName.Get( "color", DocX.w.NamespaceName ) );
+              if( !string.IsNullOrEmpty( color ) )
+              {
+                formatting.UnderlineColor = System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", color ) );
+              }
+            }
+            catch( Exception )
+            {
+              // ignore
+            }
             break;
-          case "vertAlign":
+          case "vertAlign": //script
             var script = option.GetAttribute(XName.Get("val", DocX.w.NamespaceName), null);
             formatting.Script = (Script)Enum.Parse(typeof(Script), script);
+            break;
+          case "caps":
+            formatting.CapsStyle = NET.CapsStyle.caps;
+            break;
+          case "smallCaps":
+            formatting.CapsStyle = NET.CapsStyle.smallCaps;
+            break;
+          case "shd":
+            var fill = option.GetAttribute( XName.Get( "fill", DocX.w.NamespaceName ) );
+            if( !string.IsNullOrEmpty( fill ) )
+            {
+              formatting.Shading = System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", fill ) );
+            }
+            break;
+          case "rStyle":
+            var style = option.GetAttribute( XName.Get( "val", DocX.w.NamespaceName ), null );
+            formatting.StyleName = style;
             break;
           default:
             break;
@@ -753,6 +841,9 @@ namespace Xceed.Words.NET
         return -1;
 
       if( other._highlight != _highlight )
+        return -1;
+
+      if( other._shading != _shading )
         return -1;
 
       if( other._size != _size )
@@ -786,6 +877,9 @@ namespace Xceed.Words.NET
         return -1;
 
       if( other._spacing != _spacing )
+        return -1;
+
+      if( other._styleName != _styleName )
         return -1;
 
       if( !other._language.Equals(_language) )

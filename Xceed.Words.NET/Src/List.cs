@@ -189,8 +189,8 @@ namespace Xceed.Words.NET
     internal XElement GetAbstractNum( int numId )
     {
       var num = Document._numbering.Descendants().First( d => d.Name.LocalName == "num" && d.GetAttribute( DocX.w + "numId" ).Equals( numId.ToString() ) );
-      var abstractNumId = num.Descendants().First( d => d.Name.LocalName == "abstractNumId" );
-      return Document._numbering.Descendants().First( d => d.Name.LocalName == "abstractNum" && d.GetAttribute( "abstractNumId" ).Equals( abstractNumId.Value ) );
+      var abstractNumId = num.Descendants().First( d => d.Name.LocalName == "abstractNumId" ).GetAttribute( DocX.w + "val" );
+      return Document._numbering.Descendants().First( d => d.Name.LocalName == "abstractNum" && d.GetAttribute( DocX.w + "abstractNumId" ).Equals( abstractNumId ) );
     }
 
     #endregion

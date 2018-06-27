@@ -24,7 +24,7 @@ namespace Xceed.Words.NET
   {
     #region Private Members
 
-    private static readonly Mutex _mutex = new Mutex( false );
+    private static readonly object lockObject = new object();
     private readonly Stream _stream;
 
     #endregion
@@ -106,16 +106,18 @@ namespace Xceed.Words.NET
 
     public override void Write( byte[] buffer, int offset, int count )
     {
-      _mutex.WaitOne( Timeout.Infinite, false );
-      _stream.Write( buffer, offset, count );
-      _mutex.ReleaseMutex();
+      lock(lockObject)
+      {
+        _stream.Write( buffer, offset, count );
+      }
     }
 
     public override void Flush()
     {
-      _mutex.WaitOne( Timeout.Infinite, false );
-      _stream.Flush();
-      _mutex.ReleaseMutex();
+      lock(lockObject)
+      {
+        _stream.Flush();
+      }
     }
 
     public override void Close()

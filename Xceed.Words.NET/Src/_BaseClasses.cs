@@ -258,6 +258,24 @@ namespace Xceed.Words.NET
       return table;
     }
 
+    public virtual List InsertListAfterSelf( List list )
+    {
+      for( var i = list.Items.Count - 1; i >= 0; --i )
+      {
+        this.Xml.AddAfterSelf( list.Items[ i ].Xml );
+      }
+      return list;
+    }
+
+    public virtual List InsertListBeforeSelf( List list )
+    {
+      foreach( var item in list.Items )
+      {
+        this.Xml.AddBeforeSelf( item.Xml );
+      }
+      return list;
+    }
+
     #endregion
   }
 

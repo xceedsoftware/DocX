@@ -397,21 +397,7 @@ namespace Xceed.Words.NET
             style.Remove();
         }
 
-        if( _design == TableDesign.Custom )
-        {
-          if( string.IsNullOrEmpty( _customTableDesignName ) )
-          {
-            _design = TableDesign.None;
-            if( style != null )
-              style.Remove();
-
-          }
-          else
-          {
-            val.Value = _customTableDesignName;
-          }
-        }
-        else
+        if( _design != TableDesign.Custom )
         {
           switch( _design )
           {
@@ -750,9 +736,10 @@ namespace Xceed.Words.NET
               let styleId = e.Attribute( XName.Get( "styleId", DocX.w.NamespaceName ) )
               where ( styleId != null && styleId.Value == val.Value )
               select e
-          ).First();
+          ).FirstOrDefault();
 
-          Document._styles.Element( XName.Get( "styles", DocX.w.NamespaceName ) ).Add( styleElement );
+          if( styleElement != null )
+            Document._styles.Element( XName.Get( "styles", DocX.w.NamespaceName ) ).Add( styleElement );
         }
       }
     }
@@ -881,6 +868,30 @@ namespace Xceed.Words.NET
     {
       get;
       set;
+    }
+
+    public List<Double> ColumnWidths
+    {
+      get
+      {
+        var columnWidths = new List<Double>();
+
+        // get the table grid property
+        XElement grid = Xml.Element( XName.Get( "tblGrid", DocX.w.NamespaceName ) );
+
+        // get the columns properties
+        var columns = grid?.Elements( XName.Get( "gridCol", DocX.w.NamespaceName ) );
+        if( columns == null )
+          return null;
+
+        foreach( var column in columns )
+        {
+          string value = column.GetAttribute( XName.Get( "w", DocX.w.NamespaceName ) );
+          columnWidths.Add( Convert.ToDouble( value, new CultureInfo( "en-US" ) ) );
+        }
+
+        return columnWidths;
+      }
     }
 
     #endregion
@@ -1102,9 +1113,9 @@ namespace Xceed.Words.NET
     /// Insert a copy of a row at the end of this table.
     /// </summary>      
     /// <returns>A new row.</returns>
-    public Row InsertRow( Row row )
+    public Row InsertRow( Row row, bool keepFormatting = false )
     {
-      return this.InsertRow( row, this.RowCount );
+      return this.InsertRow( row, this.RowCount, keepFormatting );
     }
 
     /// <summary>
@@ -1342,8 +1353,9 @@ namespace Xceed.Words.NET
     /// </summary>
     /// <param name="row">Row to copy and insert.</param>
     /// <param name="index">Index to insert row at.</param>
+    /// <param name="keepFormatting">True to clone everithing, False to clone cell structure only.</param>
     /// <returns>A new Row</returns>
-    public Row InsertRow( Row row, int index )
+    public Row InsertRow( Row row, int index, bool keepFormatting = false )
     {
       if( row == null )
         throw new ArgumentNullException( "row" );
@@ -1351,8 +1363,13 @@ namespace Xceed.Words.NET
       if( index < 0 || index > RowCount )
         throw new IndexOutOfRangeException();
 
-      var content = row.Xml.Elements( XName.Get( "tc", DocX.w.NamespaceName ) ).Select( element => HelperFunctions.CloneElement( element ) ).ToList();
-      return this.InsertRow( content, index );
+      List<XElement> content;
+      if( keepFormatting )
+        content = row.Xml.Elements().Select( element => HelperFunctions.CloneElement( element ) ).ToList();
+      else
+        content = row.Xml.Elements( XName.Get( "tc", DocX.w.NamespaceName ) ).Select( element => HelperFunctions.CloneElement( element ) ).ToList();
+
+      return InsertRow( content, index );
     }
 
     /// <summary>
@@ -2265,30 +2282,6 @@ namespace Xceed.Words.NET
       this.AutoFit = AutoFit.Fixed;
     }
 
-    public List<Double> ColumnWidths
-    {
-      get
-      {
-        var columnWidths = new List<Double>();
-
-        // get the table grid property
-        XElement grid = Xml.Element( XName.Get( "tblGrid", DocX.w.NamespaceName ) );
-
-        // get the columns properties
-        var columns = grid?.Elements( XName.Get( "gridCol", DocX.w.NamespaceName ) );
-        if( columns == null )
-          return null;
-
-        foreach( var column in columns )
-        {
-          string value = column.GetAttribute( XName.Get( "w", DocX.w.NamespaceName ) );
-          columnWidths.Add( Convert.ToDouble( value, new CultureInfo("en-US" ) ) );
-        }
-
-        return columnWidths;
-      }
-    }
-
     public void SetTableCellMargin( TableCellMarginType type, double margin )
     {
       var tblPr = this.GetOrCreate_tblPr();
@@ -2666,6 +2659,13 @@ namespace Xceed.Words.NET
         trPr = Xml.Element( XName.Get( "trPr", DocX.w.NamespaceName ) );
       }
 
+      XElement tc = Xml.Element( XName.Get( "tc", DocX.w.NamespaceName ) );
+      if( tc != null )
+      {
+        trPr.Remove();
+        tc.AddBeforeSelf( trPr );
+      }
+
       XElement trHeight = trPr.Element( XName.Get( "trHeight", DocX.w.NamespaceName ) );
       if( trHeight == null )
       {
@@ -2677,7 +2677,7 @@ namespace Xceed.Words.NET
       trHeight.SetAttributeValue( XName.Get( "hRule", DocX.w.NamespaceName ), isHeightExact ? "exact" : "atLeast" );
 
       // Using 20 to match DocX._pageSizeMultiplier.
-      trHeight.SetAttributeValue( XName.Get( "val", DocX.w.NamespaceName ), ( height * 20 ).ToString() );
+      trHeight.SetAttributeValue( XName.Get( "val", DocX.w.NamespaceName ), ( ( int )( Math.Round( height * 20, 0 ) ) ).ToString( CultureInfo.InvariantCulture ) );
     }
 
     #endregion
@@ -2807,45 +2807,45 @@ namespace Xceed.Words.NET
       }
     }
 
-    /// <summary>
-    /// Gets or Sets this Cells vertical alignment.
-    /// </summary>
-    /// <example>
-    /// Creates a table with 3 cells and sets the vertical alignment of each to 1 of the 3 available options.
-    /// <code>
-    ///// Create a new document.
-    ///using(DocX document = DocX.Create("Test.docx"))
-    ///{
-    ///    // Insert a Table into this document.
-    ///    Table t = document.InsertTable(3, 1);
-    ///
-    ///    // Set the design of the Table such that we can easily identify cell boundaries.
-    ///    t.Design = TableDesign.TableGrid;
-    ///
-    ///    // Set the height of the row bigger than default.
-    ///    // We need to be able to see the difference in vertical cell alignment options.
-    ///    t.Rows[0].Height = 100;
-    ///
-    ///    // Set the vertical alignment of cell0 to top.
-    ///    Cell c0 = t.Rows[0].Cells[0];
-    ///    c0.InsertParagraph("VerticalAlignment.Top");
-    ///    c0.VerticalAlignment = VerticalAlignment.Top;
-    ///
-    ///    // Set the vertical alignment of cell1 to center.
-    ///    Cell c1 = t.Rows[0].Cells[1];
-    ///    c1.InsertParagraph("VerticalAlignment.Center");
-    ///    c1.VerticalAlignment = VerticalAlignment.Center;
-    ///
-    ///    // Set the vertical alignment of cell2 to bottom.
-    ///    Cell c2 = t.Rows[0].Cells[2];
-    ///    c2.InsertParagraph("VerticalAlignment.Bottom");
-    ///    c2.VerticalAlignment = VerticalAlignment.Bottom;
-    ///
-    ///    // Save the document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
+    // <summary>
+    // Gets or Sets this Cells vertical alignment.
+    // </summary>
+    // <example>
+    // Creates a table with 3 cells and sets the vertical alignment of each to 1 of the 3 available options.
+    // <code>
+    // Create a new document.
+    //using(DocX document = DocX.Create("Test.docx"))
+    //{
+    //    // Insert a Table into this document.
+    //    Table t = document.InsertTable(3, 1);
+    //
+    //    // Set the design of the Table such that we can easily identify cell boundaries.
+    //    t.Design = TableDesign.TableGrid;
+    //
+    //    // Set the height of the row bigger than default.
+    //    // We need to be able to see the difference in vertical cell alignment options.
+    //    t.Rows[0].Height = 100;
+    //
+    //    // Set the vertical alignment of cell0 to top.
+    //    Cell c0 = t.Rows[0].Cells[0];
+    //    c0.InsertParagraph("VerticalAlignment.Top");
+    //    c0.VerticalAlignment = VerticalAlignment.Top;
+    //
+    //    // Set the vertical alignment of cell1 to center.
+    //    Cell c1 = t.Rows[0].Cells[1];
+    //    c1.InsertParagraph("VerticalAlignment.Center");
+    //    c1.VerticalAlignment = VerticalAlignment.Center;
+    //
+    //    // Set the vertical alignment of cell2 to bottom.
+    //    Cell c2 = t.Rows[0].Cells[2];
+    //    c2.InsertParagraph("VerticalAlignment.Bottom");
+    //    c2.VerticalAlignment = VerticalAlignment.Bottom;
+    //
+    //    // Save the document.
+    //    document.Save();
+    //}
+    // </code>
+    // </example>
     public VerticalAlignment VerticalAlignment
     {
       get
@@ -3633,36 +3633,36 @@ namespace Xceed.Words.NET
 
     #region Public Methods
 
-    /// <summary>
-    /// Set the table cell border
-    /// </summary>
-    /// <example>
-    /// <code>
-    ///// Create a new document.
-    ///using (DocX document = DocX.Create("Test.docx"))
-    ///{
-    ///    // Insert a table into this document.
-    ///    Table t = document.InsertTable(3, 3);
-    ///
-    ///    // Get the center cell.
-    ///    Cell center = t.Rows[1].Cells[1];
-    ///
-    ///    // Create a large blue border.
-    ///    Border b = new Border(BorderStyle.Tcbs_single, BorderSize.seven, 0, Color.Blue);
-    ///
-    ///    // Set the center cells Top, Bottom, Left and Right Borders to b.
-    ///    center.SetBorder(TableCellBorderType.Top, b);
-    ///    center.SetBorder(TableCellBorderType.Bottom, b);
-    ///    center.SetBorder(TableCellBorderType.Left, b);
-    ///    center.SetBorder(TableCellBorderType.Right, b);
-    ///
-    ///    // Save the document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
-    /// <param name="borderType">Table Cell border to set</param>
-    /// <param name="border">Border object to set the table cell border</param>
+    // <summary>
+    // Set the table cell border
+    // </summary>
+    // <example>
+    // <code>
+    // Create a new document.
+    //using (DocX document = DocX.Create("Test.docx"))
+    //{
+    //    // Insert a table into this document.
+    //    Table t = document.InsertTable(3, 3);
+    //
+    //    // Get the center cell.
+    //    Cell center = t.Rows[1].Cells[1];
+    //
+    //    // Create a large blue border.
+    //    Border b = new Border(BorderStyle.Tcbs_single, BorderSize.seven, 0, Color.Blue);
+    //
+    //    // Set the center cells Top, Bottom, Left and Right Borders to b.
+    //    center.SetBorder(TableCellBorderType.Top, b);
+    //    center.SetBorder(TableCellBorderType.Bottom, b);
+    //    center.SetBorder(TableCellBorderType.Left, b);
+    //    center.SetBorder(TableCellBorderType.Right, b);
+    //
+    //    // Save the document.
+    //    document.Save();
+    //}
+    // </code>
+    // </example>
+    // <param name="borderType">Table Cell border to set</param>
+    // <param name="border">Border object to set the table cell border</param>
     public void SetBorder( TableCellBorderType borderType, Border border )
     {
       /*
@@ -3947,29 +3947,29 @@ namespace Xceed.Words.NET
 
     #endregion
 
-    /// <summary>
-    /// Gets or Sets the fill color of this Cell.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (DocX document = DocX.Create("Test.docx"))
-    /// {
-    ///    // Insert a table into this document.
-    ///    Table t = document.InsertTable(3, 3);
-    ///
-    ///    // Fill the first cell as Blue.
-    ///    t.Rows[0].Cells[0].FillColor = Color.Blue;
-    ///    // Fill the middle cell as Red.
-    ///    t.Rows[1].Cells[1].FillColor = Color.Red;
-    ///    // Fill the last cell as Green.
-    ///    t.Rows[2].Cells[2].FillColor = Color.Green;
-    ///
-    ///    // Save the document.
-    ///    document.Save();
-    /// }
-    /// </code>
-    /// </example>
+    // <summary>
+    // Gets or Sets the fill color of this Cell.
+    // </summary>
+    // <example>
+    // <code>
+    // // Create a new document.
+    // using (DocX document = DocX.Create("Test.docx"))
+    // {
+    //    // Insert a table into this document.
+    //    Table t = document.InsertTable(3, 3);
+    //
+    //    // Fill the first cell as Blue.
+    //    t.Rows[0].Cells[0].FillColor = Color.Blue;
+    //    // Fill the middle cell as Red.
+    //    t.Rows[1].Cells[1].FillColor = Color.Red;
+    //    // Fill the last cell as Green.
+    //    t.Rows[2].Cells[2].FillColor = Color.Green;
+    //
+    //    // Save the document.
+    //    document.Save();
+    // }
+    // </code>
+    // </example>
   }
 
   public class TableLook

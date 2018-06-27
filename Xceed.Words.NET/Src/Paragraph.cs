@@ -38,6 +38,8 @@ namespace Xceed.Words.NET
     internal int _startIndex, _endIndex;
     internal List<XElement> _styles = new List<XElement>();
 
+    internal const float DefaultLineSpacing = 1.1f * 20.0f;
+
     #endregion
 
     #region Private Members
@@ -60,10 +62,12 @@ namespace Xceed.Words.NET
     {
       get; set;
     }
+
     private bool? IsListItemBacker
     {
       get; set;
     }
+
     private int? IndentLevelBacker
     {
       get; set;
@@ -107,6 +111,11 @@ namespace Xceed.Words.NET
     {
       get
       {
+        if( Xml == null )
+        {
+          return new List<Picture>();
+        }
+
         var pictures = this.GetPictures( "drawing", "blip", "embed" );
         var shapes = this.GetPictures( "pict", "imagedata", "id" );
 
@@ -335,7 +344,7 @@ namespace Xceed.Words.NET
         XAttribute firstLine = ind.Attribute( XName.Get( "firstLine", DocX.w.NamespaceName ) );
 
         if( firstLine != null )
-          return float.Parse( firstLine.Value );
+          return float.Parse( firstLine.Value ) / 570f;        
 
         return 0.0f;
       }
@@ -413,7 +422,8 @@ namespace Xceed.Words.NET
             firstLine.Remove();
           }
 
-          var indentation = ( ( indentationHanging / 0.1 ) * 57 ).ToString();
+          var indentationValue = ( ( indentationHanging / 0.1 ) * 57 );
+          var indentation = indentationValue.ToString();
           var hanging = ind.Attribute( XName.Get( "hanging", DocX.w.NamespaceName ) );
           if( hanging != null )
           {
@@ -423,6 +433,7 @@ namespace Xceed.Words.NET
           {
             ind.Add( new XAttribute( XName.Get( "hanging", DocX.w.NamespaceName ), indentation ) );
           }
+          IndentationBefore = indentationHanging;
         }
       }
     }
@@ -470,7 +481,7 @@ namespace Xceed.Words.NET
           GetOrCreate_pPr();
           var ind = GetOrCreate_pPr_ind();
 
-          var indentation = ( ( indentationBefore / 0.1 ) * 57 ).ToString(CultureInfo.GetCultureInfo("en-GB"));
+          var indentation = ( ( indentationBefore / 0.1 ) * 57 ).ToString();
 
           var left = ind.Attribute( XName.Get( "left", DocX.w.NamespaceName ) );
           if( left != null )
@@ -518,7 +529,7 @@ namespace Xceed.Words.NET
 
         var right = ind.Attribute( XName.Get( "right", DocX.w.NamespaceName ) );
         if( right != null )
-          return float.Parse( right.Value );
+          return float.Parse( right.Value ) / 570f;
 
         return 0.0f;
       }
@@ -680,7 +691,7 @@ namespace Xceed.Words.NET
         XElement spacing = pPr.Element( XName.Get( "spacing", DocX.w.NamespaceName ) );
 
         if( spacing != null )
-        {
+        { 
           XAttribute line = spacing.Attribute( XName.Get( "line", DocX.w.NamespaceName ) );
           if( line != null )
           {
@@ -691,7 +702,7 @@ namespace Xceed.Words.NET
           }
         }
 
-        return 1.1f * 20.0f;
+        return Paragraph.DefaultLineSpacing;
       }
 
       set
@@ -747,7 +758,7 @@ namespace Xceed.Words.NET
           }
         }
 
-        return 10.0f;
+        return 0.0f;
       }
 
 
@@ -786,7 +797,12 @@ namespace Xceed.Words.NET
       {
         if( !IsListItem )
           return null;
-        return IndentLevelBacker ?? ( IndentLevelBacker = int.Parse( ParagraphNumberProperties.Descendants().First( el => el.Name.LocalName == "ilvl" ).GetAttribute( DocX.w + "val" ) ) );
+
+        if( IndentLevelBacker != null )
+          return IndentLevelBacker;
+
+        var ilvl = ParagraphNumberProperties.Descendants().FirstOrDefault( el => el.Name.LocalName == "ilvl" );
+        return IndentLevelBacker = ( ilvl != null ) ? int.Parse( ilvl.GetAttribute( DocX.w + "val" ) ) : 0;
       }
     }
 
@@ -988,6 +1004,32 @@ namespace Xceed.Words.NET
     public override Table InsertTableAfterSelf( int rowCount, int columnCount )
     {
       return base.InsertTableAfterSelf( rowCount, columnCount );
+    }
+
+    /// <summary>
+    /// Replaces an existing Picture with a new Picture.
+    /// </summary>
+    /// <param name="toBeReplaced">The picture object to be replaced.</param>
+    /// <param name="replaceWith">The picture object that should be inserted instead of <paramref name="toBeReplaced"/>.</param>
+    /// <returns>The new <see cref="Picture"/> object that replaces the old one.</returns>
+    public Picture ReplacePicture( Picture toBeReplaced, Picture replaceWith )
+    {
+      var document = this.Document;
+      var newDocPrId = document.GetNextFreeDocPrId();
+
+      var xml = XElement.Parse( toBeReplaced.Xml.ToString() );
+
+      foreach( var element in xml.Descendants( XName.Get( "docPr", DocX.wp.NamespaceName ) ) )
+        element.SetAttributeValue( XName.Get( "id" ), newDocPrId );
+
+      foreach( var element in xml.Descendants( XName.Get( "blip", DocX.a.NamespaceName ) ) )
+        element.SetAttributeValue( XName.Get( "embed", DocX.r.NamespaceName ), replaceWith.Id );
+
+      var replacePicture = new Picture( document, xml, new Image( document, this.PackagePart.GetRelationship( replaceWith.Id ) ) );
+      this.AppendPicture( replacePicture );
+      toBeReplaced.Remove();
+
+      return replacePicture;
     }
 
     /// <summary>
@@ -1204,7 +1246,7 @@ namespace Xceed.Words.NET
       XElement h_xml;
       if( index == 0 )
       {
-        // Add this hyperlink as the last element.
+        // Add this hyperlink as the first element.
         Xml.AddFirst( h.Xml );
 
         // Extract the picture back out of the DOM.
@@ -1246,6 +1288,7 @@ namespace Xceed.Words.NET
         h_xml.SetAttributeValue( DocX.r + "id", Id );
       }
 
+      this._runs = Xml.Elements().Last().Elements( XName.Get( "r", DocX.w.NamespaceName ) ).ToList();
       return this;
     }
 
@@ -1498,46 +1541,46 @@ namespace Xceed.Words.NET
     //    return newPicture;  
     //}
 
-    /// <summary>
-    /// Insert a Picture at the end of this paragraph.
-    /// </summary>
-    /// <param name="description">A string to describe this Picture.</param>
-    /// <param name="imageID">The unique id that identifies the Image this Picture represents.</param>
-    /// <param name="name">The name of this image.</param>
-    /// <returns>A Picture.</returns>
-    /// <example>
-    /// <code>
-    /// // Create a document using a relative filename.
-    /// using (DocX document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Add a new Paragraph to this document.
-    ///     Paragraph p = document.InsertParagraph("Here is Picture 1", false);
-    ///
-    ///     // Add an Image to this document.
-    ///     Xceed.Words.NET.Image img = document.AddImage(@"Image.jpg");
-    ///
-    ///     // Insert pic at the end of Paragraph p.
-    ///     Picture pic = p.InsertPicture(img.Id, "Photo 31415", "A pie I baked.");
-    ///
-    ///     // Rotate the Picture clockwise by 30 degrees. 
-    ///     pic.Rotation = 30;
-    ///
-    ///     // Resize the Picture.
-    ///     pic.Width = 400;
-    ///     pic.Height = 300;
-    ///
-    ///     // Set the shape of this Picture to be a cube.
-    ///     pic.SetPictureShape(BasicShapes.cube);
-    ///
-    ///     // Flip the Picture Horizontally.
-    ///     pic.FlipHorizontal = true;
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// Removed to simplify the API.
+    // <summary>
+    // Insert a Picture at the end of this paragraph.
+    // </summary>
+    // <param name="description">A string to describe this Picture.</param>
+    // <param name="imageID">The unique id that identifies the Image this Picture represents.</param>
+    // <param name="name">The name of this image.</param>
+    // <returns>A Picture.</returns>
+    // <example>
+    // <code>
+    // // Create a document using a relative filename.
+    // using (DocX document = DocX.Create(@"Test.docx"))
+    // {
+    //     // Add a new Paragraph to this document.
+    //     Paragraph p = document.InsertParagraph("Here is Picture 1", false);
+    //
+    //     // Add an Image to this document.
+    //     Xceed.Words.NET.Image img = document.AddImage(@"Image.jpg");
+    //
+    //     // Insert pic at the end of Paragraph p.
+    //     Picture pic = p.InsertPicture(img.Id, "Photo 31415", "A pie I baked.");
+    //
+    //     // Rotate the Picture clockwise by 30 degrees. 
+    //     pic.Rotation = 30;
+    //
+    //     // Resize the Picture.
+    //     pic.Width = 400;
+    //     pic.Height = 300;
+    //
+    //     // Set the shape of this Picture to be a cube.
+    //     pic.SetPictureShape(BasicShapes.cube);
+    //
+    //     // Flip the Picture Horizontally.
+    //     pic.FlipHorizontal = true;
+    //
+    //     // Save all changes made to this document.
+    //     document.Save();
+    // }// Release this document from memory.
+    // </code>
+    // </example>
+    // Removed to simplify the API.
     //public Picture InsertPicture(string imageID, string name, string description)
     //{
     //    Picture p = CreatePicture(Document, imageID, name, description);
@@ -1581,47 +1624,47 @@ namespace Xceed.Words.NET
     //    return p;
     //}
 
-    /// <summary>
-    /// Insert a Picture into this Paragraph at a specified index.
-    /// </summary>
-    /// <param name="description">A string to describe this Picture.</param>
-    /// <param name="imageID">The unique id that identifies the Image this Picture represents.</param>
-    /// <param name="name">The name of this image.</param>
-    /// <param name="index">The index to insert this Picture at.</param>
-    /// <returns>A Picture.</returns>
-    /// <example>
-    /// <code>
-    /// // Create a document using a relative filename.
-    /// using (DocX document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Add a new Paragraph to this document.
-    ///     Paragraph p = document.InsertParagraph("Here is Picture 1", false);
-    ///
-    ///     // Add an Image to this document.
-    ///     Xceed.Words.NET.Image img = document.AddImage(@"Image.jpg");
-    ///
-    ///     // Insert pic at the start of Paragraph p.
-    ///     Picture pic = p.InsertPicture(0, img.Id, "Photo 31415", "A pie I baked.");
-    ///
-    ///     // Rotate the Picture clockwise by 30 degrees. 
-    ///     pic.Rotation = 30;
-    ///
-    ///     // Resize the Picture.
-    ///     pic.Width = 400;
-    ///     pic.Height = 300;
-    ///
-    ///     // Set the shape of this Picture to be a cube.
-    ///     pic.SetPictureShape(BasicShapes.cube);
-    ///
-    ///     // Flip the Picture Horizontally.
-    ///     pic.FlipHorizontal = true;
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// Removed to simplify API.
+    // <summary>
+    // Insert a Picture into this Paragraph at a specified index.
+    // </summary>
+    // <param name="description">A string to describe this Picture.</param>
+    // <param name="imageID">The unique id that identifies the Image this Picture represents.</param>
+    // <param name="name">The name of this image.</param>
+    // <param name="index">The index to insert this Picture at.</param>
+    // <returns>A Picture.</returns>
+    // <example>
+    // <code>
+    // // Create a document using a relative filename.
+    // using (DocX document = DocX.Create(@"Test.docx"))
+    // {
+    //     // Add a new Paragraph to this document.
+    //     Paragraph p = document.InsertParagraph("Here is Picture 1", false);
+    //
+    //     // Add an Image to this document.
+    //     Xceed.Words.NET.Image img = document.AddImage(@"Image.jpg");
+    //
+    //     // Insert pic at the start of Paragraph p.
+    //     Picture pic = p.InsertPicture(0, img.Id, "Photo 31415", "A pie I baked.");
+    //
+    //     // Rotate the Picture clockwise by 30 degrees. 
+    //     pic.Rotation = 30;
+    //
+    //     // Resize the Picture.
+    //     pic.Width = 400;
+    //     pic.Height = 300;
+    //
+    //     // Set the shape of this Picture to be a cube.
+    //     pic.SetPictureShape(BasicShapes.cube);
+    //
+    //     // Flip the Picture Horizontally.
+    //     pic.FlipHorizontal = true;
+    //
+    //     // Save all changes made to this document.
+    //     document.Save();
+    // }// Release this document from memory.
+    // </code>
+    // </example>
+    // Removed to simplify API.
     //public Picture InsertPicture(int index, string imageID, string name, string description)
     //{
     //    Picture picture = CreatePicture(Document, imageID, name, description);
@@ -1703,23 +1746,13 @@ namespace Xceed.Words.NET
     /// </code>
     /// </example>
     /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-    /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+    /// <seealso cref="Paragraph.RemoveText(int, int, bool, bool)"/>
     /// <param name="value">The System.String to insert.</param>
     /// <param name="trackChanges">Flag this insert as a change.</param>
     /// <param name="formatting">The text formatting.</param>
     public void InsertText( string value, bool trackChanges = false, Formatting formatting = null )
     {
-      // Default values for optional parameters must be compile time constants.
-      // Would have like to write 'public void InsertText(string value, bool trackChanges = false, Formatting formatting = new Formatting())
-      if( formatting == null )
-      {
-        formatting = new Formatting();
-      }
-
-      var newRuns = HelperFunctions.FormatInput( value, formatting.Xml );
-      Xml.Add( newRuns );
-
-      HelperFunctions.RenumberIDs( Document );
+      this.InsertText( this.Text.Length, value, trackChanges, formatting );
     }
 
     /// <summary>
@@ -1771,7 +1804,7 @@ namespace Xceed.Words.NET
     /// </code>
     /// </example>
     /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-    /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+    /// <seealso cref="Paragraph.RemoveText(int, int, bool, bool)"/>
     /// <param name="index">The index position of the insertion.</param>
     /// <param name="value">The System.String to insert.</param>
     /// <param name="trackChanges">Flag this insert as a change.</param>
@@ -1889,22 +1922,16 @@ namespace Xceed.Words.NET
               {
                 insert = CreateEdit( EditType.ins, insert_datetime, newRuns );
               }
-              // Special case to deal with Page Number elements.
-              //if (parentElement.Name.LocalName.Equals("fldSimple"))
-              //    parentElement.AddBeforeSelf(insert);
-              else
-              {
-                // Split this run at the point you want to insert
-                var splitRun = Run.SplitRun( run, index );
+              // Split this run at the point you want to insert
+              var splitRun = Run.SplitRun( run, index );
 
-                // Replace the origional run
-                run.Xml.ReplaceWith
-                (
-                    splitRun[ 0 ],
-                    insert,
-                    splitRun[ 1 ]
-                );
-              }
+              // Replace the origional run
+              run.Xml.ReplaceWith
+              (
+                  splitRun[ 0 ],
+                  insert,
+                  splitRun[ 1 ]
+              );
 
               break;
             }
@@ -2024,6 +2051,10 @@ namespace Xceed.Words.NET
       // Highlight
       if( format.Highlight.HasValue )
         Highlight( format.Highlight.Value );
+
+      // Shading
+      if( format.Shading.HasValue )
+        Shading( format.Shading.Value );
 
       // Italic
       if( format.Italic.HasValue && format.Italic.Value )
@@ -2355,6 +2386,72 @@ namespace Xceed.Words.NET
       // Set its value to the Pictures relationships id.
       a_id.SetValue( Id );
 
+      return this;
+    }
+
+    /// <summary>
+    /// Add a new TabStopPosition in the current paragraph.
+    /// </summary>
+    /// <param name="alignment">Specifies the alignment of the Tab stop.</param>
+    /// <param name="position">Specifies the horizontal position of the tab stop.</param>
+    /// <param name="leader">Specifies the character used to fill in the space created by a tab.</param>
+    /// <returns>The modified Paragraph.</returns>
+    public Paragraph InsertTabStopPosition( Alignment alignment, float position, TabStopPositionLeader leader = TabStopPositionLeader.none )
+    {
+      var pPr = GetOrCreate_pPr();
+      var tabs = pPr.Element( XName.Get( "tabs", DocX.w.NamespaceName ) );
+      if( tabs == null )
+      {
+        tabs = new XElement( XName.Get( "tabs", DocX.w.NamespaceName ) );
+        pPr.Add( tabs );
+      }
+
+      var newTab = new XElement( XName.Get( "tab", DocX.w.NamespaceName ) );
+
+      // Alignement
+      var alignmentString = string.Empty;
+      switch( alignment )
+      {
+        case Alignment.left:
+          alignmentString = "left";
+          break;
+        case Alignment.right:
+          alignmentString = "right";
+          break;
+        case Alignment.center:
+          alignmentString = "center";
+          break;
+        default:
+          throw new ArgumentException( "alignment", "Value must be left, right or center." );
+      }
+      newTab.SetAttributeValue( XName.Get( "val", DocX.w.NamespaceName ), alignmentString );
+
+      // Position
+      var posValue = position * 20.0f;
+      newTab.SetAttributeValue( XName.Get( "pos", DocX.w.NamespaceName ), posValue.ToString() );
+
+      //Leader
+      var leaderString = string.Empty;
+      switch( leader )
+      {
+        case TabStopPositionLeader.none:
+          leaderString = "none";
+          break;
+        case TabStopPositionLeader.dot:
+          leaderString = "dot";
+          break;
+        case TabStopPositionLeader.underscore:
+          leaderString = "underscore";
+          break;
+        case TabStopPositionLeader.hyphen:
+          leaderString = "hyphen";
+          break;
+        default:
+          throw new ArgumentException( "leader", "Unknown leader character." );          
+      }
+      newTab.SetAttributeValue( XName.Get( "leader", DocX.w.NamespaceName ), leaderString );
+
+      tabs.Add( newTab );
       return this;
     }
 
@@ -2748,6 +2845,38 @@ namespace Xceed.Words.NET
       return this;
     }
 
+    public Paragraph Shading( Color shading, ShadingType shadingType = ShadingType.Text )
+    {
+      // Add to run
+      if( shadingType == ShadingType.Text )
+      {
+        this.ApplyTextFormattingProperty( XName.Get( "shd", DocX.w.NamespaceName ), string.Empty, new XAttribute( XName.Get( "fill", DocX.w.NamespaceName ), shading.ToHex() ) );
+      }
+      // Add to paragraph
+      else
+      {
+        var pPr = GetOrCreate_pPr();
+        var shd = pPr.Element( XName.Get( "shd", DocX.w.NamespaceName ) );
+        if( shd == null )
+        {
+          shd = new XElement( XName.Get( "shd", DocX.w.NamespaceName ) );
+          pPr.Add( shd );
+        }
+
+        var fillAttribute = shd.Attribute( XName.Get( "fill", DocX.w.NamespaceName ) );
+        if( fillAttribute == null )
+        {
+          shd.SetAttributeValue( XName.Get( "fill", DocX.w.NamespaceName ), shading.ToHex() );
+        }
+        else
+        {
+          fillAttribute.SetValue( shading.ToHex() );
+        }
+      }
+
+      return this;
+    }
+
     /// <summary>
     /// For use with Append() and AppendLine()
     /// </summary>
@@ -3044,6 +3173,7 @@ namespace Xceed.Words.NET
     /// </summary>
     /// <param name="cp">The custom property to display.</param>
     /// <param name="f">The formatting to use for this text.</param>
+    /// <param name="trackChanges"></param>
     /// <example>
     /// Create, add and display a custom property in a document.
     /// <code>
@@ -3084,7 +3214,7 @@ namespace Xceed.Words.NET
     /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
     /// </summary>
     /// <param name="cp">The custom property to display.</param>
-    /// <param name="trackChanges"></param>
+    /// <param name="trackChanges">if the changes are tracked.</param>
     /// <param name="f">The formatting to use for this text.</param>
     /// <example>
     /// Create, add and display a custom property in a document.
@@ -3166,7 +3296,8 @@ namespace Xceed.Words.NET
     /// <param name="index">The position to begin deleting characters.</param>
     /// <param name="count">The number of characters to delete</param>
     /// <param name="trackChanges">Track changes</param>
-    public void RemoveText( int index, int count, bool trackChanges = false )
+    /// <param name="removeEmptyParagraph">Remove empty paragraph</param>
+    public void RemoveText( int index, int count, bool trackChanges = false, bool removeEmptyParagraph = true )
     {
       // Timestamp to mark the start of insert
       var now = DateTime.Now;
@@ -3190,7 +3321,7 @@ namespace Xceed.Words.NET
               var min = Math.Min( count - processed, run.Xml.ElementsAfterSelf().Sum( e => GetElementTextLength( e ) ) );
               var splitEditAfter = this.SplitEdit( parentElement, index + min, EditType.del );
 
-              var temp = this.SplitEdit( splitEditBefore[ 1 ], index + min, EditType.del )[ 0 ];
+              var temp = this.SplitEdit( splitEditBefore[ 1 ], index + min, EditType.del )[ 1 ];
               var middle = Paragraph.CreateEdit( EditType.del, remove_datetime, temp.Elements() );
               processed += Paragraph.GetElementTextLength( middle as XElement );
 
@@ -3199,7 +3330,7 @@ namespace Xceed.Words.NET
                 middle = null;
               }
 
-              parentElement.ReplaceWith( splitEditBefore[ 0 ], middle, splitEditAfter[ 1 ] );
+              parentElement.ReplaceWith( splitEditBefore[ 0 ], middle, splitEditAfter[ 0 ] );
 
               processed += Paragraph.GetElementTextLength( middle as XElement );
               break;
@@ -3238,18 +3369,19 @@ namespace Xceed.Words.NET
             }
         }
 
-        // If after this remove the parent element is empty, remove it.
-        if( Paragraph.GetElementTextLength( parentElement ) == 0 )
+        // In some cases, removing an empty paragraph is allowed
+        var canRemove = removeEmptyParagraph && GetElementTextLength( parentElement ) == 0;
+        if( parentElement.Parent != null )
         {
-          if( ( parentElement.Parent != null ) && ( parentElement.Parent.Name.LocalName != "tc" ) )
-          {
-            // Need to make sure there is no drawing element within the parent element.
-            // Picture elements contain no text length but they are still content.
-            if( parentElement.Descendants( XName.Get( "drawing", DocX.w.NamespaceName ) ).Count() == 0 )
-            {
-              parentElement.Remove();
-            }
-          }
+          // Need to make sure there is another paragraph in the parent cell
+          canRemove &= parentElement.Parent.Name.LocalName == "tc" && parentElement.Parent.Elements( XName.Get( "p", DocX.w.NamespaceName ) ).Count() > 1;
+
+          // Need to make sure there is no drawing element within the parent element.
+          // Picture elements contain no text length but they are still content.
+          canRemove &= parentElement.Descendants( XName.Get( "drawing", DocX.w.NamespaceName ) ).Count() == 0;
+
+          if( canRemove )
+            parentElement.Remove();
         }
       }
       while( processed < count );
@@ -3326,7 +3458,7 @@ namespace Xceed.Words.NET
     /// }// Release this document from memory.
     /// </code>
     /// </example>
-    /// <seealso cref="Paragraph.RemoveText(int, int, bool)"/>
+    /// <seealso cref="Paragraph.RemoveText(int, int, bool, bool)"/>
     /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
     /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
     /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
@@ -3339,6 +3471,7 @@ namespace Xceed.Words.NET
     /// <param name="fo">How should formatting be matched?</param>
     /// <param name="escapeRegEx">True if the oldValue needs to be escaped, otherwise false. If it represents a valid RegEx pattern this should be false.</param>
     /// <param name="useRegExSubstitutions">True if RegEx-like replace should be performed, i.e. if newValue contains RegEx substitutions. Does not perform named-group substitutions (only numbered groups).</param>
+    /// <param name="removeEmptyParagraph">Remove empty paragraph</param>
     public void ReplaceText( string searchValue,
                              string newValue,
                              bool trackChanges = false,
@@ -3347,7 +3480,8 @@ namespace Xceed.Words.NET
                              Formatting matchFormatting = null,
                              MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
                              bool escapeRegEx = true,
-                             bool useRegExSubstitutions = false )
+                             bool useRegExSubstitutions = false, 
+                             bool removeEmptyParagraph = true )
     {
       var mc = Regex.Matches( this.Text, escapeRegEx ? Regex.Escape( searchValue ) : searchValue, options );
 
@@ -3430,13 +3564,13 @@ namespace Xceed.Words.NET
           }
           if( m.Length > 0 )
           {
-            this.RemoveText( m.Index, m.Length, trackChanges );
+            this.RemoveText( m.Index, m.Length, trackChanges, removeEmptyParagraph );
           }
         }
       }
     }
 
-    public void ReplaceText( string findPattern, Func<string, string> regexMatchHandler, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch )
+    public void ReplaceText( string findPattern, Func<string, string> regexMatchHandler, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch, bool removeEmptyParagraph = true )
     {
       var matchCol = Regex.Matches( this.Text, findPattern, options );
       var reversedMatchCol = matchCol.Cast<Match>().Reverse();
@@ -3474,7 +3608,7 @@ namespace Xceed.Words.NET
           {
             var newValue = regexMatchHandler.Invoke( match.Groups[ 1 ].Value );
             this.InsertText( match.Index + match.Value.Length, newValue, trackChanges, newFormatting );
-            this.RemoveText( match.Index, match.Value.Length, trackChanges );
+            this.RemoveText( match.Index, match.Value.Length, trackChanges, removeEmptyParagraph );
           }
         }
       }
@@ -4040,10 +4174,10 @@ namespace Xceed.Words.NET
       tXElement.Value = text;
     }
 
-    public void InsertHorizontalLine( string lineType = "single", int size = 6, int space = 1, string color = "auto" )
+    public void InsertHorizontalLine( HorizontalBorderPosition position = HorizontalBorderPosition.bottom, string lineType = "single", int size = 6, int space = 1, string color = "auto" )
     {
       var pBrXName = XName.Get( "pBdr", DocX.w.NamespaceName );
-      var bottomXName = XName.Get( "bottom", DocX.w.NamespaceName );
+      var borderPositionXName = ( position == HorizontalBorderPosition.bottom) ? XName.Get( "bottom", DocX.w.NamespaceName ) : XName.Get( "top", DocX.w.NamespaceName );
 
       var pPr = this.GetOrCreate_pPr();
       var pBdr = pPr.Element( pBrXName );
@@ -4054,14 +4188,14 @@ namespace Xceed.Words.NET
         pBdr = pPr.Element( pBrXName );
 
         //Add bottom
-        pBdr.Add( new XElement( bottomXName ) );
-        var bottom = pBdr.Element( bottomXName );
+        pBdr.Add( new XElement( borderPositionXName ) );
+        var border = pBdr.Element( borderPositionXName );
 
-        //Set bottom's attribute
-        bottom.SetAttributeValue( XName.Get( "val", DocX.w.NamespaceName ), lineType );
-        bottom.SetAttributeValue( XName.Get( "sz", DocX.w.NamespaceName ), size.ToString() );
-        bottom.SetAttributeValue( XName.Get( "space", DocX.w.NamespaceName ), space.ToString() );
-        bottom.SetAttributeValue( XName.Get( "color", DocX.w.NamespaceName ), color );
+        //Set border's attribute
+        border.SetAttributeValue( XName.Get( "val", DocX.w.NamespaceName ), lineType );
+        border.SetAttributeValue( XName.Get( "sz", DocX.w.NamespaceName ), size.ToString() );
+        border.SetAttributeValue( XName.Get( "space", DocX.w.NamespaceName ), space.ToString() );
+        border.SetAttributeValue( XName.Get( "color", DocX.w.NamespaceName ), color );
       }
     }
 
@@ -4131,6 +4265,13 @@ namespace Xceed.Words.NET
             RemoveHyperlinkRecursive( e, index, ref count, ref found );
     }
 
+    internal void ResetBackers()
+    {
+      ParagraphNumberPropertiesBacker = null;
+      IsListItemBacker = null;
+      IndentLevelBacker = null;
+    }
+
     /// <summary>
     /// Create a new Picture.
     /// </summary>
@@ -4144,45 +4285,17 @@ namespace Xceed.Words.NET
     {
       var part = document._package.GetPart( document.PackagePart.GetRelationship( id ).TargetUri );
 
-      var newDocPrIdValue = 1;
-      var bookmarkIds = new List<string>();
-      var bookmarks = document.Xml.Descendants( XName.Get( "bookmarkStart", DocX.wp.NamespaceName ) );
-      foreach( var bookmark in bookmarks )
-      {
-        var idAttr = bookmark.Attributes().FirstOrDefault( a => a.Name.LocalName == "id" );
-        if( idAttr != null )
-        {
-          bookmarkIds.Add( idAttr.Value );
-        }
-      }
-      while( bookmarkIds.Contains( newDocPrIdValue.ToString() ) )
-      {
-        ++newDocPrIdValue;
-      }
-
-      var docPrs = document.Xml.Descendants( XName.Get( "docPr", DocX.wp.NamespaceName ) );
-      foreach( var bookmark in docPrs )
-      {
-        var idAttr = bookmark.Attributes().FirstOrDefault( a => a.Name.LocalName == "id" );
-        if( idAttr != null )
-        {
-          bookmarkIds.Add( idAttr.Value );
-        }
-      }
-      while( bookmarkIds.Contains( newDocPrIdValue.ToString() ) )
-      {
-        ++newDocPrIdValue;
-      }
-
+      long newDocPrId = document.GetNextFreeDocPrId();
       int cx, cy;
 
-      using( System.Drawing.Image img = System.Drawing.Image.FromStream( new PackagePartStream( part.GetStream() ) ) )
+      using( PackagePartStream packagePartStream = new PackagePartStream( part.GetStream() ) )
       {
-        cx = img.Width * 9526;
-        cy = img.Height * 9526;
+        using( System.Drawing.Image img = System.Drawing.Image.FromStream( packagePartStream, useEmbeddedColorManagement: false, validateImageData: false ) )
+        {
+          cx = img.Width * 9526;
+          cy = img.Height * 9526;
+        }
       }
-
-      var e = new XElement( DocX.w + "drawing" );
 
       var xml = XElement.Parse
       ( string.Format( @"
@@ -4223,7 +4336,7 @@ namespace Xceed.Words.NET
                 </wp:inline>
             </w:drawing>
         </w:r>
-        ", cx, cy, id, name, descr, newDocPrIdValue.ToString() ) );
+        ", cx, cy, id, name, descr, newDocPrId.ToString() ) );
 
       var picture = new Picture( document, xml, new Image( document, document.PackagePart.GetRelationship( id ) ) );
       if( width > -1 )
@@ -4328,11 +4441,14 @@ namespace Xceed.Words.NET
         }
 
         count -= HelperFunctions.GetSize( Xml );
+        count = Math.Max( 0, count );
 
         // We have found the element, now find the run it belongs to.
-        while( ( Xml.Name.LocalName != "r" ) && ( Xml.Name.LocalName != "pPr" ) )
+        while( ( Xml.Name.LocalName != "r" ) )
         {
           Xml = Xml.Parent;
+          if( Xml == null )
+            return;
         }
 
         theOne = new Run( Document, Xml, count );
@@ -4414,26 +4530,29 @@ namespace Xceed.Words.NET
       string image_uri_string = p._img._pr.TargetUri.OriginalString;
 
       // Search for a relationship with a TargetUri that points at this Image.
-      var Id =
-      (
-          from r in this.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" )
-          where r.TargetUri.OriginalString == image_uri_string
-          select r.Id
-      ).SingleOrDefault();
+      string id = null;
+      foreach( var r in this.PackagePart.GetRelationshipsByType( DocX.RelationshipImage ) )
+      {
+        if( string.Equals( r.TargetUri.OriginalString, image_uri_string, StringComparison.Ordinal ) )
+        {
+          id = r.Id;
+          break;
+        }
+      }
 
-      // If such a relation dosen't exist, create one.
-      if( Id == null )
+      // If such a relation doesn't exist, create one.
+      if( id == null )
       {
         // Check to see if a relationship for this Picture exists and create it if not.
-        var pr = this.PackagePart.CreateRelationship( p._img._pr.TargetUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" );
-        Id = pr.Id;
+        var pr = this.PackagePart.CreateRelationship( p._img._pr.TargetUri, TargetMode.Internal, DocX.RelationshipImage );
+        id = pr.Id;
       }
-      return Id;
+      return id;
     }
 
     internal string GetOrGenerateRel( Hyperlink h )
     {
-      string image_uri_string = h.Uri.OriginalString;
+      string image_uri_string = (h.Uri != null) ?  h.Uri.OriginalString : null;
 
       // Search for a relationship with a TargetUri that points at this Image.
       var Id =
@@ -4444,7 +4563,7 @@ namespace Xceed.Words.NET
       ).SingleOrDefault();
 
       // If such a relation dosen't exist, create one.
-      if( Id == null )
+      if( (Id == null) && ( h.Uri != null) )
       {
         // Check to see if a relationship for this Picture exists and create it if not.
         var pr = this.PackagePart.CreateRelationship( h.Uri, TargetMode.External, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" );
@@ -4636,14 +4755,6 @@ namespace Xceed.Words.NET
     private XElement GetParagraphNumberProperties()
     {
       var numPrNode = Xml.Descendants().FirstOrDefault( el => el.Name.LocalName == "numPr" );
-      if( numPrNode != null )
-      {
-        var numIdNode = numPrNode.Descendants().First( numId => numId.Name.LocalName == "numId" );
-        var numIdAttribute = numIdNode.Attribute( DocX.w + "val" );
-        if( numIdAttribute != null && numIdAttribute.Value.Equals( "0" ) )
-          return null;
-      }
-
       return numPrNode;
     }
 

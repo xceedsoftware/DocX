@@ -32,10 +32,19 @@ namespace Xceed.Words.NET
     public const string DOCUMENT_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
     public const string TEMPLATE_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml";
     public const string SETTING_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml";
+    public const string MACRO_DOCUMENTTYPE = "application/vnd.ms-word.document.macroEnabled.main+xml";
+
+    internal static readonly char[] RestrictedXmlCharacters = new char[]
+    {
+      '\x1','\x2','\x3','\x4','\x5','\x6','\x7','\x8','\xb','\xc','\xe','\xf',
+      '\x10','\x11','\x12','\x13','\x14','\x15','\x16','\x17','\x18','\x19','\x1a','\x1b','\x1c','\x1e','\x1f',
+      '\x7f','\x80','\x81','\x82','\x83','\x84','\x86','\x87','\x88','\x89','\x8a','\x8b','\x8c','\x8d','\x8e','\x8f',
+      '\x90','\x91','\x92','\x93','\x94','\x95','\x96','\x97','\x98','\x99','\x9a','\x9b','\x9c','\x9d','\x9e','\x9f'
+    };
 
     internal static void CreateRelsPackagePart( DocX Document, Uri uri )
     {
-      PackagePart pp = Document._package.CreatePart( uri, "application/vnd.openxmlformats-package.relationships+xml", CompressionOption.Maximum );
+      PackagePart pp = Document._package.CreatePart( uri, DocX.ContentTypeApplicationRelationShipXml, CompressionOption.Maximum );
       using( TextWriter tw = new StreamWriter( new PackagePartStream( pp.GetStream() ) ) )
       {
         XDocument d = new XDocument
@@ -53,7 +62,7 @@ namespace Xceed.Words.NET
       switch( Xml.Name.LocalName )
       {
         case "tab":
-          return 1;
+          return (Xml.Parent.Name.LocalName != "tabs" ) ? 1 : 0;
         case "br":
           return 1;
         case "t":
@@ -130,20 +139,23 @@ namespace Xceed.Words.NET
         return null;
 
       // e is a w:t element, it must exist inside a w:r element or a w:tabs, lets climb until we find it.
-      while( !e.Name.Equals( XName.Get( "r", DocX.w.NamespaceName ) ) && !e.Name.Equals( XName.Get( "tabs", DocX.w.NamespaceName ) ) )
+      while( (e != null) && !e.Name.Equals( XName.Get( "r", DocX.w.NamespaceName ) ) && !e.Name.Equals( XName.Get( "tabs", DocX.w.NamespaceName ) ) )
         e = e.Parent;
-
-      // e is a w:r element, lets find the rPr element.
-      XElement rPr = e.Element( XName.Get( "rPr", DocX.w.NamespaceName ) );
 
       FormattedText ft = new FormattedText();
       ft.text = text;
       ft.index = 0;
       ft.formatting = null;
 
-      // Return text with formatting.
-      if( rPr != null )
-        ft.formatting = Formatting.Parse( rPr );
+      if( e != null )
+      {
+        // e is a w:r element, lets find the rPr element.
+        XElement rPr = e.Element( XName.Get( "rPr", DocX.w.NamespaceName ) );
+
+        // Return text with formatting.
+        if( rPr != null )
+          ft.formatting = Formatting.Parse( rPr );
+      }
 
       return ft;
     }
@@ -153,25 +165,15 @@ namespace Xceed.Words.NET
       switch( e.Name.LocalName )
       {
         case "tab":
-          return "\t";
+          // Do not add "\t" for TabStopPositions defined in "tabs".
+          return ((e.Parent != null) && e.Parent.Name.Equals( XName.Get( "tabs", DocX.w.NamespaceName ) )) ? "" : "\t";
         case "br":
           return "\n";
         case "t":
           goto case "delText";
         case "delText":
           {
-            if( e.Parent != null && e.Parent.Name.LocalName == "r" )
-            {
-              XElement run = e.Parent;
-              var rPr = run.Elements().FirstOrDefault( a => a.Name.LocalName == "rPr" );
-              if( rPr != null )
-              {
-                var caps = rPr.Elements().FirstOrDefault( a => a.Name.LocalName == "caps" );
 
-                if( caps != null )
-                  return e.Value.ToUpper();
-              }
-            }
 
             return e.Value;
           }
@@ -203,6 +205,13 @@ namespace Xceed.Words.NET
       );
     }
 
+    internal static PackagePart GetMainDocumentPart( Package package )
+    {
+      return package.GetParts().Single( p => p.ContentType.Equals( DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) || 
+                                             p.ContentType.Equals( TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) || 
+                                             p.ContentType.Equals( MACRO_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) );
+    }
+
     internal static PackagePart CreateOrGetSettingsPart( Package package )
     {
       PackagePart settingsPart;
@@ -212,8 +221,7 @@ namespace Xceed.Words.NET
       {
         settingsPart = package.CreatePart( settingsUri, HelperFunctions.SETTING_DOCUMENTTYPE, CompressionOption.Maximum );
 
-        var mainDocPart = package.GetParts().Single( p => p.ContentType.Equals( DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) ||
-                                                          p.ContentType.Equals( TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) );
+        var mainDocPart = GetMainDocumentPart( package );
 
         mainDocPart.CreateRelationship( settingsUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" );
 
@@ -342,11 +350,7 @@ namespace Xceed.Words.NET
         stylesDoc.Save( tw, SaveOptions.None );
       }
 
-      var mainDocumentPart = package.GetParts().Where
-      (
-        p => p.ContentType.Equals( DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) ||
-             p.ContentType.Equals( TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase )
-      ).Single();
+      var mainDocumentPart = GetMainDocumentPart( package );
 
       mainDocumentPart.CreateRelationship( word_styles.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" );
       return stylesDoc;
@@ -447,13 +451,13 @@ namespace Xceed.Words.NET
     internal static Paragraph GetFirstParagraphEffectedByInsert( DocX document, int index )
     {
       // This document contains no Paragraphs and insertion is at index 0
-      if( document._paragraphLookup.Keys.Count() == 0 && index == 0 )
+      if( document.Paragraphs.Count() == 0 && index == 0 )
         return null;
 
-      foreach( int paragraphEndIndex in document._paragraphLookup.Keys )
+      foreach( Paragraph p in document.Paragraphs )
       {
-        if( paragraphEndIndex >= index )
-          return document._paragraphLookup[ paragraphEndIndex ];
+        if( p._endIndex >= index )
+          return p;
       }
 
       throw new ArgumentOutOfRangeException();
@@ -511,7 +515,8 @@ namespace Xceed.Words.NET
             break;
 
           default:
-            sb.Append( c );
+            if( !RestrictedXmlCharacters.Contains( c ) )
+              sb.Append( c );
             break;
         }
 
@@ -618,8 +623,7 @@ namespace Xceed.Words.NET
         numberingDoc.Save( tw, SaveOptions.None );
       }
 
-      var mainDocPart = package.GetParts().Single( p => p.ContentType.Equals( DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) ||
-                                                        p.ContentType.Equals( TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) );
+      var mainDocPart = GetMainDocumentPart( package );
 
       mainDocPart.CreateRelationship(numberingPart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering");
       return numberingDoc;
@@ -714,14 +718,16 @@ namespace Xceed.Words.NET
 
     internal static string GetListItemType( Paragraph p, DocX document )
     {
-      var ilvlNode = p.ParagraphNumberProperties.Descendants().FirstOrDefault( el => el.Name.LocalName == "ilvl" );
-      var ilvlValue = ilvlNode.Attribute( DocX.w + "val" ).Value;
+      var paragraphNumberPropertiesDescendants = p.ParagraphNumberProperties.Descendants();
+      var ilvlNode = paragraphNumberPropertiesDescendants.FirstOrDefault( el => el.Name.LocalName == "ilvl" );
+      var ilvlValue = ( ilvlNode != null) ? ilvlNode.Attribute( DocX.w + "val" ).Value : null;
 
-      var numIdNode = p.ParagraphNumberProperties.Descendants().FirstOrDefault( el => el.Name.LocalName == "numId" );
-      var numIdValue = numIdNode.Attribute( DocX.w + "val" ).Value;
+      var numIdNode = paragraphNumberPropertiesDescendants.FirstOrDefault( el => el.Name.LocalName == "numId" );
+      var numIdValue = ( numIdNode != null ) ? numIdNode.Attribute( DocX.w + "val" ).Value : null;
 
       //find num node in numbering 
-      var numNodes = document._numbering.Descendants().Where( n => n.Name.LocalName == "num" );
+      var documentNumberingDescendants = document._numbering.Descendants();
+      var numNodes = documentNumberingDescendants.Where( n => n.Name.LocalName == "num" );
       XElement numNode = numNodes.FirstOrDefault( node => node.Attribute( DocX.w + "numId" ).Value.Equals( numIdValue ) );
 
       if( numNode != null )
@@ -730,7 +736,7 @@ namespace Xceed.Words.NET
         var abstractNumIdNode = numNode.Descendants().First( n => n.Name.LocalName == "abstractNumId" );
         var abstractNumNodeValue = abstractNumIdNode.Attribute( DocX.w + "val" ).Value;
 
-        var abstractNumNodes = document._numbering.Descendants().Where( n => n.Name.LocalName == "abstractNum" );
+        var abstractNumNodes = documentNumberingDescendants.Where( n => n.Name.LocalName == "abstractNum" );
         XElement abstractNumNode = abstractNumNodes.FirstOrDefault( node => node.Attribute( DocX.w + "abstractNumId" ).Value.Equals( abstractNumNodeValue ) );
 
         //Find lvl node
@@ -743,12 +749,68 @@ namespace Xceed.Words.NET
             lvlNode = node;
             break;
           }
+          else if( ilvlValue == null )
+          {
+            var numStyleNode = node.Descendants().FirstOrDefault( n => n.Name.LocalName == "pStyle" );
+            if( ( numStyleNode != null) && numStyleNode.GetAttribute( DocX.w + "val" ).Equals( p.StyleName ) )
+            {
+              lvlNode = node;
+              break;
+            }
+          }
         }
 
-        var numFmtNode = lvlNode.Descendants().First( n => n.Name.LocalName == "numFmt" );
-        return numFmtNode.Attribute( DocX.w + "val" ).Value;
+        if( lvlNode != null )
+        {
+          var numFmtNode = lvlNode.Descendants().First( n => n.Name.LocalName == "numFmt" );
+          return numFmtNode.Attribute( DocX.w + "val" ).Value;
+        }
       }
 
+      return null;
+    }
+
+    internal static string GetListItemStartValue( List list, int level )
+    {
+      var abstractNumElement = list.GetAbstractNum( list.NumId );
+
+      //Find lvl node
+      var lvlNodes = abstractNumElement.Descendants().Where( n => n.Name.LocalName == "lvl" );
+      var lvlNode = lvlNodes.FirstOrDefault( n => n.GetAttribute( DocX.w + "ilvl" ).Equals( level.ToString() ) );
+
+      var startNode = lvlNode.Descendants().First( n => n.Name.LocalName == "start" );
+      return startNode.GetAttribute( DocX.w + "val" );
+    }
+
+    internal static string GetListItemTextFormat( List list, int level )
+    {
+      var abstractNumElement = list.GetAbstractNum( list.NumId );
+
+      //Find lvl node
+      var lvlNodes = abstractNumElement.Descendants().Where( n => n.Name.LocalName == "lvl" );
+      var lvlNode = lvlNodes.FirstOrDefault( n => n.GetAttribute( DocX.w + "ilvl" ).Equals( level.ToString() ) );
+
+      var textFormatNode = lvlNode.Descendants().First( n => n.Name.LocalName == "lvlText" );
+      return textFormatNode.GetAttribute( DocX.w + "val" );
+    }
+
+    internal static XElement GetListItemAlignment( List list, int level )
+    {
+      var abstractNumElement = list.GetAbstractNum( list.NumId );
+
+      //Find lvl node
+      var lvlNodes = abstractNumElement.Descendants().Where( n => n.Name.LocalName == "lvl" );
+      var lvlNode = lvlNodes.FirstOrDefault( n => n.GetAttribute( DocX.w + "ilvl" ).Equals( level.ToString() ) );
+
+      var pPr = lvlNode.Descendants().FirstOrDefault( n => n.Name.LocalName == "pPr" );
+      if( pPr != null )
+      {
+        var ind = pPr.Descendants().FirstOrDefault( n => n.Name.LocalName == "ind" );
+        if( ind != null )
+        {
+          return ind;
+        }
+      }
       return null;
     }
   }

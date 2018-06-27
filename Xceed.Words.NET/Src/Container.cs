@@ -127,8 +127,8 @@ namespace Xceed.Words.NET
           }
         }
 
-        XElement body = Xml.Element( XName.Get( "body", DocX.w.NamespaceName ) );
-        XElement baseSectionXml = body?.Element( XName.Get( "sectPr", DocX.w.NamespaceName ) );
+        var body = Xml.DescendantsAndSelf( XName.Get( "body", DocX.w.NamespaceName ) ).FirstOrDefault();
+        var baseSectionXml = body?.Element( XName.Get( "sectPr", DocX.w.NamespaceName ) );
 
         if (baseSectionXml != null)
         {
@@ -313,7 +313,8 @@ namespace Xceed.Words.NET
                                      Formatting matchFormatting = null,
                                      MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch, 
                                      bool escapeRegEx = true, 
-                                     bool useRegExSubstitutions = false )
+                                     bool useRegExSubstitutions = false,
+                                     bool removeEmptyParagraph = true )
     {
       if( string.IsNullOrEmpty( searchValue ) )
       {
@@ -332,7 +333,7 @@ namespace Xceed.Words.NET
         {
           foreach( Paragraph p in h.Paragraphs )
           {
-            p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions );
+            p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
           }
         }
       }
@@ -340,7 +341,7 @@ namespace Xceed.Words.NET
       // ReplaceText int main body of document.
       foreach( Paragraph p in this.Paragraphs )
       {
-        p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions );
+        p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
       }
 
       // ReplaceText in Footers of the document.
@@ -351,7 +352,7 @@ namespace Xceed.Words.NET
         {
           foreach( Paragraph p in f.Paragraphs )
           {
-            p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions );
+            p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
           }
         }
       }
@@ -367,13 +368,15 @@ namespace Xceed.Words.NET
     /// <param name="newFormatting"></param>
     /// <param name="matchFormatting"></param>
     /// <param name="fo"></param>
+    /// <param name="removeEmptyParagraph">Remove empty paragraph</param>
     public virtual void ReplaceText( string searchValue, 
                                      Func<string,string> regexMatchHandler, 
                                      bool trackChanges = false,
                                      RegexOptions options = RegexOptions.None,
                                      Formatting newFormatting = null,
                                      Formatting matchFormatting = null,
-                                     MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch )
+                                     MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch, 
+                                     bool removeEmptyParagraph = true )
     {
       if( string.IsNullOrEmpty( searchValue ) )
       {
@@ -401,14 +404,14 @@ namespace Xceed.Words.NET
         {
           foreach( var p in hf.Paragraphs )
           {
-            p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo );
+            p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
           }
         }
       }
 
       foreach( var p in this.Paragraphs )
       {
-        p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo );
+        p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
       }
     }
 
@@ -916,7 +919,7 @@ namespace Xceed.Words.NET
       var listItemType = HelperFunctions.GetListItemType( p, Document );
       if( listItemType != null )
       {
-        p.ListItemType = GetListItemType( HelperFunctions.GetListItemType( p, Document ) );
+        p.ListItemType = GetListItemType( listItemType );
       }
     }
 

@@ -102,7 +102,7 @@ namespace Xceed.Words.NET
     {
       get
       {
-        var imageRelationships = this.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" );
+        var imageRelationships = this.PackagePart.GetRelationshipsByType( DocX.RelationshipImage );
         if( imageRelationships.Count() > 0 )
         {
           return

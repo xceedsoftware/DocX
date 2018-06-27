@@ -45,6 +45,12 @@ namespace Xceed.Words.NET
     Body
   }
 
+  public enum ShadingType
+  {
+    Text,
+    Paragraph
+  }
+
   public enum PageNumberFormat
   {
     normal,
@@ -753,5 +759,19 @@ namespace Xceed.Words.NET
     right,
     bottom,
     top
+  }
+
+  public enum HorizontalBorderPosition
+  {
+    top,
+    bottom
+  }
+
+  public enum TabStopPositionLeader
+  {
+    none,
+    dot,
+    underscore,
+    hyphen
   }
 }

@@ -216,7 +216,7 @@ namespace Xceed.Words.NET.Examples
         document.InsertParagraph( "Columns width" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
 
         // Insert a title paragraph.
-        var p = document.InsertParagraph( "In the following table, the cell's left margin has been removed for rows 2-5 as well as the top/bottom table's borders." ).Bold();
+        var p = document.InsertParagraph( "In the following table, the cell's left margin has been removed for rows 2-6 as well as the top/bottom table's borders." ).Bold();
         p.Alignment = Alignment.center;
         p.SpacingAfter( 40d );
 

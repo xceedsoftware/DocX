@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 using System.IO.Packaging;
 using System.Collections.ObjectModel;
@@ -85,6 +86,24 @@ namespace Xceed.Words.NET
         var l = base.Tables;
         l.ForEach( x => x.PackagePart = this.PackagePart );
         return l;
+      }
+    }
+
+    public List<Image> Images
+    {
+      get
+      {
+        var imageRelationships = this.PackagePart.GetRelationshipsByType( DocX.RelationshipImage );
+        if( imageRelationships.Count() > 0 )
+        {
+          return
+          (
+              from i in imageRelationships
+              select new Image( Document, i )
+          ).ToList();
+        }
+
+        return new List<Image>();
       }
     }
 
