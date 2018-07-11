@@ -2070,6 +2070,7 @@ namespace Xceed.Words.NET
       if( tblPr == null )
       {
         // uses default border style
+        return b;
       }
 
       /*
@@ -2080,6 +2081,7 @@ namespace Xceed.Words.NET
       if( tblBorders == null )
       {
         // uses default border style
+        return b;
       }
 
       /*
@@ -2094,6 +2096,7 @@ namespace Xceed.Words.NET
       if( tblBorderType == null )
       {
         // uses default border style
+        return b;
       }
 
       // The val attribute is used for the border style
@@ -3782,6 +3785,7 @@ namespace Xceed.Words.NET
       if( tcPr == null )
       {
         // uses default border style
+        return b;
       }
 
       /*
@@ -3792,6 +3796,7 @@ namespace Xceed.Words.NET
       if( tcBorders == null )
       {
         // uses default border style
+        return b;
       }
 
       /*
@@ -3817,6 +3822,7 @@ namespace Xceed.Words.NET
       if( tcBorderType == null )
       {
         // uses default border style
+        return b;
       }
 
       // The val attribute is used for the border style
