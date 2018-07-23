@@ -4761,6 +4761,10 @@ namespace Xceed.Words.NET
     private XElement GetParagraphNumberProperties()
     {
       var numPrNode = Xml.Descendants().FirstOrDefault( el => el.Name.LocalName == "numPr" );
+      if (numPrNode == null && _style != null)
+      {
+        numPrNode = _style.Descendants().FirstOrDefault( el => el.Name.LocalName == "numPr" );
+      }
       return numPrNode;
     }
 
