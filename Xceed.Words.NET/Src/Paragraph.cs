@@ -856,6 +856,17 @@ namespace Xceed.Words.NET
           XElement styles_element = style_document.Element( XName.Get( "styles", DocX.w.NamespaceName ) );
 
           _style = FindStyle( styles_element, styleElementID );
+
+          if ( _style != null )
+          {
+            string parentStyleName = GetParentStyleName( _style );
+            while ( parentStyleName != null )
+            {
+              XElement parentStyle = FindStyle( styles_element, parentStyleName );
+              MergeStyleElements( _style, parentStyle );
+              parentStyleName = GetParentStyleName( parentStyle );
+            }
+          }
         }
       }
 
@@ -876,6 +887,36 @@ namespace Xceed.Words.NET
       }
 
       return null;
+    }
+
+    internal static string GetParentStyleName(XElement style)
+    {
+      XElement basedOn = style.Elements(XName.Get("basedOn", DocX.w.NamespaceName)).FirstOrDefault();
+      if (basedOn != null)
+      {
+        XAttribute val = basedOn.Attribute(XName.Get("val", DocX.w.NamespaceName));
+        if (val != null)
+        {
+          return val.Value;
+        }
+      }
+      return null;
+    }
+
+    internal static void MergeStyleElements(XElement style, XElement parentStyle)
+    {
+      foreach (XElement parentElement in parentStyle.Elements())
+      {
+        XElement element = style.Element(parentElement.Name);
+        if (element == null)
+        {
+          style.Add(parentElement);
+        }
+        else
+        {
+          MergeStyleElements(element, parentElement);
+        }
+      }
     }
 
     #endregion
@@ -4767,6 +4808,21 @@ namespace Xceed.Words.NET
     private XElement GetParagraphNumberProperties()
     {
       var numPrNode = Xml.Descendants().FirstOrDefault( el => el.Name.LocalName == "numPr" );
+      if ( numPrNode != null )
+      {
+        var numIdNode = Xml.Descendants().First( s => s.Name.LocalName == "numId" );
+        var numId = Int32.Parse( numIdNode.Attribute( DocX.w + "val" ).Value );
+        if ( numId == 0 )
+        {
+          // ECMA-376-1: 17.9.18 numId: A value of 0 for the val attribute shall [..] be used to designate the
+          // removal of numbering properties at a particular level in the style hierarchy.
+          return null;
+        }
+      }
+      else if ( _style != null )
+      {
+        numPrNode = _style.Descendants().FirstOrDefault( el => el.Name.LocalName == "numPr" );
+      }
       return numPrNode;
     }
 
