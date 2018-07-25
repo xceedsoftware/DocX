@@ -19,6 +19,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using System.Security.Principal;
+using System.IO;
 using System.IO.Packaging;
 using System.Drawing;
 using System.Globalization;
@@ -36,7 +37,7 @@ namespace Xceed.Words.NET
     // The Append family of functions use this List to apply style.
     internal List<XElement> _runs;
     internal int _startIndex, _endIndex;
-    internal List<XElement> _styles = new List<XElement>();
+    internal XElement _style;
 
     internal const float DefaultLineSpacing = 1.1f * 20.0f;
 
@@ -817,6 +818,13 @@ namespace Xceed.Words.NET
       }
     }
 
+    public XElement Style
+    {
+      get
+      {
+        return _style;
+      }
+    }
 
     #endregion
 
@@ -831,39 +839,43 @@ namespace Xceed.Words.NET
 
       RebuildDocProperties();
 
-      //// Check if this Paragraph references any pStyle elements.
-      //var stylesElements = xml.Descendants( XName.Get( "pStyle", DocX.w.NamespaceName ) );
+      // Check if this Paragraph references a pStyle element.
+      var styleElement = xml.Descendants( XName.Get( "pStyle", DocX.w.NamespaceName ) ).FirstOrDefault();
 
-      //// If one or more pStyles are referenced.
-      //if( stylesElements.Count() > 0 )
-      //{
-      //  Uri style_package_uri = new Uri( "/word/styles.xml", UriKind.Relative );
-      //  PackagePart styles_document = document.package.GetPart( style_package_uri );
+      // If a pStyle is referenced.
+      if( styleElement != null )
+      {
+        string styleElementID = styleElement.Attribute( XName.Get( "val" , DocX.w.NamespaceName ) ).Value;
 
-      //  using( TextReader tr = new StreamReader( styles_document.GetStream() ) )
-      //  {
-      //    XDocument style_document = XDocument.Load( tr );
-      //    XElement styles_element = style_document.Element( XName.Get( "styles", DocX.w.NamespaceName ) );
+        Uri style_package_uri = new Uri( "/word/styles.xml", UriKind.Relative );
+        PackagePart styles_document = document._package.GetPart( style_package_uri );
 
-      //    var styles_element_ids = stylesElements.Select( e => e.Attribute( XName.Get( "val", DocX.w.NamespaceName ) ).Value );
+        using( TextReader tr = new StreamReader( styles_document.GetStream() ) )
+        {
+          XDocument style_document = XDocument.Load( tr );
+          XElement styles_element = style_document.Element( XName.Get( "styles", DocX.w.NamespaceName ) );
 
-      //    //foreach(string id in styles_element_ids)
-      //    //{
-      //    //    var style = 
-      //    //    (
-      //    //        from d in styles_element.Descendants()
-      //    //        let styleId = d.Attribute(XName.Get("styleId", DocX.w.NamespaceName))
-      //    //        let type = d.Attribute(XName.Get("type", DocX.w.NamespaceName))
-      //    //        where type != null && type.Value == "paragraph" && styleId != null && styleId.Value == id
-      //    //        select d
-      //    //    ).First();
-
-      //    //    styles.Add(style);
-      //    //} 
-      //  }
-      //}
+          _style = FindStyle( styles_element, styleElementID );
+        }
+      }
 
       _runs = Xml.Elements( XName.Get( "r", DocX.w.NamespaceName ) ).ToList();
+    }
+
+    internal static XElement FindStyle(XElement styles_element, string styleElementID)
+    {
+      foreach (XElement style in styles_element.Elements())
+      {
+        XAttribute styleId = style.Attribute(XName.Get("styleId", DocX.w.NamespaceName));
+        XAttribute type = style.Attribute(XName.Get("type", DocX.w.NamespaceName));
+        if (type != null && type.Value == "paragraph" &&
+            styleId != null && styleId.Value == styleElementID)
+        {
+          return style;
+        }
+      }
+
+      return null;
     }
 
     #endregion
