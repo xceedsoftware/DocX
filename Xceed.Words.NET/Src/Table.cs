@@ -2194,7 +2194,7 @@ namespace Xceed.Words.NET
 
       // The color attribute is used for the border color
       var color = tblBorderType.Attribute( XName.Get( "color", DocX.w.NamespaceName ) );
-      if( color == null )
+      if( color == null || color.Value == "auto" )
       {
         // uses default border style
       }
@@ -2931,7 +2931,7 @@ namespace Xceed.Words.NET
         XAttribute fill = shd?.Attribute( XName.Get( "fill", DocX.w.NamespaceName ) );
 
         // If fill is null, this cell contains no Color information.
-        if( fill == null )
+        if( fill == null || fill.Value == "auto" )
           return Color.White;
 
         return ColorTranslator.FromHtml( string.Format( "#{0}", fill.Value ) );
@@ -3916,7 +3916,7 @@ namespace Xceed.Words.NET
 
       // The color attribute is used for the border color
       XAttribute color = tcBorderType.Attribute( XName.Get( "color", DocX.w.NamespaceName ) );
-      if( color == null )
+      if( color == null || color.Value == "auto" )
       {
         // uses default border style
       }
