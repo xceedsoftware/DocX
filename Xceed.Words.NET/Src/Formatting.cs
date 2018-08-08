@@ -784,7 +784,7 @@ namespace Xceed.Words.NET
               var color = option.GetAttribute( XName.Get( "color", DocX.w.NamespaceName ) );
               if( !string.IsNullOrEmpty( color ) )
               {
-                formatting.UnderlineColor = System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", color ) );
+                formatting.UnderlineColor = ( color == "auto") ? Color.Black : System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", color ) );
               }
             }
             catch( Exception )
@@ -806,7 +806,7 @@ namespace Xceed.Words.NET
             var fill = option.GetAttribute( XName.Get( "fill", DocX.w.NamespaceName ) );
             if( !string.IsNullOrEmpty( fill ) )
             {
-              formatting.Shading = System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", fill ) );
+              formatting.Shading = ( fill == "auto") ? Color.White : System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", fill ) );
             }
             break;
           case "rStyle":
