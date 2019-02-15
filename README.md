@@ -4,11 +4,18 @@ DocX is a .NET library that allows developers to manipulate Word 2007/2010/2013 
 
 **NOTE:** There is a new Master branch as of Oct. 3, 2017. Please read about the [Classic branch](../../wiki/Classic-Branch) if you were using this project before the change.
 
-## DocX Author
-
 DocX is the free, open source version of [Xceed Words for .NET](https://xceed.com/xceed-words-for-net). Originally written by Cathal Coffey, and maintained by Przemyslaw Klys, it is now maintained by Xceed. 
 
-Currently, the only difference between DocX and Xceed Words for .NET, is that Xceed Words for .NET can convert a Word document to PDF, and has professional technical support included in the subscription.  
+Currently, the differences between DocX and Xceed Words for .NET, is that Xceed Words for .NET :
+* can convert a Word document to PDF
+* adds properties to wrap text around Pictures/Tables/Shapes
+* adds Picture cropping
+* adds Shapes (rectangles for now)
+* adds TextBoxes or Shapes containing Text
+* gets Shapes from Paragraphs
+* gets Charts from Paragraphs and can modify their categories/values
+* is at least two versions ahead of the DocX version
+* has professional technical support included in the subscription
 
 ## What else do I need?
 
@@ -26,7 +33,7 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <tr>
 <td>Price</td>
 <td>Free</td>
-<td>$499.95</td>
+<td>$529.95</td>
 </tr>
 <tr>
 <td>License</td>
@@ -124,7 +131,51 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td>YES</td>
 <td>YES</td>
 </tr>
-
+<tr>
+<td>Update document fields (ex: a table of contents) by calling only one method</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Wrap text around tables</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Wrap text around shapes</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Create shapes (rectangles for now)</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Create textboxes or shapes containing text</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Get shapes from paragraphs</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Get charts from paragraphs and modify their categories/values</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Available on .net standard 2.0+ for .net core 2.0+ applications</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>2 or more release ahead</td>
+<td></td>
+<td>YES</td>
+</tr>
 </table>
 
 **Supported Word document elements**
@@ -142,6 +193,8 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 * Find, remove or replace text. Supports case sensitivity and regular expressions.
 * Insert/Modify core or custom properties, such as author, address, subject, title, etc.
 * Insert a Table Of Contents. Set title, change formatting.
+* Insert/Modify shapes (rectangles for now)
+* Update document fields
 
 ## Why would I use DocX?
 
