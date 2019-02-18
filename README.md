@@ -215,9 +215,17 @@ The following [blog post](http://cathalscorner.blogspot.com/2010/06/cathal-why-d
 Do you have an interesting or informative example that you would like to share? 
 If you do, please email me.
 
-## What do other people think?
+## Release history
 
-<img alt="Testimonials" src="http://download.codeplex.com/download?ProjectName=DocX&DownloadId=192124">
+* January 28, 2019, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.6.0 with [71 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus160).
+* **June 27, 2018, released DocX v1.2.0 with [13 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0).**
+* June 18, 2018, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.5.0 with [71 bug fixes and improvements](../../wiki/Release-Notes-v1.1.0#Plus150).
+* April 12, 2018, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.4.1 with [22 bug fixes and improvements](../../wiki/Release-Notes-v1.1.0#Plus141).
+* January 15, 2018, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.4.0 with [19 bug fixes and improvements](../../wiki/Release-Notes-v1.1.0#Plus140).
+* September 12, 2017, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.3.0 with [13 bug fixes and improvements](../../wiki/Release-Notes-v1.1.0#Plus130).
+* June 5, 2017, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.2.0 with [13 bug fixes and improvements](../../wiki/Release-Notes-v1.1.0#Plus120).
+* **October 3, 2017, released DocX v1.1.0 with [6 bug fixes and improvements](../../wiki/Release-Notes-v1.1.0).**
+* March 1, 2017, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.1.0 with 6 bug fixes and improvements.
 
 ***
 
