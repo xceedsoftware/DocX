@@ -1,5 +1,0 @@
-D:\Dev\DocumentLibraries\Release\1.2.0\OpenSource\Generated\Examples\bin\Release\Examples.exe.config
-D:\Dev\DocumentLibraries\Release\1.2.0\OpenSource\Generated\Examples\bin\Release\Examples.exe
-D:\Dev\DocumentLibraries\Release\1.2.0\OpenSource\Generated\Examples\bin\Release\Xceed.Words.NET.dll
-D:\Dev\DocumentLibraries\Release\1.2.0\OpenSource\Generated\Examples\obj\x86\Release\Xceed.Words.NET.Examples.csprojResolveAssemblyReference.cache
-D:\Dev\DocumentLibraries\Release\1.2.0\OpenSource\Generated\Examples\obj\x86\Release\Examples.exe

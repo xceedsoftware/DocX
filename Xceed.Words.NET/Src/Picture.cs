@@ -26,8 +26,6 @@ namespace Xceed.Words.NET
   {
     #region Private Members
 
-    private const int EmusInPixel = 9525;
-
     private string _id;
     private string _name;
     private string _descr;
@@ -38,9 +36,17 @@ namespace Xceed.Words.NET
     private XElement _xfrm;
     private XElement _prstGeom;
 
+    // Calculating Height & Width in Inches
+    // https://startbigthinksmall.wordpress.com/2010/01/04/points-inches-and-emus-measuring-units-in-office-open-xml/
+    // http://lcorneliussen.de/raw/dashboards/ooxml/
+    private const int InchToEmuFactor = 914400;
+    private const double EmuToInchFactor = 1d / InchToEmuFactor;
+
     #endregion
 
     #region Internal Members
+
+    internal const int EmusInPixel = 9525;  // Result of : 914400 EMUs per inch / 96 pixel per inch.
 
     internal Dictionary<PackagePart, PackageRelationship> _picture_rels;
 
@@ -191,7 +197,7 @@ namespace Xceed.Words.NET
     }
 
     /// <summary>
-    /// Get or sets the Width of this Image.
+    /// Gets or sets the Width of this Image.
     /// </summary>
     public int Width
     {
@@ -210,7 +216,23 @@ namespace Xceed.Words.NET
     }
 
     /// <summary>
-    /// Get or sets the height of this Image.
+    /// Gets or sets the Width of this Image (in Inches)
+    /// </summary>
+    public double WidthInches
+    {
+      get
+      {
+        return Width * EmusInPixel * EmuToInchFactor;
+      }
+
+      set
+      {
+        Width = ( int )( value * InchToEmuFactor / EmusInPixel );
+      }
+    }
+
+    /// <summary>
+    /// Gets or sets the height of this Image.
     /// </summary>
     public int Height
     {
@@ -227,6 +249,23 @@ namespace Xceed.Words.NET
           a.Value = _cy.ToString();
       }
     }
+
+    /// <summary>
+    /// Gets or sets the Height of this Image (in Inches)
+    /// </summary>
+    public double HeightInches
+    {
+      get
+      {
+        return Height * EmusInPixel * EmuToInchFactor;
+      }
+
+      set
+      {
+        Height = ( int )( value * InchToEmuFactor / EmusInPixel );
+      }
+    }
+
 
     #endregion
 
@@ -306,7 +345,7 @@ namespace Xceed.Words.NET
         {
           var widthString = style.Value.Substring( style.Value.IndexOf( "width:" ) + 6 );
           var widthValueString = widthString.Substring( 0, widthString.IndexOf( "pt" ) ).Replace( ".", "," );
-          var widthDouble = ( double.Parse( widthValueString ) / 72d ) * 914400;
+          var widthDouble = double.Parse( widthValueString ) * EmusInPixel;
           _cx = System.Convert.ToInt32( widthDouble );
         }
       }
@@ -333,7 +372,7 @@ namespace Xceed.Words.NET
         {
           var heightString = style.Value.Substring( style.Value.IndexOf( "height:" ) + 7 );
           var heightValueString = heightString.Substring( 0, heightString.IndexOf( "pt" ) ).Replace( ".", "," );
-          var heightDouble = ( double.Parse( heightValueString ) / 72d ) * 914400;
+          var heightDouble = double.Parse( heightValueString ) * EmusInPixel;
           _cy = System.Convert.ToInt32( heightDouble );
         }
       }

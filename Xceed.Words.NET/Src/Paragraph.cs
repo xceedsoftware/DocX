@@ -38,7 +38,15 @@ namespace Xceed.Words.NET
     internal int _startIndex, _endIndex;
     internal List<XElement> _styles = new List<XElement>();
 
-    internal const float DefaultLineSpacing = 1.1f * 20.0f;
+    internal const float DefaultSingleLineSpacing = 12f;
+    private static float DefaultLineSpacing = Paragraph.DefaultSingleLineSpacing;
+    private static float DefaultLineSpacingAfter = 0f;
+    private static float DefaultLineSpacingBefore = 0f;
+
+    private static float DefaultIndentationFirstLine = 0f;
+    private static float DefaultIndentationHanging = 0f;
+    private static float DefaultIndentationBefore = 0f;
+    private static float DefaultIndentationAfter = 0f;
 
     #endregion
 
@@ -346,7 +354,7 @@ namespace Xceed.Words.NET
         if( firstLine != null )
           return float.Parse( firstLine.Value ) / 570f;        
 
-        return 0.0f;
+        return Paragraph.DefaultIndentationFirstLine;
       }
 
       set
@@ -403,7 +411,7 @@ namespace Xceed.Words.NET
         if( hanging != null )
           return float.Parse( hanging.Value ) / 570f;
 
-        return 0.0f;
+        return Paragraph.DefaultIndentationHanging;
       }
 
       set
@@ -469,7 +477,7 @@ namespace Xceed.Words.NET
         if( left != null )
           return float.Parse( left.Value ) / 570f;
 
-        return 0.0f;
+        return Paragraph.DefaultIndentationBefore;
       }
 
       set
@@ -531,7 +539,7 @@ namespace Xceed.Words.NET
         if( right != null )
           return float.Parse( right.Value ) / 570f;
 
-        return 0.0f;
+        return Paragraph.DefaultIndentationAfter;
       }
 
       set
@@ -707,7 +715,7 @@ namespace Xceed.Words.NET
 
       set
       {
-        Spacing( value );
+        SpacingLine( value );
       }
     }
 
@@ -716,11 +724,15 @@ namespace Xceed.Words.NET
       get
       {
         XElement pPr = GetOrCreate_pPr();
+
         XElement spacing = pPr.Element( XName.Get( "spacing", DocX.w.NamespaceName ) );
 
         if( spacing != null )
         {
-          XAttribute line = spacing.Attribute( XName.Get( "before", DocX.w.NamespaceName ) );
+          if( this.IsBeforeAutoSpacing() )
+            return 0f;
+
+          var line = spacing.Attribute( XName.Get( "before", DocX.w.NamespaceName ) );
           if( line != null )
           {
             float f;
@@ -730,7 +742,7 @@ namespace Xceed.Words.NET
           }
         }
 
-        return 0.0f;
+        return Paragraph.DefaultLineSpacingBefore;
       }
 
       set
@@ -748,7 +760,10 @@ namespace Xceed.Words.NET
 
         if( spacing != null )
         {
-          XAttribute line = spacing.Attribute( XName.Get( "after", DocX.w.NamespaceName ) );
+          if( this.IsAfterAutoSpacing() )
+            return 0f;
+
+          var line = spacing.Attribute( XName.Get( "after", DocX.w.NamespaceName ) );
           if( line != null )
           {
             float f;
@@ -758,14 +773,41 @@ namespace Xceed.Words.NET
           }
         }
 
-        return 0.0f;
+        return Paragraph.DefaultLineSpacingAfter;
       }
-
 
       set
       {
         SpacingAfter( value );
       }
+    }
+
+    internal bool IsAfterAutoSpacing()
+    {
+      XElement pPr = GetOrCreate_pPr();
+      XElement spacing = pPr.Element( XName.Get( "spacing", DocX.w.NamespaceName ) );
+
+      if( spacing != null )
+      {
+        var afterAutoSpacing = spacing.Attribute( XName.Get( "afterAutospacing", DocX.w.NamespaceName ) );
+        if( ( afterAutoSpacing != null ) && ( afterAutoSpacing.Value == "1" ) )
+          return true;
+      }
+      return false;
+    }
+
+    internal bool IsBeforeAutoSpacing()
+    {
+      XElement pPr = GetOrCreate_pPr();
+      XElement spacing = pPr.Element( XName.Get( "spacing", DocX.w.NamespaceName ) );
+
+      if( spacing != null )
+      {
+        var beforeAutospacing = spacing.Attribute( XName.Get( "beforeAutospacing", DocX.w.NamespaceName ) );
+        if( ( beforeAutospacing != null ) && ( beforeAutospacing.Value == "1" ) )
+          return true;
+      }
+      return false;
     }
 
     public XElement ParagraphNumberProperties
@@ -1938,6 +1980,8 @@ namespace Xceed.Words.NET
         }
       }
 
+      _runs = Xml.Elements( XName.Get( "r", DocX.w.NamespaceName ) ).ToList();
+
       HelperFunctions.RenumberIDs( Document );
     }
 
@@ -2055,6 +2099,10 @@ namespace Xceed.Words.NET
       // Shading
       if( format.Shading.HasValue )
         Shading( format.Shading.Value );
+
+      // Border
+      if( format.Border != null )
+        Border( format.Border );
 
       // Italic
       if( format.Italic.HasValue && format.Italic.Value )
@@ -2877,6 +2925,53 @@ namespace Xceed.Words.NET
       return this;
     }
 
+    public Paragraph Border( Border border )
+    {
+      var size = "2";
+      switch( border.Size )
+      {
+        case BorderSize.two:
+          size = "4";
+          break;
+        case BorderSize.three:
+          size = "6";
+          break;
+        case BorderSize.four:
+          size = "8";
+          break;
+        case BorderSize.five:
+          size = "12";
+          break;
+        case BorderSize.six:
+          size = "18";
+          break;
+        case BorderSize.seven:
+          size = "24";
+          break;
+        case BorderSize.eight:
+          size = "36";
+          break;
+        case BorderSize.nine:
+          size = "48";
+          break;
+      case BorderSize.one:
+        default:
+          size = "2";
+          break;
+      }
+
+      var style = border.Tcbs.ToString().Remove(0, 5);
+
+      this.ApplyTextFormattingProperty( XName.Get( "bdr", DocX.w.NamespaceName ), 
+                                        string.Empty, 
+                                        new List<XAttribute>() { new XAttribute( XName.Get( "color", DocX.w.NamespaceName ), border.Color.ToHex() ),
+                                                                 new XAttribute( XName.Get( "space", DocX.w.NamespaceName ), border.Space ),
+                                                                 new XAttribute( XName.Get( "sz", DocX.w.NamespaceName ), size ),
+                                                                 new XAttribute( XName.Get( "val", DocX.w.NamespaceName ), style ) } );
+
+      return this;
+    }
+
     /// <summary>
     /// For use with Append() and AppendLine()
     /// </summary>
@@ -3139,6 +3234,40 @@ namespace Xceed.Words.NET
       return this;
     }
 
+    public Paragraph SpacingLine( double lineSpacing )
+    {
+      lineSpacing *= 20;
+
+      var pPr = GetOrCreate_pPr();
+      var spacing = pPr.Element( XName.Get( "spacing", DocX.w.NamespaceName ) );
+
+      if( lineSpacing > 0 )
+      {
+        if( spacing == null )
+        {
+          spacing = new XElement( XName.Get( "spacing", DocX.w.NamespaceName ) );
+          pPr.Add( spacing );
+        }
+
+        var lineAttribute = spacing.Attribute( XName.Get( "line", DocX.w.NamespaceName ) );
+
+        if( lineAttribute == null )
+          spacing.SetAttributeValue( XName.Get( "line", DocX.w.NamespaceName ), lineSpacing );
+        else
+          lineAttribute.SetValue( lineSpacing );
+      }
+
+      if( Math.Abs( lineSpacing ) < 0.1f && spacing != null )
+      {
+        var lineAttribute = spacing.Attribute( XName.Get( "line", DocX.w.NamespaceName ) );
+        lineAttribute.Remove();
+
+        if( !spacing.HasAttributes )
+          spacing.Remove();
+      }
+      return this;
+    }
+
     public Paragraph Kerning( int kerning )
     {
       if( !new int?[] { 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72 }.Contains( kerning ) )
@@ -3385,6 +3514,8 @@ namespace Xceed.Words.NET
         }
       }
       while( processed < count );
+
+      _runs = Xml.Elements( XName.Get( "r", DocX.w.NamespaceName ) ).ToList();
 
       HelperFunctions.RenumberIDs( Document );
     }
@@ -4138,7 +4269,7 @@ namespace Xceed.Words.NET
     {
       var bookmarkStart = this.Xml.Descendants( XName.Get( "bookmarkStart", DocX.w.NamespaceName ) )
                                   .Where( x => x.Attribute( XName.Get( "name", DocX.w.NamespaceName ) ).Value == bookmarkName )
-                                  .SingleOrDefault();
+                                  .FirstOrDefault();
       if( bookmarkStart == null )
         return;
 
@@ -4202,6 +4333,84 @@ namespace Xceed.Words.NET
     #endregion
 
     #region Internal Methods
+
+    internal static void ResetDefaultValues()
+    {
+      Paragraph.DefaultLineSpacing = Paragraph.DefaultSingleLineSpacing;
+      Paragraph.DefaultLineSpacingAfter = 0f;
+      Paragraph.DefaultLineSpacingBefore = 0f;
+
+      Paragraph.DefaultIndentationFirstLine = 0f;
+      Paragraph.DefaultIndentationHanging = 0f;
+      Paragraph.DefaultIndentationBefore = 0f;
+      Paragraph.DefaultIndentationAfter = 0f;
+  }
+
+    internal static void SetDefaultValues( XElement pPr )
+    {
+      if( pPr == null )
+        return;
+
+      // Default line spacings.
+      var spacing = pPr.Element( XName.Get( "spacing", DocX.w.NamespaceName ) );
+      if( spacing != null )
+      {
+        var line = spacing.Attribute( XName.Get( "line", DocX.w.NamespaceName ) );
+        if( line != null )
+        {
+          float f;
+
+          if( float.TryParse( line.Value, out f ) )
+          {
+            Paragraph.DefaultLineSpacing = f / 20.0f;
+          }
+        }
+        var after = spacing.Attribute( XName.Get( "after", DocX.w.NamespaceName ) );
+        if( after != null )
+        {
+          float f;
+          if( float.TryParse( after.Value, out f ) )
+          {
+            Paragraph.DefaultLineSpacingAfter = f / 20.0f;
+          }
+        }
+        var before = spacing.Attribute( XName.Get( "before", DocX.w.NamespaceName ) );
+        if( before != null )
+        {
+          float f;
+          if( float.TryParse( before.Value, out f ) )
+          {
+            Paragraph.DefaultLineSpacingBefore = f / 20.0f;
+          }
+        }
+      }
+
+      // Default indentations.
+      var ind = pPr.Element( XName.Get( "ind", DocX.w.NamespaceName ) );
+      if( ind != null )
+      {
+        var firstLine = ind.Attribute( XName.Get( "firstLine", DocX.w.NamespaceName ) );
+        if( firstLine != null )
+        {
+          Paragraph.DefaultIndentationFirstLine = float.Parse( firstLine.Value ) / 570f;
+        }
+        var hanging = ind.Attribute( XName.Get( "hanging", DocX.w.NamespaceName ) );
+        if( hanging != null )
+        {
+          Paragraph.DefaultIndentationHanging = float.Parse( hanging.Value ) / 570f;
+        }
+        var before = ind.Attribute( XName.Get( "left", DocX.w.NamespaceName ) );
+        if( before != null )
+        {
+          Paragraph.DefaultIndentationBefore = float.Parse( before.Value ) / 570f;
+        }
+        var after = ind.Attribute( XName.Get( "right", DocX.w.NamespaceName ) );
+        if( after != null )
+        {
+          Paragraph.DefaultIndentationAfter = float.Parse( after.Value ) / 570f;
+        }
+      }
+    }
 
     /// <summary>
     /// If the pPr element doesent exist it is created, either way it is returned by this function.
@@ -4292,8 +4501,8 @@ namespace Xceed.Words.NET
       {
         using( System.Drawing.Image img = System.Drawing.Image.FromStream( packagePartStream, useEmbeddedColorManagement: false, validateImageData: false ) )
         {
-          cx = img.Width * 9526;
-          cy = img.Height * 9526;
+          cx = img.Width * 914400 / Convert.ToInt32( img.HorizontalResolution );
+        cy = img.Height * 914400 / Convert.ToInt32( img.VerticalResolution );
         }
       }
 

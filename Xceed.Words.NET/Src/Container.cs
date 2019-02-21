@@ -858,6 +858,11 @@ namespace Xceed.Words.NET
       {
         foreach( XElement xElement in p )
         {
+          // Do not include inner paragraphs contained in a Fallback.
+          if( xElement.Ancestors().FirstOrDefault( x => x.Name.Equals( XName.Get( "Fallback", DocX.mc.NamespaceName ) ) ) != null )
+          {
+            continue;
+          }
           var paragraph = new Paragraph( this.Document, xElement, index );
           paragraphs.Add( paragraph );
           index += HelperFunctions.GetText( xElement ).Length;

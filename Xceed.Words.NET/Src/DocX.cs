@@ -46,6 +46,7 @@ namespace Xceed.Words.NET
     static internal XNamespace c = "http://schemas.openxmlformats.org/drawingml/2006/chart";
     internal static XNamespace n = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering";
     static internal XNamespace v = "urn:schemas-microsoft-com:vml";
+    static internal XNamespace mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
     #endregion
 
     #region Private Members
@@ -1705,7 +1706,6 @@ namespace Xceed.Words.NET
     /// Add an Image into this document from a fully qualified or relative filename.
     /// </summary>
     /// <param name="filename">The fully qualified or relative filename.</param>
-    /// <param name="contentType">MIME type of image, guessed if not given.</param>
     /// <returns>An Image file.</returns>
     /// <example>
     /// Add an Image into this document from a fully qualified filename.
@@ -2365,7 +2365,7 @@ namespace Xceed.Words.NET
 
       // If this document does not contain a coreFilePropertyPart create one.)
       if( !_package.PartExists( new Uri( "/docProps/core.xml", UriKind.Relative ) ) )
-        throw new Exception( "Core properties part doesn't exist." );
+        HelperFunctions.CreateCorePropertiesPart( this );
 
       XDocument corePropDoc;
       var corePropPart = _package.GetPart( new Uri( "/docProps/core.xml", UriKind.Relative ) );
@@ -2924,6 +2924,8 @@ namespace Xceed.Words.NET
 
       _settings.Root.AddFirst( documentProtection );
     }
+
+
 
     #endregion
 
@@ -3657,6 +3659,11 @@ namespace Xceed.Words.NET
         if (!value)
           mirrorMargins.Remove();
       }
+    }
+
+    internal XElement GetDocDefaults()
+    {
+      return this._styles.Element( XName.Get( "styles", DocX.w.NamespaceName ) ).Element( XName.Get( "docDefaults", DocX.w.NamespaceName ) );
     }
 
     /// <summary>
@@ -4407,7 +4414,18 @@ namespace Xceed.Words.NET
           case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles":
             document._stylesPart = package.GetPart( new Uri( uriString, UriKind.Relative ) );
             using( TextReader tr = new StreamReader( document._stylesPart.GetStream() ) )
+            {
               document._styles = XDocument.Load( tr );
+              var pPrDefault = document._styles.Root.Element( XName.Get( "docDefaults", DocX.w.NamespaceName ) ).Element( XName.Get( "pPrDefault", DocX.w.NamespaceName ) );
+              if( pPrDefault != null )
+              {
+                var pPr = pPrDefault.Element( XName.Get( "pPr", DocX.w.NamespaceName ) );
+                if( pPr != null )
+                {
+                  Paragraph.SetDefaultValues( pPr );
+                }
+              }
+            }
             break;
 
           case "http://schemas.microsoft.com/office/2007/relationships/stylesWithEffects":
@@ -4510,7 +4528,7 @@ namespace Xceed.Words.NET
     internal DocX( DocX document, XElement xml )
         : base( document, xml )
     {
-
+      Paragraph.ResetDefaultValues();
     }
 
     #endregion

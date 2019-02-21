@@ -78,7 +78,9 @@ namespace Xceed.Words.NET
     {
       if( paragraph.IsListItem )
       {
-        var numIdNode = paragraph.Xml.Descendants().First( s => s.Name.LocalName == "numId" );
+        var numIdNode = paragraph.Xml.Descendants().FirstOrDefault( s => s.Name.LocalName == "numId" );
+        if( numIdNode == null )
+          return;
         var numId = Int32.Parse( numIdNode.Attribute( DocX.w + "val" ).Value );
 
         if( CanAddListItem( paragraph ) )
@@ -112,7 +114,9 @@ namespace Xceed.Words.NET
       if( paragraph.IsListItem )
       {
         //var lvlNode = paragraph.Xml.Descendants().First(s => s.Name.LocalName == "ilvl");
-        var numIdNode = paragraph.Xml.Descendants().First( s => s.Name.LocalName == "numId" );
+        var numIdNode = paragraph.Xml.Descendants().FirstOrDefault( s => s.Name.LocalName == "numId" );
+        if( numIdNode == null )
+          return false;
         var numId = Int32.Parse( numIdNode.Attribute( DocX.w + "val" ).Value );
 
         //Level = Int32.Parse(lvlNode.Attribute(DocX.w + "val").Value);
@@ -188,9 +192,7 @@ namespace Xceed.Words.NET
     /// <returns>XElement representing the requested abstractNum</returns>
     internal XElement GetAbstractNum( int numId )
     {
-      var num = Document._numbering.Descendants().First( d => d.Name.LocalName == "num" && d.GetAttribute( DocX.w + "numId" ).Equals( numId.ToString() ) );
-      var abstractNumId = num.Descendants().First( d => d.Name.LocalName == "abstractNumId" ).GetAttribute( DocX.w + "val" );
-      return Document._numbering.Descendants().First( d => d.Name.LocalName == "abstractNum" && d.GetAttribute( DocX.w + "abstractNumId" ).Equals( abstractNumId ) );
+      return HelperFunctions.GetAbstractNum( this.Document, numId.ToString() );
     }
 
     #endregion

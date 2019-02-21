@@ -100,6 +100,7 @@ namespace Xceed.Words.NET.Examples
       MiscellaneousSample.CompanyReport();
       MiscellaneousSample.CreateInvoice();
 
+
       Console.WriteLine( "\nPress any key to exit." );
       Console.ReadKey();
     }

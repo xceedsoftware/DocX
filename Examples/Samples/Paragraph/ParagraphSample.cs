@@ -75,11 +75,12 @@ namespace Xceed.Words.NET.Examples
         var p2 = document.InsertParagraph();
 
         // Append some text and add formatting.
-        p2.Append( "This is a formatted paragraph using spacing," )
+        p2.Append( "This is a formatted paragraph using spacing, line spacing, " )
         .Font( new Font( "Courier New" ) )
         .FontSize( 10 )
         .Italic()
         .Spacing( 5 )
+        .SpacingLine( 22 )
         .Append( "highlight" ).Highlight( Highlight.yellow ).UnderlineColor( Color.Blue ).CapsStyle( CapsStyle.caps )
         .Append( " and strike through." ).StrikeThrough( StrikeThrough.strike )
         .SpacingAfter( 40 );

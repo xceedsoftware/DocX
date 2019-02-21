@@ -24,6 +24,7 @@ using System.IO.Compression;
 using System.Security.Principal;
 using System.Globalization;
 using System.Xml;
+using System.Diagnostics;
 
 namespace Xceed.Words.NET
 {
@@ -89,7 +90,11 @@ namespace Xceed.Words.NET
     {
       sb.Append( ToText( Xml ) );
 
-      if( Xml.HasElements )
+      // Do not read text from Fallback or drawing(a new paragraph will take care of drawing).
+      var fallbackValue = Xml.Name.Equals( XName.Get( "Fallback", DocX.mc.NamespaceName ) );
+      var drawingValue = Xml.Name.Equals( XName.Get( "drawing", DocX.w.NamespaceName ) );
+
+      if( Xml.HasElements && !fallbackValue && !drawingValue )
         foreach( XElement e in Xml.Elements() )
           GetTextRecursive( e, ref sb );
     }
@@ -138,8 +143,13 @@ namespace Xceed.Words.NET
       if( text == String.Empty )
         return null;
 
+      // Do not read text from Fallback.
+      var fallbackValue = e.AncestorsAndSelf().FirstOrDefault( x => x.Name.Equals( XName.Get( "Fallback", DocX.mc.NamespaceName ) ) );
+      if( fallbackValue != null )
+        return null;
+
       // e is a w:t element, it must exist inside a w:r element or a w:tabs, lets climb until we find it.
-      while( (e != null) && !e.Name.Equals( XName.Get( "r", DocX.w.NamespaceName ) ) && !e.Name.Equals( XName.Get( "tabs", DocX.w.NamespaceName ) ) )
+      while( ( e != null ) && !e.Name.Equals( XName.Get( "r", DocX.w.NamespaceName ) ) && !e.Name.Equals( XName.Get( "tabs", DocX.w.NamespaceName ) ) )
         e = e.Parent;
 
       FormattedText ft = new FormattedText();
@@ -166,9 +176,9 @@ namespace Xceed.Words.NET
       {
         case "tab":
           // Do not add "\t" for TabStopPositions defined in "tabs".
-          return ((e.Parent != null) && e.Parent.Name.Equals( XName.Get( "tabs", DocX.w.NamespaceName ) )) ? "" : "\t";
-        case "br":
-          return "\n";
+          return ( ( e.Parent != null ) && e.Parent.Name.Equals( XName.Get( "tabs", DocX.w.NamespaceName ) ) ) ? "" : "\t";
+        //case "br":
+        //  return "\n";
         case "t":
           goto case "delText";
         case "delText":
@@ -178,8 +188,11 @@ namespace Xceed.Words.NET
             return e.Value;
           }
         case "tr":
-          goto case "br";
+          //goto case "br";
+          return "\n";
         case "tc":
+          goto case "tab";
+        case "ptab":
           goto case "tab";
         default:
           return "";
@@ -280,6 +293,29 @@ namespace Xceed.Words.NET
         settingsPart = package.GetPart( settingsUri );
       }
       return settingsPart;
+    }
+
+    internal static void CreateCorePropertiesPart(DocX document)
+    {
+      PackagePart corePropertiesPart = document._package.CreatePart( new Uri( "/docProps/core.xml", UriKind.Relative ), "application/vnd.openxmlformats-package.core-properties+xml", CompressionOption.Maximum );
+
+      XDocument corePropDoc = XDocument.Parse( @"<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+      <cp:coreProperties xmlns:cp='http://schemas.openxmlformats.org/package/2006/metadata/core-properties' xmlns:dc='http://purl.org/dc/elements/1.1/' xmlns:dcterms='http://purl.org/dc/terms/' xmlns:dcmitype='http://purl.org/dc/dcmitype/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'> 
+         <dc:title></dc:title>
+         <dc:subject></dc:subject>
+         <dc:creator></dc:creator>
+         <cp:keywords></cp:keywords>
+         <dc:description></dc:description>
+         <cp:lastModifiedBy></cp:lastModifiedBy>
+         <cp:revision>1</cp:revision>
+         <dcterms:created xsi:type='dcterms:W3CDTF'>" + DateTime.UtcNow.ToString( "s" ) + "Z" + @"</dcterms:created>
+         <dcterms:modified xsi:type='dcterms:W3CDTF'>" + DateTime.UtcNow.ToString( "s" ) + "Z" + @"</dcterms:modified>
+      </cp:coreProperties>" );
+
+      using( TextWriter tw = new StreamWriter( new PackagePartStream( corePropertiesPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+        corePropDoc.Save( tw, SaveOptions.None );
+
+      document._package.CreateRelationship( corePropertiesPart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" );
     }
 
     internal static void CreateCustomPropertiesPart( DocX document )
@@ -393,12 +429,12 @@ namespace Xceed.Words.NET
         throw new ArgumentOutOfRangeException( "Row and Column count must be greater than 0." );
       }
 
-      int[] columnWidths = new int[columnCount];
-      for (int i = 0; i < columnCount; i++)
+      int[] columnWidths = new int[ columnCount ];
+      for( int i = 0; i < columnCount; i++ )
       {
-        columnWidths[i] = 2310;
+        columnWidths[ i ] = 2310;
       }
-      return CreateTable(rowCount, columnWidths);
+      return CreateTable( rowCount, columnWidths );
     }
 
     internal static XElement CreateTable( int rowCount, int[] columnWidths )
@@ -611,12 +647,12 @@ namespace Xceed.Words.NET
     /// <summary> 
     /// Add the default numbering.xml if it is missing from this document
     /// </summary> 
-    internal static XDocument AddDefaultNumberingXml(Package package)
+    internal static XDocument AddDefaultNumberingXml( Package package )
     {
       XDocument numberingDoc;
 
-      var numberingPart = package.CreatePart(new Uri("/word/numbering.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml", CompressionOption.Maximum);
-      numberingDoc = DecompressXMLResource("Xceed.Words.NET.Resources.numbering.xml.gz");
+      var numberingPart = package.CreatePart( new Uri( "/word/numbering.xml", UriKind.Relative ), "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml", CompressionOption.Maximum );
+      numberingDoc = DecompressXMLResource( "Xceed.Words.NET.Resources.numbering.xml.gz" );
 
       using( TextWriter tw = new StreamWriter( new PackagePartStream( numberingPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
       {
@@ -625,122 +661,124 @@ namespace Xceed.Words.NET
 
       var mainDocPart = GetMainDocumentPart( package );
 
-      mainDocPart.CreateRelationship(numberingPart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering");
+      mainDocPart.CreateRelationship( numberingPart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" );
       return numberingDoc;
     }
 
-    internal static List CreateItemInList(List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false)
+    internal static List CreateItemInList( List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false )
     {
-        if (list.NumId == 0)
-        {
-            list.CreateNewNumberingNumId(level, listType, startNumber, continueNumbering);
-        }
+      if( list.NumId == 0 )
+      {
+        list.CreateNewNumberingNumId( level, listType, startNumber, continueNumbering );
+      }
 
-        if (listText != null)
-        {
-            var newSection = new XElement
-            (
-                XName.Get("p", DocX.w.NamespaceName),
-                new XElement(XName.Get("pPr", DocX.w.NamespaceName),
-                new XElement(XName.Get("numPr", DocX.w.NamespaceName),
-                new XElement(XName.Get("ilvl", DocX.w.NamespaceName), new XAttribute(DocX.w + "val", level)),
-                new XElement(XName.Get("numId", DocX.w.NamespaceName), new XAttribute(DocX.w + "val", list.NumId)))),
-                new XElement(XName.Get("r", DocX.w.NamespaceName), new XElement(XName.Get("t", DocX.w.NamespaceName), listText))
-            );
+      if( listText != null )
+      {
+        var newSection = new XElement
+        (
+            XName.Get( "p", DocX.w.NamespaceName ),
+            new XElement( XName.Get( "pPr", DocX.w.NamespaceName ),
+            new XElement( XName.Get( "numPr", DocX.w.NamespaceName ),
+            new XElement( XName.Get( "ilvl", DocX.w.NamespaceName ), new XAttribute( DocX.w + "val", level ) ),
+            new XElement( XName.Get( "numId", DocX.w.NamespaceName ), new XAttribute( DocX.w + "val", list.NumId ) ) ) ),
+            new XElement( XName.Get( "r", DocX.w.NamespaceName ), new XElement( XName.Get( "t", DocX.w.NamespaceName ), listText ) )
+        );
 
-            if (trackChanges)
-                newSection = CreateEdit(EditType.ins, DateTime.Now, newSection);
+        if( trackChanges )
+          newSection = CreateEdit( EditType.ins, DateTime.Now, newSection );
 
-            if (startNumber == null)
-                list.AddItem(new Paragraph(list.Document, newSection, 0, ContainerType.Paragraph));
-            else
-                list.AddItemWithStartValue(new Paragraph(list.Document, newSection, 0, ContainerType.Paragraph), (int)startNumber);
-        }
-        return list;
+        if( startNumber == null )
+          list.AddItem( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ) );
+        else
+          list.AddItemWithStartValue( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ), ( int )startNumber );
+      }
+      return list;
     }
 
-    internal static UnderlineStyle GetUnderlineStyle(string styleName)
+    internal static UnderlineStyle GetUnderlineStyle( string styleName )
     {
-        switch (styleName)
-        {
-            case "single":
-                return UnderlineStyle.singleLine;
-            case "double":
-                return UnderlineStyle.doubleLine;
-            case "thick":
-                return UnderlineStyle.thick;
-            case "dotted":
-                return UnderlineStyle.dotted;
-            case "dottedHeavy":
-                return UnderlineStyle.dottedHeavy;
-            case "dash":
-                return UnderlineStyle.dash;
-            case "dashedHeavy":
-                return UnderlineStyle.dashedHeavy;
-            case "dashLong":
-                return UnderlineStyle.dashLong;
-            case "dashLongHeavy":
-                return UnderlineStyle.dashLongHeavy;
-            case "dotDash":
-                return UnderlineStyle.dotDash;
-            case "dashDotHeavy":
-                return UnderlineStyle.dashDotHeavy;
-            case "dotDotDash":
-                return UnderlineStyle.dotDotDash;
-            case "dashDotDotHeavy":
-                return UnderlineStyle.dashDotDotHeavy;
-            case "wave":
-                return UnderlineStyle.wave;
-            case "wavyHeavy":
-                return UnderlineStyle.wavyHeavy;
-            case "wavyDouble":
-                return UnderlineStyle.wavyDouble;
-            case "words":
-                return UnderlineStyle.words;
-            default:
-                return UnderlineStyle.none;
-        }
+      switch( styleName )
+      {
+        case "single":
+          return UnderlineStyle.singleLine;
+        case "double":
+          return UnderlineStyle.doubleLine;
+        case "thick":
+          return UnderlineStyle.thick;
+        case "dotted":
+          return UnderlineStyle.dotted;
+        case "dottedHeavy":
+          return UnderlineStyle.dottedHeavy;
+        case "dash":
+          return UnderlineStyle.dash;
+        case "dashedHeavy":
+          return UnderlineStyle.dashedHeavy;
+        case "dashLong":
+          return UnderlineStyle.dashLong;
+        case "dashLongHeavy":
+          return UnderlineStyle.dashLongHeavy;
+        case "dotDash":
+          return UnderlineStyle.dotDash;
+        case "dashDotHeavy":
+          return UnderlineStyle.dashDotHeavy;
+        case "dotDotDash":
+          return UnderlineStyle.dotDotDash;
+        case "dashDotDotHeavy":
+          return UnderlineStyle.dashDotDotHeavy;
+        case "wave":
+          return UnderlineStyle.wave;
+        case "wavyHeavy":
+          return UnderlineStyle.wavyHeavy;
+        case "wavyDouble":
+          return UnderlineStyle.wavyDouble;
+        case "words":
+          return UnderlineStyle.words;
+        default:
+          return UnderlineStyle.none;
+      }
     }
 
-    internal static bool ContainsEveryChildOf(XElement elementWanted, XElement elementToValidate, MatchFormattingOptions formattingOptions)
+    internal static bool ContainsEveryChildOf( XElement elementWanted, XElement elementToValidate, MatchFormattingOptions formattingOptions )
     {
-        foreach (XElement subElement in elementWanted.Elements())
-        {
-            if (!elementToValidate.Elements(subElement.Name).Where(bElement => bElement.GetAttribute(XName.Get("val", DocX.w.NamespaceName)) == subElement.GetAttribute(XName.Get("val", DocX.w.NamespaceName))).Any())
-                return false;
-        }
+      foreach( XElement subElement in elementWanted.Elements() )
+      {
+        if( !elementToValidate.Elements( subElement.Name ).Where( bElement => bElement.GetAttribute( XName.Get( "val", DocX.w.NamespaceName ) ) == subElement.GetAttribute( XName.Get( "val", DocX.w.NamespaceName ) ) ).Any() )
+          return false;
+      }
 
-        if (formattingOptions == MatchFormattingOptions.ExactMatch)
-            return elementWanted.Elements().Count() == elementToValidate.Elements().Count();
+      if( formattingOptions == MatchFormattingOptions.ExactMatch )
+        return elementWanted.Elements().Count() == elementToValidate.Elements().Count();
 
-        return true;
+      return true;
     }
 
     internal static string GetListItemType( Paragraph p, DocX document )
     {
       var paragraphNumberPropertiesDescendants = p.ParagraphNumberProperties.Descendants();
       var ilvlNode = paragraphNumberPropertiesDescendants.FirstOrDefault( el => el.Name.LocalName == "ilvl" );
-      var ilvlValue = ( ilvlNode != null) ? ilvlNode.Attribute( DocX.w + "val" ).Value : null;
+      var ilvlValue = ( ilvlNode != null ) ? ilvlNode.Attribute( DocX.w + "val" ).Value : null;
 
       var numIdNode = paragraphNumberPropertiesDescendants.FirstOrDefault( el => el.Name.LocalName == "numId" );
       var numIdValue = ( numIdNode != null ) ? numIdNode.Attribute( DocX.w + "val" ).Value : null;
 
-      //find num node in numbering 
-      var documentNumberingDescendants = document._numbering.Descendants();
-      var numNodes = documentNumberingDescendants.Where( n => n.Name.LocalName == "num" );
-      XElement numNode = numNodes.FirstOrDefault( node => node.Attribute( DocX.w + "numId" ).Value.Equals( numIdValue ) );
-
-      if( numNode != null )
+      var abstractNumNode = HelperFunctions.GetAbstractNum( document, numIdValue );
+      if( abstractNumNode != null )
       {
-        //Get abstractNumId node and its value from numNode
-        var abstractNumIdNode = numNode.Descendants().First( n => n.Name.LocalName == "abstractNumId" );
-        var abstractNumNodeValue = abstractNumIdNode.Attribute( DocX.w + "val" ).Value;
-
-        var abstractNumNodes = documentNumberingDescendants.Where( n => n.Name.LocalName == "abstractNum" );
-        XElement abstractNumNode = abstractNumNodes.FirstOrDefault( node => node.Attribute( DocX.w + "abstractNumId" ).Value.Equals( abstractNumNodeValue ) );
-
-        //Find lvl node
+        // Find lvl node.
         var lvlNodes = abstractNumNode.Descendants().Where( n => n.Name.LocalName == "lvl" );
+        // No lvl, check if a numStyleLink is used.
+        if( lvlNodes.Count() == 0 )
+        {
+          var linkedStyleNumId = HelperFunctions.GetLinkedStyleNumId( document, numIdValue );
+          if( linkedStyleNumId != -1 )
+          {
+            abstractNumNode = HelperFunctions.GetAbstractNum( document, linkedStyleNumId.ToString() );
+            if( abstractNumNode != null )
+            {
+              lvlNodes = abstractNumNode.Descendants().Where( n => n.Name.LocalName == "lvl" );
+            }
+          }
+        }
         XElement lvlNode = null;
         foreach( XElement node in lvlNodes )
         {
@@ -752,7 +790,7 @@ namespace Xceed.Words.NET
           else if( ilvlValue == null )
           {
             var numStyleNode = node.Descendants().FirstOrDefault( n => n.Name.LocalName == "pStyle" );
-            if( ( numStyleNode != null) && numStyleNode.GetAttribute( DocX.w + "val" ).Equals( p.StyleName ) )
+            if( ( numStyleNode != null ) && numStyleNode.GetAttribute( DocX.w + "val" ).Equals( p.StyleName ) )
             {
               lvlNode = node;
               break;
@@ -770,6 +808,34 @@ namespace Xceed.Words.NET
       return null;
     }
 
+    internal static XElement GetAbstractNum( DocX document, string numId )
+    {
+      if( document == null )
+        return null;
+      if( numId == null )
+        return null;
+
+      // Find num node in numbering.
+      var documentNumberingDescendants = document._numbering.Descendants();
+      var numNodes = documentNumberingDescendants.Where( n => n.Name.LocalName == "num" );
+      var numNode = numNodes.FirstOrDefault( node => node.Attribute( DocX.w + "numId" ).Value.Equals( numId ) );
+      if( numNode == null )
+        return null;
+
+      // Get abstractNumId node and its value from numNode.
+      var abstractNumIdNode = numNode.Descendants().FirstOrDefault( n => n.Name.LocalName == "abstractNumId" );
+      if( abstractNumIdNode == null )
+        return null;
+      var abstractNumNodeValue = abstractNumIdNode.Attribute( DocX.w + "val" ).Value;
+      if( string.IsNullOrEmpty( abstractNumNodeValue ) )
+        return null;
+
+      var abstractNumNodes = documentNumberingDescendants.Where( n => n.Name.LocalName == "abstractNum" );
+      var abstractNumNode = abstractNumNodes.FirstOrDefault( node => node.Attribute( DocX.w + "abstractNumId" ).Value.Equals( abstractNumNodeValue ) );
+
+      return abstractNumNode;
+    }
+
     internal static string GetListItemStartValue( List list, int level )
     {
       var abstractNumElement = list.GetAbstractNum( list.NumId );
@@ -777,6 +843,19 @@ namespace Xceed.Words.NET
       //Find lvl node
       var lvlNodes = abstractNumElement.Descendants().Where( n => n.Name.LocalName == "lvl" );
       var lvlNode = lvlNodes.FirstOrDefault( n => n.GetAttribute( DocX.w + "ilvl" ).Equals( level.ToString() ) );
+      // No ilvl, check if a numStyleLink is used.
+      if( lvlNode == null )
+      {
+        var linkedStyleNumId = HelperFunctions.GetLinkedStyleNumId( list.Document, list.NumId.ToString() );
+        if( linkedStyleNumId != -1 )
+        {
+          abstractNumElement = list.GetAbstractNum( linkedStyleNumId );
+          lvlNodes = abstractNumElement.Descendants().Where( n => n.Name.LocalName == "lvl" );
+          lvlNode = lvlNodes.FirstOrDefault( n => n.GetAttribute( DocX.w + "ilvl" ).Equals( level.ToString() ) );
+        }
+        if( lvlNode == null )
+          return "1";
+      }
 
       var startNode = lvlNode.Descendants().First( n => n.Name.LocalName == "start" );
       return startNode.GetAttribute( DocX.w + "val" );
@@ -789,6 +868,19 @@ namespace Xceed.Words.NET
       //Find lvl node
       var lvlNodes = abstractNumElement.Descendants().Where( n => n.Name.LocalName == "lvl" );
       var lvlNode = lvlNodes.FirstOrDefault( n => n.GetAttribute( DocX.w + "ilvl" ).Equals( level.ToString() ) );
+      // No ilvl, check if a numStyleLink is used.
+      if( lvlNode == null )
+      {
+        var linkedStyleNumId = HelperFunctions.GetLinkedStyleNumId( list.Document, list.NumId.ToString() );
+        if( linkedStyleNumId != -1 )
+        {
+          abstractNumElement = list.GetAbstractNum( linkedStyleNumId );
+          lvlNodes = abstractNumElement.Descendants().Where( n => n.Name.LocalName == "lvl" );
+          lvlNode = lvlNodes.FirstOrDefault( n => n.GetAttribute( DocX.w + "ilvl" ).Equals( level.ToString() ) );
+        }
+        if( lvlNode == null )
+          return "%1.";
+      }
 
       var textFormatNode = lvlNode.Descendants().First( n => n.Name.LocalName == "lvlText" );
       return textFormatNode.GetAttribute( DocX.w + "val" );
@@ -801,6 +893,19 @@ namespace Xceed.Words.NET
       //Find lvl node
       var lvlNodes = abstractNumElement.Descendants().Where( n => n.Name.LocalName == "lvl" );
       var lvlNode = lvlNodes.FirstOrDefault( n => n.GetAttribute( DocX.w + "ilvl" ).Equals( level.ToString() ) );
+      // No ilvl, check if a numStyleLink is used.
+      if( lvlNode == null )
+      {
+        var linkedStyleNumId = HelperFunctions.GetLinkedStyleNumId( list.Document, list.NumId.ToString() );
+        if( linkedStyleNumId != -1 )
+        {
+          abstractNumElement = list.GetAbstractNum( linkedStyleNumId );
+          lvlNodes = abstractNumElement.Descendants().Where( n => n.Name.LocalName == "lvl" );
+          lvlNode = lvlNodes.FirstOrDefault( n => n.GetAttribute( DocX.w + "ilvl" ).Equals( level.ToString() ) );
+        }
+        if( lvlNode == null )
+          return null;
+      }
 
       var pPr = lvlNode.Descendants().FirstOrDefault( n => n.Name.LocalName == "pPr" );
       if( pPr != null )
@@ -812,6 +917,51 @@ namespace Xceed.Words.NET
         }
       }
       return null;
+    }
+
+    private static XElement GetStyle( DocX fileToConvert, string styleName )
+    {
+      if( fileToConvert == null )
+        throw new ArgumentNullException( "fileToConvert" );
+      if( string.IsNullOrEmpty( styleName ) )
+        throw new ArgumentNullException( "styleName" );
+
+      var styles = fileToConvert._styles.Element( XName.Get( "styles", DocX.w.NamespaceName ) );
+      return ( from e in styles.Descendants()
+               let styleId = e.Attribute( XName.Get( "styleId", DocX.w.NamespaceName ) )
+               where ( styleId != null && styleId.Value == styleName )
+               select e ).FirstOrDefault();
+    }
+
+    private static int GetLinkedStyleNumId( DocX document, string numId )
+    {
+      Debug.Assert( document != null, "document should not be null" );
+
+      var abstractNumElement = HelperFunctions.GetAbstractNum( document, numId );
+      if( abstractNumElement != null )
+      {
+        var numStyleLink = abstractNumElement.Element( XName.Get( "numStyleLink", DocX.w.NamespaceName ) );
+        if( numStyleLink != null )
+        {
+          var val = numStyleLink.Attribute( XName.Get( "val", DocX.w.NamespaceName ) );
+          if( !string.IsNullOrEmpty( val.Value ) )
+          {
+            var linkedStyle = HelperFunctions.GetStyle( document, val.Value );
+            if( linkedStyle != null )
+            {
+              var linkedNumId = linkedStyle.Descendants( XName.Get( "numId", DocX.w.NamespaceName ) ).FirstOrDefault();
+              if( linkedNumId != null )
+              {
+                var linkedNumIdVal = linkedNumId.Attribute( XName.Get( "val", DocX.w.NamespaceName ) );
+                if( !string.IsNullOrEmpty( linkedNumIdVal.Value ) )
+                  return Int32.Parse( linkedNumIdVal.Value );
+              }
+            }
+          }
+        }
+      }
+
+      return -1;
     }
   }
 }

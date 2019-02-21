@@ -35,6 +35,7 @@ namespace Xceed.Words.NET
     private Script? _script;
     private Highlight? _highlight;
     private Color? _shading;
+    private Border _border;
     private double? _size;
     private Color? _fontColor;
     private Color? _underlineColor;
@@ -311,6 +312,18 @@ namespace Xceed.Words.NET
       }
     }
 
+    public Border Border
+    {
+      get
+      {
+        return _border;
+      }
+      set
+      {
+        _border = value;
+      }
+    }
+
     public string StyleName
     {
       get
@@ -571,6 +584,16 @@ namespace Xceed.Words.NET
           _rPr.Add( new XElement( XName.Get( "shd", DocX.w.NamespaceName ), new XAttribute( XName.Get( "fill", DocX.w.NamespaceName ), _shading.Value.ToHex() ) ) );
         }
 
+        if( _border != null )
+        {
+          _rPr.Add( new XElement( XName.Get( "bdr", DocX.w.NamespaceName ), 
+                    new object[] { new XAttribute( XName.Get( "color", DocX.w.NamespaceName ), _border.Color ),
+                                   new XAttribute( XName.Get( "space", DocX.w.NamespaceName ), _border.Space ),
+                                   new XAttribute( XName.Get( "sz", DocX.w.NamespaceName ), _border.Size ),
+                                   new XAttribute( XName.Get( "val", DocX.w.NamespaceName ), _border.Tcbs )
+                                 } ) );
+        }
+
         if( _capsStyle.HasValue )
         {
           switch( _capsStyle )
@@ -624,6 +647,7 @@ namespace Xceed.Words.NET
       clone.Hidden = _hidden;
       clone.Highlight = _highlight;
       clone.Shading = _shading;
+      clone.Border = _border;
       clone.Italic = _italic;
       if( _kerning.HasValue )
       {
@@ -691,15 +715,19 @@ namespace Xceed.Words.NET
             formatting.PercentageScale = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName)));
             break;
           case "sz":
-            formatting.Size = Int32.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2;
+            formatting.Size = Double.Parse(option.GetAttribute(XName.Get("val", DocX.w.NamespaceName))) / 2;
             break;
           case "rFonts":
-            var fontName = option.GetAttribute( XName.Get( "cs", DocX.w.NamespaceName ), null )
-                                               ?? option.GetAttribute( XName.Get( "ascii", DocX.w.NamespaceName ), null )
-                                               ?? option.GetAttribute( XName.Get( "hAnsi", DocX.w.NamespaceName ), null )
-                                               ?? option.GetAttribute( XName.Get( "hint", DocX.w.NamespaceName ), null )
-                                               ?? option.GetAttribute( XName.Get( "eastAsia", DocX.w.NamespaceName ), null );
-            formatting.FontFamily = new Font( fontName ?? "Calibri" );
+            var fontName = option.GetAttribute( XName.Get( "ascii", DocX.w.NamespaceName ), null )
+                            ?? option.GetAttribute( XName.Get( "hAnsi", DocX.w.NamespaceName ), null )
+                            ?? option.GetAttribute( XName.Get( "cs", DocX.w.NamespaceName ), null )
+                            ?? option.GetAttribute( XName.Get( "hint", DocX.w.NamespaceName ), null )
+                            ?? option.GetAttribute( XName.Get( "eastAsia", DocX.w.NamespaceName ), null );
+
+            formatting.FontFamily = ( fontName != null )
+                                    ? new Font( fontName )
+                                    : ( formatting.FontFamily == null ) ?
+                                      new Font( "Calibri" ) : formatting.FontFamily;
             break;
           case "color":
             try
@@ -809,6 +837,55 @@ namespace Xceed.Words.NET
               formatting.Shading = System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", fill ) );
             }
             break;
+          case "bdr":
+            var borderSize = BorderSize.one;
+            var borderColor = Color.Black;
+            var borderSpace = 0;
+            var borderStyle = BorderStyle.Tcbs_single;
+
+            var bdrColor = option.Attribute( XName.Get( "color", DocX.w.NamespaceName ) );
+            if( ( bdrColor != null ) && ( bdrColor.Value != "auto" ) )
+            {
+              borderColor = System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", bdrColor.Value ) );
+            }
+            var size = option.Attribute( XName.Get( "sz", DocX.w.NamespaceName ) );
+            if( size != null )
+            {
+              var sizeValue = System.Convert.ToSingle( size.Value );
+              if( sizeValue == 2 )
+                borderSize = BorderSize.one;
+              else if( sizeValue == 4 )
+                borderSize = BorderSize.two;
+              else if( sizeValue == 6 )
+                borderSize = BorderSize.three;
+              else if( sizeValue == 8 )
+                borderSize = BorderSize.four;
+              else if( sizeValue == 12 )
+                borderSize = BorderSize.five;
+              else if( sizeValue == 18 )
+                borderSize = BorderSize.six;
+              else if( sizeValue == 24 )
+                borderSize = BorderSize.seven;
+              else if( sizeValue == 36 )
+                borderSize = BorderSize.eight;
+              else if( sizeValue == 48 )
+                borderSize = BorderSize.nine;
+              else
+                borderSize = BorderSize.one;
+            }
+            var space = option.Attribute( XName.Get( "space", DocX.w.NamespaceName ) );
+            if( space != null )
+            {
+              borderSpace = System.Convert.ToInt32( space.Value );
+            }
+            var bdrStyle = option.Attribute( XName.Get( "val", DocX.w.NamespaceName ) );
+            if( bdrStyle != null )
+            {
+              borderStyle = (BorderStyle)Enum.Parse( typeof( BorderStyle ), "Tcbs_" + bdrStyle.Value );
+            }
+
+            formatting.Border = new Border( borderStyle, borderSize, borderSpace, borderColor );
+            break;
           case "rStyle":
             var style = option.GetAttribute( XName.Get( "val", DocX.w.NamespaceName ), null );
             formatting.StyleName = style;
@@ -844,6 +921,9 @@ namespace Xceed.Words.NET
         return -1;
 
       if( other._shading != _shading )
+        return -1;
+
+      if( other._border != _border )
         return -1;
 
       if( other._size != _size )

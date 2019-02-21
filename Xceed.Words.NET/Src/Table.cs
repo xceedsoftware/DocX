@@ -2867,7 +2867,7 @@ namespace Xceed.Words.NET
 
         // If val is null, this cell contains no vAlign information.
         if( val == null )
-          return VerticalAlignment.Center;
+          return VerticalAlignment.Top;
 
         // If val is not a VerticalAlign enum, something is wrong with this attributes value, so remove it and return VerticalAlignment.Center;
         try
@@ -2878,7 +2878,7 @@ namespace Xceed.Words.NET
         catch
         {
           val.Remove();
-          return VerticalAlignment.Center;
+          return VerticalAlignment.Top;
         }
       }
 
@@ -2993,6 +2993,7 @@ namespace Xceed.Words.NET
         // If tcW is null, this cell contains no width information.
         // Get the w attribute of the tcW element.
         XAttribute w = tcW?.Attribute( XName.Get( "w", DocX.w.NamespaceName ) );
+        XAttribute type = tcW?.Attribute( XName.Get( "type", DocX.w.NamespaceName ) );
 
         // If w is null, this cell contains no width information.
         if( w == null )
@@ -3006,6 +3007,19 @@ namespace Xceed.Words.NET
           return double.NaN;
         }
 
+        if( type != null )
+        {
+          if( type.Value == "pct" )
+          {
+            return ( ( widthInWordUnits / 5000d ) * this._row._table.ColumnWidths.Sum() ) / 20;
+          }
+          else if( type.Value == "auto" )
+          {
+            var cellIndex = this._row.Cells.FindIndex( x => x.Xml == this.Xml );
+            if( cellIndex >= 0 )
+              return this._row._table.ColumnWidths[ cellIndex ] / 20;
+          }
+        }
         // Using 20 to match DocX._pageSizeMultiplier.
         return ( widthInWordUnits / 20 );
       }

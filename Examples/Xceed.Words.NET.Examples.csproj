@@ -61,6 +61,7 @@
     <Compile Include="Samples\Miscellaneous\MiscellaneousSample.cs" />
     <Compile Include="Samples\Paragraph\ParagraphSample.cs" />
     <Compile Include="Samples\Parallel\ParallelSample.cs" />
+    <Compile Include="Samples\Pdf\PdfSample.cs" />
     <Compile Include="Samples\Protection\ProtectionSample.cs" />
     <Compile Include="Samples\Section\SectionSample.cs" />
     <Compile Include="Samples\TableOfContent\TableOfContentSample.cs" />
@@ -78,6 +79,7 @@
     <None Include="Samples\Parallel\Resources\Doc1.docx" />
     <None Include="Samples\Parallel\Resources\Doc2.docx" />
     <None Include="Samples\Parallel\Resources\Doc3.docx" />
+    <None Include="Samples\Pdf\Resources\DocumentToConvert.docx" />
     <None Include="Samples\Table\Resources\DocumentWithTemplateTable.docx" />
   </ItemGroup>
   <ItemGroup>

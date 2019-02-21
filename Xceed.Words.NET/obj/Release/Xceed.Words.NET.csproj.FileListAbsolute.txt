@@ -1,3 +1,0 @@
-D:\Dev\DocumentLibraries\Release\1.2.0\OpenSource\Generated\Xceed.Words.NET\bin\Release\Xceed.Words.NET.dll
-D:\Dev\DocumentLibraries\Release\1.2.0\OpenSource\Generated\Xceed.Words.NET\obj\Release\Xceed.Words.NET.csprojResolveAssemblyReference.cache
-D:\Dev\DocumentLibraries\Release\1.2.0\OpenSource\Generated\Xceed.Words.NET\obj\Release\Xceed.Words.NET.dll
