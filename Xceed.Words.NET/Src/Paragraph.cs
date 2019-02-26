@@ -603,19 +603,10 @@ namespace Xceed.Words.NET
         XElement pPr = GetOrCreate_pPr();
         XElement jc = pPr.Element( XName.Get( "jc", DocX.w.NamespaceName ) );
 
-        if( alignment != Xceed.Words.NET.Alignment.left )
-        {
-          if( jc == null )
-            pPr.Add( new XElement( XName.Get( "jc", DocX.w.NamespaceName ), new XAttribute( XName.Get( "val", DocX.w.NamespaceName ), alignment.ToString() ) ) );
-          else
-            jc.Attribute( XName.Get( "val", DocX.w.NamespaceName ) ).Value = alignment.ToString();
-        }
-
+        if( jc == null )
+          pPr.Add( new XElement( XName.Get( "jc", DocX.w.NamespaceName ), new XAttribute( XName.Get( "val", DocX.w.NamespaceName ), alignment.ToString() ) ) );
         else
-        {
-          if( jc != null )
-            jc.Remove();
-        }
+          jc.Attribute( XName.Get( "val", DocX.w.NamespaceName ) ).Value = alignment.ToString();
       }
     }
 
