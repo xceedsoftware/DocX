@@ -477,7 +477,7 @@ namespace Xceed.Words.NET
       #region Styles
       XDocument style_document;
 
-      if( p._styles.Count() > 0 )
+      if( p.Style != null )
       {
         var style_package_uri = new Uri( "/word/styles.xml", UriKind.Relative );
         if( !Document._package.PartExists( style_package_uri ) )
@@ -506,14 +506,10 @@ namespace Xceed.Words.NET
                     where a != null
                     select a.Value;
 
-          foreach( XElement style in p._styles )
+          // If styles_element does not contain this element, then add it.
+          if ( !ids.Contains( p.Style.Attribute( XName.Get( "styleId", DocX.w.NamespaceName ) ).Value ) )
           {
-            // If styles_element does not contain this element, then add it.
-
-            if( !ids.Contains( style.Attribute( XName.Get( "styleId", DocX.w.NamespaceName ) ).Value ) )
-            {
-              styles_element.Add( style );
-            }
+            styles_element.Add( p.Style );
           }
         }
 
