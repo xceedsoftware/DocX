@@ -217,6 +217,7 @@ If you do, please email me.
 
 ## Release history
 
+* **October 4, 2019, released DocX v1.4.1 with [12 bug fixes and improvements](../../wiki/Release-Notes-v1.4.1).**
 * **February 21, 2019, released DocX v1.3.0 with [12 bug fixes and improvements](../../wiki/Release-Notes-v1.3.0).**
 * January 28, 2019, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.6.0 with [71 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus160).
 * **June 27, 2018, released DocX v1.2.0 with [13 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0).**
