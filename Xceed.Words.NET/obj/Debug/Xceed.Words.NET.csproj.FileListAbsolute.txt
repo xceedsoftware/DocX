@@ -1,7 +1,0 @@
-D:\Dev\DocumentLibraries\Release\1.3.0\OpenSource\Generated\Xceed.Words.NET\bin\Debug\Xceed.Words.NET.XML
-D:\Dev\DocumentLibraries\Release\1.3.0\OpenSource\Generated\Xceed.Words.NET\bin\Debug\Xceed.Words.NET.dll
-D:\Dev\DocumentLibraries\Release\1.3.0\OpenSource\Generated\Xceed.Words.NET\bin\Debug\Xceed.Words.NET.pdb
-D:\Dev\DocumentLibraries\Release\1.3.0\OpenSource\Generated\Xceed.Words.NET\obj\Debug\Xceed.Words.NET.csprojAssemblyReference.cache
-D:\Dev\DocumentLibraries\Release\1.3.0\OpenSource\Generated\Xceed.Words.NET\obj\Debug\Xceed.Words.NET.csproj.CoreCompileInputs.cache
-D:\Dev\DocumentLibraries\Release\1.3.0\OpenSource\Generated\Xceed.Words.NET\obj\Debug\Xceed.Words.NET.dll
-D:\Dev\DocumentLibraries\Release\1.3.0\OpenSource\Generated\Xceed.Words.NET\obj\Debug\Xceed.Words.NET.pdb

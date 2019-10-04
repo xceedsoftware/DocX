@@ -13,9 +13,38 @@
   *************************************************************************************/
 
 
-internal static class _XceedVersionInfoCommon
+namespace Xceed.Document.NET
 {
-[System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields" )]
-  public const string Build = ".*";
+  public class Headers
+  {
+    #region Public Properties
 
+    public Header Odd
+    {
+      get;
+      set;
+    }
+
+    public Header Even
+    {
+      get;
+      set;
+    }
+
+    public Header First
+    {
+      get;
+      set;
+    }
+
+    #endregion
+
+    #region Constructors
+
+    internal Headers()
+    {
+    }
+
+    #endregion
+  }
 }

@@ -13,9 +13,23 @@
   *************************************************************************************/
 
 
-internal static class _XceedVersionInfoCommon
-{
-[System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields" )]
-  public const string Build = ".*";
+using System.Collections.Generic;
+using System.Xml.Linq;
 
+namespace Xceed.Document.NET
+{
+  public class Section : Container
+  {
+
+    public SectionBreakType SectionBreakType;
+
+    internal Section( Document document, XElement xml ) : base( document, xml )
+    {
+    }
+
+    public List<Paragraph> SectionParagraphs
+    {
+      get; set;
+    }
+  }
 }

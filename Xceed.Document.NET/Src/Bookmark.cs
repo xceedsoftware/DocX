@@ -13,9 +13,38 @@
   *************************************************************************************/
 
 
-internal static class _XceedVersionInfoCommon
+namespace Xceed.Document.NET
 {
-[System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields" )]
-  public const string Build = ".*";
+  public class Bookmark
+  {
+    #region Public Properties
 
+    public string Name
+    {
+      get; set;
+    }
+    public Paragraph Paragraph
+    {
+      get; set;
+    }
+
+    #endregion
+
+    #region Constructors
+
+    public Bookmark()
+    {
+    }
+
+    #endregion
+
+    #region Public Methods
+
+    public void SetText( string text )
+    {
+      this.Paragraph.ReplaceAtBookmark( text, this.Name );
+    }
+
+    #endregion
+  }
 }

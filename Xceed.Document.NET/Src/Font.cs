@@ -13,9 +13,29 @@
   *************************************************************************************/
 
 
-internal static class _XceedVersionInfoCommon
-{
-[System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields" )]
-  public const string Build = ".*";
+using System;
 
+namespace Xceed.Document.NET
+{
+    public sealed class Font
+    {
+        public Font(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+
+            Name = name;
+        }
+
+        public string Name
+        {
+            get;
+            private set;
+        }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
 }

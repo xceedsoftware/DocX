@@ -13,9 +13,15 @@
   *************************************************************************************/
 
 
-internal static class _XceedVersionInfoCommon
-{
-[System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields" )]
-  public const string Build = ".*";
+using System.Collections.ObjectModel;
 
+namespace Xceed.Document.NET
+{
+  public interface IParagraphContainer
+  {
+    ReadOnlyCollection<Paragraph> Paragraphs
+    {
+      get;
+    }
+  }
 }

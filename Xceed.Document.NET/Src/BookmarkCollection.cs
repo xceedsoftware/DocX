@@ -13,9 +13,23 @@
   *************************************************************************************/
 
 
-internal static class _XceedVersionInfoCommon
-{
-[System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields" )]
-  public const string Build = ".*";
+using System.Collections.Generic;
+using System.Linq;
 
+namespace Xceed.Document.NET
+{
+  public class BookmarkCollection : List<Bookmark>
+  {
+    public BookmarkCollection()
+    {
+    }
+
+    public Bookmark this[ string name ]
+    {
+      get
+      {
+        return this.FirstOrDefault( x => x.Name.Equals( name, System.StringComparison.CurrentCultureIgnoreCase ) );
+      }
+    }
+  }
 }
