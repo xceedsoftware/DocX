@@ -4607,7 +4607,7 @@ namespace Xceed.Document.NET
       string author = "";
       try
       {
-        author = WindowsIdentity.GetCurrent().Name;
+        author = "Unknown";
       }
       catch( Exception )
       {
