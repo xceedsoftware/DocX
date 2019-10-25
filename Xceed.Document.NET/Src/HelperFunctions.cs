@@ -433,7 +433,7 @@ namespace Xceed.Document.NET
       (
           new XElement( Document.w + t.ToString(),
               new XAttribute( Document.w + "id", 0 ),
-              new XAttribute( Document.w + "author", WindowsIdentity.GetCurrent().Name ),
+              new XAttribute( Document.w + "author", "Unknown"),
               new XAttribute( Document.w + "date", edit_time ),
           content )
       );
