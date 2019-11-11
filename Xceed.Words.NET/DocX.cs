@@ -508,6 +508,7 @@ namespace Xceed.Words.NET
 
       // Close the document so that it can be saved.
       _package.Flush();
+      _package.Close();
 
       #region Save this document back to a file or stream, that was specified by the user at save time.
       if( _filename != null )
