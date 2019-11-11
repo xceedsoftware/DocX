@@ -27,6 +27,7 @@ using System.Diagnostics;
 
 namespace Xceed.Document.NET
 {
+    [DebuggerDisplay("{Text}")]
   /// <summary>
   /// Represents a document paragraph.
   /// </summary>
