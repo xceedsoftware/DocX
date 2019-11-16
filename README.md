@@ -211,6 +211,7 @@ The following [blog post](http://cathalscorner.blogspot.com/2010/06/cathal-why-d
  2. Replace text across many documents in Parallel. http://cathalscorner.blogspot.com/2010/12/replace-text-across-many-documents-in.html
  3. Programmatically manipulate an Image imbedded inside a document. http://cathalscorner.blogspot.com/2010/12/programmatically-manipulate-image.html
  4. Converting DocX into (.doc, .pdf, .html) http://cathalscorner.blogspot.com/2009/10/converting-docx-into-doc-pdf-html.html
+ 5. Работа с Word при помощи C# https://progtask.ru/rabota-s-word-pri-pomoshi-c-sharp/
 
 Do you have an interesting or informative example that you would like to share? 
 If you do, please email me.
