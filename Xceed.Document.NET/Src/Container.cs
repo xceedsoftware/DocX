@@ -286,10 +286,38 @@ namespace Xceed.Document.NET
     {
       var rawResults = new List<string>();
 
-      foreach( Paragraph p in Paragraphs )
-      {   // accumulate the search results from all paragraphs
+      // Search in headers
+      var headerList = new List<Header>() { this.Document.Headers.First, this.Document.Headers.Even, this.Document.Headers.Odd };
+      foreach (Header h in headerList)
+      { 
+        if (h != null)
+        {
+          foreach (Paragraph p in h.Paragraphs)
+          {
+            var partials = p.FindAllByPattern(pattern, options);
+            rawResults.AddRange(partials);
+          }
+        }
+      }
+
+      foreach ( Paragraph p in Paragraphs )
+      {
         var partials = p.FindAllByPattern( pattern, options );
         rawResults.AddRange( partials );
+      }
+
+      // Search in footers
+      var footerList = new List<Footer> { this.Document.Footers.First, this.Document.Footers.Even, this.Document.Footers.Odd };
+      foreach (Footer f in footerList)
+      {
+        if (f != null)
+        {
+          foreach (Paragraph p in f.Paragraphs)
+          {
+            var partials = p.FindAllByPattern(pattern, options);
+            rawResults.AddRange(partials);
+          }
+        }
       }
 
       // this dictionary is used to collect results and test for uniqueness

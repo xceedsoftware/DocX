@@ -304,7 +304,7 @@ namespace Xceed.Document.NET
           var color = background.Attribute( XName.Get( "color", Document.w.NamespaceName ) );
           if( color != null )
           {
-            return ColorTranslator.FromHtml( string.Format( "#{0}", color.Value ) );
+              return ColorTranslator.FromHtml( string.Format( "#{0}", color.Value ) );
           }
         }
 

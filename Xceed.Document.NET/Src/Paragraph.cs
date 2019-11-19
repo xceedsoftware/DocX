@@ -27,6 +27,7 @@ using System.Diagnostics;
 
 namespace Xceed.Document.NET
 {
+    [DebuggerDisplay("{Text}")]
   /// <summary>
   /// Represents a document paragraph.
   /// </summary>
@@ -4607,7 +4608,7 @@ namespace Xceed.Document.NET
       string author = "";
       try
       {
-        author = WindowsIdentity.GetCurrent().Name;
+        author = "Unknown";
       }
       catch( Exception )
       {
