@@ -215,6 +215,16 @@ The following [blog post](http://cathalscorner.blogspot.com/2010/06/cathal-why-d
 Do you have an interesting or informative example that you would like to share? 
 If you do, please email me.
 
+## License Information
+
+DocX is provided under the Xceed Software, Inc. Community License.
+
+[<img src="https://user-images.githubusercontent.com/29377763/69274195-d9382200-0ba7-11ea-9ab7-bfce3126f35a.png"/>](license.md)
+
+More information can be found in the [License](license.md) page.
+
+A commercial license can be purchased at [Xceed](https://xceed.com).
+
 ## Release history
 
 * **November 26, 2019, released DocX v1.5.0 with [19 bug fixes and improvements](../../wiki/Release-Notes-v1.5.0).**
