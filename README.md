@@ -4,7 +4,7 @@ DocX is a .NET library that allows developers to manipulate Word 2007/2010/2013 
 
 **NOTE:** There is a new Master branch as of Oct. 3, 2017. Please read about the [Classic branch](../../wiki/Classic-Branch) if you were using this project before the change.
 
-DocX is the free, open source version of [Xceed Words for .NET](https://xceed.com/xceed-words-for-net). Originally written by Cathal Coffey, and maintained by Przemyslaw Klys, it is now maintained by Xceed. 
+DocX is the free, open source version of [Xceed Words for .NET](https://xceed.com/xceed-words-for-net). Originally written by Cathal Coffey, and maintained by Przemyslaw Klys, it is now maintained by Xceed. Starting at v1.5.0, this free and open source product is provided under the Xceed Community License agreement(for non-commercial use). 
 
 Currently, the differences between DocX and Xceed Words for .NET, is that Xceed Words for .NET :
 * can convert a Word document to PDF
@@ -37,7 +37,7 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 </tr>
 <tr>
 <td>License</td>
-<td>Ms-PL</td>
+<td>Xceed Community License</td>
 <td>Proprietary</td>
 </tr>
 <tr>
@@ -217,6 +217,7 @@ If you do, please email me.
 
 ## Release history
 
+* **November 26, 2019, released DocX v1.5.0 with [19 bug fixes and improvements](../../wiki/Release-Notes-v1.5.0).**
 * **October 4, 2019, released DocX v1.4.1 with [12 bug fixes and improvements](../../wiki/Release-Notes-v1.4.1).**
 * **February 21, 2019, released DocX v1.3.0 with [12 bug fixes and improvements](../../wiki/Release-Notes-v1.3.0).**
 * January 28, 2019, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.6.0 with [71 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus160).
