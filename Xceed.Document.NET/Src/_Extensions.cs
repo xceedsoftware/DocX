@@ -69,7 +69,7 @@ namespace Xceed.Document.NET
     }
 
     /// <summary>
-    /// Sets margin for all the pages in a Document document in inches.
+    /// Sets margin for all the pages in a Document's first section, in inches.
     /// </summary>
     /// <param name="document"></param>
     /// <param name="top">Margin from the top. -1 for no change.</param>
@@ -78,8 +78,24 @@ namespace Xceed.Document.NET
     /// <param name="left">Margin from the left. -1 for no change.</param>
     public static void SetMargin( this Document document, float top, float bottom, float right, float left )
     {
+      Extensions.SetMargin( document.Sections[ 0 ], top, bottom, right, left );
+    }
+
+    /// <summary>
+    /// Sets margin for all the pages in a Section in inches.
+    /// </summary>
+    /// <param name="section"></param>
+    /// <param name="top">Margin from the top. -1 for no change.</param>
+    /// <param name="bottom">Margin from the bottom. -1 for no change.</param>
+    /// <param name="right">Margin from the right. -1 for no change.</param>
+    /// <param name="left">Margin from the left. -1 for no change.</param>
+    public static void SetMargin( Section section, float top, float bottom, float right, float left )
+    {
+      if( section == null )
+        return;
+
       var xNameSpace = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
-      var tempElement = document.PageLayout.Xml.Descendants( xNameSpace + "pgMar" );
+      var tempElement = section.PageLayout.Xml.Descendants( xNameSpace + "pgMar" );
       var multiplier = 1440;
 
       foreach( var item in tempElement )

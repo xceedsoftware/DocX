@@ -55,6 +55,7 @@ namespace Xceed.Words.NET.Examples
       // Create a new document.
       using( var document = DocX.Create( ParagraphSample.ParagraphSampleOutputDirectory + @"SimpleFormattedParagraphs.docx" ) )
       {
+        document.SetDefaultFont( new Document.NET.Font( "Arial" ), 15d, Color.Green );
         document.PageBackground = Color.LightGray;
         document.PageBorders = new Borders( new Border( BorderStyle.Tcbs_double, BorderSize.five, 20, Color.Blue ) );
 
@@ -99,7 +100,7 @@ namespace Xceed.Words.NET.Examples
 
         // Insert another Paragraph into this document.
         var p4 = document.InsertParagraph();
-        p4.Append( "This document is using double blue page borders and light gray page background." )
+        p4.Append( "This document is using an Arial green default font of size 15. It's also using a double blue page borders and light gray page background." )
           .SpacingAfter( 40 );
 
         // Save this document to disk.

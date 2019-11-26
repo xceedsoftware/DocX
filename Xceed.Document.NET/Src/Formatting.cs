@@ -61,13 +61,6 @@ namespace Xceed.Document.NET
     /// </summary>
     public Formatting()
     {
-      _capsStyle = Xceed.Document.NET.CapsStyle.none;
-      _strikethrough = Xceed.Document.NET.StrikeThrough.none;
-      _script = Xceed.Document.NET.Script.none;
-      _highlight = Xceed.Document.NET.Highlight.none;
-      _underlineStyle = Xceed.Document.NET.UnderlineStyle.none;
-      _misc = Xceed.Document.NET.Misc.none;
-
       // Use current culture by default
       _language = CultureInfo.CurrentCulture;
 
@@ -168,7 +161,7 @@ namespace Xceed.Document.NET
       {
         double? temp = value * 2;
 
-        if( temp - ( int )temp == 0 )
+        if( temp - (int)temp == 0 )
         {
           if( value > 0 && value < 1639 )
           {
@@ -183,7 +176,7 @@ namespace Xceed.Document.NET
     }
 
     /// <summary>
-    /// Percentage scale must be one of the following values 200, 150, 100, 90, 80, 66, 50 or 33.
+    /// Percentage scale must be between 1 and 600.
     /// </summary>
     public int? PercentageScale
     {
@@ -194,17 +187,24 @@ namespace Xceed.Document.NET
 
       set
       {
-        if( ( new int?[] { 200, 150, 100, 90, 80, 66, 50, 33 } ).Contains( value ) )
+        if( value == null )
         {
-          _percentageScale = value;
+          _percentageScale = null;
         }
         else
-          throw new ArgumentOutOfRangeException( "PercentageScale", "Value must be one of the following: 200, 150, 100, 90, 80, 66, 50 or 33" );
+        {
+          if( ( value >= 1 ) && ( value <= 600 ) )
+          {
+            _percentageScale = value;
+          }
+          else
+            throw new ArgumentException( "PercentageScale", "Value must be in the range 1 - 600" );
+        }
       }
     }
 
     /// <summary>
-    /// The Kerning to apply to this text must be one of the following values 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72.
+    /// The Kerning to apply to this text.
     /// </summary>
     public int? Kerning
     {
@@ -215,10 +215,7 @@ namespace Xceed.Document.NET
 
       set
       {
-        if( new int?[] { 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72 }.Contains( value ) )
-          _kerning = value;
-        else
-          throw new ArgumentOutOfRangeException( "Kerning", "Value must be one of the following: 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48 or 72" );
+        _kerning = value;
       }
     }
 
@@ -255,7 +252,7 @@ namespace Xceed.Document.NET
       {
         double? temp = value * 20;
 
-        if( temp - ( int )temp == 0 )
+        if( temp - (int)temp == 0 )
         {
           if( value > -1585 && value < 1585 )
             _spacing = value;
@@ -298,7 +295,7 @@ namespace Xceed.Document.NET
       }
     }
 
-      /// <summary>
+    /// <summary>
     /// Shading color.
     /// </summary>
     public Color? Shading
@@ -477,7 +474,7 @@ namespace Xceed.Document.NET
           (
               new XElement( XName.Get( "rFonts", Document.w.NamespaceName ), new XAttribute( XName.Get( "ascii", Document.w.NamespaceName ), _fontFamily.Name ),
                                                                          new XAttribute( XName.Get( "hAnsi", Document.w.NamespaceName ), _fontFamily.Name ),
-                                                                         new XAttribute( XName.Get( "cs", Document.w.NamespaceName ), _fontFamily.Name ), 
+                                                                         new XAttribute( XName.Get( "cs", Document.w.NamespaceName ), _fontFamily.Name ),
                                                                          new XAttribute( XName.Get( "eastAsia", Document.w.NamespaceName ), _fontFamily.Name ) )
           );
         }
@@ -513,12 +510,12 @@ namespace Xceed.Document.NET
               _rPr.Add( new XElement( XName.Get( "u", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), _underlineStyle.ToString() ) ) );
               break;
           }
-        }        
+        }
 
         if( _underlineColor.HasValue )
         {
           // If an underlineColor has been set but no underlineStyle has been set
-          if( _underlineStyle == Xceed.Document.NET.UnderlineStyle.none )
+          if( !_underlineStyle.HasValue || ( _underlineStyle == Xceed.Document.NET.UnderlineStyle.none ) )
           {
             // Set the underlineStyle to the default
             _underlineStyle = Xceed.Document.NET.UnderlineStyle.singleLine;
@@ -555,7 +552,7 @@ namespace Xceed.Document.NET
               _rPr.Add( new XElement( XName.Get( "vertAlign", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), _script.ToString() ) ) );
               break;
           }
-        }        
+        }
 
         if( _size.HasValue )
         {
@@ -587,7 +584,7 @@ namespace Xceed.Document.NET
 
         if( _border != null )
         {
-          _rPr.Add( new XElement( XName.Get( "bdr", Document.w.NamespaceName ), 
+          _rPr.Add( new XElement( XName.Get( "bdr", Document.w.NamespaceName ),
                     new object[] { new XAttribute( XName.Get( "color", Document.w.NamespaceName ), _border.Color ),
                                    new XAttribute( XName.Get( "space", Document.w.NamespaceName ), _border.Space ),
                                    new XAttribute( XName.Get( "sz", Document.w.NamespaceName ), _border.Size ),
@@ -701,22 +698,30 @@ namespace Xceed.Document.NET
         switch( option.Name.LocalName )
         {
           case "lang":
-            formatting.Language = new CultureInfo(option.GetAttribute(XName.Get("val", Document.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("eastAsia", Document.w.NamespaceName), null) ?? option.GetAttribute(XName.Get("bidi", Document.w.NamespaceName)));
+            var cultureString = option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ), null ) ?? option.GetAttribute( XName.Get( "eastAsia", Document.w.NamespaceName ), null ) ?? option.GetAttribute( XName.Get( "bidi", Document.w.NamespaceName ) );
+            try
+            {
+              formatting.Language = new CultureInfo( cultureString );
+            }
+            catch( Exception )
+            {
+              formatting.Language = CultureInfo.CurrentCulture;
+            }
             break;
           case "spacing":
-            formatting.Spacing = Double.Parse(option.GetAttribute(XName.Get("val", Document.w.NamespaceName))) / 20.0;
+            formatting.Spacing = Double.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 20.0;
             break;
           case "position":
-            formatting.Position = Int32.Parse(option.GetAttribute(XName.Get("val", Document.w.NamespaceName))) / 2;
+            formatting.Position = Int32.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2;
             break;
           case "kern":
-            formatting.Kerning = Int32.Parse(option.GetAttribute(XName.Get("val", Document.w.NamespaceName))) / 2;
+            formatting.Kerning = Int32.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2;
             break;
           case "w":
-            formatting.PercentageScale = Int32.Parse(option.GetAttribute(XName.Get("val", Document.w.NamespaceName)));
+            formatting.PercentageScale = Int32.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) );
             break;
           case "sz":
-            formatting.Size = Double.Parse(option.GetAttribute(XName.Get("val", Document.w.NamespaceName))) / 2;
+            formatting.Size = Double.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2;
             break;
           case "rFonts":
             var fontName = option.GetAttribute( XName.Get( "ascii", Document.w.NamespaceName ), null )
@@ -733,22 +738,22 @@ namespace Xceed.Document.NET
           case "color":
             try
             {
-              var color = option.GetAttribute(XName.Get("val", Document.w.NamespaceName));
-              formatting.FontColor = ( color == "auto") ? Color.Black : ColorTranslator.FromHtml(string.Format("#{0}", color));
+              var color = option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) );
+              formatting.FontColor = ( color == "auto" ) ? Color.Black : HelperFunctions.GetColorFromHtml( color );
             }
-            catch (Exception)
+            catch( Exception )
             {
               // ignore
             }
             break;
           case "vanish":
-            formatting._hidden = true;
+            formatting._hidden = option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) != "0";
             break;
           case "b":
             formatting.Bold = option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) != "0";
             break;
           case "i":
-            formatting.Italic = true;
+            formatting.Italic = option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) != "0";
             break;
           case "highlight":
             switch( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) )
@@ -798,22 +803,34 @@ namespace Xceed.Document.NET
               case "black":
                 formatting.Highlight = NET.Highlight.black;
                 break;
+              default:
+                formatting.Highlight = NET.Highlight.none;
+                break;
             }
             break;
           case "strike":
-            formatting.StrikeThrough = NET.StrikeThrough.strike;
+            formatting.StrikeThrough = ( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) == "0" ) ? NET.StrikeThrough.none : NET.StrikeThrough.strike;
             break;
           case "dstrike":
-            formatting.StrikeThrough = NET.StrikeThrough.doubleStrike;
+            formatting.StrikeThrough = ( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) == "0" ) ? NET.StrikeThrough.none : NET.StrikeThrough.doubleStrike;
             break;
           case "u":
-            formatting.UnderlineStyle = HelperFunctions.GetUnderlineStyle(option.GetAttribute(XName.Get("val", Document.w.NamespaceName)));
+            formatting.UnderlineStyle = HelperFunctions.GetUnderlineStyle( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) );
             try
             {
               var color = option.GetAttribute( XName.Get( "color", Document.w.NamespaceName ) );
               if( !string.IsNullOrEmpty( color ) )
               {
-                formatting.UnderlineColor = System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", color ) );
+                formatting.UnderlineColor = HelperFunctions.GetColorFromHtml( color );
+              }
+              else
+              {
+                var fontColor = rPr.Element( XName.Get( "color", Document.w.NamespaceName ) );
+                if( fontColor != null )
+                {
+                  var val = fontColor.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) );
+                  formatting.UnderlineColor = ( val == "auto" ) || ( val == "" ) ? Color.Black : HelperFunctions.GetColorFromHtml( val );
+                }
               }
             }
             catch( Exception )
@@ -822,20 +839,21 @@ namespace Xceed.Document.NET
             }
             break;
           case "vertAlign": //script
-            var script = option.GetAttribute(XName.Get("val", Document.w.NamespaceName), null);
-            formatting.Script = (Script)Enum.Parse(typeof(Script), script);
+            var script = option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ), null );
+            Script enumScript;
+            formatting.Script = Enum.TryParse( script, out enumScript ) ? enumScript : NET.Script.none;
             break;
           case "caps":
-            formatting.CapsStyle = NET.CapsStyle.caps;
+            formatting.CapsStyle = ( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) == "0" ) ? NET.CapsStyle.none : NET.CapsStyle.caps;
             break;
           case "smallCaps":
-            formatting.CapsStyle = NET.CapsStyle.smallCaps;
+            formatting.CapsStyle = ( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) == "0" ) ? NET.CapsStyle.none : NET.CapsStyle.smallCaps;
             break;
           case "shd":
             var fill = option.GetAttribute( XName.Get( "fill", Document.w.NamespaceName ) );
             if( !string.IsNullOrEmpty( fill ) )
             {
-              formatting.Shading = System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", fill ) );
+              formatting.Shading = HelperFunctions.GetColorFromHtml( fill );
             }
             break;
           case "bdr":
@@ -855,7 +873,7 @@ namespace Xceed.Document.NET
 
     public int CompareTo( object obj )
     {
-      Formatting other = ( Formatting )obj;
+      Formatting other = (Formatting)obj;
 
       if( other._hidden != _hidden )
         return -1;
@@ -917,12 +935,12 @@ namespace Xceed.Document.NET
       if( other._styleName != _styleName )
         return -1;
 
-      if( !other._language.Equals(_language) )
+      if( !other._language.Equals( _language ) )
         return -1;
 
       return 0;
     }
 
-#endregion
+    #endregion
   }
 }

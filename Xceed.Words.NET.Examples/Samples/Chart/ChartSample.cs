@@ -10,6 +10,7 @@ is only intended as a supplement to the documentation, and is provided
 "as is", without warranty of any kind, either expressed or implied.
 *************************************************************************************/
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Xceed.Document.NET;
@@ -21,6 +22,7 @@ namespace Xceed.Words.NET.Examples
     #region Private Members
 
     private const string ChartSampleOutputDirectory = Program.SampleDirectory + @"Chart\Output\";
+    private const string ChartSampleResourceDirectory = Program.SampleDirectory + @"Chart\Resources\";
 
     #endregion
 
@@ -155,7 +157,7 @@ namespace Xceed.Words.NET.Examples
         // Create and add series
         var s1 = new Series( "Canada" );
         s1.Bind( brazil, "Category", "Expenses" );
-        c.AddSeries( s1 );       
+        c.AddSeries( s1 );
 
         // Insert chart into document
         document.InsertParagraph( "Expenses(M$) for selected categories in Canada" ).FontSize( 15 ).SpacingAfter( 10d );
@@ -172,7 +174,7 @@ namespace Xceed.Words.NET.Examples
     /// 
     public static void Chart3D()
     {
-      Console.WriteLine( "\tChart3D)" );
+      Console.WriteLine( "\tChart3D()" );
 
       // Creates a document
       using( var document = DocX.Create( ChartSample.ChartSampleOutputDirectory + @"3DChart.docx" ) )
@@ -200,6 +202,19 @@ namespace Xceed.Words.NET.Examples
         document.Save();
         Console.WriteLine( "\tCreated: 3DChart.docx\n" );
       }
+    }
+
+    public static void ModifyChartData()
+    {
+
+
+
+
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
     #endregion
   }

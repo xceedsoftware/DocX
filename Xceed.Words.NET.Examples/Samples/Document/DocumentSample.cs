@@ -25,7 +25,7 @@ namespace Xceed.Words.NET.Examples
     private static Dictionary<string, string> _replacePatterns = new Dictionary<string, string>()
     {
         { "OPPONENT", "Pittsburgh Penguins" },
-        { "GAME_TIME", "19h30" },
+        { "GAME_TIME", "7:30pm" },
         { "GAME_NUMBER", "161" },
         { "DATE", "October 18 2016" },
     };
@@ -59,14 +59,11 @@ namespace Xceed.Words.NET.Examples
       // Load a document.
       using( var document = DocX.Load( DocumentSample.DocumentSampleResourcesDirectory + @"ReplaceText.docx" ) )
       {
-        // Check if all the replace patterns are used in the loaded document.
-        if( document.FindUniqueByPattern( @"<[\w \=]{4,}>", RegexOptions.IgnoreCase ).Count == _replacePatterns.Count )
+        // Check if some of the replace patterns are used in the loaded document.
+        if( document.FindUniqueByPattern( @"<[\w \=]{4,}>", RegexOptions.IgnoreCase ).Count > 0 )
         {
-          // Do the replacement
-          for( int i = 0; i < _replacePatterns.Count; ++i )
-          {
-            document.ReplaceText( "<(.*?)>", DocumentSample.ReplaceFunc, false, RegexOptions.IgnoreCase, null, new Formatting() );
-          }
+          // Do the replacement of all the found tags and with green bold strings.
+          document.ReplaceText( "<(.*?)>", DocumentSample.ReplaceFunc, false, RegexOptions.IgnoreCase, new Formatting() { Bold = true, FontColor = System.Drawing.Color.Green } );
 
           // Save this document to disk.
           document.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"ReplacedText.docx" );
@@ -91,7 +88,7 @@ namespace Xceed.Words.NET.Examples
         //Add custom properties to document.
         document.AddCustomProperty( new CustomProperty( "CompanyName", "Xceed Software inc." ) );
         document.AddCustomProperty( new CustomProperty( "Product", "Xceed Words for .NET" ) );
-        document.AddCustomProperty( new CustomProperty( "Address", "10 Boul. de Mortagne" ) );
+        document.AddCustomProperty( new CustomProperty( "Address", "3141 Taschereau, Greenfield Park" ) );
         document.AddCustomProperty( new CustomProperty( "Date", DateTime.Now ) );
 
         // Add a paragraph displaying the number of custom properties.
@@ -156,6 +153,51 @@ namespace Xceed.Words.NET.Examples
           document1.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"AppendDocument.docx" );
           Console.WriteLine( "\tCreated: AppendDocument.docx\n" );
         }
+      }
+    }
+
+    public static void LoadDocumentWithFilename()
+    {
+      using ( var doc = DocX.Load( DocumentSample.DocumentSampleResourcesDirectory + @"First.docx" ) )
+      {
+        // Insert a Paragraph into this document.
+        var p = doc.InsertParagraph();
+
+        // Append some text and add formatting.
+        p.Append( "A small paragraph was added." );
+
+        doc.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"LoadDocumentWithFilename.docx" );
+      }
+    }
+
+    public static void LoadDocumentWithStream()
+    {
+      using( var fs = new FileStream( DocumentSample.DocumentSampleResourcesDirectory + @"First.docx", FileMode.Open, FileAccess.Read, FileShare.Read ) )
+      {
+        using( var doc = DocX.Load( fs ) )
+        {
+          // Insert a Paragraph into this document.
+          var p = doc.InsertParagraph();
+
+          // Append some text and add formatting.
+          p.Append( "A small paragraph was added." );
+
+          doc.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"LoadDocumentWithStream.docx" );
+        }
+      }
+    }
+
+    public static void LoadDocumentWithStringUrl()
+    {
+      using( var doc = DocX.Load( "https://calibre-ebook.com/downloads/demos/demo.docx" ) )
+      {
+        // Insert a Paragraph into this document.
+        var p = doc.InsertParagraph();
+
+        // Append some text and add formatting.
+        p.Append( "A small paragraph was added." );
+
+        doc.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"LoadDocumentWithUrl.docx" );
       }
     }
 

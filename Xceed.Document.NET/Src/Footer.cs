@@ -110,11 +110,22 @@ namespace Xceed.Document.NET
 
     #endregion
 
+    #region Internal Properties
+
+    internal string Id
+    {
+      get;
+      private set;
+    }
+
+    #endregion
+
     #region Constructors
 
-    internal Footer( Document document, XElement xml, PackagePart mainPart ) : base( document, xml )
+    internal Footer( Document document, XElement xml, PackagePart mainPart, string id ) : base( document, xml )
     {
       this.PackagePart = mainPart;
+      this.Id = id;
     }
 
     #endregion

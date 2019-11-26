@@ -20,6 +20,7 @@ using System.IO.Packaging;
 using System.Diagnostics;
 using System;
 using System.Drawing;
+using System.Globalization;
 
 namespace Xceed.Document.NET
 {
@@ -378,8 +379,8 @@ namespace Xceed.Document.NET
         if( style != null )
         {
           var widthString = style.Value.Substring( style.Value.IndexOf( "width:" ) + 6 );
-          var widthValueString = widthString.Substring( 0, widthString.IndexOf( "pt" ) ).Replace( ".", "," );
-          var widthDouble = double.Parse( widthValueString ) * EmusInPixel;
+          var widthValueString = widthString.Substring( 0, widthString.IndexOf( "pt" ) );
+          var widthDouble = double.Parse( widthValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
           _cx = System.Convert.ToInt32( widthDouble );
         }
       }
@@ -405,8 +406,8 @@ namespace Xceed.Document.NET
         if( style != null )
         {
           var heightString = style.Value.Substring( style.Value.IndexOf( "height:" ) + 7 );
-          var heightValueString = heightString.Substring( 0, heightString.IndexOf( "pt" ) ).Replace( ".", "," );
-          var heightDouble = double.Parse( heightValueString ) * EmusInPixel;
+          var heightValueString = heightString.Substring( 0, heightString.IndexOf( "pt" ) );
+          var heightDouble = double.Parse( heightValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
           _cy = System.Convert.ToInt32( heightDouble );
         }
       }

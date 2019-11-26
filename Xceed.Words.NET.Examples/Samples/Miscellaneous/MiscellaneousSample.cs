@@ -25,6 +25,16 @@ namespace Xceed.Words.NET.Examples
 
     private const string MiscellaneousSampleResourcesDirectory = Program.SampleDirectory + @"Miscellaneous\Resources\";
     private const string MiscellaneousSampleOutputDirectory = Program.SampleDirectory + @"Miscellaneous\Output\";
+    private const string MiscellaneousSampleOutputMailMergeDirectory = MiscellaneousSample.MiscellaneousSampleOutputDirectory + @"MailMerge\";
+
+    private static List<Candidate> Canditates = new List<Candidate>() 
+                                          {
+                                            new Candidate() { ID = 153581, Name = "Michael Brown", Address = " 141 Robinson st, \n Pittsburgh PA, \n 25896" },
+                                            new Candidate() { ID = 155285, Name = "Jennifer Cullen", Address = " 8685 Tulip rd, \n Newark NJ, \n 58236" },
+                                            new Candidate() { ID = 159632, Name = "Stanley Wong", Address = " 12 Main st, \n Daisy town AK, \n 87452" },
+                                            new Candidate() { ID = 161002, Name = "Julia McMorris", Address = " 323 Cummins av, \n Philadelphia PA, \n 25698" },
+                                            new Candidate() { ID = 162558, Name = "Tommy McWire", Address = " 12009 Ocean st, \n Miami FL, \n 42512" },
+                                          }; 
 
     #endregion
 
@@ -204,6 +214,30 @@ namespace Xceed.Words.NET.Examples
         Console.WriteLine( "\tCreated: CreateInvoice.docx\n" );
       }
     }
+
+    public static void MailMerge()
+    {
+      if( !Directory.Exists( MiscellaneousSample.MiscellaneousSampleOutputMailMergeDirectory ) )
+      {
+        Directory.CreateDirectory( MiscellaneousSample.MiscellaneousSampleOutputMailMergeDirectory );
+      }
+
+      foreach( var candidate in MiscellaneousSample.Canditates )
+      {
+        // Load the templated document.
+        var templateDoc = DocX.Load( MiscellaneousSample.MiscellaneousSampleResourcesDirectory + @"TemplateMailMerge.docx" ) as DocX;
+        if( templateDoc != null )
+        {
+          templateDoc.ReplaceText( "<Address>", candidate.Address );
+          templateDoc.ReplaceText( "<Greeting>", candidate.Name );
+
+          templateDoc.SaveAs( MiscellaneousSample.MiscellaneousSampleOutputMailMergeDirectory + @"Acceptance_" + candidate.ID + ".docx" );
+        }
+      }
+
+      Console.WriteLine( "\tCreated: MailMerge documents\n" );
+    }
+
     #endregion
 
     #region Private Methods
@@ -261,7 +295,7 @@ namespace Xceed.Words.NET.Examples
       // The datas that will fill the details table.
       var datas = MiscellaneousSample.GetDetailsData();
 
-      // T he table from the templated invoice.
+      // The table from the templated invoice.
       var detailsTable = templateDoc.Tables.LastOrDefault();
       if( detailsTable == null )
         return;
@@ -369,6 +403,26 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
+    private class Candidate
+    {
+      public int ID
+      {
+        get;
+        set;
+      }
+
+      public string Name
+      {
+        get;
+        set;
+      }
+
+      public string Address
+      {
+        get;
+        set;
+      }
+    }
     #endregion
   }
 }

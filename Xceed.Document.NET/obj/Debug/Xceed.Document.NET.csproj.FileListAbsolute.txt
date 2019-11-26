@@ -1,0 +1,6 @@
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Document.NET\bin\Debug\Xceed.Document.NET.xml
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Document.NET\bin\Debug\Xceed.Document.NET.dll
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Document.NET\bin\Debug\Xceed.Document.NET.pdb
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Document.NET\obj\Debug\Xceed.Document.NET.csprojAssemblyReference.cache
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Document.NET\obj\Debug\Xceed.Document.NET.dll
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Document.NET\obj\Debug\Xceed.Document.NET.pdb

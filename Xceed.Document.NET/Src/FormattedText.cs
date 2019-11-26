@@ -29,6 +29,7 @@ namespace Xceed.Document.NET
     #region Private members
 
     private Formatting _formatting;
+    private bool _setInitialFormatting = true;
 
     #endregion
 
@@ -43,7 +44,10 @@ namespace Xceed.Document.NET
       set
       {
         _formatting = value;
-        this.InitialFormatting = (value != null) ? value.Clone() : null;
+        if( _setInitialFormatting )
+        {
+          this.InitialFormatting = ( value != null ) ? value.Clone() : null;
+        }
       }
     }
 
@@ -78,6 +82,17 @@ namespace Xceed.Document.NET
         return -1;
 
       return tf.formatting.CompareTo( other.formatting );
+    }
+
+    #endregion
+
+    #region Internal Methods
+
+    internal void InternalModifyFormatting( Formatting f )
+    {
+      _setInitialFormatting = false;
+      this.formatting = f;
+      _setInitialFormatting = true;
     }
 
     #endregion

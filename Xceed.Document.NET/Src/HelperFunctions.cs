@@ -22,9 +22,7 @@ using System.Xml.Linq;
 using System.IO;
 using System.Reflection;
 using System.IO.Compression;
-using System.Security.Principal;
 using System.Globalization;
-using System.Xml;
 using System.Diagnostics;
 using System.Drawing;
 
@@ -433,7 +431,7 @@ namespace Xceed.Document.NET
       (
           new XElement( Document.w + t.ToString(),
               new XAttribute( Document.w + "id", 0 ),
-              new XAttribute( Document.w + "author", WindowsIdentity.GetCurrent().Name ),
+              new XAttribute( Document.w + "author", Environment.UserDomainName + "\\" + Environment.UserName ),
               new XAttribute( Document.w + "date", edit_time ),
           content )
       );
@@ -770,6 +768,19 @@ namespace Xceed.Document.NET
       return true;
     }
 
+    internal static Color GetColorFromHtml( string stringColor, string autoColor = "FFFFFF" )
+    {
+      Debug.Assert( !string.IsNullOrEmpty( stringColor ), "stringColor should not be null or empty." );
+      // Default to White when "auto".
+      if( stringColor == "auto" )
+      {
+        stringColor = autoColor;
+      }
+      Debug.Assert( stringColor.Length == 6, "stringColor should have a length of 6 characters." );
+
+      return Color.FromArgb( Convert.ToInt32( stringColor.Substring( 0, 2 ), 16 ), Convert.ToInt32( stringColor.Substring( 2, 2 ), 16 ), Convert.ToInt32( stringColor.Substring( 4, 2 ), 16 ) );
+    }
+
     internal static string GetListItemType( Paragraph p, Document document )
     {
       var paragraphNumberPropertiesDescendants = p.ParagraphNumberProperties.Descendants();
@@ -818,8 +829,9 @@ namespace Xceed.Document.NET
 
         if( lvlNode != null )
         {
-          var numFmtNode = lvlNode.Descendants().First( n => n.Name.LocalName == "numFmt" );
-          return numFmtNode.Attribute( Document.w + "val" ).Value;
+          var numFmtNode = lvlNode.Descendants().FirstOrDefault( n => n.Name.LocalName == "numFmt" );
+          if( numFmtNode != null )
+            return numFmtNode.Attribute( Document.w + "val" ).Value;
         }
       }
 
@@ -827,6 +839,25 @@ namespace Xceed.Document.NET
     }
 
     internal static XElement GetAbstractNum( Document document, string numId )
+    {
+      if( document == null )
+        return null;
+      if( numId == null )
+        return null;
+
+      var abstractNumNodeValue = HelperFunctions.GetAbstractNumIdValue( document, numId );
+      if( string.IsNullOrEmpty( abstractNumNodeValue ) )
+        return null;
+
+      // Find abstractNum node in numbering.
+      var documentNumberingDescendants = document._numbering.Descendants();
+      var abstractNumNodes = documentNumberingDescendants.Where( n => n.Name.LocalName == "abstractNum" );
+      var abstractNumNode = abstractNumNodes.FirstOrDefault( node => node.Attribute( Document.w + "abstractNumId" ).Value.Equals( abstractNumNodeValue ) );
+
+      return abstractNumNode;
+    }
+
+    internal static string GetAbstractNumIdValue( Document document, string numId )
     {
       if( document == null )
         return null;
@@ -848,10 +879,7 @@ namespace Xceed.Document.NET
       if( string.IsNullOrEmpty( abstractNumNodeValue ) )
         return null;
 
-      var abstractNumNodes = documentNumberingDescendants.Where( n => n.Name.LocalName == "abstractNum" );
-      var abstractNumNode = abstractNumNodes.FirstOrDefault( node => node.Attribute( Document.w + "abstractNumId" ).Value.Equals( abstractNumNodeValue ) );
-
-      return abstractNumNode;
+      return abstractNumNodeValue;
     }
 
     internal static string GetListItemStartValue( List list, int level )
@@ -879,12 +907,15 @@ namespace Xceed.Document.NET
           return "1";
       }
 
-      var startNode = lvlNode.Descendants().First( n => n.Name.LocalName == "start" );
+      var startNode = lvlNode.Descendants().FirstOrDefault( n => n.Name.LocalName == "start" );
+      if( startNode == null )
+        return "1";
       return startNode.GetAttribute( Document.w + "val" );
     }
 
-    internal static string GetListItemTextFormat( List list, int level )
+    internal static string GetListItemTextFormat( List list, int level, out Formatting formatting )
     {
+      formatting = null;
       var abstractNumElement = list.GetAbstractNum( list.NumId );
       if( abstractNumElement == null )
         return "%1.";
@@ -908,7 +939,11 @@ namespace Xceed.Document.NET
           return "%1.";
       }
 
-      var textFormatNode = lvlNode.Descendants().First( n => n.Name.LocalName == "lvlText" );
+      formatting = Formatting.Parse( lvlNode.Descendants().FirstOrDefault( n => n.Name.LocalName == "rPr" ) );
+
+      var textFormatNode = lvlNode.Descendants().FirstOrDefault( n => n.Name.LocalName == "lvlText" );
+      if( textFormatNode == null )
+        return "%1.";
       return textFormatNode.GetAttribute( Document.w + "val" );
     }
 
@@ -962,7 +997,7 @@ namespace Xceed.Document.NET
       var bdrColor = xml.Attribute( XName.Get( "color", Document.w.NamespaceName ) );
       if( ( bdrColor != null ) && ( bdrColor.Value != "auto" ) )
       {
-        borderColor = System.Drawing.ColorTranslator.FromHtml( string.Format( "#{0}", bdrColor.Value ) );
+        borderColor = HelperFunctions.GetColorFromHtml( bdrColor.Value );
       }
       var size = xml.Attribute( XName.Get( "sz", Document.w.NamespaceName ) );
       if( size != null )
@@ -1024,7 +1059,7 @@ namespace Xceed.Document.NET
           // Paragraph contains the property, add the missing attributes from this property.
           foreach( var att in styleParagraphElement.Attributes() )
           {
-            if( paragraphElement.Attribute( att.Name ) == null )
+            if( paragraphElement.Attribute( att.Name ) == null && p.CanAddAttribute( att ) )
             {
               paragraphElement.Add( att );
             }

@@ -14,6 +14,8 @@
 
 
 using System;
+using System.Globalization;
+using System.IO.Packaging;
 using System.Xml.Linq;
 
 namespace Xceed.Document.NET
@@ -74,11 +76,20 @@ namespace Xceed.Document.NET
       {
         if( ( value < 1 ) || ( value > 500 ) )
           throw new ArgumentException( "GapWidth lay between 0% and 500%!" );
-        ChartXml.Element( XName.Get( "gapWidth", Document.c.NamespaceName ) ).Attribute( XName.Get( "val" ) ).Value = value.ToString();
+        ChartXml.Element( XName.Get( "gapWidth", Document.c.NamespaceName ) ).Attribute( XName.Get( "val" ) ).Value = value.ToString( CultureInfo.InvariantCulture );
       }
     }
 
     #endregion
+
+    #region Constructors
+
+    public BarChart()
+    {
+    }
+
+
+#endregion
 
     #region Overrides
 
@@ -93,7 +104,6 @@ namespace Xceed.Document.NET
     }
 
     #endregion
-
   }
 
   /// <summary>

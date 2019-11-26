@@ -316,7 +316,7 @@ namespace Xceed.Document.NET
                   }
                 }
 
-                tmp.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), totalWidth.ToString() );
+                tmp.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), totalWidth.ToString( CultureInfo.InvariantCulture ) );
                 break;
               }
               else
@@ -342,7 +342,7 @@ namespace Xceed.Document.NET
                   }
                 }
 
-                tmp.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), totalWidth.ToString() );
+                tmp.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), totalWidth.ToString( CultureInfo.InvariantCulture ) );
                 break;
               }
             }
@@ -935,20 +935,20 @@ namespace Xceed.Document.NET
 
     #region Constructors
 
-    internal Table( Document document, XElement xml )
+    internal Table( Document document, XElement xml, PackagePart packagePart )
         : base( document, xml )
     {
       _autofit = Table.GetAutoFitFromXml( xml );
       this.Xml = xml;
-      this.PackagePart = document.PackagePart;
+      this.PackagePart = packagePart;
 
       var properties = xml.Element( XName.Get( "tblPr", Document.w.NamespaceName ) );
 
       var tblGrid = xml.Element( XName.Get( "tblGrid", Document.w.NamespaceName ) );
       if( tblGrid == null )
       {
-         this.SetColumnWidth();
-      }  
+        this.SetColumnWidth();
+      }
 
       var alignment = properties?.Element( XName.Get( "jc", Document.w.NamespaceName ) );
       if( alignment != null )
@@ -971,23 +971,23 @@ namespace Xceed.Document.NET
 
           if( Enum.IsDefined( typeof( TableDesign ), cleanValue ) )
           {
-            _design = (TableDesign)Enum.Parse( typeof( TableDesign ), cleanValue );
+            this.Design = (TableDesign)Enum.Parse( typeof( TableDesign ), cleanValue );
           }
 
           else
           {
-            _design = TableDesign.Custom;
-            _customTableDesignName = val.Value;
+            this.Design = TableDesign.Custom;
+            this.CustomTableDesignName = val.Value;
           }
         }
         else
         {
-          _design = TableDesign.None;
+          this.Design = TableDesign.None;
         }
       }
       else
       {
-        _design = TableDesign.None;
+        this.Design = TableDesign.None;
       }
 
       var tableLook = properties?.Element( XName.Get( "tblLook", Document.w.NamespaceName ) );
@@ -1216,7 +1216,7 @@ namespace Xceed.Document.NET
     /// </example>
     public void InsertColumn()
     {
-      this.InsertColumn( this.ColumnCount, true );
+      this.InsertColumn( this.ColumnCount - 1, true );
     }
 
     /// <summary>
@@ -1475,8 +1475,8 @@ namespace Xceed.Document.NET
     {
       var colCount = this.ColumnCount;
 
-      if( (index <= 0) && (index > colCount ) )
-        throw new NullReferenceException( "index should be greater than 0 and smaller or equals to this.ColumnCount." );
+      if( ( index < 0 ) || ( index >= colCount ) )
+        throw new NullReferenceException( "index should be greater or equal to 0 and smaller to this.ColumnCount." );
 
       if( this.RowCount > 0 )
       {
@@ -1489,38 +1489,30 @@ namespace Xceed.Document.NET
           // insert cell 
           if( r.Cells.Count < colCount )
           {
-            if( index >= colCount )
-            {
-              this.AddCellToRow( r, cell, r.Cells.Count - 1, direction );
-            }
-            else
-            {
-              int gridAfterValue = r.GridAfter;
-              int currentPosition = 1;
-              int posIndex = 1;
+            int gridAfterValue = r.GridAfter;
+            int currentPosition = 0;
+            int posIndex = 0;
 
-              foreach( var rowCell in r.Cells )
+            foreach( var rowCell in r.Cells )
+            {
+              int gridSpanValue = ( rowCell.GridSpan != 0 ) ? rowCell.GridSpan - 1 : 0;
+
+              // Check if the cell have a  gridSpan and if the index is between the lowest and highest cell value
+              if( ( ( index - gridAfterValue ) >= currentPosition )
+                && ( ( index - gridAfterValue ) <= ( currentPosition + gridSpanValue ) ) )
               {
-                int gridSpanValue = ( rowCell.GridSpan != 0 ) ? rowCell.GridSpan - 1 : 0;
-                var tcPr = rowCell.Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
-
-                // Check if the cell have a  gridSpan and if the index is between the lowest and highest cell value
-                if( ( ( index - gridAfterValue ) >= currentPosition )
-                  && ( ( index - gridAfterValue ) <= ( currentPosition + gridSpanValue ) ) )
-                {
-                  var dir = ( direction && ( index == ( currentPosition + gridSpanValue ) ) );
-                  this.AddCellToRow( r, cell, posIndex - 1, dir );
-                  break;
-                }
-
-                ++posIndex;
-                currentPosition += (gridSpanValue + 1);
+                var dir = ( direction && ( index == ( currentPosition + gridSpanValue ) ) );
+                this.AddCellToRow( r, cell, posIndex, dir );
+                break;
               }
+
+              ++posIndex;
+              currentPosition += ( gridSpanValue + 1 );
             }
           }
           else
           {
-            this.AddCellToRow( r, cell, index - 1, direction );
+            this.AddCellToRow( r, cell, index, direction );
           }
         }
       }
@@ -1573,7 +1565,7 @@ namespace Xceed.Document.NET
       }
     }
 
-    public void SetWidthsPercentage( float[] widthsPercentage, float? totalWidth )
+    public void SetWidthsPercentage( float[] widthsPercentage, float? totalWidth = null )
     {
       if( totalWidth == null )
         totalWidth = this.Document.PageWidth - this.Document.MarginLeft - this.Document.MarginRight;
@@ -2265,7 +2257,7 @@ namespace Xceed.Document.NET
         // If color is not a Color, something is wrong with this attributes value, so remove it
         try
         {
-          b.Color = ColorTranslator.FromHtml( string.Format( "#{0}", color.Value ) );
+          b.Color = HelperFunctions.GetColorFromHtml( color.Value );
         }
         catch
         {
@@ -2356,7 +2348,7 @@ namespace Xceed.Document.NET
       var tblCellMar = tblPr.Element( tblCellMarXName );
       if( tblCellMar == null )
       {
-        tblPr.AddFirst( new XElement( tblCellMarXName ) );
+        tblPr.Add( new XElement( tblCellMarXName ) );
         tblCellMar = tblPr.Element( tblCellMarXName );
       }
 
@@ -3088,7 +3080,7 @@ namespace Xceed.Document.NET
         if( fill == null )
           return Color.White;
 
-        return ColorTranslator.FromHtml( string.Format( "#{0}", fill.Value ) );
+        return HelperFunctions.GetColorFromHtml( fill.Value );
       }
 
       set
@@ -3171,7 +3163,7 @@ namespace Xceed.Document.NET
           else if( type.Value == "auto" )
           {
             var cellIndex = this._row.Cells.FindIndex( x => x.Xml == this.Xml );
-            if( ( cellIndex >= 0 ) && ( this._row._table.ColumnWidths != null) )
+            if( ( cellIndex >= 0 ) && ( this._row._table.ColumnWidths != null ) )
               return this._row._table.ColumnWidths[ cellIndex ] / 20;
           }
         }
@@ -3214,7 +3206,7 @@ namespace Xceed.Document.NET
         tcW.SetAttributeValue( XName.Get( "type", Document.w.NamespaceName ), "dxa" );
 
         // Using 20 to match Document._pageSizeMultiplier.
-        tcW.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( value * 20 ).ToString() );
+        tcW.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( value * 20 ).ToString( CultureInfo.InvariantCulture ) );
       }
     }
 
@@ -3327,7 +3319,7 @@ namespace Xceed.Document.NET
         tcMarLeft.SetAttributeValue( XName.Get( "type", Document.w.NamespaceName ), "dxa" );
 
         // Using 20 to match Document._pageSizeMultiplier.
-        tcMarLeft.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( value * 20 ).ToString() );
+        tcMarLeft.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( value * 20 ).ToString( CultureInfo.InvariantCulture ) );
       }
     }
 
@@ -3440,7 +3432,7 @@ namespace Xceed.Document.NET
         tcMarRight.SetAttributeValue( XName.Get( "type", Document.w.NamespaceName ), "dxa" );
 
         // Using 20 to match Document._pageSizeMultiplier.
-        tcMarRight.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( value * 20 ).ToString() );
+        tcMarRight.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( value * 20 ).ToString( CultureInfo.InvariantCulture ) );
       }
     }
 
@@ -3553,7 +3545,7 @@ namespace Xceed.Document.NET
         tcMarTop.SetAttributeValue( XName.Get( "type", Document.w.NamespaceName ), "dxa" );
 
         // Using 20 to match Document._pageSizeMultiplier.
-        tcMarTop.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( value * 20 ).ToString() );
+        tcMarTop.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( value * 20 ).ToString( CultureInfo.InvariantCulture ) );
       }
     }
 
@@ -3666,7 +3658,7 @@ namespace Xceed.Document.NET
         tcMarBottom.SetAttributeValue( XName.Get( "type", Document.w.NamespaceName ), "dxa" );
 
         // Using 20 to match Document._pageSizeMultiplier.
-        tcMarBottom.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( value * 20 ).ToString() );
+        tcMarBottom.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( value * 20 ).ToString( CultureInfo.InvariantCulture ) );
       }
     }
 
@@ -4094,7 +4086,7 @@ namespace Xceed.Document.NET
         // If color is not a Color, something is wrong with this attributes value, so remove it
         try
         {
-          b.Color = ColorTranslator.FromHtml( string.Format( "#{0}", color.Value ) );
+          b.Color = HelperFunctions.GetColorFromHtml( color.Value );
         }
         catch
         {

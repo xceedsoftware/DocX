@@ -11,6 +11,7 @@ is only intended as a supplement to the documentation, and is provided
 *************************************************************************************/
 
 using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using Xceed.Document.NET;
@@ -40,7 +41,7 @@ namespace Xceed.Words.NET.Examples
     #region Public Methods
 
     /// <summary>
-    /// Create a document and insert Sections into it.
+    /// Create a document and insert Sections(with different footers) into it.
     /// </summary>
     public static void InsertSections()
     {
@@ -52,17 +53,70 @@ namespace Xceed.Words.NET.Examples
         // Add a title
         document.InsertParagraph( "Inserting sections" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
 
-        // Add 2 paragraphs
-        document.InsertParagraph( "This is the first paragraph." );
-        document.InsertParagraph( "This is the second paragraph." );
-        // Add a paragraph and a section break.
-        document.InsertSection();
-        // Add a new paragraph
-        document.InsertParagraph( "This is the third paragraph, in a new section." );
-        // Add a paragraph and a page break.
-        document.InsertSectionPageBreak();
-        document.InsertParagraph( "This is the fourth paragraph, in a new section." );
+        document.DifferentOddAndEvenPages = true;
 
+        // Section 1
+        // Set Page parameters for section 1
+        document.Sections[ 0 ].PageBorders = new Borders( new Border( BorderStyle.Tcbs_double, BorderSize.four, 5, Color.Blue ) );
+        // Set footers for section 1.
+        document.Sections[ 0 ].AddFooters();
+        document.Sections[ 0 ].DifferentFirstPage = true;
+        var footers = document.Sections[ 0 ].Footers;
+        footers.First.InsertParagraph( "This is the First page footer." );
+        footers.Even.InsertParagraph( "This is the Even page footer." );
+        footers.Odd.InsertParagraph( "This is the Odd page footer." );
+
+        // Add paragraphs and page breaks in section 1.
+        document.InsertParagraph( "FIRST" ).InsertPageBreakAfterSelf();
+        document.InsertParagraph( "SECOND" ).InsertPageBreakAfterSelf();
+        document.InsertParagraph( "THIRD" );
+
+        // Add a section break as a page break to end section 1.
+        // The new section properties will be based on last section properties.
+        document.InsertSectionPageBreak();
+
+        // Section 2
+        // Set Page parameters for section 2
+        document.Sections[ 1 ].PageBorders = new Borders( new Border( BorderStyle.Tcbs_none, BorderSize.one, 0, Color.Transparent ) );
+        document.Sections[ 1 ].PageWidth = 200f;
+        document.Sections[ 1 ].PageHeight = 300f; 
+        // Set footers for section 2.
+        document.Sections[ 1 ].AddFooters();
+        document.Sections[ 1 ].DifferentFirstPage = true;
+        var footers2 = document.Sections[ 1 ].Footers;
+        footers2.First.InsertParagraph( "This is the First page footer of Section 2." );
+        footers2.Odd.InsertParagraph( "This is the Odd page footer of Section 2." );
+        footers2.Even.InsertParagraph( "This is the Even page footer of Section 2." );
+
+        // Add paragraphs and page breaks in section 2.
+        document.InsertParagraph( "FOURTH" ).InsertPageBreakAfterSelf();
+        document.InsertParagraph( "FIFTH" ).InsertPageBreakAfterSelf();
+        document.InsertParagraph( "SIXTH" );
+
+        // Add a section break as a page break to end section 2.
+        // The new section properties will be based on last section properties.
+        document.InsertSectionPageBreak();
+
+        // Section 3
+        // Set Page parameters for section 3
+        document.Sections[ 2 ].PageWidth = 595f;
+        document.Sections[ 2 ].PageHeight = 841f;
+        document.Sections[ 2 ].MarginTop = 300f;
+        document.Sections[ 2 ].MarginFooter = 120f;
+        // Set footers for section 3.
+        document.Sections[ 2 ].AddFooters();
+        document.Sections[ 2 ].DifferentFirstPage = true;
+        var footers3 = document.Sections[ 2 ].Footers;
+        footers3.First.InsertParagraph( "This is the First page footer of Section 3." );
+        footers3.Odd.InsertParagraph( "This is the Odd page footer of Section 3." );
+        footers3.Even.InsertParagraph( "This is the Even page footer of Section 3." );
+
+        // Add paragraphs and page breaks in section 3.
+        document.InsertParagraph( "SEVENTH" ).InsertPageBreakAfterSelf();
+        document.InsertParagraph( "EIGHTH" ).InsertPageBreakAfterSelf();
+        document.InsertParagraph( "NINETH" );
+
+        // Get the different sections.
         var sections = document.GetSections();
 
         // Add a paragraph to display the result of sections.
@@ -81,6 +135,51 @@ namespace Xceed.Words.NET.Examples
         Console.WriteLine( "\tCreated: InsertSections.docx\n" );
       }
     }
+
+    public static void SetPageOrientations()
+    {
+      Console.WriteLine( "\tSetPageOrientations()" );
+
+      // Create a document.
+      using( var document = DocX.Create( SectionSample.SectionSampleOutputDirectory + @"SetPageOrientations.docx" ) )
+      {
+        // Add a title
+        document.InsertParagraph( "Setting Pages Orientation" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
+
+        // Section 1
+        // Set Page Orientation to Landscape.
+        document.Sections[ 0 ].PageLayout.Orientation = Orientation.Landscape;
+
+        // Add paragraphs in section 1.
+        document.InsertParagraph( "This is the first page in Landscape format." );
+
+        // Add a section break as a page break to end section 1.
+        // The new section properties will be based on last section properties.
+        document.InsertSectionPageBreak();
+
+        // Section 2
+        // Set Page Orientation to Portrait.
+        document.Sections[ 1 ].PageLayout.Orientation = Orientation.Portrait;
+
+        // Add paragraphs in section 2.
+        document.InsertParagraph( "This is the second page in Portrait format." );
+
+        // Add a section break as a page break to end section 2.
+        // The new section properties will be based on last section properties.
+        document.InsertSectionPageBreak();
+
+        // Section 3
+        // Set Page Orientation to Landscape.
+        document.Sections[ 2 ].PageLayout.Orientation = Orientation.Landscape;
+
+        // Add paragraphs in section 3.
+        document.InsertParagraph( "This is the third page in Landscape format." );
+
+        document.Save();
+        Console.WriteLine( "\tCreated: SetPageOrientations.docx\n" );
+      }
+    }
+
 
     #endregion
   }

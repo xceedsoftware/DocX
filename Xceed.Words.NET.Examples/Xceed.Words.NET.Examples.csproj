@@ -70,12 +70,14 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Samples\Bookmark\Resources\DocumentWithBookmarks.docx" />
+    <None Include="Samples\Chart\Resources\Report.docx" />
     <None Include="Samples\Document\Resources\First.docx" />
     <None Include="Samples\Document\Resources\ReplaceText.docx" />
     <None Include="Samples\Document\Resources\Second.docx" />
     <None Include="Samples\Document\Resources\Template.docx" />
     <None Include="Samples\Image\Resources\Input.docx" />
     <None Include="Samples\Miscellaneous\Resources\TemplateInvoice.docx" />
+    <None Include="Samples\Miscellaneous\Resources\TemplateMailMerge.docx" />
     <None Include="Samples\Parallel\Resources\Doc1.docx" />
     <None Include="Samples\Parallel\Resources\Doc2.docx" />
     <None Include="Samples\Parallel\Resources\Doc3.docx" />

@@ -225,7 +225,6 @@ namespace Xceed.Words.NET.Examples
 
         // Set the table's column width and background 
         t.SetWidths( columnWidths );
-        t.Design = TableDesign.TableGrid;
         t.AutoFit = AutoFit.Contents;
 
         var row = t.Rows.First();
@@ -274,17 +273,16 @@ namespace Xceed.Words.NET.Examples
         // Add a title.
         document.InsertParagraph( "Merge and delete cells" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
 
-        // Add A table .               
+        // Add A table.
         var t = document.AddTable( 3, 2 );
-        t.Design = TableDesign.TableGrid;
 
         var t1 = document.InsertTable( t );
 
         // Add 4 columns in the table.
-        t1.InsertColumn( t1.ColumnCount, true );
-        t1.InsertColumn( t1.ColumnCount, true );
-        t1.InsertColumn( t1.ColumnCount, true );
-        t1.InsertColumn( t1.ColumnCount, true );
+        t1.InsertColumn();
+        t1.InsertColumn();
+        t1.InsertColumn( t1.ColumnCount - 1, true );
+        t1.InsertColumn( t1.ColumnCount - 1, true );
 
         // Merged Cells 1 to 4 in first row of the table.
         t1.Rows[ 0 ].MergeCells( 1, 4 );

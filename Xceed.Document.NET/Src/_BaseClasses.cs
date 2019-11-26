@@ -223,7 +223,7 @@ namespace Xceed.Document.NET
       Xml.AddAfterSelf( newTable );
       var newlyInserted = this.Xml.ElementsAfterSelf().First();
 
-      var table = new Table( this.Document, newlyInserted );
+      var table = new Table( this.Document, newlyInserted, this.Document.PackagePart );
       table.PackagePart = this.PackagePart;
       return table;
     }
@@ -233,7 +233,7 @@ namespace Xceed.Document.NET
       this.Xml.AddAfterSelf( t.Xml );
       var newlyInserted = this.Xml.ElementsAfterSelf().First();
 
-      var table = new Table( this.Document, newlyInserted );
+      var table = new Table( this.Document, newlyInserted, this.Document.PackagePart );
       table.PackagePart = this.PackagePart;
       return table;
     }
@@ -244,7 +244,7 @@ namespace Xceed.Document.NET
       this.Xml.AddBeforeSelf( newTable );
       var newlyInserted = this.Xml.ElementsBeforeSelf().Last();
 
-      var table = new Table( this.Document, newlyInserted );
+      var table = new Table( this.Document, newlyInserted, this.Document.PackagePart );
       table.PackagePart = this.PackagePart;
       return table;
     }
@@ -254,7 +254,7 @@ namespace Xceed.Document.NET
       this.Xml.AddBeforeSelf( t.Xml );
       var newlyInserted = this.Xml.ElementsBeforeSelf().Last();
 
-      var table = new Table( this.Document, newlyInserted );
+      var table = new Table( this.Document, newlyInserted, this.Document.PackagePart );
       table.PackagePart = this.PackagePart;
       return table;
     }

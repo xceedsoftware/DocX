@@ -50,14 +50,13 @@ namespace Xceed.Words.NET.Examples
         // Add a title
         document.InsertParagraph( "Insert Table of content" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
 
-        // Insert a table of content with a page break.
+        // Insert a table of content and a page break.
         document.InsertTableOfContents( "Teams", TableOfContentsSwitches.O | TableOfContentsSwitches.U | TableOfContentsSwitches.Z | TableOfContentsSwitches.H );
-        document.InsertSectionPageBreak();
+        document.InsertParagraph().InsertPageBreakAfterSelf();
 
-        // Create a paragraph and fill it in method AddTeams().
+        // Create a paragraph and add teams.
         var p = document.InsertParagraph();
-        var rosters = TableOfContentSample.AddTeams( p );
-        document.InsertParagraph( rosters );
+        TableOfContentSample.AddTeams( p );
 
         document.Save();
         Console.WriteLine( "\tCreated: InsertTableOfContent.docx\n" );
@@ -81,12 +80,11 @@ namespace Xceed.Words.NET.Examples
         var intro = document.InsertParagraph( "This page will show the team rosters of the American League East Division." );
         intro.SpacingAfter( 150d );
 
-        // Create a paragraph and fill it in method AddTeams().
+        // Create a paragraph and add all teams right after.
         var p = document.InsertParagraph();
-        var rosters = TableOfContentSample.AddTeams( p );
-        document.InsertParagraph( rosters );
+        TableOfContentSample.AddTeams( p );
 
-        // Insert a table of content with a page break just before the paragraph p.
+        // Insert a table of content just before the paragraph p.
         document.InsertTableOfContents( p, 
                                         "Teams",
                                         TableOfContentsSwitches.O | TableOfContentsSwitches.U | TableOfContentsSwitches.Z | TableOfContentsSwitches.H,

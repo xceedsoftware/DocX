@@ -1,0 +1,13 @@
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.Examples.exe.config
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.Examples.exe
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.Examples.pdb
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\bin\Debug\Xceed.Document.NET.dll
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.dll
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\bin\Debug\Xceed.Document.NET.pdb
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\bin\Debug\Xceed.Document.NET.xml
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.pdb
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.xml
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\obj\x86\Debug\Xceed.Words.NET.Examples.csprojAssemblyReference.cache
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\obj\x86\Debug\Xceed.Words.NET.Examples.csproj.CopyComplete
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\obj\x86\Debug\Xceed.Words.NET.Examples.exe
+D:\Dev\DocumentLibraries\Release\Latest\OpenSource\Generated\Xceed.Words.NET.Examples\obj\x86\Debug\Xceed.Words.NET.Examples.pdb

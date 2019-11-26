@@ -25,6 +25,8 @@ using System.IO.Packaging;
 using System.Security.Cryptography;
 using System.Drawing;
 using System.Collections.ObjectModel;
+using System.Net;
+using System.Diagnostics;
 
 namespace Xceed.Document.NET
 {
@@ -51,15 +53,13 @@ namespace Xceed.Document.NET
     static internal XNamespace mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
     #endregion
 
-    #region Private Members
-
-    private Headers _headers;
-    private Footers _footers;
-
-    private float _pageSizeMultiplier = 20.0f;
+    #region Private Members    
 
     private readonly object nextFreeDocPrIdLock = new object();
     private long? nextFreeDocPrId;
+    private string _defaultParagraphStyleName;
+
+    private IList<Section> _cachedSections;
 
     #endregion
 
@@ -103,103 +103,142 @@ namespace Xceed.Document.NET
     internal string _filename;
     // The stream that this document was loaded from
     internal Stream _stream;
+
     #endregion
 
     #endregion
 
     #region Public Properties
 
-    /// <summary>
-		/// Top margin in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-		/// </summary>
+    public override IList<Section> Sections
+    {
+      get
+      {
+        return _cachedSections;
+      }
+    }
+
     public float MarginTop
     {
       get
       {
-        return getMarginAttribute( XName.Get( "top", w.NamespaceName ) );
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginTop." );
+        }
+        return this.Sections[ 0 ].MarginTop;
       }
 
       set
       {
-        setMarginAttribute( XName.Get( "top", w.NamespaceName ), value );
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginTop." );
+        }
+        this.Sections[ 0 ].MarginTop = value;
       }
     }
 
-    /// <summary>
-    /// Bottom margin in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginBottom
     {
       get
       {
-        return getMarginAttribute( XName.Get( "bottom", w.NamespaceName ) );
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginBottom." );
+        }
+        return this.Sections[ 0 ].MarginBottom;
       }
 
       set
       {
-        setMarginAttribute( XName.Get( "bottom", w.NamespaceName ), value );
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginBottom." );
+        }
+        this.Sections[ 0 ].MarginBottom = value;
       }
     }
 
-    /// <summary>
-    /// Left margin in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginLeft
     {
       get
       {
-        return getMarginAttribute( XName.Get( "left", w.NamespaceName ) );
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginLeft." );
+        }
+        return this.Sections[ 0 ].MarginLeft;
       }
 
       set
       {
-        setMarginAttribute( XName.Get( "left", w.NamespaceName ), value );
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginLeft." );
+        }
+        this.Sections[ 0 ].MarginLeft = value;
       }
     }
 
-    /// <summary>
-    /// Right margin in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginRight
     {
       get
       {
-        return getMarginAttribute( XName.Get( "right", w.NamespaceName ) );
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginRight." );
+        }
+        return this.Sections[ 0 ].MarginRight;
       }
 
       set
       {
-        setMarginAttribute( XName.Get( "right", w.NamespaceName ), value );
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginRight." );
+        }
+        this.Sections[ 0 ].MarginRight = value;
       }
     }
 
-    /// <summary>
-    /// Header margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginHeader
     {
       get
       {
-        return getMarginAttribute(XName.Get("header", w.NamespaceName));
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginHeader." );
+        }
+        return this.Sections[ 0 ].MarginHeader;
       }
       set
       {
-        setMarginAttribute(XName.Get("header", w.NamespaceName), value);
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginHeader." );
+        }
+        this.Sections[ 0 ].MarginHeader = value;
       }
     }
 
-    /// <summary>
-    /// Footer margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginFooter
     {
       get
       {
-        return getMarginAttribute(XName.Get("footer", w.NamespaceName));
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginFooter." );
+        }
+        return this.Sections[ 0 ].MarginFooter;
       }
       set
       {
-        setMarginAttribute(XName.Get("footer", w.NamespaceName), value);
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MarginFooter." );
+        }
+        this.Sections[ 0 ].MarginFooter = value;
       }
     }
 
@@ -207,90 +246,61 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return getMirrorMargins(XName.Get("mirrorMargins", Document.w.NamespaceName));
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MirrorMargins." );
+        }
+        return this.Sections[ 0 ].MirrorMargins;
       }
       set
       {
-        setMirrorMargins(XName.Get("mirrorMargins", Document.w.NamespaceName), value);
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].MirrorMargins." );
+        }
+        this.Sections[ 0 ].MirrorMargins = value;
       }
     }
 
-    /// <summary>
-    /// Page width in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float PageWidth
     {
       get
       {
-        var body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
-        var sectPr = body.Element( XName.Get( "sectPr", w.NamespaceName ) );
-        var pgSz = sectPr?.Element( XName.Get( "pgSz", w.NamespaceName ) );
-
-        if( pgSz != null )
+        if( this.Sections.Count > 1 )
         {
-          var w = pgSz.Attribute( XName.Get( "w", Document.w.NamespaceName ) );
-          if( w != null )
-          {
-            float f;
-            if( float.TryParse( w.Value, out f ) )
-              return ( int )( f / _pageSizeMultiplier );
-          }
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageWidth." );
         }
-
-        return ( 12240.0f / _pageSizeMultiplier );
+        return this.Sections[ 0 ].PageWidth;
       }
 
       set
       {
-        var body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
-        var sectPr = body.Element( XName.Get( "sectPr", w.NamespaceName ) );
-        var pgSz = sectPr.Element( XName.Get( "pgSz", w.NamespaceName ) );
-        pgSz?.SetAttributeValue( XName.Get( "w", w.NamespaceName ), value * Convert.ToInt32( _pageSizeMultiplier ) );
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageWidth." );
+        }
+        this.Sections[ 0 ].PageWidth = value;
       }
     }
 
-    /// <summary>
-    /// Page height in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float PageHeight
     {
       get
       {
-        var body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
-        var sectPr = body.Element( XName.Get( "sectPr", w.NamespaceName ) );
-        if( sectPr != null )
+        if( this.Sections.Count > 1 )
         {
-          var pgSz = sectPr.Element( XName.Get( "pgSz", w.NamespaceName ) );
-          if( pgSz != null )
-          {
-            var w = pgSz.Attribute( XName.Get( "h", Document.w.NamespaceName ) );
-            if( w != null )
-            {
-              float f;
-              if( float.TryParse( w.Value, out f ) )
-                return ( int )( f / _pageSizeMultiplier );
-            }
-          }
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageHeight." );
         }
-
-        return ( 15840.0f / _pageSizeMultiplier );
+        return this.Sections[ 0 ].PageHeight;
       }
 
       set
       {
-        var body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
-        if( body != null )
+        if( this.Sections.Count > 1 )
         {
-          var sectPr = body.Element( XName.Get( "sectPr", w.NamespaceName ) );
-          if( sectPr != null )
-          {
-            var pgSz = sectPr.Element( XName.Get( "pgSz", w.NamespaceName ) );
-            if( pgSz != null )
-            {
-              pgSz.SetAttributeValue( XName.Get( "h", w.NamespaceName ), value * Convert.ToInt32( _pageSizeMultiplier ) ); 
-            }
-          }
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageHeight." );
         }
+        this.Sections[ 0 ].PageHeight = value;
       }
     }
 
@@ -304,7 +314,7 @@ namespace Xceed.Document.NET
           var color = background.Attribute( XName.Get( "color", Document.w.NamespaceName ) );
           if( color != null )
           {
-            return ColorTranslator.FromHtml( string.Format( "#{0}", color.Value ) );
+            return HelperFunctions.GetColorFromHtml( color.Value );
           }
         }
 
@@ -329,79 +339,20 @@ namespace Xceed.Document.NET
     {
       get
       {
-        var body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
-        var sectPr = body.Element( XName.Get( "sectPr", w.NamespaceName ) );
-        if( sectPr != null )
+        if( this.Sections.Count > 1 )
         {
-          var pgBorders = sectPr.Element( XName.Get( "pgBorders", w.NamespaceName ) );
-          if( pgBorders != null )
-          {
-            var pageBorders = new Borders();
-            var top = pgBorders.Element( XName.Get( "top", w.NamespaceName ) );
-            if( top != null )
-            {
-              pageBorders.Top = HelperFunctions.GetBorderFromXml( top );
-            }
-            var bottom = pgBorders.Element( XName.Get( "bottom", w.NamespaceName ) );
-            if( bottom != null )
-            {
-              pageBorders.Bottom = HelperFunctions.GetBorderFromXml( bottom );
-            }
-            var left = pgBorders.Element( XName.Get( "left", w.NamespaceName ) );
-            if( left != null )
-            {
-              pageBorders.Left = HelperFunctions.GetBorderFromXml( left );
-            }
-            var right = pgBorders.Element( XName.Get( "right", w.NamespaceName ) );
-            if( right != null )
-            {
-              pageBorders.Right = HelperFunctions.GetBorderFromXml( right );
-            }
-
-            return pageBorders;
-          }
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageBorders." );
         }
-
-        return null;
+        return this.Sections[ 0 ].PageBorders;
       }
 
       set
       {
-        var body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
-        if( body != null )
+        if( this.Sections.Count > 1 )
         {
-          var sectPr = body.Element( XName.Get( "sectPr", w.NamespaceName ) );
-          if( sectPr != null )
-          {
-            var pgBorders = sectPr.Element( XName.Get( "pgBorders", w.NamespaceName ) );
-            if( pgBorders == null )
-            {
-              pgBorders = new XElement( XName.Get( "pgBorders", Document.w.NamespaceName ) );
-              sectPr.Add( pgBorders );
-            }
-
-            var topBorderValue = this.GetBorderAttributes( value.Top );
-            if( topBorderValue != null )
-            {
-              pgBorders.Add( new XElement( XName.Get( "top", Document.w.NamespaceName ), topBorderValue ) );
-            }
-            var bottomBorderValue = this.GetBorderAttributes( value.Bottom );
-            if( bottomBorderValue != null )
-            {
-              pgBorders.Add( new XElement( XName.Get( "bottom", Document.w.NamespaceName ), bottomBorderValue ) );
-            }
-            var leftBorderValue = this.GetBorderAttributes( value.Left );
-            if( leftBorderValue != null )
-            {
-              pgBorders.Add( new XElement( XName.Get( "left", Document.w.NamespaceName ), leftBorderValue ) );
-            }
-            var rightBorderValue = this.GetBorderAttributes( value.Right );
-            if( rightBorderValue != null )
-            {
-              pgBorders.Add( new XElement( XName.Get( "right", Document.w.NamespaceName ), rightBorderValue ) );
-            }
-          }
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageBorders." );
         }
+        this.Sections[ 0 ].PageBorders = value;
       }
     }
 
@@ -438,20 +389,17 @@ namespace Xceed.Document.NET
     {
       get
       {
-        XElement sectPr = Xml.Element( XName.Get( "sectPr", w.NamespaceName ) );
-        if( sectPr == null )
+        if( this.Sections.Count > 1 )
         {
-          Xml.SetElementValue( XName.Get( "sectPr", w.NamespaceName ), string.Empty );
-          sectPr = Xml.Element( XName.Get( "sectPr", w.NamespaceName ) );
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageLayout." );
         }
-
-        return new PageLayout( this, sectPr );
+        return this.Sections[ 0 ].PageLayout;
       }
     }
 
     /// <summary>
-    /// Returns a collection of Headers in this Document.
-    /// A document typically contains three Headers.
+    /// Returns a collection of Headers in this Document's first section.
+    /// A document's section typically contains three Headers.
     /// A default one (odd), one for the first page and one for even pages.
     /// </summary>
     /// <example>
@@ -462,17 +410,17 @@ namespace Xceed.Document.NET
     ///    // Add header support to this document.
     ///    document.AddHeaders();
     ///
-    ///    // Get a collection of all headers in this document.
+    ///    // Get a collection of all headers in this document's first section.
     ///    Headers headers = document.Headers;
     ///
-    ///    // The header used for the first page of this document.
-    ///    Header first = headers.first;
+    ///    // The header used for the first page in this document's first section.
+    ///    Header first = headers.First;
     ///
-    ///    // The header used for odd pages of this document.
-    ///    Header odd = headers.odd;
+    ///    // The header used for odd pages in this document's first section.
+    ///    Header odd = headers.Odd;
     ///
-    ///    // The header used for even pages of this document.
-    ///    Header even = headers.even;
+    ///    // The header used for even pages in this document's first section.
+    ///    Header even = headers.Even;
     /// }
     /// </code>
     /// </example>
@@ -480,13 +428,17 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return _headers;
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine("This document contains more than 1 section. Consider using Sections[wantedSection].Headers.");
+        }
+        return this.Sections[ 0 ].Headers;
       }
     }
 
     /// <summary>
-    /// Returns a collection of Footers in this Document.
-    /// A document typically contains three Footers.
+    /// Returns a collection of Footers in this Document's first section.
+    /// A document's section typically contains three Footers.
     /// A default one (odd), one for the first page and one for even pages.
     /// </summary>
     /// <example>
@@ -494,20 +446,20 @@ namespace Xceed.Document.NET
     /// // Create a document.
     /// using (var document = DocX.Create(@"Test.docx"))
     /// {
-    ///    // Add footer support to this document.
+    ///    // Add footer support to this document's first section.
     ///    document.AddFooters();
     ///
-    ///    // Get a collection of all footers in this document.
+    ///    // Get a collection of all footers in this document's first section.
     ///    Footers footers = document.Footers;
     ///
-    ///    // The footer used for the first page of this document.
-    ///    Footer first = footers.first;
+    ///    // The footer used for the first page in this document's first section.
+    ///    Footer first = footers.First;
     ///
-    ///    // The footer used for odd pages of this document.
-    ///    Footer odd = footers.odd;
+    ///    // The footer used for odd pages in this document's first section.
+    ///    Footer odd = footers.Odd;
     ///
-    ///    // The footer used for even pages of this document.
-    ///    Footer even = footers.even;
+    ///    // The footer used for even pages in this document's first section.
+    ///    Footer even = footers.Even;
     /// }
     /// </code>
     /// </example>
@@ -515,7 +467,11 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return _footers;
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].Footers." );
+        }
+        return this.Sections[ 0 ].Footers;
       }
     }
 
@@ -534,10 +490,10 @@ namespace Xceed.Document.NET
     ///     Headers headers = document.Headers;
     ///
     ///     // The header used for odd pages of this document.
-    ///     Header odd = headers.odd;
+    ///     Header odd = headers.Odd;
     ///
     ///     // The header used for even pages of this document.
-    ///     Header even = headers.even;
+    ///     Header even = headers.Even;
     ///
     ///     // Force the document to use a different header for odd and even pages.
     ///     document.DifferentOddAndEvenPages = true;
@@ -611,7 +567,7 @@ namespace Xceed.Document.NET
     ///     document.AddHeaders();
     ///
     ///     // The header used for the first page of this document.
-    ///     Header first = document.Headers.first;
+    ///     Header first = document.Headers.First;
     ///
     ///     // Force the document to use a different header for first page.
     ///     document.DifferentFirstPage = true;
@@ -628,32 +584,20 @@ namespace Xceed.Document.NET
     {
       get
       {
-        var body = _mainDoc.Root.Element( w + "body" );
-        var sectPr = body.Element( w + "sectPr" );
-        var titlePg = sectPr?.Element( w + "titlePg" );
-        return titlePg != null;
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].DifferentFirstPage." );
+        }
+        return this.Sections[ 0 ].DifferentFirstPage;
       }
 
       set
       {
-        var body = _mainDoc.Root.Element( w + "body" );
-        body.Add( new XElement( w + "sectPr", string.Empty ) );
-        var sectPr = body.Element( w + "sectPr" );
-        var titlePg = sectPr.Element( w + "titlePg" );
-        if( titlePg == null )
+        if( this.Sections.Count > 1 )
         {
-          if( value )
-          {
-            sectPr.Add( new XElement( w + "titlePg", string.Empty ) );
-          }
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].DifferentFirstPage." );
         }
-        else
-        {
-          if( !value )
-          {
-            titlePg.Remove();
-          }
-        }
+        this.Sections[ 0 ].DifferentFirstPage = value;
       }
     }
 
@@ -906,6 +850,16 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Public Methods
+
+    public override void InsertSection( bool trackChanges )
+    {
+      this.InsertSection( trackChanges, false );
+    }
+
+    public override void InsertSectionPageBreak( bool trackChanges = false )
+    {
+      this.InsertSection( trackChanges, true );
+    }
 
     /// <summary>
     /// Returns the type of editing protection imposed on this document.
@@ -1306,7 +1260,7 @@ namespace Xceed.Document.NET
       if( rowCount < 1 || columnCount < 1 )
         throw new ArgumentOutOfRangeException( "Row and Column count must be greater than zero." );
 
-      var t = new Table( this, HelperFunctions.CreateTable( rowCount, columnCount ) );
+      var t = new Table( this, HelperFunctions.CreateTable( rowCount, columnCount ), this.PackagePart );
       t.PackagePart = this.PackagePart;
       return t;
     }
@@ -1760,11 +1714,7 @@ namespace Xceed.Document.NET
     /// </example>
     public void AddHeaders()
     {
-      this.AddHeadersOrFooters( true );
-
-      _headers.Odd = Document.GetHeaderByType( "default" );
-      _headers.Even = Document.GetHeaderByType( "even" );
-      _headers.First = Document.GetHeaderByType( "first" );
+      this.Sections[ 0 ].AddHeadersOrFootersXml( true );
     }
 
     /// <summary>
@@ -1803,11 +1753,7 @@ namespace Xceed.Document.NET
     /// </example>
     public void AddFooters()
     {
-      AddHeadersOrFooters( false );
-
-      _footers.Odd = Document.GetFooterByType( "default" );
-      _footers.Even = Document.GetFooterByType( "even" );
-      _footers.First = Document.GetFooterByType( "first" );
+      this.Sections[ 0 ].AddHeadersOrFootersXml( false );
     }
 
     public virtual void Save()
@@ -2235,42 +2181,7 @@ namespace Xceed.Document.NET
       p.Xml.Add( chartElement );
     }
 
-    public List<Section> GetSections()
-    {
-      var paragraphs = Paragraphs;
-      var sections = new List<Section>();
-      var sectionParagraphs = new List<Paragraph>();
 
-      foreach( Paragraph paragraph in paragraphs )
-      {
-
-        var sectionInPara = paragraph.Xml.Descendants().FirstOrDefault( s => s.Name.LocalName == "sectPr" );
-
-        if( sectionInPara != null )
-        {
-          sectionParagraphs.Add( paragraph );
-
-          var section = new Section( Document, sectionInPara );
-          section.SectionParagraphs = sectionParagraphs;
-
-          sections.Add( section );
-          sectionParagraphs = new List<Paragraph>();
-        }
-        else
-        {
-          sectionParagraphs.Add( paragraph );
-        }
-      }
-
-      XElement body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
-      XElement baseSectionXml = body.Element( XName.Get( "sectPr", w.NamespaceName ) );
-
-      var baseSection = new Section( Document, baseSectionXml );
-      baseSection.SectionParagraphs = sectionParagraphs;
-      sections.Add( baseSection );
-
-      return sections;
-    }
 
     /// <summary>
     /// Create a new List
@@ -2348,7 +2259,7 @@ namespace Xceed.Document.NET
     public TableOfContents InsertTableOfContents( string title, TableOfContentsSwitches switches, string headerStyle = null, int maxIncludeLevel = 3, int? rightTabPos = null )
     {
       var toc = TableOfContents.CreateTableOfContents( this, title, switches, headerStyle, maxIncludeLevel, rightTabPos );
-      Xml.Add( toc.Xml );
+      this.AddElementInXml( toc.Xml );
       return toc;
     }
 
@@ -2513,35 +2424,86 @@ namespace Xceed.Document.NET
       _settings.Root.AddFirst( documentProtection );
     }
 
+    public void SetDefaultFont( Font fontFamily, double fontSize = 11d, Color? fontColor = null )
+    {
+      var docDefault = this.GetDocDefaults();
+      if( docDefault != null )
+      {
+        var rPrDefault = docDefault.Element( XName.Get( "rPrDefault", w.NamespaceName ) );
+        if( rPrDefault != null )
+        {
+          var rPr = rPrDefault.Element( XName.Get( "rPr", w.NamespaceName ) );
+          if( rPr != null )
+          {
+            //rFonts
+            if( fontFamily != null )
+            {
+              var rFonts = rPr.Element( XName.Get( "rFonts", w.NamespaceName ) );
+              if( rFonts == null )
+              {
+                rPr.AddFirst( new XElement( XName.Get( "rFonts", w.NamespaceName ) ) );
+                rFonts = rPr.Element( XName.Get( "rFonts", w.NamespaceName ) );
+              }
+
+              rFonts.Attributes().Remove();
+              rFonts.SetAttributeValue( XName.Get( "ascii", w.NamespaceName ), fontFamily.Name );
+              rFonts.SetAttributeValue( XName.Get( "hAnsi", w.NamespaceName ), fontFamily.Name );
+              rFonts.SetAttributeValue( XName.Get( "cs", w.NamespaceName ), fontFamily.Name );
+              rFonts.SetAttributeValue( XName.Get( "eastAsia", w.NamespaceName ), fontFamily.Name );
+            }
+
+            //sz
+            var sz = rPr.Element( XName.Get( "sz", w.NamespaceName ) );
+            if( sz == null )
+            {
+              rPr.Add( new XElement( XName.Get( "sz", w.NamespaceName ) ) );
+              sz = rPr.Element( XName.Get( "sz", w.NamespaceName ) );
+            }
+            sz.SetAttributeValue( XName.Get( "val", w.NamespaceName ), fontSize * 2 );
+
+            //szCs
+            var szCs = rPr.Element( XName.Get( "szCs", w.NamespaceName ) );
+            if( szCs == null )
+            {
+              rPr.Add( new XElement( XName.Get( "szCs", w.NamespaceName ) ) );
+              szCs = rPr.Element( XName.Get( "szCs", w.NamespaceName ) );
+            }
+            szCs.SetAttributeValue( XName.Get( "val", w.NamespaceName ), fontSize * 2 );
+
+            //color
+            if( (fontColor != null) && fontColor.HasValue )
+            {
+              var color = rPr.Element( XName.Get( "color", w.NamespaceName ) );
+              if( color == null )
+              {
+                rPr.Add( new XElement( XName.Get( "color", w.NamespaceName ) ) );
+                color = rPr.Element( XName.Get( "color", w.NamespaceName ) );
+              }
+              color.SetAttributeValue( XName.Get( "val", w.NamespaceName ), fontColor.Value.ToHex() );
+            }
+          }
+        }
+      }
+    }
+
+
 
 
     #endregion
 
     #region Internal Methods
 
-    internal float getMarginAttribute( XName name )
+    protected internal virtual void SaveHeadersFooters()
     {
-      var body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
-      var sectPr = body.Element( XName.Get( "sectPr", w.NamespaceName ) );
-      var pgMar = sectPr?.Element( XName.Get( "pgMar", w.NamespaceName ) );
-      var top = pgMar?.Attribute( name );
-      if( top != null )
-      {
-        float f;
-        if( float.TryParse( top.Value, out f ) )
-          return ( int )( f / _pageSizeMultiplier );
-      }
-
-      return 0;
     }
 
-    internal void setMarginAttribute( XName xName, float value )
+    protected internal override void AddElementInXml( object element )
     {
+      // Add element just before the last sectPr.
       var body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
-      var sectPr = body.Element( XName.Get( "sectPr", w.NamespaceName ) );
-      var pgMar = sectPr?.Element( XName.Get( "pgMar", w.NamespaceName ) );
-      var top = pgMar?.Attribute( xName );
-      top?.SetValue( value * Convert.ToInt32( _pageSizeMultiplier ) );
+      var sectPr = body.Elements( XName.Get( "sectPr", w.NamespaceName ) ).Last();
+
+      sectPr.AddBeforeSelf( element );
     }
 
     internal string GetCollectiveText( List<PackagePart> list )
@@ -2671,10 +2633,16 @@ namespace Xceed.Document.NET
     {
       var ms = new MemoryStream();
 
-      stream.Position = 0;
-      var data = new byte[ stream.Length ];
-      stream.Read( data, 0, (int)stream.Length );
-      ms.Write( data, 0, (int)stream.Length );
+      try
+      {
+        stream.Position = 0;
+      }
+      catch( Exception )
+      {
+        // no stream.Position for Web streams.
+      }
+
+      HelperFunctions.CopyStream( stream, ms );
 
       // Open the docx package
       var package = Package.Open( ms, FileMode.Open, FileAccess.ReadWrite );
@@ -2688,14 +2656,42 @@ namespace Xceed.Document.NET
 
     internal static Document Load( string filename, Document document, DocumentTypes documentType )
     {
-      if( !File.Exists( filename ) )
-        throw new FileNotFoundException( string.Format( "File could not be found {0}", filename ) );
-
       var ms = new MemoryStream();
 
-      using( FileStream fs = new FileStream( filename, FileMode.Open, FileAccess.Read, FileShare.Read ) )
+      if( File.Exists( filename ) )
       {
-        HelperFunctions.CopyStream( fs, ms );
+        using( FileStream fs = new FileStream( filename, FileMode.Open, FileAccess.Read, FileShare.Read ) )
+        {
+          HelperFunctions.CopyStream( fs, ms );
+        }
+      }
+      else
+      {
+        WebRequest request = null;
+        HttpWebResponse response = null;
+        Stream receiveStream = null;   
+        try
+        {
+          request = (HttpWebRequest)WebRequest.Create( filename );
+          response = (HttpWebResponse)request.GetResponse();
+          receiveStream = response.GetResponseStream();
+          HelperFunctions.CopyStream( receiveStream, ms );
+        }
+        catch( Exception )
+        {
+          throw new FileNotFoundException( string.Format( "File could not be found {0}", filename ) );
+        }
+        finally
+        {
+          if( response != null )
+          {
+            response.Close();
+          }
+          if( receiveStream != null )
+          {
+            receiveStream.Close();
+          }
+        }
       }
 
       // Open the docx package
@@ -2772,14 +2768,14 @@ namespace Xceed.Document.NET
     /// If the document already contains a Header it will be replaced.
     /// </summary>
     /// <returns>The Header that was added to the document.</returns>
-    internal void AddHeadersOrFooters( bool b )
+    internal void AddHeadersOrFootersXml( bool b )
     {
       var element = b ? "hdr" : "ftr";
       var reference = b ? "header" : "footer";
 
       this.DeleteHeadersOrFooters( b );
 
-      var sectPr = _mainDoc.Root.Element( w + "body" ).Element( w + "sectPr" );
+      var sectPr = _mainDoc.Root.Element( w + "body" ).Elements( w + "sectPr" ).Last();
 
       for( int i = 1; i < 4; i++ )
       {
@@ -3107,35 +3103,41 @@ namespace Xceed.Document.NET
 
       // Check if each header exists and add if if so.
       #region Headers
-      var headers = document.Headers;
-      if( headers.First != null )
+      foreach( var section in document.Sections )
       {
-        documents.Add( headers.First.Xml );
-      }
-      if( headers.Odd != null )
-      {
-        documents.Add( headers.Odd.Xml );
-      }
-      if( headers.Even != null )
-      {
-        documents.Add( headers.Even.Xml );
+        var headers = section.Headers;
+        if( headers.First != null )
+        {
+          documents.Add( headers.First.Xml );
+        }
+        if( headers.Odd != null )
+        {
+          documents.Add( headers.Odd.Xml );
+        }
+        if( headers.Even != null )
+        {
+          documents.Add( headers.Even.Xml );
+        }
       }
       #endregion
 
       // Check if each footer exists and add if if so.
       #region Footers
-      var footers = document.Footers;
-      if( footers.First != null )
+      foreach( var section in document.Sections )
       {
-        documents.Add( footers.First.Xml );
-      }
-      if( footers.Odd != null )
-      {
-        documents.Add( footers.Odd.Xml );
-      }
-      if( footers.Even != null )
-      {
-        documents.Add( footers.Even.Xml );
+        var footers = section.Footers;
+        if( footers.First != null )
+        {
+          documents.Add( footers.First.Xml );
+        }
+        if( footers.Odd != null )
+        {
+          documents.Add( footers.Odd.Xml );
+        }
+        if( footers.Even != null )
+        {
+          documents.Add( footers.Even.Xml );
+        }
       }
       #endregion
 
@@ -3267,33 +3269,12 @@ namespace Xceed.Document.NET
       return stylesDoc;
     }
 
-    internal bool getMirrorMargins(XName name)
-    {
-      var body = _mainDoc.Root.Element(XName.Get("body", Document.w.NamespaceName));
-      var sectPr = body.Element(XName.Get("sectPr", Document.w.NamespaceName));
-      var mirrorMargins = sectPr?.Element(XName.Get("mirrorMargins", Document.w.NamespaceName));
-      return (mirrorMargins != null);
-    }
-
-    internal void setMirrorMargins(XName name, bool value)
-    {
-      var body = _mainDoc.Root.Element(XName.Get("body", Document.w.NamespaceName));
-      var sectPr = body.Element(XName.Get("sectPr", Document.w.NamespaceName));
-      var mirrorMargins = sectPr?.Element(XName.Get("mirrorMargins", Document.w.NamespaceName));
-
-      if (mirrorMargins == null)
-        sectPr.Add(new XElement(w + "mirrorMargins", string.Empty));
-
-      else
-      {
-        if (!value)
-          mirrorMargins.Remove();
-      }
-    }
-
     internal XElement GetDocDefaults()
     {
-      return this._styles.Element( XName.Get( "styles", Document.w.NamespaceName ) ).Element( XName.Get( "docDefaults", Document.w.NamespaceName ) );
+      if( _styles == null )
+        return null;
+
+      return _styles.Element( XName.Get( "styles", Document.w.NamespaceName ) ).Element( XName.Get( "docDefaults", Document.w.NamespaceName ) );
     }
 
     /// <summary>
@@ -3332,6 +3313,37 @@ namespace Xceed.Document.NET
       }
     }
 
+    internal string GetNormalStyleName()
+    {
+      if( _defaultParagraphStyleName != null )
+        return _defaultParagraphStyleName;
+
+      var normalStyle =
+      (
+          from s in _styles.Element( XName.Get( "styles", Document.w.NamespaceName ) ).Elements()
+          let type = s.Attribute( XName.Get( "type", Document.w.NamespaceName ) )
+          let def = s.Attribute( XName.Get( "default", Document.w.NamespaceName ) )
+          where ( ( type != null ) && ( type.Value == "paragraph" ) ) && ( ( def != null ) && ( def.Value == "1" ) )
+          select s
+      ).FirstOrDefault();
+
+      if( normalStyle != null )
+      {
+        var styleId = normalStyle.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) );
+        if( styleId != null )
+        {
+          _defaultParagraphStyleName = styleId.Value;
+        }
+      }
+
+      if( _defaultParagraphStyleName == null )
+      {
+        _defaultParagraphStyleName = "Normal";
+      }
+
+      return _defaultParagraphStyleName;
+    }
+
     #endregion
 
     #region Private Methods
@@ -3346,66 +3358,6 @@ namespace Xceed.Document.NET
 
       Document.PostCreation( package, documentType );
       document = Document.Load( ms, document, documentType );
-    }
-
-    private Header GetHeaderByType( string type )
-    {
-      return ( Header )GetHeaderOrFooterByType( type, true );
-    }
-
-    private Footer GetFooterByType( string type )
-    {
-      return ( Footer )GetHeaderOrFooterByType( type, false );
-    }
-
-    private object GetHeaderOrFooterByType( string type, bool isHeader )
-    {
-      // Switch which handles either case Header\Footer, this just cuts down on code duplication.
-      string reference = "footerReference";
-      if( isHeader )
-        reference = "headerReference";
-
-      // Get the Id of the [default, even or first] [Header or Footer]
-      string Id =
-      (
-          from e in _mainDoc.Descendants( XName.Get( "body", w.NamespaceName ) ).Descendants()
-          where ( e.Name.LocalName == reference ) && ( e.Attribute( w + "type" ).Value == type )
-          select e.Attribute( r + "id" ).Value
-      ).LastOrDefault();
-
-      if( Id != null )
-      {
-        // Get the Xml file for this Header or Footer.
-        var partUri = this.PackagePart.GetRelationship( Id ).TargetUri;
-
-        // Weird problem with PackaePart API.
-        if( !partUri.OriginalString.StartsWith( "/word/" ) )
-          partUri = new Uri( "/word/" + partUri.OriginalString, UriKind.Relative );
-
-        // Get the Part and open a stream to get the Xml file.
-        var part = _package.GetPart( partUri );
-
-        using( TextReader tr = new StreamReader( part.GetStream() ) )
-        {
-          var doc = XDocument.Load( tr );
-
-          // Header and Footer extend Container.
-          Container c;
-          if( isHeader )
-          {
-            c = new Header( this, doc.Element( w + "hdr" ), part );
-          }
-          else
-          {
-            c = new Footer( this, doc.Element( w + "ftr" ), part );
-          }
-
-          return c;
-        }
-      }
-
-      // If we got this far something went wrong.
-      return null;
     }
 
     private void merge_images( PackagePart remote_pp, Document remote_document, XDocument remote_mainDoc, String contentType )
@@ -3955,69 +3907,7 @@ namespace Xceed.Document.NET
 
     private static void PopulateDocument( Document document, Package package )
     {
-      var headers = new Headers();
-      headers.Odd = document.GetHeaderByType( "default" );
-      headers.Even = document.GetHeaderByType( "even" );
-      headers.First = document.GetHeaderByType( "first" );
-
-      var footers = new Footers();
-      footers.Odd = document.GetFooterByType( "default" );
-      footers.Even = document.GetFooterByType( "even" );
-      footers.First = document.GetFooterByType( "first" );
-
-      //// Get the sectPr for this document.
-      //XElement sectPr = document.mainDoc.Descendants(XName.Get("sectPr", Document.w.NamespaceName)).Single();
-
-      //if (sectPr != null)
-      //{
-      //    // Extract the even header reference
-      //    var header_even_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "headerReference" && x.Attribute(XName.Get("type", Document.w.NamespaceName)) != null && x.Attribute(XName.Get("type", Document.w.NamespaceName)).Value == "even");
-      //    string id = header_even_ref.Attribute(XName.Get("id", Document.r.NamespaceName)).Value;
-      //    var res = document.mainPart.GetRelationship(id);
-      //    string ans = res.SourceUri.OriginalString;
-      //    headers.even.xml_filename = ans;
-
-      //    // Extract the odd header reference
-      //    var header_odd_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "headerReference" && x.Attribute(XName.Get("type", Document.w.NamespaceName)) != null && x.Attribute(XName.Get("type", Document.w.NamespaceName)).Value == "default");
-      //    string id2 = header_odd_ref.Attribute(XName.Get("id", Document.r.NamespaceName)).Value;
-      //    var res2 = document.mainPart.GetRelationship(id2);
-      //    string ans2 = res2.SourceUri.OriginalString;
-      //    headers.odd.xml_filename = ans2;
-
-      //    // Extract the first header reference
-      //    var header_first_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "h
-      //eaderReference" && x.Attribute(XName.Get("type", Document.w.NamespaceName)) != null && x.Attribute(XName.Get("type", Document.w.NamespaceName)).Value == "first");
-      //    string id3 = header_first_ref.Attribute(XName.Get("id", Document.r.NamespaceName)).Value;
-      //    var res3 = document.mainPart.GetRelationship(id3);
-      //    string ans3 = res3.SourceUri.OriginalString;
-      //    headers.first.xml_filename = ans3;
-
-      //    // Extract the even footer reference
-      //    var footer_even_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "footerReference" && x.Attribute(XName.Get("type", Document.w.NamespaceName)) != null && x.Attribute(XName.Get("type", Document.w.NamespaceName)).Value == "even");
-      //    string id4 = footer_even_ref.Attribute(XName.Get("id", Document.r.NamespaceName)).Value;
-      //    var res4 = document.mainPart.GetRelationship(id4);
-      //    string ans4 = res4.SourceUri.OriginalString;
-      //    footers.even.xml_filename = ans4;
-
-      //    // Extract the odd footer reference
-      //    var footer_odd_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "footerReference" && x.Attribute(XName.Get("type", Document.w.NamespaceName)) != null && x.Attribute(XName.Get("type", Document.w.NamespaceName)).Value == "default");
-      //    string id5 = footer_odd_ref.Attribute(XName.Get("id", Document.r.NamespaceName)).Value;
-      //    var res5 = document.mainPart.GetRelationship(id5);
-      //    string ans5 = res5.SourceUri.OriginalString;
-      //    footers.odd.xml_filename = ans5;
-
-      //    // Extract the first footer reference
-      //    var footer_first_ref = sectPr.Elements().SingleOrDefault(x => x.Name.LocalName == "footerReference" && x.Attribute(XName.Get("type", Document.w.NamespaceName)) != null && x.Attribute(XName.Get("type", Document.w.NamespaceName)).Value == "first");
-      //    string id6 = footer_first_ref.Attribute(XName.Get("id", Document.r.NamespaceName)).Value;
-      //    var res6 = document.mainPart.GetRelationship(id6);
-      //    string ans6 = res6.SourceUri.OriginalString;
-      //    footers.first.xml_filename = ans6;
-
-      //}
-
       document.Xml = document._mainDoc.Root.Element( w + "body" );
-      document._headers = headers;
-      document._footers = footers;
       document._settingsPart = HelperFunctions.CreateOrGetSettingsPart( package );
 
       var ps = package.GetParts();
@@ -4080,6 +3970,8 @@ namespace Xceed.Document.NET
             break;
         }
       }
+
+      document._cachedSections = document.GetSections();
     }
 
     private string GetNextFreeRelationshipID()
@@ -4141,16 +4033,39 @@ namespace Xceed.Document.NET
       return h;
     }
 
-    private object[] GetBorderAttributes( Border border )
+    private XElement CopyXml( XElement sourceXml )
     {
-      if( border == null )
+      if( sourceXml == null )
         return null;
 
-      return new object[] { new XAttribute( XName.Get( "color", Document.w.NamespaceName ), border.Color.ToHex() ),
-                            new XAttribute( XName.Get( "space", Document.w.NamespaceName ), border.Space ),
-                            new XAttribute( XName.Get( "sz", Document.w.NamespaceName ),  Border.GetNumericSize( border.Size ) ),
-                            new XAttribute( XName.Get( "val", Document.w.NamespaceName ), border.Tcbs.ToString().Remove(0, 5) )
-                          };
+      XElement output = null;
+      using( var reader = sourceXml.CreateReader() )
+      {
+        output = XElement.Load( reader, LoadOptions.SetLineInfo );
+      }
+      return output;
+    }
+
+    private void InsertSection( bool trackChanges, bool isPageBreak )
+    {
+      // Save any modified header/footer so that the new section can access it.
+      this.SaveHeadersFooters();
+
+      var sctPr = this.CopyXml( this.Sections.Last().Xml );
+      if( !isPageBreak )
+      {
+        sctPr.Add( new XElement( XName.Get( "type", Document.w.NamespaceName ), new XAttribute( Document.w + "val", "continuous" ) ) );
+      }
+
+      var newSection = new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ), sctPr ) );
+      if( trackChanges )
+      {
+        newSection = HelperFunctions.CreateEdit( EditType.ins, DateTime.Now, newSection );
+      }
+      this.AddElementInXml( newSection );
+
+      // Update the _cachedSection by reading the Xml to build new Sections.
+      _cachedSections = this.GetSections();
     }
 
     #endregion

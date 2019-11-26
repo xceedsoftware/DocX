@@ -25,7 +25,7 @@ namespace Xceed.Document.NET
   /// </summary>
   public class List : InsertBeforeOrAfter
   {
-    #region Public Members
+    #region Public Properties
 
     /// <summary>
     /// This is a list of paragraphs that will be added to the document
@@ -55,6 +55,19 @@ namespace Xceed.Document.NET
 
     #endregion
 
+    #region Internal Properties
+
+    public int AbstractNumId
+    {
+      get
+      {
+        var abstractNumIdString = HelperFunctions.GetAbstractNumIdValue( this.Document, this.NumId.ToString() );
+        return ( abstractNumIdString != null ) ? Int32.Parse( abstractNumIdString ) : 0;
+      }
+    }
+
+    #endregion
+
     #region Constructors
 
     internal List( Document document, XElement xml )
@@ -79,15 +92,14 @@ namespace Xceed.Document.NET
     {
       if( paragraph.IsListItem )
       {
-        var numIdNode = paragraph.Xml.Descendants().FirstOrDefault( s => s.Name.LocalName == "numId" );
-        if( numIdNode == null )
+        var numId = paragraph.GetNumId();
+        if( numId == -1 )
           return;
-        var numId = Int32.Parse( numIdNode.Attribute( Document.w + "val" ).Value );
 
-        if( CanAddListItem( paragraph ) )
+        if( this.CanAddListItem( paragraph ) )
         {
-          NumId = numId;
-          Items.Add( paragraph );
+          this.NumId = numId;
+          this.Items.Add( paragraph );
         }
         else
           throw new InvalidOperationException( "New list items can only be added to this list if they are have the same numId." );
@@ -114,14 +126,12 @@ namespace Xceed.Document.NET
     {
       if( paragraph.IsListItem )
       {
-        //var lvlNode = paragraph.Xml.Descendants().First(s => s.Name.LocalName == "ilvl");
-        var numIdNode = paragraph.Xml.Descendants().FirstOrDefault( s => s.Name.LocalName == "numId" );
-        if( numIdNode == null )
+        var numId = paragraph.GetNumId();
+        if( numId == -1 )
           return false;
-        var numId = Int32.Parse( numIdNode.Attribute( Document.w + "val" ).Value );
 
-        //Level = Int32.Parse(lvlNode.Attribute(Document.w + "val").Value);
-        if( NumId == 0 || ( numId == NumId && numId > 0 ) )
+        if( ( this.NumId == 0 )
+          || ( ( numId == this.NumId ) && ( numId > 0 ) ) )
         {
           return true;
         }

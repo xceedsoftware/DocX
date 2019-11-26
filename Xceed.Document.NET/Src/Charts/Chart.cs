@@ -20,6 +20,8 @@ using System.Xml.Linq;
 using System.Collections;
 using System.Drawing;
 using System.Globalization;
+using System.IO.Packaging;
+using System.IO;
 
 namespace Xceed.Document.NET
 {
@@ -28,6 +30,11 @@ namespace Xceed.Document.NET
   /// </summary>
   public abstract class Chart
   {
+    #region Private Members
+
+
+#endregion
+
     #region Public Properties
 
     /// <summary>
@@ -75,7 +82,7 @@ namespace Xceed.Document.NET
     /// </summary>
     public ChartLegend Legend
     {
-      get; private set;
+      get; internal set;
     }
 
     /// <summary>
@@ -156,11 +163,11 @@ namespace Xceed.Document.NET
 
     #region Protected Properties
 
-    protected XElement ChartXml
+    protected internal XElement ChartXml
     {
       get; private set;
     }
-    protected XElement ChartRootXml
+    protected internal XElement ChartRootXml
     {
       get; private set;
     }
@@ -238,7 +245,8 @@ namespace Xceed.Document.NET
       this.ChartRootXml.Element( XName.Get( "autoTitleDeleted", Document.c.NamespaceName ) ).AddAfterSelf( plotAreaXml );
     }
 
-    #endregion
+
+#endregion
 
     #region Public Methods
 
@@ -272,7 +280,7 @@ namespace Xceed.Document.NET
     /// </summary>
     public void AddLegend( ChartLegendPosition position, Boolean overlay )
     {
-      if( Legend != null )
+      if( this.Legend != null )
       {
         this.RemoveLegend();
       }
@@ -285,11 +293,15 @@ namespace Xceed.Document.NET
     /// </summary>
     public void RemoveLegend()
     {
-      Legend.Xml.Remove();
-      Legend = null;
+      if( this.Legend != null )
+      {
+        this.Legend.Xml.Remove();
+        this.Legend = null;
+      }
     }
 
-    #endregion
+
+#endregion
 
     #region Protected Methods
 
@@ -299,6 +311,14 @@ namespace Xceed.Document.NET
     protected abstract XElement CreateChartXml();
 
     #endregion
+
+    #region Internal Method
+
+
+
+
+
+#endregion
   }
 
   /// <summary>
@@ -345,7 +365,19 @@ namespace Xceed.Document.NET
       }
     }
 
-    #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+#endregion
 
     #region Internal Properties
 
@@ -518,7 +550,13 @@ namespace Xceed.Document.NET
           );
     }
 
+
     #endregion
+
+    #region Internal Methods
+
+
+#endregion
 
     #region Private Methods
 

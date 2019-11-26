@@ -20,9 +20,7 @@ using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using System.IO.Packaging;
 using System.IO;
-using System.Drawing;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace Xceed.Document.NET
 {
@@ -99,45 +97,11 @@ namespace Xceed.Document.NET
       }
     }
 
-    public virtual List<Section> Sections
+    public virtual IList<Section> Sections
     {
       get
       {
-        var paragraphs = Paragraphs;
-        var sections = new List<Section>();
-        var sectionParagraphs = new List<Paragraph>();
-
-        foreach( Paragraph paragraph in paragraphs )
-        {
-
-          var sectionInPara = paragraph.Xml.Descendants().FirstOrDefault( s => s.Name.LocalName == "sectPr" );
-
-          if( sectionInPara != null )
-          {
-            sectionParagraphs.Add( paragraph );
-
-            var section = new Section( Document, sectionInPara );
-            section.SectionParagraphs = sectionParagraphs;
-
-            sections.Add( section );
-            sectionParagraphs = new List<Paragraph>();
-          }
-          else
-          {
-            sectionParagraphs.Add( paragraph );
-          }
-        }
-
-        var body = Xml.DescendantsAndSelf( XName.Get( "body", Document.w.NamespaceName ) ).FirstOrDefault();
-        var baseSectionXml = body?.Element( XName.Get( "sectPr", Document.w.NamespaceName ) );
-
-        if (baseSectionXml != null)
-        {
-          var baseSection = new Section( Document, baseSectionXml );
-          baseSection.SectionParagraphs = sectionParagraphs;
-          sections.Add( baseSection );
-        }
-        return sections;
+        return this.GetSections();
       }
     }
 
@@ -148,7 +112,7 @@ namespace Xceed.Document.NET
         List<Table> tables =
         (
             from t in Xml.Descendants( Document.w + "tbl" )
-            select new Table( Document, t )
+            select new Table( Document, t, this.PackagePart )
         ).ToList();
 
         return tables;
@@ -212,6 +176,51 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Public Methods
+
+    public IList<Section> GetSections()
+    {
+      var paragraphs = this.Paragraphs;
+      var sections = new List<Section>();
+      var sectionParagraphs = new List<Paragraph>();
+
+      foreach( var paragraph in paragraphs )
+      {
+        var sectionInPara = paragraph.Xml.Descendants().FirstOrDefault( s => s.Name.LocalName == "sectPr" );
+
+        if( sectionInPara != null )
+        {
+          sectionParagraphs.Add( paragraph );
+
+          var section = new Section( Document, sectionInPara, sections.LastOrDefault() );
+          section.SectionParagraphs = sectionParagraphs;
+
+          sections.Add( section );
+          sectionParagraphs = new List<Paragraph>();
+        }
+        else
+        {
+          sectionParagraphs.Add( paragraph );
+        }
+      }
+
+      var body = Xml.DescendantsAndSelf( XName.Get( "body", Document.w.NamespaceName ) ).FirstOrDefault();
+      if( body != null )
+      {
+        var sectPrList = body.Elements( XName.Get( "sectPr", Document.w.NamespaceName ) );
+
+        var baseSectionXml = sectPrList.LastOrDefault();
+        if( baseSectionXml != null )
+        {
+          var baseSection = ( sections.Count > 0 ) ? new Section( Document, baseSectionXml, sections.LastOrDefault() )
+                                                   : new Section( Document, baseSectionXml, ( sectPrList.Count() > 1 ) ? sectPrList.Take( sectPrList.Count() - 1 ) : null );
+          baseSection.SectionParagraphs = sectionParagraphs;
+          sections.Add( baseSection );
+        }
+      }
+
+
+      return sections;
+    }
 
     /// <summary>
     /// Sets the Direction of content.
@@ -327,14 +336,17 @@ namespace Xceed.Document.NET
       }
 
       // ReplaceText in Headers of the document.
-      var headerList = new List<Header>() { this.Document.Headers.First, this.Document.Headers.Even, this.Document.Headers.Odd };
-      foreach( Header h in headerList )
+      foreach( var section in this.Document.Sections )
       {
-        if( h != null )
+        var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
+        foreach( var h in headerList )
         {
-          foreach( Paragraph p in h.Paragraphs )
+          if( h != null )
           {
-            p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+            foreach( var p in h.Paragraphs )
+            {
+              p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+            }
           }
         }
       }
@@ -346,14 +358,17 @@ namespace Xceed.Document.NET
       }
 
       // ReplaceText in Footers of the document.
-      var footerList = new List<Footer> { this.Document.Footers.First, this.Document.Footers.Even, this.Document.Footers.Odd };
-      foreach( Footer f in footerList )
+      foreach( var section in this.Document.Sections )
       {
-        if( f != null )
+        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
+        foreach( var f in footerList )
         {
-          foreach( Paragraph p in f.Paragraphs )
+          if( f != null )
           {
-            p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+            foreach( var p in f.Paragraphs )
+            {
+              p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+            }
           }
         }
       }
@@ -389,23 +404,26 @@ namespace Xceed.Document.NET
       }
 
       // Replace text in headers and footers of the Document.
-      var headersFootersList = new List<IParagraphContainer>()
+      foreach( var section in this.Document.Sections )
       {
-        this.Document.Headers.First,
-        this.Document.Headers.Even,
-        this.Document.Headers.Odd,
-        this.Document.Footers.First,
-        this.Document.Footers.Even,
-        this.Document.Footers.Odd,
-      };
-
-      foreach( var hf in headersFootersList )
-      {
-        if( hf != null )
+        var headersFootersList = new List<IParagraphContainer>()
         {
-          foreach( var p in hf.Paragraphs )
+          section.Headers.First,
+          section.Headers.Even,
+          section.Headers.Odd,
+          section.Footers.First,
+          section.Footers.Even,
+          section.Footers.Odd,
+        };
+
+        foreach( var hf in headersFootersList )
+        {
+          if( hf != null )
           {
-            p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
+            foreach( var p in hf.Paragraphs )
+            {
+              p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
+            }
           }
         }
       }
@@ -416,25 +434,38 @@ namespace Xceed.Document.NET
       }
     }
 
-    public virtual void InsertAtBookmark( string toInsert, string bookmarkName )
+    public virtual void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
     {
       if( string.IsNullOrWhiteSpace( bookmarkName ) )
         throw new ArgumentException( "bookmark cannot be null or empty", "bookmarkName" );
 
-      var headerCollection = Document.Headers;
-      var headers = new List<Header> { headerCollection.First, headerCollection.Even, headerCollection.Odd };
-      foreach( var header in headers.Where( x => x != null ) )
-        foreach( var paragraph in header.Paragraphs )
-          paragraph.InsertAtBookmark( toInsert, bookmarkName );
+      foreach( var section in this.Document.Sections )
+      {
+        var headerCollection = section.Headers;
+        var headers = new List<Header> { headerCollection.First, headerCollection.Even, headerCollection.Odd };
+        foreach( var header in headers.Where( x => x != null ) )
+        {
+          foreach( var paragraph in header.Paragraphs )
+          {
+            paragraph.InsertAtBookmark( toInsert, bookmarkName, formatting );
+          }
+        }
+
+        var footerCollection = section.Footers;
+        var footers = new List<Footer> { footerCollection.First, footerCollection.Even, footerCollection.Odd };
+        foreach( var footer in footers.Where( x => x != null ) )
+        {
+          foreach( var paragraph in footer.Paragraphs )
+          {
+            paragraph.InsertAtBookmark( toInsert, bookmarkName, formatting );
+          }
+        }
+      }
 
       foreach( var paragraph in Paragraphs )
-        paragraph.InsertAtBookmark( toInsert, bookmarkName );
-
-      var footerCollection = Document.Footers;
-      var footers = new List<Footer> { footerCollection.First, footerCollection.Even, footerCollection.Odd };
-      foreach( var footer in footers.Where( x => x != null ) )
-        foreach( var paragraph in footer.Paragraphs )
-          paragraph.InsertAtBookmark( toInsert, bookmarkName );
+      {
+        paragraph.InsertAtBookmark( toInsert, bookmarkName, formatting );
+      }
     }
 
     public virtual Paragraph InsertParagraph( int index, string text, bool trackChanges )
@@ -456,7 +487,7 @@ namespace Xceed.Document.NET
 
       if( paragraph == null )
       {
-        Xml.Add( p.Xml );
+        this.AddElementInXml( p.Xml );
       }
       else
       {
@@ -527,7 +558,7 @@ namespace Xceed.Document.NET
 
       var newXElement = new XElement( p.Xml );
 
-      this.Xml.Add( newXElement );
+      this.AddElementInXml( newXElement );
 
       int index = 0;
       if( this.Document._paragraphLookup.Keys.Count() > 0 )
@@ -571,7 +602,7 @@ namespace Xceed.Document.NET
       }
       else
       {
-        this.Xml.Add( newParagraph );
+        this.AddElementInXml( newParagraph );
       }
 
       this.SetParentContainer( newParagraph );
@@ -600,7 +631,7 @@ namespace Xceed.Document.NET
         newParagraph = HelperFunctions.CreateEdit( EditType.ins, DateTime.Now, newParagraph );
       }
 
-      this.Xml.Add( newParagraph );
+      this.AddElementInXml( newParagraph );
 
       var newParagraphAdded = new Paragraph( this.Document, newParagraph, 0 );
       var cell = this as Cell;
@@ -691,9 +722,9 @@ namespace Xceed.Document.NET
     public virtual Table InsertTable( int rowCount, int columnCount )
     {
       var newTable = HelperFunctions.CreateTable( rowCount, columnCount );
-      Xml.Add( newTable );
+      this.AddElementInXml( newTable );
 
-      var table = new Table( this.Document, newTable );
+      var table = new Table( this.Document, newTable, this.PackagePart );
       table.PackagePart = this.PackagePart;
       return table;
     }
@@ -713,7 +744,7 @@ namespace Xceed.Document.NET
         p.Xml.ReplaceWith( split[ 0 ], newTable, split[ 1 ] );
       }
 
-      var table = new Table( this.Document, newTable );
+      var table = new Table( this.Document, newTable, this.PackagePart );
       table.PackagePart = this.PackagePart;
       return table;
     }
@@ -721,9 +752,9 @@ namespace Xceed.Document.NET
     public virtual Table InsertTable( Table t )
     {
       var newXElement = new XElement( t.Xml );
-      Xml.Add( newXElement );
+      this.AddElementInXml( newXElement );
 
-      var newTable = new Table( this.Document, newXElement );
+      var newTable = new Table( this.Document, newXElement, this.PackagePart );
       newTable.Design = t.Design;
       newTable.PackagePart = this.PackagePart;
       return newTable;
@@ -737,7 +768,7 @@ namespace Xceed.Document.NET
       var newXElement = new XElement( t.Xml );
       p.Xml.ReplaceWith( split[ 0 ], newXElement, split[ 1 ] );
 
-      var newTable = new Table( this.Document, newXElement );
+      var newTable = new Table( this.Document, newXElement, this.PackagePart );
       newTable.Design = t.Design;
       newTable.PackagePart = this.PackagePart;
       return newTable;
@@ -757,7 +788,7 @@ namespace Xceed.Document.NET
         newSection = HelperFunctions.CreateEdit( EditType.ins, DateTime.Now, newSection );
       }
 
-      this.Xml.Add( newSection );
+      this.AddElementInXml( newSection );
     }
 
     public virtual void InsertSectionPageBreak( bool trackChanges = false )
@@ -769,14 +800,14 @@ namespace Xceed.Document.NET
         newSection = HelperFunctions.CreateEdit( EditType.ins, DateTime.Now, newSection );
       }
 
-      this.Xml.Add( newSection );
+      this.AddElementInXml( newSection );
     }
 
     public virtual List InsertList( List list )
     {
       foreach( var item in list.Items )
       {
-        Xml.Add( item.Xml );
+        this.AddElementInXml( item.Xml );
       }
       return list;
     }
@@ -786,7 +817,7 @@ namespace Xceed.Document.NET
       foreach( var item in list.Items )
       {
         item.FontSize( fontSize );
-        Xml.Add( item.Xml );
+        this.AddElementInXml( item.Xml );
       }
       return list;
     }
@@ -797,7 +828,7 @@ namespace Xceed.Document.NET
       {
         item.Font( fontFamily );
         item.FontSize( fontSize );
-        Xml.Add( item.Xml );
+        this.AddElementInXml( item.Xml );
       }
       return list;
     }
@@ -826,27 +857,37 @@ namespace Xceed.Document.NET
 
     public string[] ValidateBookmarks( params string[] bookmarkNames )
     {
-      var headers = new[] { Document.Headers.First, Document.Headers.Even, Document.Headers.Odd }.Where( h => h != null ).ToList();
-      var footers = new[] { Document.Footers.First, Document.Footers.Even, Document.Footers.Odd }.Where( f => f != null ).ToList();
-
       var result = new List<string>();
 
       foreach( var bookmarkName in bookmarkNames )
       {
-        if( headers.SelectMany( h => h.Paragraphs ).Any( p => p.ValidateBookmark( bookmarkName ) ) )
-          return new string[ 0 ];
-        if( footers.SelectMany( h => h.Paragraphs ).Any( p => p.ValidateBookmark( bookmarkName ) ) )
-          return new string[ 0 ];
-        if( Paragraphs.Any( p => p.ValidateBookmark( bookmarkName ) ) )
+        foreach( var section in this.Document.Sections )
+        {
+          var headers = new[] { section.Headers.First, section.Headers.Even, section.Headers.Odd }.Where( h => h != null ).ToList();
+          var footers = new[] { section.Footers.First, section.Footers.Even, section.Footers.Odd }.Where( f => f != null ).ToList();
+
+          if( headers.SelectMany( h => h.Paragraphs ).Any( p => p.ValidateBookmark( bookmarkName ) ) )
+            return new string[ 0 ];
+          if( footers.SelectMany( h => h.Paragraphs ).Any( p => p.ValidateBookmark( bookmarkName ) ) )
+            return new string[ 0 ];
+        }
+
+        if( this.Paragraphs.Any( p => p.ValidateBookmark( bookmarkName ) ) )
           return new string[ 0 ];
         result.Add( bookmarkName );
       }
+
       return result.ToArray();
     }
 
     #endregion
 
     #region Internal Methods
+
+    protected internal virtual void AddElementInXml( object element )
+    {
+      this.Xml.Add( element );
+    }
 
     internal List<Paragraph> GetParagraphs()
     {
@@ -996,9 +1037,15 @@ namespace Xceed.Document.NET
     {
       foreach( var p in paragraphs )
       {
-        if( ( p.Xml.ElementsAfterSelf().FirstOrDefault() != null ) && ( p.Xml.ElementsAfterSelf().First().Name.Equals( Document.w + "tbl" ) ) )
+        var nextElement = p.Xml.ElementsAfterSelf().FirstOrDefault();
+        while( ( nextElement != null ) && ( nextElement.Name.Equals( Document.w + "tbl" ) ) )
         {
-          p.FollowingTable = new Table( this.Document, p.Xml.ElementsAfterSelf().First() );
+          if( p.FollowingTables == null )
+          {
+            p.FollowingTables = new List<Table>();
+          }
+          p.FollowingTables.Add( new Table( this.Document, nextElement, this.PackagePart ) );
+          nextElement = nextElement.ElementsAfterSelf().FirstOrDefault();
         }
 
         p.ParentContainer = this.GetParentFromXmlName( p.Xml.Ancestors().First().Name.LocalName );

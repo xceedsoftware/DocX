@@ -260,9 +260,6 @@ namespace Xceed.Words.NET
     /// -->
     public override void Save()
     {
-      var headers = this.Headers;
-      var footers = this.Footers;
-
       // Save the main document
       using( TextWriter tw = new StreamWriter( new PackagePartStream( this.PackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
       {
@@ -277,182 +274,11 @@ namespace Xceed.Words.NET
         }
       }
 
-      var body = _mainDoc.Root.Element( w + "body" );
-      var sectPr = body.Descendants( w + "sectPr" ).FirstOrDefault();
+      // Save the header/footer content.
+      this.SaveHeadersFooters();
 
-      if( sectPr != null )
-      {
-        var evenHeaderRef =
-        (
-            from e in _mainDoc.Descendants( w + "headerReference" )
-            let type = e.Attribute( w + "type" )
-            where type != null && type.Value.Equals( "even", StringComparison.CurrentCultureIgnoreCase )
-            select e.Attribute( r + "id" ).Value
-         ).LastOrDefault();
-
-        if( evenHeaderRef != null )
-        {
-          var even = headers.Even.Xml;
-
-          var target = PackUriHelper.ResolvePartUri
-          (
-              this.PackagePart.Uri,
-              this.PackagePart.GetRelationship( evenHeaderRef ).TargetUri
-          );
-
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            new XDocument
-            (
-                new XDeclaration( "1.0", "UTF-8", "yes" ),
-                even
-            ).Save( tw, SaveOptions.None );
-          }
-        }
-
-        var oddHeaderRef =
-        (
-            from e in _mainDoc.Descendants( w + "headerReference" )
-            let type = e.Attribute( w + "type" )
-            where type != null && type.Value.Equals( "default", StringComparison.CurrentCultureIgnoreCase )
-            select e.Attribute( r + "id" ).Value
-         ).LastOrDefault();
-
-        if( oddHeaderRef != null )
-        {
-          var odd = headers.Odd.Xml;
-
-          var target = PackUriHelper.ResolvePartUri
-          (
-              this.PackagePart.Uri,
-              this.PackagePart.GetRelationship( oddHeaderRef ).TargetUri
-          );
-
-          // Save header1
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            new XDocument
-            (
-                new XDeclaration( "1.0", "UTF-8", "yes" ),
-                odd
-            ).Save( tw, SaveOptions.None );
-          }
-        }
-
-        var firstHeaderRef =
-        (
-            from e in _mainDoc.Descendants( w + "headerReference" )
-            let type = e.Attribute( w + "type" )
-            where type != null && type.Value.Equals( "first", StringComparison.CurrentCultureIgnoreCase )
-            select e.Attribute( r + "id" ).Value
-         ).LastOrDefault();
-
-        if( firstHeaderRef != null )
-        {
-          var first = headers.First.Xml;
-          var target = PackUriHelper.ResolvePartUri
-          (
-              this.PackagePart.Uri,
-              this.PackagePart.GetRelationship( firstHeaderRef ).TargetUri
-          );
-
-          // Save header3
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            new XDocument
-            (
-                new XDeclaration( "1.0", "UTF-8", "yes" ),
-                first
-            ).Save( tw, SaveOptions.None );
-          }
-        }
-
-        var oddFooterRef =
-        (
-            from e in _mainDoc.Descendants( w + "footerReference" )
-            let type = e.Attribute( w + "type" )
-            where type != null && type.Value.Equals( "default", StringComparison.CurrentCultureIgnoreCase )
-            select e.Attribute( r + "id" ).Value
-         ).LastOrDefault();
-
-        if( oddFooterRef != null )
-        {
-          var odd = footers.Odd.Xml;
-          var target = PackUriHelper.ResolvePartUri
-          (
-              this.PackagePart.Uri,
-              this.PackagePart.GetRelationship( oddFooterRef ).TargetUri
-          );
-
-          // Save header1
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            new XDocument
-            (
-                new XDeclaration( "1.0", "UTF-8", "yes" ),
-                odd
-            ).Save( tw, SaveOptions.None );
-          }
-        }
-
-        var evenFooterRef =
-        (
-            from e in _mainDoc.Descendants( w + "footerReference" )
-            let type = e.Attribute( w + "type" )
-            where type != null && type.Value.Equals( "even", StringComparison.CurrentCultureIgnoreCase )
-            select e.Attribute( r + "id" ).Value
-         ).LastOrDefault();
-
-        if( evenFooterRef != null )
-        {
-          var even = footers.Even.Xml;
-          var target = PackUriHelper.ResolvePartUri
-          (
-              this.PackagePart.Uri,
-              this.PackagePart.GetRelationship( evenFooterRef ).TargetUri
-          );
-
-          // Save header2
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            new XDocument
-            (
-                new XDeclaration( "1.0", "UTF-8", "yes" ),
-                even
-            ).Save( tw, SaveOptions.None );
-          }
-        }
-
-        var firstFooterRef =
-        (
-             from e in _mainDoc.Descendants( w + "footerReference" )
-             let type = e.Attribute( w + "type" )
-             where type != null && type.Value.Equals( "first", StringComparison.CurrentCultureIgnoreCase )
-             select e.Attribute( r + "id" ).Value
-        ).LastOrDefault();
-
-        if( firstFooterRef != null )
-        {
-          var first = footers.First.Xml;
-          var target = PackUriHelper.ResolvePartUri
-          (
-              this.PackagePart.Uri,
-              this.PackagePart.GetRelationship( firstFooterRef ).TargetUri
-          );
-
-          // Save header3
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            new XDocument
-            (
-                new XDeclaration( "1.0", "UTF-8", "yes" ),
-                first
-            ).Save( tw, SaveOptions.None );
-          }
-        }
-
-        // Save the settings document.
-        using( TextWriter tw = new StreamWriter( new PackagePartStream( _settingsPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+      // Save the settings document.
+      using( TextWriter tw = new StreamWriter( new PackagePartStream( _settingsPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
         {
           _settings.Save( tw, SaveOptions.None );
         }
@@ -504,7 +330,6 @@ namespace Xceed.Words.NET
             _fontTable.Save( tw, SaveOptions.None );
           }
         }
-      }
 
       // Close the document so that it can be saved.
       _package.Flush();
@@ -548,6 +373,135 @@ namespace Xceed.Words.NET
       this.SaveAs( memorystream );
       memorystream.Seek( 0, SeekOrigin.Begin );
       return DocX.Load( memorystream );
+    }
+
+    #endregion
+
+    #region Internal Methods
+
+    /// <summary>
+    /// Save the headerd and footers
+    /// </summary>
+    protected internal override void SaveHeadersFooters()
+    {
+      foreach( var section in this.Sections )
+      {
+        var headers = section.Headers;
+        var footers = section.Footers;
+
+        // Header Even
+        if( headers.Even != null )
+        {
+          var target = PackUriHelper.ResolvePartUri
+          (
+              this.PackagePart.Uri,
+              this.PackagePart.GetRelationship( headers.Even.Id ).TargetUri
+          );
+          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+          {
+            new XDocument
+            (
+                new XDeclaration( "1.0", "UTF-8", "yes" ),
+                headers.Even.Xml
+            ).Save( tw, SaveOptions.None );
+          }
+        }
+
+        // Header Odd
+        if( headers.Odd != null )
+        {
+          var target = PackUriHelper.ResolvePartUri
+          (
+             this.PackagePart.Uri,
+             this.PackagePart.GetRelationship( headers.Odd.Id ).TargetUri
+          );
+
+          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+          {
+            new XDocument
+            (
+                new XDeclaration( "1.0", "UTF-8", "yes" ),
+                headers.Odd.Xml
+            ).Save( tw, SaveOptions.None );
+          }
+        }
+
+        // Header First
+        if( headers.First != null )
+        {
+          var target = PackUriHelper.ResolvePartUri
+          (
+            this.PackagePart.Uri,
+            this.PackagePart.GetRelationship( headers.First.Id ).TargetUri
+          );
+
+          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+          {
+            new XDocument
+            (
+                new XDeclaration( "1.0", "UTF-8", "yes" ),
+                headers.First.Xml
+            ).Save( tw, SaveOptions.None );
+          }
+        }
+
+        // Footer Odd
+        if( footers.Odd != null )
+        {
+          var target = PackUriHelper.ResolvePartUri
+          (
+             this.PackagePart.Uri,
+             this.PackagePart.GetRelationship( footers.Odd.Id ).TargetUri
+          );
+
+          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+          {
+            new XDocument
+            (
+                new XDeclaration( "1.0", "UTF-8", "yes" ),
+                footers.Odd.Xml
+            ).Save( tw, SaveOptions.None );
+          }
+        }
+
+        // Footer Even
+        if( footers.Even != null )
+        {
+          var target = PackUriHelper.ResolvePartUri
+          (
+            this.PackagePart.Uri,
+            this.PackagePart.GetRelationship( footers.Even.Id ).TargetUri
+          );
+
+          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+          {
+            new XDocument
+            (
+                new XDeclaration( "1.0", "UTF-8", "yes" ),
+                footers.Even.Xml
+            ).Save( tw, SaveOptions.None );
+          }
+        }
+
+        // Footer First
+        if( footers.First != null )
+        {
+          var target = PackUriHelper.ResolvePartUri
+          (
+            this.PackagePart.Uri,
+            this.PackagePart.GetRelationship( footers.First.Id ).TargetUri
+          );
+
+          using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( target ).GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+          {
+            new XDocument
+            (
+                new XDeclaration( "1.0", "UTF-8", "yes" ),
+                footers.First.Xml
+            ).Save( tw, SaveOptions.None );
+          }
+        }
+      }
     }
 
     #endregion

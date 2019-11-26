@@ -36,6 +36,9 @@ namespace Xceed.Words.NET.Examples
       DocumentSample.ReplaceText();
       DocumentSample.ApplyTemplate();
       DocumentSample.AppendDocument();
+      DocumentSample.LoadDocumentWithFilename();
+      DocumentSample.LoadDocumentWithStream();
+      DocumentSample.LoadDocumentWithStringUrl();
 
       //Images
       ImageSample.AddPicture();
@@ -63,6 +66,7 @@ namespace Xceed.Words.NET.Examples
 
       //Section
       SectionSample.InsertSections();
+      SectionSample.SetPageOrientations();
 
       //Lists
       ListSample.AddList();
@@ -79,6 +83,7 @@ namespace Xceed.Words.NET.Examples
       ChartSample.LineChart();
       ChartSample.PieChart();
       ChartSample.Chart3D();
+      ChartSample.ModifyChartData();
 
       //Tale of Content
       TableOfContentSample.InsertTableOfContent();
@@ -98,6 +103,7 @@ namespace Xceed.Words.NET.Examples
       MiscellaneousSample.CreateRecipe();
       MiscellaneousSample.CompanyReport();
       MiscellaneousSample.CreateInvoice();
+      MiscellaneousSample.MailMerge();
 
       //PDF  
       PdfSample.ConvertToPDF();

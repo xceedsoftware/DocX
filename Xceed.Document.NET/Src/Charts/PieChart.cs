@@ -14,6 +14,7 @@
 
 
 using System;
+using System.IO.Packaging;
 using System.Xml.Linq;
 
 namespace Xceed.Document.NET
@@ -42,6 +43,15 @@ namespace Xceed.Document.NET
     }
 
     #endregion
+
+    #region Constructors
+
+    public PieChart()
+    {
+    }
+
+
+#endregion
 
     #region Overrides
 
