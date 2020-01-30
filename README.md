@@ -200,8 +200,6 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 * Find, remove or replace text. Supports case sensitivity and regular expressions.
 * Insert/Modify core or custom properties, such as author, address, subject, title, etc.
 * Insert a Table Of Contents. Set title, change formatting.
-* Insert/Modify shapes (rectangles for now)
-* Update document fields
 
 ## Why would I use DocX?
 
@@ -234,6 +232,7 @@ A commercial license can be purchased at [Xceed](https://xceed.com).
 
 ## Release history
 
+* **January 30, 2020, released DocX v1.6.0 with [24 bug fixes and improvements](../../wiki/Release-Notes-v1.6.0).**
 * **November 26, 2019, released DocX v1.5.0 with [19 bug fixes and improvements](../../wiki/Release-Notes-v1.5.0).**
 * **October 4, 2019, released DocX v1.4.1 with [12 bug fixes and improvements](../../wiki/Release-Notes-v1.4.1).**
 * **February 21, 2019, released DocX v1.3.0 with [12 bug fixes and improvements](../../wiki/Release-Notes-v1.3.0).**
