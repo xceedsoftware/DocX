@@ -16,6 +16,8 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * gets Charts from Paragraphs and can modify their categories/values
 * is at least two versions ahead of the DocX version
 * has professional technical support included in the subscription
+* is available on .NET Standard 2.0 for .NET Core 2.0 Applications
+* can automatically update fields from a document
 
 ## What else do I need?
 
