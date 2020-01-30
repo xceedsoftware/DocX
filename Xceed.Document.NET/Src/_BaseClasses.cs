@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -230,6 +230,8 @@ namespace Xceed.Document.NET
 
     public virtual Table InsertTableAfterSelf( Table t )
     {
+      this.AddMissingPicturesInDocument( t );
+
       this.Xml.AddAfterSelf( t.Xml );
       var newlyInserted = this.Xml.ElementsAfterSelf().First();
 
@@ -251,6 +253,8 @@ namespace Xceed.Document.NET
 
     public virtual Table InsertTableBeforeSelf( Table t )
     {
+      this.AddMissingPicturesInDocument( t );
+
       this.Xml.AddBeforeSelf( t.Xml );
       var newlyInserted = this.Xml.ElementsBeforeSelf().Last();
 
@@ -275,6 +279,46 @@ namespace Xceed.Document.NET
         this.Xml.AddBeforeSelf( item.Xml );
       }
       return list;
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private void AddMissingPicturesInDocument( Table t )
+    {
+      if( t == null )
+        return;
+
+      // Make sure the pictures included in the Table are in the Document. If not, add them first.
+      foreach( var p in t.Paragraphs )
+      {
+        if( p.Pictures.Count > 0 )
+        {
+          foreach( var pic in p.Pictures )
+          {
+            // Check if picture exists in Document.
+            bool imageExists = false;
+            foreach( var item in this.Document.PackagePart.GetRelationshipsByType( Document.RelationshipImage ) )
+            {
+              var targetUri = item.TargetUri.ToString();
+              if( targetUri.Contains( pic.FileName ) )
+              {
+                imageExists = true;
+                break;
+              }
+            }
+            // Picture doesn't exists in Document, add it.
+            if( !imageExists )
+            {
+              var newImage = this.Document.AddImage( pic.Stream );
+              var newPicture = newImage.CreatePicture( pic.Height, pic.Width );
+              p.PackagePart = this.Document.PackagePart;
+              p.ReplacePicture( pic, newPicture );
+            }
+          }
+        }
+      }
     }
 
     #endregion
@@ -363,6 +407,8 @@ namespace Xceed.Document.NET
         </w:style>
         ";
 
+    internal const int TableOfContentsElementDefaultIndentation = 220;
+
     public const string TableOfContentsElementStyleBase = @"  
         <w:style w:type='paragraph' w:styleId='{0}' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
             <w:name w:val='{1}' />
@@ -373,7 +419,7 @@ namespace Xceed.Document.NET
             <w:unhideWhenUsed />
             <w:pPr>
             <w:spacing w:after='100' />
-            <w:ind w:left='440' />
+            <w:ind w:left='{2}' />
             </w:pPr>
         </w:style>
         ";

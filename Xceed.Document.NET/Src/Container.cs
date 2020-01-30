@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -144,6 +144,12 @@ namespace Xceed.Document.NET
         return pictures;
       }
     }
+
+
+
+
+
+
 
     public virtual List<List> Lists
     {
@@ -434,6 +440,63 @@ namespace Xceed.Document.NET
       }
     }
 
+    public virtual void ReplaceTextWithObject( string searchValue,
+                                    DocumentElement objectToAdd,
+                                    bool trackChanges = false,
+                                    RegexOptions options = RegexOptions.None,
+                                    Formatting matchFormatting = null,
+                                    MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
+                                    bool escapeRegEx = true,
+                                    bool removeEmptyParagraph = true )
+    {
+      if( string.IsNullOrEmpty( searchValue ) )
+      {
+        throw new ArgumentException( "searchValue cannot be null or empty.", "searchValue" );
+      }
+      if( objectToAdd == null )
+      {
+        throw new ArgumentException( "objectToAdd cannot be null.", "objectToAdd" );
+      }
+
+      // ReplaceText in Headers of the document.
+      foreach( var section in this.Document.Sections )
+      {
+        var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
+        foreach( var h in headerList )
+        {
+          if( h != null )
+          {
+            foreach( var p in h.Paragraphs )
+            {
+              p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
+            }
+          }
+        }
+      }
+
+      // ReplaceText int main body of document.
+      foreach( Paragraph p in this.Paragraphs )
+      {
+        p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
+      }
+
+      // ReplaceText in Footers of the document.
+      foreach( var section in this.Document.Sections )
+      {
+        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
+        foreach( var f in footerList )
+        {
+          if( f != null )
+          {
+            foreach( var p in f.Paragraphs )
+            {
+              p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
+            }
+          }
+        }
+      }
+    }
+
     public virtual void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
     {
       if( string.IsNullOrWhiteSpace( bookmarkName ) )
@@ -705,10 +768,10 @@ namespace Xceed.Document.NET
       return this.RemoveParagraphAt( index );
     }
 
-    public virtual Paragraph InsertEquation( string equation )
+    public virtual Paragraph InsertEquation( string equation, Alignment align = Alignment.center )
     {
       Paragraph p = InsertParagraph();
-      p.AppendEquation( equation );
+      p.AppendEquation( equation, align );
       return p;
     }
 
@@ -906,6 +969,7 @@ namespace Xceed.Document.NET
             continue;
           }
           var paragraph = new Paragraph( this.Document, xElement, index );
+          paragraph.PackagePart = this.PackagePart;
           paragraphs.Add( paragraph );
           index += HelperFunctions.GetText( xElement ).Length;
         }
@@ -976,6 +1040,10 @@ namespace Xceed.Document.NET
       {
         case "body":
           return ContainerType.Body;
+        case "hdr":
+          return ContainerType.Header;
+        case "ftr":
+          return ContainerType.Footer;
         case "p":
           return ContainerType.Paragraph;
         case "tbl":
@@ -984,6 +1052,8 @@ namespace Xceed.Document.NET
           return ContainerType.Section;
         case "tc":
           return ContainerType.Cell;
+        case "txbxContent":
+          return ContainerType.Shape;
         default:
           return ContainerType.None;
       }
@@ -1038,7 +1108,9 @@ namespace Xceed.Document.NET
       foreach( var p in paragraphs )
       {
         var nextElement = p.Xml.ElementsAfterSelf().FirstOrDefault();
-        while( ( nextElement != null ) && ( nextElement.Name.Equals( Document.w + "tbl" ) ) )
+        var containsSectionBreak = p.GetOrCreate_pPr().Element( XName.Get( "sectPr", Document.w.NamespaceName ) );
+        // Add FollowingTable to paragraph....only when paragraph is not the last one from a section.
+        while( ( nextElement != null ) && ( nextElement.Name.Equals( Document.w + "tbl" ) ) && ( containsSectionBreak == null ) )
         {
           if( p.FollowingTables == null )
           {

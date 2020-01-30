@@ -44,7 +44,8 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\Xceed.Document.NET.xml</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
@@ -56,7 +57,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>bin\Release\Xceed.Document.NET.xml</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -115,6 +117,7 @@
     <Compile Include="Src\PageLayout.cs" />
     <Compile Include="Src\Section.cs" />
     <Compile Include="Src\TableOfContents.cs" />
+    <Compile Include="Utils\Exceptions\ThrowException.cs" />
     <Compile Include="Src\_BaseClasses.cs" />
     <Compile Include="Src\Table.cs" />
     <Compile Include="Src\_Enumerations.cs" />

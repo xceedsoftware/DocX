@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{F3022BB7-0E40-4C80-A495-37FEAF3671AB}</ProjectGuid>
@@ -15,8 +15,8 @@
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -25,8 +25,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -64,6 +64,7 @@
     <Compile Include="Samples\Pdf\PdfSample.cs" />
     <Compile Include="Samples\Protection\ProtectionSample.cs" />
     <Compile Include="Samples\Section\SectionSample.cs" />
+    <Compile Include="Samples\Shape\ShapeSample.cs" />
     <Compile Include="Samples\TableOfContent\TableOfContentSample.cs" />
     <Compile Include="Samples\Table\TableSample.cs" />
   </ItemGroup>
@@ -73,18 +74,22 @@
     <None Include="Samples\Chart\Resources\Report.docx" />
     <None Include="Samples\Document\Resources\First.docx" />
     <None Include="Samples\Document\Resources\ReplaceText.docx" />
+    <None Include="Samples\Document\Resources\ReplaceTextWithObjects.docx" />
     <None Include="Samples\Document\Resources\Second.docx" />
     <None Include="Samples\Document\Resources\Template.docx" />
     <None Include="Samples\Image\Resources\Input.docx" />
     <None Include="Samples\Miscellaneous\Resources\TemplateInvoice.docx" />
     <None Include="Samples\Miscellaneous\Resources\TemplateMailMerge.docx" />
+    <None Include="Samples\Paragraph\Resources\Template.docx" />
     <None Include="Samples\Parallel\Resources\Doc1.docx" />
     <None Include="Samples\Parallel\Resources\Doc2.docx" />
     <None Include="Samples\Parallel\Resources\Doc3.docx" />
     <None Include="Samples\Pdf\Resources\DocumentToConvert.docx" />
+    <None Include="Samples\TableOfContent\Resources\TOCDocument.docx" />
     <None Include="Samples\Table\Resources\DocumentWithTemplateTable.docx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Samples\Document\Resources\2018.jpg" />
     <Content Include="Samples\Image\Resources\balloon.jpg" />
     <Content Include="Samples\Image\Resources\W.png" />
     <Content Include="Samples\Image\Resources\WordsIcon.png" />

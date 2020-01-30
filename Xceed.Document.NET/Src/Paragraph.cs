@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -66,6 +66,7 @@ namespace Xceed.Document.NET
     private float indentationAfter = 0.0f;
     private List<Table> followingTables;
     private List<FormattedText> _magicText;
+    private static int bookmarkIdCounter = 0;
 
     #endregion
 
@@ -92,6 +93,10 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Public Properties
+
+
+
+
 
 
 
@@ -251,7 +256,7 @@ namespace Xceed.Document.NET
         var element = this.GetOrCreate_pPr();
         var styleElement = element.Element( XName.Get( "pStyle", Document.w.NamespaceName ) );
         var attr = styleElement?.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
-        if ( !string.IsNullOrEmpty( attr?.Value ) )
+        if( !string.IsNullOrEmpty( attr?.Value ) )
         {
           return attr.Value;
         }
@@ -272,6 +277,8 @@ namespace Xceed.Document.NET
           styleElement = element.Element( XName.Get( "pStyle", Document.w.NamespaceName ) );
         }
         styleElement.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), value );
+
+        this.AddParagraphStyleIfNotPresent( this.StyleName );
       }
     }
 
@@ -348,7 +355,7 @@ namespace Xceed.Document.NET
     ///     Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
     /// 
     ///     // Indent only the first line of the Paragraph.
-    ///     p.IndentationFirstLine = 2.0f;
+    ///     p.IndentationFirstLine = 36f;
     ///     
     ///     // Save all changes made to this document.
     ///     document.Save();
@@ -364,7 +371,7 @@ namespace Xceed.Document.NET
         XAttribute firstLine = ind.Attribute( XName.Get( "firstLine", Document.w.NamespaceName ) );
 
         if( firstLine != null )
-          return float.Parse( firstLine.Value ) / 570f;        
+          return float.Parse( firstLine.Value ) / 20f;
 
         return Paragraph.DefaultIndentationFirstLine;
       }
@@ -382,7 +389,7 @@ namespace Xceed.Document.NET
           XAttribute hanging = ind.Attribute( XName.Get( "hanging", Document.w.NamespaceName ) );
           hanging?.Remove();
 
-          string indentation = ( ( indentationFirstLine / 0.1 ) * 57 ).ToString( CultureInfo.InvariantCulture );
+          string indentation = ( indentationFirstLine * 20f ).ToString( CultureInfo.InvariantCulture );
           XAttribute firstLine = ind.Attribute( XName.Get( "firstLine", Document.w.NamespaceName ) );
           if( firstLine != null )
             firstLine.Value = indentation;
@@ -405,7 +412,7 @@ namespace Xceed.Document.NET
     ///     Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
     /// 
     ///     // Indent all but the first line of the Paragraph.
-    ///     p.IndentationHanging = 1.0f;
+    ///     p.IndentationHanging = 36f;
     ///     
     ///     // Save all changes made to this document.
     ///     document.Save();
@@ -421,7 +428,7 @@ namespace Xceed.Document.NET
         var hanging = ind.Attribute( XName.Get( "hanging", Document.w.NamespaceName ) );
 
         if( hanging != null )
-          return float.Parse( hanging.Value ) / 570f;
+          return float.Parse( hanging.Value ) / 20f;
 
         return Paragraph.DefaultIndentationHanging;
       }
@@ -442,7 +449,7 @@ namespace Xceed.Document.NET
             firstLine.Remove();
           }
 
-          var indentationValue = ( ( indentationHanging / 0.1 ) * 57 );
+          var indentationValue = ( indentationHanging * 20 );
           var indentation = indentationValue.ToString( CultureInfo.InvariantCulture );
           var hanging = ind.Attribute( XName.Get( "hanging", Document.w.NamespaceName ) );
           if( hanging != null )
@@ -471,7 +478,7 @@ namespace Xceed.Document.NET
     ///    Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
     ///
     ///    // Indent this entire Paragraph from the left.
-    ///    p.IndentationBefore = 2.0f;
+    ///    p.IndentationBefore = 36f;
     ///    
     ///    // Save all changes made to this document.
     ///    document.Save();
@@ -487,7 +494,7 @@ namespace Xceed.Document.NET
 
         var left = ind.Attribute( XName.Get( "left", Document.w.NamespaceName ) );
         if( left != null )
-          return float.Parse( left.Value ) / 570f;
+          return float.Parse( left.Value ) / 20f;
 
         return Paragraph.DefaultIndentationBefore;
       }
@@ -501,7 +508,7 @@ namespace Xceed.Document.NET
           GetOrCreate_pPr();
           var ind = GetOrCreate_pPr_ind();
 
-          var indentation = ( ( indentationBefore / 0.1 ) * 57 ).ToString( CultureInfo.InvariantCulture );
+          var indentation = ( indentationBefore * 20f ).ToString( CultureInfo.InvariantCulture );
 
           var left = ind.Attribute( XName.Get( "left", Document.w.NamespaceName ) );
           if( left != null )
@@ -533,7 +540,7 @@ namespace Xceed.Document.NET
     ///     p.Direction = Direction.RightToLeft;
     /// 
     ///     // Indent this entire Paragraph from the right.
-    ///     p.IndentationAfter = 2.0f;
+    ///     p.IndentationAfter = 36f;
     ///     
     ///     // Save all changes made to this document.
     ///     document.Save();
@@ -549,7 +556,7 @@ namespace Xceed.Document.NET
 
         var right = ind.Attribute( XName.Get( "right", Document.w.NamespaceName ) );
         if( right != null )
-          return float.Parse( right.Value ) / 570f;
+          return float.Parse( right.Value ) / 20f;
 
         return Paragraph.DefaultIndentationAfter;
       }
@@ -563,7 +570,7 @@ namespace Xceed.Document.NET
           GetOrCreate_pPr();
           var ind = GetOrCreate_pPr_ind();
 
-          var indentation = ( ( indentationAfter / 0.1 ) * 57 ).ToString( CultureInfo.InvariantCulture );
+          var indentation = ( indentationAfter * 20f ).ToString( CultureInfo.InvariantCulture );
 
           var right = ind.Attribute( XName.Get( "right", Document.w.NamespaceName ) );
           if( right != null )
@@ -715,7 +722,7 @@ namespace Xceed.Document.NET
         XElement spacing = pPr.Element( XName.Get( "spacing", Document.w.NamespaceName ) );
 
         if( spacing != null )
-        { 
+        {
           XAttribute line = spacing.Attribute( XName.Get( "line", Document.w.NamespaceName ) );
           if( line != null )
           {
@@ -842,7 +849,7 @@ namespace Xceed.Document.NET
       get
       {
         IsListItemBacker = IsListItemBacker ?? ( ParagraphNumberProperties != null );
-        return ( bool )IsListItemBacker;
+        return (bool)IsListItemBacker;
       }
     }
 
@@ -1308,7 +1315,7 @@ namespace Xceed.Document.NET
         Xml.AddFirst( h.Xml );
 
         // Extract the picture back out of the DOM.
-        h_xml = ( XElement )Xml.FirstNode;
+        h_xml = (XElement)Xml.FirstNode;
       }
       else
       {
@@ -1321,7 +1328,7 @@ namespace Xceed.Document.NET
           Xml.Add( h.Xml );
 
           // Extract the picture back out of the DOM.
-          h_xml = ( XElement )Xml.LastNode;
+          h_xml = (XElement)Xml.LastNode;
         }
         else
         {
@@ -1340,11 +1347,11 @@ namespace Xceed.Document.NET
           run = GetFirstRunEffectedByEdit( index );
 
           // The picture has to be the next element, extract it back out of the DOM.
-          h_xml = ( XElement )run.Xml.NextNode;
+          h_xml = (XElement)run.Xml.NextNode;
         }
-
-        h_xml.SetAttributeValue( Document.r + "id", Id );
       }
+
+      h_xml.SetAttributeValue( Document.r + "id", Id );
 
       this._runs = Xml.Elements().Last().Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
       return this;
@@ -2286,10 +2293,19 @@ namespace Xceed.Document.NET
       return this;
     }
 
+
+
+
+
+
+
+
+
     /// <summary>
     /// Add an equation to a document.
     /// </summary>
     /// <param name="equation">The Equation to append.</param>
+    /// <param name="align">The alignment of the equation.</param>
     /// <returns>The Paragraph with the Equation now appended.</returns>
     /// <example>
     /// Add an equation to a document.
@@ -2304,15 +2320,40 @@ namespace Xceed.Document.NET
     /// }
     /// </code>
     /// </example>
-    public Paragraph AppendEquation( String equation )
+    public Paragraph AppendEquation( String equation, Alignment align = Alignment.center )
     {
+      var alignString = string.Empty;
+      switch( align )
+      {
+        case Alignment.left:
+          alignString = "left";
+          break;
+        case Alignment.right:
+          alignString = "right";
+          break;
+        default: alignString = "center";
+          break;
+      }
+
       // Create equation element
       XElement oMathPara =
           new XElement
           (
               XName.Get( "oMathPara", Document.m.NamespaceName ),
-              new XElement
-              (
+              new XElement[]
+              {
+                new XElement
+                (
+                  XName.Get( "oMathParaPr", Document.m.NamespaceName ),
+                  new XElement
+                  (
+                    XName.Get( "jc", Document.m.NamespaceName ),
+                    new XAttribute( XName.Get( "val", Document.m.NamespaceName ), alignString )
+                  )
+                ),
+
+                new XElement
+                (
                   XName.Get( "oMath", Document.m.NamespaceName ),
                   new XElement
                   (
@@ -2320,7 +2361,8 @@ namespace Xceed.Document.NET
                       new Formatting() { FontFamily = new Font( "Cambria Math" ) }.Xml,                           // create formatting
                       new XElement( XName.Get( "t", Document.m.NamespaceName ), equation )                            // create equation string
                   )
-              )
+                )
+              }
           );
 
       // Add equation element into paragraph xml and update runs collection
@@ -2433,7 +2475,7 @@ namespace Xceed.Document.NET
           Xml.Add( p.Xml );
 
           // Extract the picture back out of the DOM.
-          p_xml = ( XElement )Xml.LastNode;
+          p_xml = (XElement)Xml.LastNode;
         }
         else
         {
@@ -2447,7 +2489,7 @@ namespace Xceed.Document.NET
           run = GetFirstRunEffectedByEdit( index );
 
           // The picture has to be the next element, extract it back out of the DOM.
-          p_xml = ( XElement )run.Xml.NextNode;
+          p_xml = (XElement)run.Xml.NextNode;
         }
       }
 
@@ -2523,7 +2565,7 @@ namespace Xceed.Document.NET
           leaderString = "hyphen";
           break;
         default:
-          throw new ArgumentException( "leader", "Unknown leader character." );          
+          throw new ArgumentException( "leader", "Unknown leader character." );
       }
       newTab.SetAttributeValue( XName.Get( "leader", Document.w.NamespaceName ), leaderString );
 
@@ -2600,9 +2642,9 @@ namespace Xceed.Document.NET
     /// }// Release this document from memory.
     /// </code>
     /// </example>
-    public Paragraph Bold()
+    public Paragraph Bold( bool isBold = true )
     {
-      ApplyTextFormattingProperty( XName.Get( "b", Document.w.NamespaceName ), string.Empty, null );
+      ApplyTextFormattingProperty( XName.Get( "b", Document.w.NamespaceName ), string.Empty, isBold ? null : new XAttribute( XName.Get( "val", Document.w.NamespaceName ), "0" ) );
       return this;
     }
 
@@ -2628,9 +2670,9 @@ namespace Xceed.Document.NET
     /// }// Release this document from memory.
     /// </code>
     /// </example>
-    public Paragraph Italic()
+    public Paragraph Italic( bool isItalic = true )
     {
-      ApplyTextFormattingProperty( XName.Get( "i", Document.w.NamespaceName ), string.Empty, null );
+      ApplyTextFormattingProperty( XName.Get( "i", Document.w.NamespaceName ), string.Empty, isItalic ? null : new XAttribute( XName.Get( "val", Document.w.NamespaceName ), "0" ) );
       return this;
     }
 
@@ -2734,8 +2776,8 @@ namespace Xceed.Document.NET
     /// </example>
     public Paragraph FontSize( double fontSize )
     {
-      double tempSize = (int)fontSize*2;
-      if( tempSize - ( int )tempSize == 0 )
+      double tempSize = (int)fontSize * 2;
+      if( tempSize - (int)tempSize == 0 )
       {
         if( !( fontSize > 0 && fontSize < 1639 ) )
           throw new ArgumentException( "Size", "Value must be in the range 0 - 1638" );
@@ -2755,9 +2797,9 @@ namespace Xceed.Document.NET
     /// </summary>
     /// <param name="fontName">The font to use for the appended text.</param>
     /// <returns>This Paragraph with the last appended text's font changed.</returns>
-    public Paragraph Font (string fontName)
+    public Paragraph Font( string fontName )
     {
-      return Font(new Font(fontName));
+      return Font( new Font( fontName ) );
     }
 
     /// <summary>
@@ -2955,12 +2997,12 @@ namespace Xceed.Document.NET
 
     public Paragraph Border( Border border )
     {
-      var size = Xceed.Document.NET.Border.GetNumericSize( border.Size );      
+      var size = Xceed.Document.NET.Border.GetNumericSize( border.Size );
 
-      var style = border.Tcbs.ToString().Remove(0, 5);
+      var style = border.Tcbs.ToString().Remove( 0, 5 );
 
-      this.ApplyTextFormattingProperty( XName.Get( "bdr", Document.w.NamespaceName ), 
-                                        string.Empty, 
+      this.ApplyTextFormattingProperty( XName.Get( "bdr", Document.w.NamespaceName ),
+                                        string.Empty,
                                         new List<XAttribute>() { new XAttribute( XName.Get( "color", Document.w.NamespaceName ), border.Color.ToHex() ),
                                                                  new XAttribute( XName.Get( "space", Document.w.NamespaceName ), border.Space ),
                                                                  new XAttribute( XName.Get( "sz", Document.w.NamespaceName ), size ),
@@ -3149,7 +3191,7 @@ namespace Xceed.Document.NET
     {
       spacing *= 20;
 
-      if( spacing - ( int )spacing == 0 )
+      if( spacing - (int)spacing == 0 )
       {
         if( !( spacing > -1585 && spacing < 1585 ) )
           throw new ArgumentException( "Spacing", "Value must be in the range: -1584 - 1584" );
@@ -3605,7 +3647,7 @@ namespace Xceed.Document.NET
                              Formatting matchFormatting = null,
                              MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
                              bool escapeRegEx = true,
-                             bool useRegExSubstitutions = false, 
+                             bool useRegExSubstitutions = false,
                              bool removeEmptyParagraph = true )
     {
       var mc = Regex.Matches( this.Text, escapeRegEx ? Regex.Escape( searchValue ) : searchValue, options );
@@ -3735,6 +3777,88 @@ namespace Xceed.Document.NET
           var newValue = regexMatchHandler.Invoke( match.Groups[ 1 ].Value );
           this.InsertText( match.Index + match.Value.Length, newValue, trackChanges, newFormatting );
           this.RemoveText( match.Index, match.Value.Length, trackChanges, removeEmptyParagraph );
+        }
+      }
+    }
+
+    public void ReplaceTextWithObject( string searchValue,
+                            DocumentElement objectToAdd,
+                            bool trackChanges = false,
+                            RegexOptions options = RegexOptions.None,
+                            Formatting matchFormatting = null,
+                            MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
+                            bool escapeRegEx = true,
+                            bool removeEmptyParagraph = true )
+    {
+      var mc = Regex.Matches( this.Text, escapeRegEx ? Regex.Escape( searchValue ) : searchValue, options );
+
+      // Loop through the matches in reverse order
+      foreach( Match m in mc.Cast<Match>().Reverse() )
+      {
+        // Assume the formatting matches until proven otherwise.
+        bool formattingMatch = true;
+
+        // Does the user want to match formatting?
+        if( matchFormatting != null )
+        {
+          // The number of characters processed so far
+          int processed = 0;
+
+          do
+          {
+            // Get the next run effected
+            var run = GetFirstRunEffectedByEdit( m.Index + processed );
+
+            // Get this runs properties
+            var rPr = run.Xml.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+
+            if( rPr == null )
+            {
+              rPr = new Formatting().Xml;
+            }
+
+            /* 
+             * Make sure that every formatting element in f.xml is also in this run,
+             * if this is not true, then their formatting does not match.
+             */
+            if( !HelperFunctions.ContainsEveryChildOf( matchFormatting.Xml, rPr, fo ) )
+            {
+              formattingMatch = false;
+              break;
+            }
+
+            // We have processed some characters, so update the counter.
+            processed += run.Value.Length;
+
+          } while( processed < m.Length );
+        }
+
+        // If the formatting matches, do the replace.
+        if( formattingMatch )
+        {
+          if( objectToAdd != null )
+          {
+            if( objectToAdd is Picture )
+            {
+              this.InsertPicture( (Picture)objectToAdd, m.Index + m.Length );
+            }
+            else if( objectToAdd is Hyperlink )
+            {
+              this.InsertHyperlink( (Hyperlink)objectToAdd, m.Index + m.Length );
+            }
+            else if( objectToAdd is Table )
+            {
+              this.InsertTableAfterSelf( (Table)objectToAdd );
+            }
+            else
+            {
+              throw new ArgumentException( "Unknown object received. Valid objects are Picture, Hyperlink or Table." );
+            }
+          }
+          if( m.Length > 0 )
+          {
+            this.RemoveText( m.Index, m.Length, trackChanges, removeEmptyParagraph );
+          }
         }
       }
     }
@@ -4128,7 +4252,7 @@ namespace Xceed.Document.NET
       var spacingTypeAttribute = ( spacingType == LineSpacingType.Before )
                                  ? "before"
                                  : ( spacingType == LineSpacingType.After ) ? "after" : "line";
-      spacing.SetAttributeValue( XName.Get( spacingTypeAttribute, Document.w.NamespaceName ), ( int )( spacingFloat * 240f ) );
+      spacing.SetAttributeValue( XName.Get( spacingTypeAttribute, Document.w.NamespaceName ), (int)( spacingFloat * 20f ) );
     }
 
     /// <summary>
@@ -4175,17 +4299,33 @@ namespace Xceed.Document.NET
     {
       XElement wBookmarkStart = new XElement(
           XName.Get( "bookmarkStart", Document.w.NamespaceName ),
-          new XAttribute( XName.Get( "id", Document.w.NamespaceName ), 0 ),
+          new XAttribute( XName.Get( "id", Document.w.NamespaceName ), bookmarkIdCounter ),
           new XAttribute( XName.Get( "name", Document.w.NamespaceName ), bookmarkName ) );
       Xml.Add( wBookmarkStart );
 
       XElement wBookmarkEnd = new XElement(
           XName.Get( "bookmarkEnd", Document.w.NamespaceName ),
-          new XAttribute( XName.Get( "id", Document.w.NamespaceName ), 0 ),
+          new XAttribute( XName.Get( "id", Document.w.NamespaceName ), bookmarkIdCounter ),
           new XAttribute( XName.Get( "name", Document.w.NamespaceName ), bookmarkName ) );
       Xml.Add( wBookmarkEnd );
 
+      ++bookmarkIdCounter;
+
       return this;
+    }
+
+    public void ClearBookmarks()
+    {
+      var bookmarkStarts = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) );
+      if( bookmarkStarts.Count() > 0 )
+      {
+        bookmarkStarts.Remove();
+      }
+      var bookmarkEnds = this.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) );
+      if( bookmarkEnds.Count() > 0 )
+      {
+        bookmarkEnds.Remove();
+      }
     }
 
     public bool ValidateBookmark( string bookmarkName )
@@ -4210,7 +4350,7 @@ namespace Xceed.Document.NET
                           .Where( x => x.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value == bookmarkName ).SingleOrDefault();
       if( bookmark != null )
       {
-        var run = HelperFunctions.FormatInput( toInsert, (formatting != null) ? formatting.Xml : null );
+        var run = HelperFunctions.FormatInput( toInsert, ( formatting != null ) ? formatting.Xml : null );
         bookmark.AddBeforeSelf( run );
         _runs = Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
         HelperFunctions.RenumberIDs( Document );
@@ -4285,7 +4425,7 @@ namespace Xceed.Document.NET
           {
             rList.Add( nextXElement );
           }
-          else if( ( nextXElement.Name.LocalName == "bookmarkEnd" ) 
+          else if( ( nextXElement.Name.LocalName == "bookmarkEnd" )
                   && ( nextXElement.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == bookmarkStartId ) )
             break;
         }
@@ -4318,10 +4458,30 @@ namespace Xceed.Document.NET
       }
     }
 
+    public void RemoveBookmark( string bookmarkName )
+    {
+      var bookmarkStart = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
+                                  .Where( x => x.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value == bookmarkName )
+                                  .FirstOrDefault();
+      if( bookmarkStart == null )
+        return;
+
+      var bookmarkStartId = bookmarkStart.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value;
+
+      var bookmarkEnd = this.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) )
+                                  .Where( x => x.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == bookmarkStartId )
+                                  .FirstOrDefault();
+      Debug.Assert( bookmarkEnd != null, "Can't find bookmark end.");
+
+      bookmarkStart.Remove();
+      bookmarkEnd.Remove();
+    }
+
+    [Obsolete( "Instead use : InsertHorizontalLine( HorizontalBorderPosition position, BorderStyle borderStyle, int size, int space, Color? color )" )]
     public void InsertHorizontalLine( HorizontalBorderPosition position = HorizontalBorderPosition.bottom, string lineType = "single", int size = 6, int space = 1, string color = "auto" )
     {
       var pBrXName = XName.Get( "pBdr", Document.w.NamespaceName );
-      var borderPositionXName = ( position == HorizontalBorderPosition.bottom) ? XName.Get( "bottom", Document.w.NamespaceName ) : XName.Get( "top", Document.w.NamespaceName );
+      var borderPositionXName = ( position == HorizontalBorderPosition.bottom ) ? XName.Get( "bottom", Document.w.NamespaceName ) : XName.Get( "top", Document.w.NamespaceName );
 
       var pPr = this.GetOrCreate_pPr();
       var pBdr = pPr.Element( pBrXName );
@@ -4339,7 +4499,32 @@ namespace Xceed.Document.NET
         border.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), lineType );
         border.SetAttributeValue( XName.Get( "sz", Document.w.NamespaceName ), size.ToString() );
         border.SetAttributeValue( XName.Get( "space", Document.w.NamespaceName ), space.ToString() );
-        border.SetAttributeValue( XName.Get( "color", Document.w.NamespaceName ), color );
+        border.SetAttributeValue( XName.Get( "color", Document.w.NamespaceName ), color.Replace( "#", "" ) );
+      }
+    }
+
+    public void InsertHorizontalLine( HorizontalBorderPosition position = HorizontalBorderPosition.bottom, BorderStyle lineType = BorderStyle.Tcbs_single, int size = 6, int space = 1, Color? color = null )
+    {
+      var pBrXName = XName.Get( "pBdr", Document.w.NamespaceName );
+      var borderPositionXName = ( position == HorizontalBorderPosition.bottom ) ? XName.Get( "bottom", Document.w.NamespaceName ) : XName.Get( "top", Document.w.NamespaceName );
+
+      var pPr = this.GetOrCreate_pPr();
+      var pBdr = pPr.Element( pBrXName );
+      if( pBdr == null )
+      {
+        //Add border
+        pPr.Add( new XElement( pBrXName ) );
+        pBdr = pPr.Element( pBrXName );
+
+        //Add bottom
+        pBdr.Add( new XElement( borderPositionXName ) );
+        var border = pBdr.Element( borderPositionXName );
+
+        //Set border's attribute
+        border.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), lineType.ToString().Substring( 5 ) );
+        border.SetAttributeValue( XName.Get( "sz", Document.w.NamespaceName ), size );
+        border.SetAttributeValue( XName.Get( "space", Document.w.NamespaceName ), space );
+        border.SetAttributeValue( XName.Get( "color", Document.w.NamespaceName ), color.HasValue ? color.Value.ToHex() : "auto" );
       }
     }
 
@@ -4357,7 +4542,7 @@ namespace Xceed.Document.NET
       Paragraph.DefaultIndentationHanging = 0f;
       Paragraph.DefaultIndentationBefore = 0f;
       Paragraph.DefaultIndentationAfter = 0f;
-  }
+    }
 
     internal static void SetDefaultValues( XElement pPr )
     {
@@ -4399,7 +4584,7 @@ namespace Xceed.Document.NET
         var lineRule = spacing.Attribute( XName.Get( "lineRule", Document.w.NamespaceName ) );
         if( lineRule != null )
         {
-          Paragraph.DefaultLineRuleAuto = (lineRule.Value == "auto");
+          Paragraph.DefaultLineRuleAuto = ( lineRule.Value == "auto" );
         }
       }
 
@@ -4535,8 +4720,11 @@ namespace Xceed.Document.NET
       {
         using( System.Drawing.Image img = System.Drawing.Image.FromStream( packagePartStream, useEmbeddedColorManagement: false, validateImageData: false ) )
         {
-          cx = (long)img.Width * 914400 / Convert.ToInt64( img.HorizontalResolution );
-          cy = (long)img.Height * 914400 / Convert.ToInt64( img.VerticalResolution );
+          // ooxml uses image size in EMU : 
+          // image in inches(in) is : pt / 72
+          // image in EMU is : in * 914400
+          cx = (long)img.Width * 914400 / 72;
+          cy = (long)img.Height * 914400 / 72;
         }
       }
 
@@ -4612,7 +4800,7 @@ namespace Xceed.Document.NET
     {
       if( t == EditType.del )
       {
-        foreach( object o in ( IEnumerable<XElement> )content )
+        foreach( object o in (IEnumerable<XElement>)content )
         {
           if( o is XElement )
           {
@@ -4803,7 +4991,7 @@ namespace Xceed.Document.NET
 
     internal string GetOrGenerateRel( Hyperlink h )
     {
-      string image_uri_string = (h.Uri != null) ?  h.Uri.OriginalString : null;
+      string image_uri_string = ( h.Uri != null ) ? h.Uri.OriginalString : null;
 
       // Search for a relationship with a TargetUri that points at this Image.
       var Id =
@@ -4814,7 +5002,7 @@ namespace Xceed.Document.NET
       ).SingleOrDefault();
 
       // If such a relation dosen't exist, create one.
-      if( (Id == null) && ( h.Uri != null) )
+      if( ( Id == null ) && ( h.Uri != null ) )
       {
         // Check to see if a relationship for this Picture exists and create it if not.
         var pr = this.PackagePart.CreateRelationship( h.Uri, TargetMode.External, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" );
@@ -4850,13 +5038,13 @@ namespace Xceed.Document.NET
         if( content as XAttribute != null )
         {
           // Add or Update the attribute to the last element
-          if( lastElement.Attribute( ( ( XAttribute )( content ) ).Name ) == null )
+          if( lastElement.Attribute( ( (XAttribute)( content ) ).Name ) == null )
           {
             lastElement.Add( content );
           }
           else
           {
-            lastElement.Attribute( ( ( XAttribute )( content ) ).Name ).Value = ( ( XAttribute )( content ) ).Value;
+            lastElement.Attribute( ( (XAttribute)( content ) ).Name ).Value = ( (XAttribute)( content ) ).Value;
           }
         }
         return;
@@ -4888,13 +5076,13 @@ namespace Xceed.Document.NET
         {
           foreach( object property in fontProperties )
           {
-            if( last.Attribute( ( ( XAttribute )( property ) ).Name ) == null )
+            if( last.Attribute( ( (XAttribute)( property ) ).Name ) == null )
             {
               last.Add( property );
             }
             else
             {
-              last.Attribute( ( ( XAttribute )( property ) ).Name ).Value = ( ( XAttribute )( property ) ).Value;
+              last.Attribute( ( (XAttribute)( property ) ).Name ).Value = ( (XAttribute)( property ) ).Value;
             }
           }
         }
@@ -4902,13 +5090,13 @@ namespace Xceed.Document.NET
 
         if( content as XAttribute != null )//If content is an attribute
         {
-          if( last.Attribute( ( ( XAttribute )( content ) ).Name ) == null )
+          if( last.Attribute( ( (XAttribute)( content ) ).Name ) == null )
           {
             last.Add( content ); //Add this attribute if element doesn't have it
           }
           else
           {
-            last.Attribute( ( ( XAttribute )( content ) ).Name ).Value = ( ( XAttribute )( content ) ).Value; //Apply value only if element already has it
+            last.Attribute( ( (XAttribute)( content ) ).Name ).Value = ( (XAttribute)( content ) ).Value; //Apply value only if element already has it
           }
         }
         else
@@ -4955,6 +5143,51 @@ namespace Xceed.Document.NET
       if( numIdNode == null )
         return -1;
       return Int32.Parse( numIdNode.Attribute( Document.w + "val" ).Value );
+    }
+
+    internal int GetListItemLevel()
+    {
+      if( this.ParagraphNumberProperties != null )
+      {
+        var ilvl = this.ParagraphNumberProperties.Descendants().FirstOrDefault( el => el.Name.LocalName == "ilvl" );
+        if( ilvl != null )
+        {
+          return Int32.Parse( ilvl.Attribute( Document.w + "val" ).Value );
+        }
+      }
+      return -1;
+    }
+
+    internal void SetAsBookmark( string bookmarkName )
+    {
+      XElement wBookmarkStart = new XElement(
+          XName.Get( "bookmarkStart", Document.w.NamespaceName ),
+          new XAttribute( XName.Get( "id", Document.w.NamespaceName ), bookmarkIdCounter ),
+          new XAttribute( XName.Get( "name", Document.w.NamespaceName ), bookmarkName ) );
+      Xml.AddFirst( wBookmarkStart );  //Add as First Element
+
+      XElement wBookmarkEnd = new XElement(
+          XName.Get( "bookmarkEnd", Document.w.NamespaceName ),
+          new XAttribute( XName.Get( "id", Document.w.NamespaceName ), bookmarkIdCounter ),
+          new XAttribute( XName.Get( "name", Document.w.NamespaceName ), bookmarkName ) );
+      Xml.Add( wBookmarkEnd );  //Add as last element
+
+      ++bookmarkIdCounter;
+    }
+
+    internal bool IsInTOC()
+    {
+      var sdtContent = this.Xml.Parent;
+      if( ( sdtContent != null ) && ( sdtContent.Name == XName.Get( "sdtContent", Document.w.NamespaceName ) ) )
+      {
+        var sdt = sdtContent.Parent;
+        if( ( sdt != null ) && ( sdt.Name == XName.Get( "sdt", Document.w.NamespaceName ) ) )
+        {
+          return ( sdt.Descendants( XName.Get( "docPartGallery", Document.w.NamespaceName ) )
+                     .FirstOrDefault( x => x.Attribute( XName.Get( "val", Document.w.NamespaceName ) ).Value == "Table of Contents" ) != null );
+        }
+      }
+      return false;
     }
 
     #endregion
@@ -5043,8 +5276,44 @@ namespace Xceed.Document.NET
 
     private XElement GetParagraphNumberProperties()
     {
-      var numPrNode = Xml.Descendants().FirstOrDefault( el => el.Name.LocalName == "numPr" );
+      var numPrNode = this.Xml.Descendants().FirstOrDefault( el => el.Name.LocalName == "numPr" );
+      if( numPrNode != null )
+      {
+        // numId of 0 is not a ListItem.
+        if( this.GetNumId() == 0 )
+          return null;
+      }
+      else
+      {
+        // Look in style and basedOn styles of this paragraph.
+        var paragraphStyle = HelperFunctions.GetParagraphStyleFromStyleId( this.Document, this.StyleName );
+        numPrNode = this.GetParagraphNumberPropertiesFromStyle( paragraphStyle );
+      }
+
       return numPrNode;
+    }
+
+    private XElement GetParagraphNumberPropertiesFromStyle( XElement style )
+    {
+      if( style == null )
+        return null;
+
+      var numPrNode = style.Descendants().FirstOrDefault( el => el.Name.LocalName == "numPr" );
+      if( numPrNode != null )
+        return numPrNode;
+
+      var basedOn = style.Element( XName.Get( "basedOn", Document.w.NamespaceName ) );
+      if( basedOn != null )
+      {
+        var val = basedOn.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
+        if( val != null )
+        {
+          var basedOnParagraphStyle = HelperFunctions.GetParagraphStyleFromStyleId( this.Document, val.Value );
+          return this.GetParagraphNumberPropertiesFromStyle( basedOnParagraphStyle );
+        }
+      }
+
+      return null;
     }
 
     private List<Picture> GetPictures( string localName, string localNameEquals, string attributeName )
@@ -5061,11 +5330,20 @@ namespace Xceed.Document.NET
            ).SingleOrDefault()
            where id != null
            let img = new Image( this.Document, this.PackagePart.GetRelationship( id ) )
-           select new Picture( this.Document, p, img )
+           select new Picture( this.Document, p, img ) { PackagePart = this.PackagePart }
        ).ToList();
 
       return pictures;
     }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5081,6 +5359,56 @@ namespace Xceed.Document.NET
       _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
       HelperFunctions.RenumberIDs( this.Document );
+    }
+
+    private void AddParagraphStyleIfNotPresent( string wantedParagraphName )
+    {
+      if( string.IsNullOrEmpty( wantedParagraphName ) )
+        return;
+
+      // Load _styles if not loaded.
+      if( this.Document._styles == null )
+      {
+        PackagePart word_styles = this.Document._package.GetPart( new Uri( "/word/styles.xml", UriKind.Relative ) );
+        using( TextReader tr = new StreamReader( word_styles.GetStream() ) )
+        {
+          this.Document._styles = XDocument.Load( tr );
+        }
+      }
+
+      // Check if this Paragraph StyleName exists in _styles.
+      var paragraphStyleExist = HelperFunctions.GetParagraphStyleFromStyleId( this.Document, wantedParagraphName ) != null;     
+
+      // This Paragraph StyleName doesn't exists in _styles, add it.
+      if( !paragraphStyleExist )
+      {
+        // Load the default_styles.
+        var stylesDoc = HelperFunctions.DecompressXMLResource( HelperFunctions.GetResources( ResourceType.DefaultStyle ) );
+
+        // get the paragraph styles.
+        var availableParagraphStyles =
+         (
+             from s in stylesDoc.Element( Document.w + "styles" ).Elements( Document.w + "style" )
+             let type = s.Attribute( XName.Get( "type", Document.w.NamespaceName ) )
+             where ( type != null && type.Value == "paragraph" )
+             select s
+         );
+
+        // Get the wanted Paragraph style.
+        var wantedParagraphStyle =
+         (
+             from s in availableParagraphStyles
+             let styleId = s.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) )
+             where ( styleId != null && styleId.Value == wantedParagraphName )
+             select s
+         );
+
+        // Add the wanted paragraph style to _styles.
+        if( ( wantedParagraphStyle != null ) && ( wantedParagraphStyle.Count() > 0 ) )
+        {
+          this.Document._styles.Element( Document.w + "styles" ).Add( wantedParagraphStyle );
+        }
+      }
     }
 
     #endregion

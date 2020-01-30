@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -13,10 +13,8 @@
   *************************************************************************************/
 
 
-using System;
 using System.IO;
 using System.IO.Packaging;
-using System.Linq;
 using System.Xml.Linq;
 using Xceed.Document.NET;
 
@@ -232,7 +230,11 @@ namespace Xceed.Words.NET
       return Xceed.Document.NET.Document.Load( filename, docX, DocumentTypes.Document ) as DocX;
     }
 
-    #endregion
+
+
+
+
+#endregion
 
     #region Overrides
 
@@ -331,13 +333,14 @@ namespace Xceed.Words.NET
           }
         }
 
-      // Close the document so that it can be saved.
-      _package.Flush();
+      // Close the document so that it can be saved in .NETStandard.
+      _package.Close();
 
       #region Save this document back to a file or stream, that was specified by the user at save time.
       if( _filename != null )
       {
-        using( FileStream fs = new FileStream( _filename, FileMode.Create ) )
+        var saveFileName = _filename.EndsWith( ".docx" ) || _filename.EndsWith( ".doc" ) ? _filename : _filename + ".docx";
+        using( FileStream fs = new FileStream( saveFileName, FileMode.Create ) )
         {
           if( _memoryStream.CanSeek )
           {
@@ -369,8 +372,12 @@ namespace Xceed.Words.NET
     /// <returns>Returns a copy of a the Document</returns>
     public override Xceed.Document.NET.Document Copy()
     {
+
+      var initialDoc = !string.IsNullOrEmpty( _filename ) ? DocX.Load( _filename ) : DocX.Load( _stream );
+
       var memorystream = new MemoryStream();
-      this.SaveAs( memorystream );
+      initialDoc.SaveAs( memorystream );
+
       memorystream.Seek( 0, SeekOrigin.Begin );
       return DocX.Load( memorystream );
     }

@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -27,6 +27,7 @@ using System.Drawing;
 using System.Collections.ObjectModel;
 using System.Net;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
 
 namespace Xceed.Document.NET
 {
@@ -51,6 +52,7 @@ namespace Xceed.Document.NET
     internal static XNamespace n = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering";
     static internal XNamespace v = "urn:schemas-microsoft-com:vml";
     static internal XNamespace mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
+    static internal XNamespace wps = "http://schemas.microsoft.com/office/word/2010/wordprocessingShape";
     #endregion
 
     #region Private Members    
@@ -355,6 +357,27 @@ namespace Xceed.Document.NET
         this.Sections[ 0 ].PageBorders = value;
       }
     }
+
+    //public DocumentElement PageWatermark
+    //{
+    //  get
+    //  {
+    //    if( this.Sections.Count > 1 )
+    //    {
+    //      Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageWatermark." );
+    //    }
+    //    return this.Sections[ 0 ].PageWatermark;
+    //  }
+
+    //  set
+    //  {
+    //    if( this.Sections.Count > 1 )
+    //    {
+    //      Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageWatermark." );
+    //    }
+    //    this.Sections[ 0 ].PageWatermark = value;
+    //  }
+    //}
 
     /// <summary>
     /// Returns true if any editing restrictions are imposed on this document.
@@ -838,9 +861,69 @@ namespace Xceed.Document.NET
       get
       {
         var bookmarks = new BookmarkCollection();
+        // In Body.
         foreach( var paragraph in this.Paragraphs )
         {
           bookmarks.AddRange( paragraph.GetBookmarks() );
+        }
+
+        foreach( var section in this.Sections )
+        {
+          // In Headers.
+          var headers = section.Headers;
+          if( headers != null )
+          {
+            if( headers.Odd != null )
+            {
+              foreach( var paragraph in headers.Odd.Paragraphs )
+              {
+                bookmarks.AddRange( paragraph.GetBookmarks() );
+              }
+            }
+            if( headers.Even != null )
+            {
+              foreach( var paragraph in headers.Even.Paragraphs )
+              {
+                bookmarks.AddRange( paragraph.GetBookmarks() );
+              }
+            }
+            if( headers.First != null )
+            {
+              foreach( var paragraph in headers.First.Paragraphs )
+              {
+                bookmarks.AddRange( paragraph.GetBookmarks() );
+              }
+            }
+          }
+
+          // In Footers.
+          var footers = section.Footers;
+          if( footers != null )
+          {
+            if( footers.Odd != null )
+            {
+              foreach( var paragraph in footers.Odd.Paragraphs )
+              {
+                bookmarks.AddRange( paragraph.GetBookmarks() );
+              }
+            }
+
+            if( footers.Even != null )
+            {
+              foreach( var paragraph in footers.Even.Paragraphs )
+              {
+                bookmarks.AddRange( paragraph.GetBookmarks() );
+              }
+            }
+
+            if( footers.First != null )
+            {
+              foreach( var paragraph in footers.First.Paragraphs )
+              {
+                bookmarks.AddRange( paragraph.GetBookmarks() );
+              }
+            }
+          }
         }
 
         return bookmarks;
@@ -1009,6 +1092,12 @@ namespace Xceed.Document.NET
 
       // Get the body of the remote document.
       var remote_body = remote_mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
+      // Get the body of the local document.
+      var local_body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
+
+      // append : Move local body section to the last paragraph of the body.
+      // insert : Move Remote Body section to the last paragraph of the body.
+      this.MoveSectionIntoLastParagraph( append ? local_body : remote_body );
 
       // Every file that is missing from the local document will have to be copied, every file that already exists will have to be merged.
       var ppc = remote_document._package.GetParts();
@@ -1157,6 +1246,16 @@ namespace Xceed.Document.NET
         }
       }
 
+      var remoteNumberingRelationship = remote_document.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" );
+      var localNumberingRelationship = this.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" );
+      if( ( remoteNumberingRelationship.Count() > 0 ) && ( localNumberingRelationship.Count() == 0 ) )
+      {
+        foreach( var rel in remoteNumberingRelationship )
+        {
+          this.PackagePart.CreateRelationship( rel.TargetUri, rel.TargetMode, rel.RelationshipType );
+        }
+      }
+
       foreach( PackagePart remote_pp in ppc )
       {
         if( imageContentTypes.Contains( remote_pp.ContentType ) )
@@ -1190,7 +1289,6 @@ namespace Xceed.Document.NET
       }
 
       // Add the remote documents contents to this document.
-      var local_body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
       if( append )
       {
         local_body.Add( remote_body.Elements() );
@@ -1208,6 +1306,9 @@ namespace Xceed.Document.NET
           _mainDoc.Root.SetAttributeValue( a.Name, a.Value );
         }
       }
+
+      // Update the _cachedSection by reading the Xml to build new Sections.
+      _cachedSections = this.GetSections();
     }
 
     /// <summary>
@@ -1390,6 +1491,14 @@ namespace Xceed.Document.NET
       return t;
     }
 
+
+
+
+
+
+
+
+
     ///<summary>
     /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
     ///</summary>
@@ -1445,9 +1554,12 @@ namespace Xceed.Document.NET
           {
             case "/word/document.xml":
               documentPart = packagePart;
-              using( XmlReader xr = XmlReader.Create( packagePart.GetStream( FileMode.Open, FileAccess.Read ) ) )
+              using( var stream = packagePart.GetStream( FileMode.Open, FileAccess.Read ) )
               {
-                documentDoc = XDocument.Load( xr );
+                using( var xr = XmlReader.Create( stream ) )
+                {
+                  documentDoc = XDocument.Load( xr );
+                }
               }
               break;
             case "/_rels/.rels":
@@ -1456,15 +1568,17 @@ namespace Xceed.Document.NET
                 _package.CreatePart( packagePart.Uri, packagePart.ContentType, packagePart.CompressionOption );
               }
               var globalRelsPart = _package.GetPart( packagePart.Uri );
-              using(
-                var tr = new StreamReader(
-                  packagePart.GetStream( FileMode.Open, FileAccess.Read ), Encoding.UTF8 ) )
+              using( var stream = packagePart.GetStream( FileMode.Open, FileAccess.Read ) )
               {
-                using(
-                  var tw = new StreamWriter(
-                    new PackagePartStream( globalRelsPart.GetStream( FileMode.Create, FileAccess.Write ) ), Encoding.UTF8 ) )
+                using( var tr = new StreamReader( stream, Encoding.UTF8 ) )
                 {
-                  tw.Write( tr.ReadToEnd() );
+                  using( var globalRelsPartStream = new PackagePartStream( globalRelsPart.GetStream( FileMode.Create, FileAccess.Write ) ) )
+                  {
+                    using( var tw = new StreamWriter( globalRelsPartStream, Encoding.UTF8 ) )
+                    {
+                      tw.Write( tr.ReadToEnd() );
+                    }
+                  }
                 }
               }
               break;
@@ -1481,15 +1595,17 @@ namespace Xceed.Document.NET
                 packagePartEncoding = Encoding.UTF8;
               }
               var nativePart = _package.GetPart( packagePart.Uri );
-              using(
-                var tr = new StreamReader(
-                  packagePart.GetStream( FileMode.Open, FileAccess.Read ), packagePartEncoding ) )
+              using( var stream = packagePart.GetStream( FileMode.Open, FileAccess.Read ) )
               {
-                using(
-                  var tw = new StreamWriter(
-                    new PackagePartStream( nativePart.GetStream( FileMode.Create, FileAccess.Write ) ), tr.CurrentEncoding ) )
+                using( var tr = new StreamReader( stream, packagePartEncoding ) )
                 {
-                  tw.Write( tr.ReadToEnd() );
+                  using( var nativePartStream = new PackagePartStream( nativePart.GetStream( FileMode.Create, FileAccess.Write ) ) )
+                  {
+                    using( var tw = new StreamWriter( nativePartStream, tr.CurrentEncoding ) )
+                    {
+                      tw.Write( tr.ReadToEnd() );
+                    }
+                  }
                 }
               }
               break;
@@ -1504,9 +1620,12 @@ namespace Xceed.Document.NET
           }
           var documentNewPart = _package.CreatePart(
             documentPart.Uri, mainContentType, documentPart.CompressionOption );
-          using( XmlWriter xw = XmlWriter.Create( new PackagePartStream( documentNewPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+          using( var stream = new PackagePartStream( documentNewPart.GetStream( FileMode.Create, FileAccess.Write ) ) )
           {
-            documentDoc.WriteTo( xw );
+            using( XmlWriter xw = XmlWriter.Create( stream ) )
+            {
+              documentDoc.WriteTo( xw );
+            }
           }
           foreach( PackageRelationship documentPartRel in documentPart.GetRelationships() )
           {
@@ -1537,11 +1656,6 @@ namespace Xceed.Document.NET
       finally
       {
         _package.Flush();
-        var documentRelsPart = _package.GetPart( new Uri( "/word/_rels/document.xml.rels", UriKind.Relative ) );
-        using( TextReader tr = new StreamReader( documentRelsPart.GetStream( FileMode.Open, FileAccess.Read ) ) )
-        {
-          tr.Read();
-        }
         templatePackage.Close();
         PopulateDocument( Document, _package );
       }
@@ -2102,9 +2216,9 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Create an equation and insert it in the new paragraph
     /// </summary>        
-    public override Paragraph InsertEquation( String equation )
+    public override Paragraph InsertEquation( String equation, Alignment align = Alignment.center )
     {
-      var p = base.InsertEquation( equation );
+      var p = base.InsertEquation( equation, align );
       p.PackagePart = this.PackagePart;
       return p;
     }
@@ -2112,7 +2226,7 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Insert a chart in document
     /// </summary>
-    public void InsertChart( Chart chart, int width = 576, int height = 336 )
+    public void InsertChart( Chart chart, int width = 432, int height = 252 )
     {
       this.InsertChart( chart, null, width, height );
     }
@@ -2120,12 +2234,12 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Insert a chart in document after the specified paragraph
     /// </summary>
-    public void InsertChartAfterParagraph( Chart chart, Paragraph paragraph, int width = 576, int height = 336 )
+    public void InsertChartAfterParagraph( Chart chart, Paragraph paragraph, int width = 432, int height = 252 )
     {
       this.InsertChart( chart, paragraph, width, height );
     }
 
-    private void InsertChart( Chart chart, Paragraph paragraph, int width = 576, int height = 336)
+    private void InsertChart( Chart chart, Paragraph paragraph, int width = 432, int height = 252)
     {
       Paragraph p;
 
@@ -2163,8 +2277,8 @@ namespace Xceed.Document.NET
         p = paragraph;
       }
 
-      var chartWidth = width * Picture.EmusInPixel;  //576
-      var chartHeight = height * Picture.EmusInPixel; //336
+      var chartWidth = width * Picture.EmusInPixel;
+      var chartHeight = height * Picture.EmusInPixel;
 
       // Insert a new chart into a paragraph.
       var chartElement = new XElement( XName.Get( "r", w.NamespaceName ),
@@ -2180,8 +2294,6 @@ namespace Xceed.Document.NET
                                                                                                              new XAttribute( XName.Get( "id", r.NamespaceName ), relID ) ) ) ) ) ) );
       p.Xml.Add( chartElement );
     }
-
-
 
     /// <summary>
     /// Create a new List
@@ -2485,6 +2597,9 @@ namespace Xceed.Document.NET
         }
       }
     }
+
+
+
 
 
 
@@ -3024,16 +3139,45 @@ namespace Xceed.Document.NET
         }
       }
 
-      #region Headers
+      // A list of documents, which will contain, if they exist: header1, header2, header3, footer1, footer2, footer3.
+      var documents = new List<XElement> {};
 
-      var headerParts = from headerPart in document._package.GetParts()
-                        where ( Regex.IsMatch( headerPart.Uri.ToString(), @"/word/header\d?.xml" ) )
-                        select headerPart;
-      foreach( PackagePart pp in headerParts )
+      foreach( var section in document.Sections )
       {
-        var header = XDocument.Load( new StreamReader( pp.GetStream() ) );
+        // Headers
+        var headers = section.Headers;
+        if( headers.First != null )
+        {
+          documents.Add( headers.First.Xml );
+        }
+        if( headers.Odd != null )
+        {
+          documents.Add( headers.Odd.Xml );
+        }
+        if( headers.Even != null )
+        {
+          documents.Add( headers.Even.Xml );
+        }
 
-        foreach( XElement e in header.Descendants( XName.Get( "fldSimple", w.NamespaceName ) ) )
+        // Footers
+        var footers = section.Footers;
+        if( footers.First != null )
+        {
+          documents.Add( footers.First.Xml );
+        }
+        if( footers.Odd != null )
+        {
+          documents.Add( footers.Odd.Xml );
+        }
+        if( footers.Even != null )
+        {
+          documents.Add( footers.Even.Xml );
+        }
+      }
+
+      foreach( var doc in documents )
+      {
+        foreach( XElement e in doc.Descendants( XName.Get( "fldSimple", w.NamespaceName ) ) )
         {
           string attr_value = e.Attribute( XName.Get( "instr", w.NamespaceName ) ).Value.Replace( " ", string.Empty ).Trim().ToLower();
           if( Regex.IsMatch( attr_value, matchPattern ) )
@@ -3048,44 +3192,10 @@ namespace Xceed.Document.NET
             e.Add( new XElement( firstRun.Name, firstRun.Attributes(), firstRun.Element( XName.Get( "rPr", w.NamespaceName ) ), t ) );
           }
         }
-
-        using( TextWriter tw = new StreamWriter( new PackagePartStream( pp.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-        {
-          header.Save( tw );
-        }
       }
-      #endregion
 
-      #region Footers
-      var footerParts = from footerPart in document._package.GetParts()
-                        where ( Regex.IsMatch( footerPart.Uri.ToString(), @"/word/footer\d?.xml" ) )
-                        select footerPart;
-      foreach( PackagePart pp in footerParts )
-      {
-        var footer = XDocument.Load( new StreamReader( pp.GetStream() ) );
+      document.SaveHeadersFooters();
 
-        foreach( XElement e in footer.Descendants( XName.Get( "fldSimple", w.NamespaceName ) ) )
-        {
-          string attr_value = e.Attribute( XName.Get( "instr", w.NamespaceName ) ).Value.Replace( " ", string.Empty ).Trim().ToLower();
-          if( Regex.IsMatch( attr_value, matchPattern ) )
-          {
-            var firstRun = e.Element( w + "r" );
-
-            // Delete everything and insert updated text value
-            e.RemoveNodes();
-
-            var t = new XElement( w + "t", corePropertyValue );
-            Xceed.Document.NET.Text.PreserveSpace( t );
-            e.Add( new XElement( firstRun.Name, firstRun.Attributes(), firstRun.Element( XName.Get( "rPr", w.NamespaceName ) ), t ) );
-          }
-        }
-
-        using( TextWriter tw = new StreamWriter( new PackagePartStream( pp.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-        {
-          footer.Save( tw );
-        }
-      }
-      #endregion
       Document.PopulateDocument( document, document._package );
     }
 
@@ -3101,7 +3211,7 @@ namespace Xceed.Document.NET
       // A list of documents, which will contain, The Main Document and if they exist: header1, header2, header3, footer1, footer2, footer3.
       var documents = new List<XElement> { document._mainDoc.Root };
 
-      // Check if each header exists and add if if so.
+      // Check if each header exists and add it if so.
       #region Headers
       foreach( var section in document.Sections )
       {
@@ -3851,6 +3961,30 @@ namespace Xceed.Document.NET
           }
         }
 
+        // Modify the styles in _numbering remote and local, to make sure the order of merge (style vs numbering) won't affect final local styles.
+        if( remote._numbering != null )
+        {
+          foreach( XElement e in remote._numbering.Root.Descendants( XName.Get( "pStyle", w.NamespaceName ) ) )
+          {
+            var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
+            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+            {
+              e_styleId.SetValue( guuid );
+            }
+          }
+        }
+        if( _numbering != null )
+        {
+          foreach( XElement e in _numbering.Root.Descendants( XName.Get( "pStyle", w.NamespaceName ) ) )
+          {
+            var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
+            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+            {
+              e_styleId.SetValue( guuid );
+            }
+          }
+        }
+
         // Make sure they don't clash by using a uuid.
         styleId.SetValue( guuid );
         _styles.Root.Add( remote_style );
@@ -3912,7 +4046,6 @@ namespace Xceed.Document.NET
 
       var ps = package.GetParts();
 
-      //document.endnotesPart = HelperFunctions.GetPart();
       foreach( var rel in document.PackagePart.GetRelationships() )
       {
         var uriString = "/word/" + rel.TargetUri.OriginalString.Replace( "/word/", "" ).Replace( "file://", "" );
@@ -4033,25 +4166,12 @@ namespace Xceed.Document.NET
       return h;
     }
 
-    private XElement CopyXml( XElement sourceXml )
-    {
-      if( sourceXml == null )
-        return null;
-
-      XElement output = null;
-      using( var reader = sourceXml.CreateReader() )
-      {
-        output = XElement.Load( reader, LoadOptions.SetLineInfo );
-      }
-      return output;
-    }
-
     private void InsertSection( bool trackChanges, bool isPageBreak )
     {
       // Save any modified header/footer so that the new section can access it.
       this.SaveHeadersFooters();
 
-      var sctPr = this.CopyXml( this.Sections.Last().Xml );
+      var sctPr = new XElement( this.Sections.Last().Xml );
       if( !isPageBreak )
       {
         sctPr.Add( new XElement( XName.Get( "type", Document.w.NamespaceName ), new XAttribute( Document.w + "val", "continuous" ) ) );
@@ -4066,6 +4186,34 @@ namespace Xceed.Document.NET
 
       // Update the _cachedSection by reading the Xml to build new Sections.
       _cachedSections = this.GetSections();
+    }
+
+    private void MoveSectionIntoLastParagraph( XElement body )
+    {
+      Debug.Assert( body != null, "body shouldn't be null." );
+
+      var body_sectPr = body.Elements( XName.Get( "sectPr", Document.w.NamespaceName ) ).LastOrDefault();
+      if( body_sectPr != null )
+      {
+        var bodyLastParagraph = body.Elements( XName.Get( "p", Document.w.NamespaceName ) ).LastOrDefault();
+        if( bodyLastParagraph == null )
+        {
+          body.AddFirst( new XElement( XName.Get( "p", Document.w.NamespaceName ) ) );
+          bodyLastParagraph = body.Elements( XName.Get( "p", Document.w.NamespaceName ) ).LastOrDefault();
+        }
+        var bodyLastParagraphProperties = bodyLastParagraph.Element( XName.Get( "pPr", Document.w.NamespaceName ) );
+        if( bodyLastParagraphProperties == null )
+        {
+          bodyLastParagraph.Add( new XElement( XName.Get( "pPr", Document.w.NamespaceName ) ) );
+          bodyLastParagraphProperties = bodyLastParagraph.Element( XName.Get( "pPr", Document.w.NamespaceName ) );
+        }
+        var bodyLastParagraph_sectPr = bodyLastParagraphProperties.Element( XName.Get( "sectPr", Document.w.NamespaceName ) );
+        if( bodyLastParagraph_sectPr == null )
+        {
+          bodyLastParagraphProperties.Add( body_sectPr );
+        }
+        body_sectPr.Remove();
+      }
     }
 
     #endregion

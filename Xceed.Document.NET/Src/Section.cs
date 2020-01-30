@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -293,6 +293,37 @@ namespace Xceed.Document.NET
     {
       get;
       private set;
+    }
+
+    public int PageNumberStart
+    {
+      get
+      {
+        var pgNumType = this.Xml.Element( XName.Get( "pgNumType", w.NamespaceName ) );
+        if( pgNumType != null )
+        {
+          var start = pgNumType.Attribute( XName.Get( "start", Document.w.NamespaceName ) );
+          if( start != null )
+          {
+            int i;
+            if( int.TryParse( start.Value, out i ) )
+              return i;
+          }
+        }
+
+        return -1;
+      }
+
+      set
+      {
+        var pgNumType = this.Xml.Element( XName.Get( "pgNumType", w.NamespaceName ) );
+        if( pgNumType == null )
+        {
+          this.Xml.Add( new XElement( XName.Get( "pgNumType", w.NamespaceName ) ) );
+          pgNumType = this.Xml.Element( XName.Get( "pgNumType", w.NamespaceName ) );
+        }
+        pgNumType.SetAttributeValue( XName.Get( "start", w.NamespaceName ), value );
+      }
     }
 
     /// <summary>

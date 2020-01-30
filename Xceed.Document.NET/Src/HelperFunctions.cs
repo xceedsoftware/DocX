@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -25,9 +25,20 @@ using System.IO.Compression;
 using System.Globalization;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 
 namespace Xceed.Document.NET
 {
+  internal enum ResourceType
+  {
+    DefaultStyle,
+    NumberingBullet,
+    NumberingDecimal,
+    Numbering,
+    Styles,
+    Theme
+  }
+
   internal static class HelperFunctions
   {
     public const string DOCUMENT_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
@@ -63,7 +74,7 @@ namespace Xceed.Document.NET
       switch( Xml.Name.LocalName )
       {
         case "tab":
-          return (Xml.Parent.Name.LocalName != "tabs" ) ? 1 : 0;
+          return ( Xml.Parent.Name.LocalName != "tabs" ) ? 1 : 0;
         case "br":
           return 1;
         case "t":
@@ -74,6 +85,8 @@ namespace Xceed.Document.NET
           goto case "br";
         case "tc":
           goto case "br";
+        case "ptab":
+          return 1;
         default:
           return 0;
       }
@@ -184,6 +197,9 @@ namespace Xceed.Document.NET
         case "tab":
           // Do not add "\t" for TabStopPositions defined in "tabs".
           return ( ( e.Parent != null ) && e.Parent.Name.Equals( XName.Get( "tabs", Document.w.NamespaceName ) ) ) ? "" : "\t";
+        // absolute tab
+        case "ptab":
+          return "\v";
         case "br":
           {
             // Manage only line Breaks.
@@ -205,8 +221,6 @@ namespace Xceed.Document.NET
           //goto case "br";
           return "\n";
         case "tc":
-          goto case "tab";
-        case "ptab":
           goto case "tab";
         default:
           return "";
@@ -234,8 +248,8 @@ namespace Xceed.Document.NET
 
     internal static PackagePart GetMainDocumentPart( Package package )
     {
-      return package.GetParts().Single( p => p.ContentType.Equals( DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) || 
-                                             p.ContentType.Equals( TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) || 
+      return package.GetParts().Single( p => p.ContentType.Equals( DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) ||
+                                             p.ContentType.Equals( TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) ||
                                              p.ContentType.Equals( MACRO_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) );
     }
 
@@ -380,6 +394,64 @@ namespace Xceed.Document.NET
       return document;
     }
 
+    internal static string GetResources( ResourceType resType )
+    {
+      switch( resType )
+      {
+        case ResourceType.DefaultStyle:
+          {
+#if NETSTANDARD
+            return "Xceed.Document.NETStandard.Resources.default_styles.xml.gz";
+#else
+            return "Xceed.Document.NET.Resources.default_styles.xml.gz";
+#endif
+          }
+        case ResourceType.Numbering:
+          {
+#if NETSTANDARD
+            return "Xceed.Document.NETStandard.Resources.numbering.xml.gz";
+#else
+            return "Xceed.Document.NET.Resources.numbering.xml.gz";
+#endif
+          }
+        case ResourceType.NumberingBullet:
+          {
+#if NETSTANDARD
+            return "Xceed.Document.NETStandard.Resources.numbering.default_bullet_abstract.xml.gz";
+#else
+            return "Xceed.Document.NET.Resources.numbering.default_bullet_abstract.xml.gz";
+#endif
+          }
+        case ResourceType.NumberingDecimal:
+          {
+#if NETSTANDARD
+            return "Xceed.Document.NETStandard.Resources.numbering.default_decimal_abstract.xml.gz";
+#else
+            return "Xceed.Document.NET.Resources.numbering.default_decimal_abstract.xml.gz";
+#endif
+          }
+        case ResourceType.Styles:
+          {
+#if NETSTANDARD
+            return "Xceed.Document.NETStandard.Resources.styles.xml.gz";
+#else
+            return "Xceed.Document.NET.Resources.styles.xml.gz";
+#endif
+          }
+        case ResourceType.Theme:
+          {
+#if NETSTANDARD
+            return "Xceed.Document.NETStandard.Resources.theme.xml.gz";
+#else
+            return "Xceed.Document.NET.Resources.theme.xml.gz";
+#endif
+          }
+      }
+
+      Debug.Assert( false, "Unkown resource type." );
+      return null;
+    }
+
     /// <summary>
     /// If this document does not contain a /word/styles.xml add the default one generated by Microsoft Word.
     /// </summary>
@@ -391,7 +463,7 @@ namespace Xceed.Document.NET
       // Create the main document part for this package
       var word_styles = package.CreatePart( new Uri( "/word/styles.xml", UriKind.Relative ), "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml", CompressionOption.Maximum );
 
-      stylesDoc = HelperFunctions.DecompressXMLResource( "Xceed.Document.NET.Resources.default_styles.xml.gz" );
+      stylesDoc = HelperFunctions.DecompressXMLResource( HelperFunctions.GetResources( ResourceType.DefaultStyle ) );
       var lang = stylesDoc.Root.Element( XName.Get( "docDefaults", Document.w.NamespaceName ) ).Element( XName.Get( "rPrDefault", Document.w.NamespaceName ) ).Element( XName.Get( "rPr", Document.w.NamespaceName ) ).Element( XName.Get( "lang", Document.w.NamespaceName ) );
       lang.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), CultureInfo.CurrentCulture );
 
@@ -411,7 +483,7 @@ namespace Xceed.Document.NET
     {
       if( t == EditType.del )
       {
-        foreach( object o in ( IEnumerable<XElement> )content )
+        foreach( object o in (IEnumerable<XElement>)content )
         {
           if( o is XElement )
           {
@@ -487,6 +559,18 @@ namespace Xceed.Document.NET
                                                        new XAttribute( XName.Get( "type", Document.w.NamespaceName ), "dxa" ) ) ),
                            new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ) ) ) );
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
     internal static void RenumberIDs( Document document )
     {
@@ -668,7 +752,7 @@ namespace Xceed.Document.NET
       XDocument numberingDoc;
 
       var numberingPart = package.CreatePart( new Uri( "/word/numbering.xml", UriKind.Relative ), "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml", CompressionOption.Maximum );
-      numberingDoc = DecompressXMLResource( "Xceed.Document.NET.Resources.numbering.xml.gz" );
+      numberingDoc = DecompressXMLResource( HelperFunctions.GetResources( ResourceType.Numbering ) );
 
       using( TextWriter tw = new StreamWriter( new PackagePartStream( numberingPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
       {
@@ -706,7 +790,7 @@ namespace Xceed.Document.NET
         if( startNumber == null )
           list.AddItem( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ) );
         else
-          list.AddItemWithStartValue( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ), ( int )startNumber );
+          list.AddItemWithStartValue( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ), (int)startNumber );
       }
       return list;
     }
@@ -1056,6 +1140,19 @@ namespace Xceed.Document.NET
         }
         else
         {
+          // Add missing "tab" from styled paragraph "tabs".
+          if( paragraphElement.Name.LocalName == "tabs" )
+          {
+            var styledTabs = styleParagraphElement.Elements();
+            foreach( var styledTab in styledTabs )
+            {
+              if( paragraphElement.Elements( XName.Get( "tab", Document.w.NamespaceName ) )
+                                  .FirstOrDefault( x => x.GetAttribute( XName.Get( "pos", Document.w.NamespaceName ) ) == styledTab.GetAttribute( XName.Get( "pos", Document.w.NamespaceName ) ) ) == null )
+              {
+                paragraphElement.Add( styledTab );
+              }
+            }
+          }
           // Paragraph contains the property, add the missing attributes from this property.
           foreach( var att in styleParagraphElement.Attributes() )
           {
@@ -1092,6 +1189,31 @@ namespace Xceed.Document.NET
       }
       // Reset Backers because the paragraph XML content may have changed with the syled elements added.
       p.ResetBackers();
+    }
+
+    internal static XElement GetParagraphStyleFromStyleId( Document document, string styleIdToFind )
+    {
+      if( ( document == null ) || string.IsNullOrEmpty( styleIdToFind ) )
+        return null;
+
+      var paragraphStyles =
+        (
+            from s in document._styles.Element( Document.w + "styles" ).Elements( Document.w + "style" )
+            let type = s.Attribute( XName.Get( "type", Document.w.NamespaceName ) )
+            where ( ( type != null ) && ( type.Value == "paragraph" ) )
+            select s
+        );
+
+      // Check if this Paragraph StyleName exists in _styles.
+      var currentParagraphStyle =
+     (
+         from s in paragraphStyles
+         let styleId = s.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) )
+         where ( ( styleId != null ) && ( styleId.Value == styleIdToFind ) )
+         select s
+     ).FirstOrDefault();
+
+      return currentParagraphStyle;
     }
 
     internal static void CopyStream( Stream input, Stream output, int bufferSize = 32768 )

@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -196,9 +196,9 @@ namespace Xceed.Document.NET
       return p;
     }
 
-    public override Paragraph InsertEquation( String equation )
+    public override Paragraph InsertEquation( String equation, Alignment align = Alignment.center )
     {
-      var p = base.InsertEquation( equation );
+      var p = base.InsertEquation( equation, align );
       p.PackagePart = this.PackagePart;
       return p;
     }

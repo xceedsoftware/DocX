@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Line Sample Application
-Copyright (c) 2009-2018 - Xceed Software Inc.
+Copyright (c) 2009-2019 - Xceed Software Inc.
 
 This application demonstrates how to insert horizontal lines when using the API 
 from the Xceed Words for .NET.
@@ -53,37 +53,37 @@ namespace Xceed.Words.NET.Examples
         // Add a paragraph with a single line.
         var p = document.InsertParagraph();
         p.Append( "This is a paragraph with a single bottom line." ).Font( new Xceed.Document.NET.Font( "Arial" ) ).FontSize( 15 );
-        p.InsertHorizontalLine( HorizontalBorderPosition.bottom, "single", 6, 1, "auto" );
+        p.InsertHorizontalLine( HorizontalBorderPosition.bottom, BorderStyle.Tcbs_single );
         p.SpacingAfter( 20 );
 
         // Add a paragraph with a double green line.
         var p2 = document.InsertParagraph();
         p2.Append( "This is a paragraph with a double bottom colored line." ).Font( new Xceed.Document.NET.Font( "Arial" ) ).FontSize( 15 );
-        p2.InsertHorizontalLine( HorizontalBorderPosition.bottom, "double", 6, 1, "green" );
+        p2.InsertHorizontalLine( HorizontalBorderPosition.bottom, BorderStyle.Tcbs_double, 6, 1, Color.Green );
         p2.SpacingAfter( 20 );
 
         // Add a paragraph with a triple red line.
         var p3 = document.InsertParagraph();
         p3.Append( "This is a paragraph with a triple bottom colored line." ).Font( new Xceed.Document.NET.Font( "Arial" ) ).FontSize( 15 );
-        p3.InsertHorizontalLine( HorizontalBorderPosition.bottom, "triple", 6, 1, "red" );
+        p3.InsertHorizontalLine( HorizontalBorderPosition.bottom, BorderStyle.Tcbs_triple, 6, 1, Color.Red );
         p3.SpacingAfter( 20 );
 
         // Add a paragraph with a single spaced line.
         var p4 = document.InsertParagraph();
         p4.Append( "This is a paragraph with a spaced bottom line." ).Font( new Xceed.Document.NET.Font( "Arial" ) ).FontSize( 15 );
-        p4.InsertHorizontalLine( HorizontalBorderPosition.bottom, "single", 6, 12, "auto" );
+        p4.InsertHorizontalLine( HorizontalBorderPosition.bottom, BorderStyle.Tcbs_single, 6, 12 );
         p4.SpacingAfter( 20 );
 
         // Add a paragraph with a single large line.
         var p5 = document.InsertParagraph();
         p5.Append( "This is a paragraph with a large bottom line." ).Font( new Xceed.Document.NET.Font( "Arial" ) ).FontSize( 15 );
-        p5.InsertHorizontalLine( HorizontalBorderPosition.bottom, "single", 25, 1, "auto" );
+        p5.InsertHorizontalLine( HorizontalBorderPosition.bottom, BorderStyle.Tcbs_single, 25 );
         p5.SpacingAfter( 60 );
 
-        // Add a paragraph with a single blue top line.
+        // Add a paragraph with a wave blue top line.
         var p6 = document.InsertParagraph();
-        p6.Append( "This is a paragraph with a blue top line." ).Font( new Xceed.Document.NET.Font( "Arial" ) ).FontSize( 15 );
-        p6.InsertHorizontalLine( HorizontalBorderPosition.top, "single", 6, 1, "blue" );
+        p6.Append( "This is a paragraph with a wave blue top line." ).Font( new Xceed.Document.NET.Font( "Arial" ) ).FontSize( 15 );
+        p6.InsertHorizontalLine( HorizontalBorderPosition.top, BorderStyle.Tcbs_wave, 6, 1, Color.FromArgb( 0, 0, 255 ) );
         p5.SpacingAfter( 20 );
 
         document.Save();

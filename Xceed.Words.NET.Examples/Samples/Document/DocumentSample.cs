@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Document Sample Application
-Copyright (c) 2009-2018 - Xceed Software Inc.
+Copyright (c) 2009-2019 - Xceed Software Inc.
 
 This application demonstrates how to modify the content of a document when using the API 
 from the Xceed Words for .NET.
@@ -52,9 +52,9 @@ namespace Xceed.Words.NET.Examples
     /// <summary>
     /// Load a document and replace texts following a replace pattern.
     /// </summary>
-    public static void ReplaceText()
+    public static void ReplaceTextWithText()
     {
-      Console.WriteLine( "\tReplaceText()" );
+      Console.WriteLine( "\tReplaceTextWithText()" );
 
       // Load a document.
       using( var document = DocX.Load( DocumentSample.DocumentSampleResourcesDirectory + @"ReplaceText.docx" ) )
@@ -67,8 +67,44 @@ namespace Xceed.Words.NET.Examples
 
           // Save this document to disk.
           document.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"ReplacedText.docx" );
-          Console.WriteLine( "\tCreated: ReplacedText.docx\n" );
+          Console.WriteLine( "\tCreated: ReplacedTextWithText.docx\n" );
         }
+      }
+    }
+
+    /// <summary>
+    /// Load a document and replace texts with images.
+    /// </summary>
+    public static void ReplaceTextWithObjects()
+    {
+      Console.WriteLine( "\tReplaceTextWithObjects()" );
+
+      // Load a document.
+      using( var document = DocX.Load( DocumentSample.DocumentSampleResourcesDirectory + @"ReplaceTextWithObjects.docx" ) )
+      {
+        // Create the image from disk and set its size.
+        var image = document.AddImage( DocumentSample.DocumentSampleResourcesDirectory + @"2018.jpg" );
+        var picture = image.CreatePicture( 175, 325 );
+
+        // Do the replacement of all the found tags with the specified image and ignore the case when searching for the tags.
+        document.ReplaceTextWithObject( "<yEaR_IMAGE>", picture, false, RegexOptions.IgnoreCase );
+
+        // Create the hyperlink.
+        var hyperlink = document.AddHyperlink( "(ref)", new Uri( "https://en.wikipedia.org/wiki/New_Year" ) );
+        // Do the replacement of all the found tags with the specified hyperlink.
+        document.ReplaceTextWithObject( "<year_link>", hyperlink );
+
+        // Add a Table into the document and sets its values.
+        var t = document.AddTable( 1, 2 );
+        t.Design = TableDesign.DarkListAccent4;
+        t.AutoFit = AutoFit.Window;
+        t.Rows[ 0 ].Cells[ 0 ].Paragraphs[ 0 ].Append( "xceed.com" );
+        t.Rows[ 0 ].Cells[ 1 ].Paragraphs[ 0 ].Append( "@copyright 2019" );
+        document.ReplaceTextWithObject( "<year_table>", t );
+
+        // Save this document to disk.
+        document.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"ReplacedTextWithObjects.docx" );
+        Console.WriteLine( "\tCreated: ReplacedTextWithObjects.docx\n" );
       }
     }
 
@@ -145,6 +181,9 @@ namespace Xceed.Words.NET.Examples
         // Load the second document.
         using( var document2 = DocX.Load( DocumentSample.DocumentSampleResourcesDirectory + @"Second.docx" ) )
         {
+          // Add a title
+          document1.InsertParagraph( 0, "Append Document", false ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
+
           // Insert a document at the end of another document.
           // When true, document is added at the end. When false, document is added at beginning.
           document1.InsertDocument( document2, true );
@@ -160,6 +199,9 @@ namespace Xceed.Words.NET.Examples
     {
       using ( var doc = DocX.Load( DocumentSample.DocumentSampleResourcesDirectory + @"First.docx" ) )
       {
+        // Add a title
+        doc.InsertParagraph( 0, "Load Document with File name", false ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
+
         // Insert a Paragraph into this document.
         var p = doc.InsertParagraph();
 
@@ -176,6 +218,9 @@ namespace Xceed.Words.NET.Examples
       {
         using( var doc = DocX.Load( fs ) )
         {
+          // Add a title
+          doc.InsertParagraph( 0, "Load Document with Stream", false ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
+
           // Insert a Paragraph into this document.
           var p = doc.InsertParagraph();
 
@@ -191,6 +236,9 @@ namespace Xceed.Words.NET.Examples
     {
       using( var doc = DocX.Load( "https://calibre-ebook.com/downloads/demos/demo.docx" ) )
       {
+        // Add a title
+        doc.InsertParagraph( 0, "Load Document with string Url", false ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
+
         // Insert a Paragraph into this document.
         var p = doc.InsertParagraph();
 

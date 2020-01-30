@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Table Sample Application
-Copyright (c) 2009-2018 - Xceed Software Inc.
+Copyright (c) 2009-2019 - Xceed Software Inc.
 
 This application demonstrates how to create and format a table when using the API 
 from the Xceed Words for .NET.
@@ -109,6 +109,20 @@ namespace Xceed.Words.NET.Examples
         document.Save();
         Console.WriteLine( "\tCreated: InsertRowAndImageTable.docx\n" );
       }
+    }
+
+    /// <summary>
+    /// Create a table, insert rows and make the table wraps around text.
+    /// </summary>
+    public static void AddTableWithTextWrapping()
+    {
+
+
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     /// <summary>

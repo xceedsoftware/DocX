@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -36,7 +36,6 @@ namespace Xceed.Document.NET
 
     private Alignment _alignment;
     private AutoFit _autofit;
-    private float[] _columnWidths;
     private TableDesign _design;
     private TableLook _tableLook;
     /// <summary>
@@ -103,6 +102,12 @@ namespace Xceed.Document.NET
         return pictures;
       }
     }
+
+
+
+
+
+
 
     /// <summary>
     /// Get all of the Hyperlinks in this Table.
@@ -316,7 +321,7 @@ namespace Xceed.Document.NET
                   }
                 }
 
-                tmp.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), totalWidth.ToString( CultureInfo.InvariantCulture ) );
+                tmp.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( totalWidth * 20d ).ToString( CultureInfo.InvariantCulture ) );
                 break;
               }
               else
@@ -342,7 +347,7 @@ namespace Xceed.Document.NET
                   }
                 }
 
-                tmp.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), totalWidth.ToString( CultureInfo.InvariantCulture ) );
+                tmp.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), ( totalWidth * 20d ).ToString( CultureInfo.InvariantCulture ) );
                 break;
               }
             }
@@ -384,386 +389,389 @@ namespace Xceed.Document.NET
       }
       set
       {
-        XElement tblPr = Xml.Element( XName.Get( "tblPr", Document.w.NamespaceName ) );
-        XElement style = tblPr.Element( XName.Get( "tblStyle", Document.w.NamespaceName ) );
-        if( style == null )
+        if( _design != value )
         {
-          tblPr.Add( new XElement( XName.Get( "tblStyle", Document.w.NamespaceName ) ) );
-          style = tblPr.Element( XName.Get( "tblStyle", Document.w.NamespaceName ) );
-        }
-
-        XAttribute val = style.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
-        if( val == null )
-        {
-          style.Add( new XAttribute( XName.Get( "val", Document.w.NamespaceName ), "" ) );
-          val = style.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
-        }
-
-        _design = value;
-
-        if( _design == TableDesign.None )
-        {
-          if( style != null )
-            style.Remove();
-        }
-
-        if( _design == TableDesign.Custom )
-        {
-          if( string.IsNullOrEmpty( _customTableDesignName ) )
+          XElement tblPr = Xml.Element( XName.Get( "tblPr", Document.w.NamespaceName ) );
+          XElement style = tblPr.Element( XName.Get( "tblStyle", Document.w.NamespaceName ) );
+          if( style == null )
           {
-            _design = TableDesign.None;
+            tblPr.Add( new XElement( XName.Get( "tblStyle", Document.w.NamespaceName ) ) );
+            style = tblPr.Element( XName.Get( "tblStyle", Document.w.NamespaceName ) );
+          }
+
+          XAttribute val = style.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
+          if( val == null )
+          {
+            style.Add( new XAttribute( XName.Get( "val", Document.w.NamespaceName ), "" ) );
+            val = style.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
+          }
+
+          _design = value;
+
+          if( _design == TableDesign.None )
+          {
             if( style != null )
               style.Remove();
+          }
 
+          if( _design == TableDesign.Custom )
+          {
+            if( string.IsNullOrEmpty( _customTableDesignName ) )
+            {
+              _design = TableDesign.None;
+              if( style != null )
+                style.Remove();
+
+            }
+            else
+            {
+              val.Value = _customTableDesignName;
+            }
           }
           else
           {
-            val.Value = _customTableDesignName;
+            switch( _design )
+            {
+              case TableDesign.TableNormal:
+                val.Value = "TableNormal";
+                break;
+              case TableDesign.TableGrid:
+                val.Value = "TableGrid";
+                break;
+              case TableDesign.LightShading:
+                val.Value = "LightShading";
+                break;
+              case TableDesign.LightShadingAccent1:
+                val.Value = "LightShading-Accent1";
+                break;
+              case TableDesign.LightShadingAccent2:
+                val.Value = "LightShading-Accent2";
+                break;
+              case TableDesign.LightShadingAccent3:
+                val.Value = "LightShading-Accent3";
+                break;
+              case TableDesign.LightShadingAccent4:
+                val.Value = "LightShading-Accent4";
+                break;
+              case TableDesign.LightShadingAccent5:
+                val.Value = "LightShading-Accent5";
+                break;
+              case TableDesign.LightShadingAccent6:
+                val.Value = "LightShading-Accent6";
+                break;
+              case TableDesign.LightList:
+                val.Value = "LightList";
+                break;
+              case TableDesign.LightListAccent1:
+                val.Value = "LightList-Accent1";
+                break;
+              case TableDesign.LightListAccent2:
+                val.Value = "LightList-Accent2";
+                break;
+              case TableDesign.LightListAccent3:
+                val.Value = "LightList-Accent3";
+                break;
+              case TableDesign.LightListAccent4:
+                val.Value = "LightList-Accent4";
+                break;
+              case TableDesign.LightListAccent5:
+                val.Value = "LightList-Accent5";
+                break;
+              case TableDesign.LightListAccent6:
+                val.Value = "LightList-Accent6";
+                break;
+              case TableDesign.LightGrid:
+                val.Value = "LightGrid";
+                break;
+              case TableDesign.LightGridAccent1:
+                val.Value = "LightGrid-Accent1";
+                break;
+              case TableDesign.LightGridAccent2:
+                val.Value = "LightGrid-Accent2";
+                break;
+              case TableDesign.LightGridAccent3:
+                val.Value = "LightGrid-Accent3";
+                break;
+              case TableDesign.LightGridAccent4:
+                val.Value = "LightGrid-Accent4";
+                break;
+              case TableDesign.LightGridAccent5:
+                val.Value = "LightGrid-Accent5";
+                break;
+              case TableDesign.LightGridAccent6:
+                val.Value = "LightGrid-Accent6";
+                break;
+              case TableDesign.MediumShading1:
+                val.Value = "MediumShading1";
+                break;
+              case TableDesign.MediumShading1Accent1:
+                val.Value = "MediumShading1-Accent1";
+                break;
+              case TableDesign.MediumShading1Accent2:
+                val.Value = "MediumShading1-Accent2";
+                break;
+              case TableDesign.MediumShading1Accent3:
+                val.Value = "MediumShading1-Accent3";
+                break;
+              case TableDesign.MediumShading1Accent4:
+                val.Value = "MediumShading1-Accent4";
+                break;
+              case TableDesign.MediumShading1Accent5:
+                val.Value = "MediumShading1-Accent5";
+                break;
+              case TableDesign.MediumShading1Accent6:
+                val.Value = "MediumShading1-Accent6";
+                break;
+              case TableDesign.MediumShading2:
+                val.Value = "MediumShading2";
+                break;
+              case TableDesign.MediumShading2Accent1:
+                val.Value = "MediumShading2-Accent1";
+                break;
+              case TableDesign.MediumShading2Accent2:
+                val.Value = "MediumShading2-Accent2";
+                break;
+              case TableDesign.MediumShading2Accent3:
+                val.Value = "MediumShading2-Accent3";
+                break;
+              case TableDesign.MediumShading2Accent4:
+                val.Value = "MediumShading2-Accent4";
+                break;
+              case TableDesign.MediumShading2Accent5:
+                val.Value = "MediumShading2-Accent5";
+                break;
+              case TableDesign.MediumShading2Accent6:
+                val.Value = "MediumShading2-Accent6";
+                break;
+              case TableDesign.MediumList1:
+                val.Value = "MediumList1";
+                break;
+              case TableDesign.MediumList1Accent1:
+                val.Value = "MediumList1-Accent1";
+                break;
+              case TableDesign.MediumList1Accent2:
+                val.Value = "MediumList1-Accent2";
+                break;
+              case TableDesign.MediumList1Accent3:
+                val.Value = "MediumList1-Accent3";
+                break;
+              case TableDesign.MediumList1Accent4:
+                val.Value = "MediumList1-Accent4";
+                break;
+              case TableDesign.MediumList1Accent5:
+                val.Value = "MediumList1-Accent5";
+                break;
+              case TableDesign.MediumList1Accent6:
+                val.Value = "MediumList1-Accent6";
+                break;
+              case TableDesign.MediumList2:
+                val.Value = "MediumList2";
+                break;
+              case TableDesign.MediumList2Accent1:
+                val.Value = "MediumList2-Accent1";
+                break;
+              case TableDesign.MediumList2Accent2:
+                val.Value = "MediumList2-Accent2";
+                break;
+              case TableDesign.MediumList2Accent3:
+                val.Value = "MediumList2-Accent3";
+                break;
+              case TableDesign.MediumList2Accent4:
+                val.Value = "MediumList2-Accent4";
+                break;
+              case TableDesign.MediumList2Accent5:
+                val.Value = "MediumList2-Accent5";
+                break;
+              case TableDesign.MediumList2Accent6:
+                val.Value = "MediumList2-Accent6";
+                break;
+              case TableDesign.MediumGrid1:
+                val.Value = "MediumGrid1";
+                break;
+              case TableDesign.MediumGrid1Accent1:
+                val.Value = "MediumGrid1-Accent1";
+                break;
+              case TableDesign.MediumGrid1Accent2:
+                val.Value = "MediumGrid1-Accent2";
+                break;
+              case TableDesign.MediumGrid1Accent3:
+                val.Value = "MediumGrid1-Accent3";
+                break;
+              case TableDesign.MediumGrid1Accent4:
+                val.Value = "MediumGrid1-Accent4";
+                break;
+              case TableDesign.MediumGrid1Accent5:
+                val.Value = "MediumGrid1-Accent5";
+                break;
+              case TableDesign.MediumGrid1Accent6:
+                val.Value = "MediumGrid1-Accent6";
+                break;
+              case TableDesign.MediumGrid2:
+                val.Value = "MediumGrid2";
+                break;
+              case TableDesign.MediumGrid2Accent1:
+                val.Value = "MediumGrid2-Accent1";
+                break;
+              case TableDesign.MediumGrid2Accent2:
+                val.Value = "MediumGrid2-Accent2";
+                break;
+              case TableDesign.MediumGrid2Accent3:
+                val.Value = "MediumGrid2-Accent3";
+                break;
+              case TableDesign.MediumGrid2Accent4:
+                val.Value = "MediumGrid2-Accent4";
+                break;
+              case TableDesign.MediumGrid2Accent5:
+                val.Value = "MediumGrid2-Accent5";
+                break;
+              case TableDesign.MediumGrid2Accent6:
+                val.Value = "MediumGrid2-Accent6";
+                break;
+              case TableDesign.MediumGrid3:
+                val.Value = "MediumGrid3";
+                break;
+              case TableDesign.MediumGrid3Accent1:
+                val.Value = "MediumGrid3-Accent1";
+                break;
+              case TableDesign.MediumGrid3Accent2:
+                val.Value = "MediumGrid3-Accent2";
+                break;
+              case TableDesign.MediumGrid3Accent3:
+                val.Value = "MediumGrid3-Accent3";
+                break;
+              case TableDesign.MediumGrid3Accent4:
+                val.Value = "MediumGrid3-Accent4";
+                break;
+              case TableDesign.MediumGrid3Accent5:
+                val.Value = "MediumGrid3-Accent5";
+                break;
+              case TableDesign.MediumGrid3Accent6:
+                val.Value = "MediumGrid3-Accent6";
+                break;
+
+              case TableDesign.DarkList:
+                val.Value = "DarkList";
+                break;
+              case TableDesign.DarkListAccent1:
+                val.Value = "DarkList-Accent1";
+                break;
+              case TableDesign.DarkListAccent2:
+                val.Value = "DarkList-Accent2";
+                break;
+              case TableDesign.DarkListAccent3:
+                val.Value = "DarkList-Accent3";
+                break;
+              case TableDesign.DarkListAccent4:
+                val.Value = "DarkList-Accent4";
+                break;
+              case TableDesign.DarkListAccent5:
+                val.Value = "DarkList-Accent5";
+                break;
+              case TableDesign.DarkListAccent6:
+                val.Value = "DarkList-Accent6";
+                break;
+
+              case TableDesign.ColorfulShading:
+                val.Value = "ColorfulShading";
+                break;
+              case TableDesign.ColorfulShadingAccent1:
+                val.Value = "ColorfulShading-Accent1";
+                break;
+              case TableDesign.ColorfulShadingAccent2:
+                val.Value = "ColorfulShading-Accent2";
+                break;
+              case TableDesign.ColorfulShadingAccent3:
+                val.Value = "ColorfulShading-Accent3";
+                break;
+              case TableDesign.ColorfulShadingAccent4:
+                val.Value = "ColorfulShading-Accent4";
+                break;
+              case TableDesign.ColorfulShadingAccent5:
+                val.Value = "ColorfulShading-Accent5";
+                break;
+              case TableDesign.ColorfulShadingAccent6:
+                val.Value = "ColorfulShading-Accent6";
+                break;
+
+              case TableDesign.ColorfulList:
+                val.Value = "ColorfulList";
+                break;
+              case TableDesign.ColorfulListAccent1:
+                val.Value = "ColorfulList-Accent1";
+                break;
+              case TableDesign.ColorfulListAccent2:
+                val.Value = "ColorfulList-Accent2";
+                break;
+              case TableDesign.ColorfulListAccent3:
+                val.Value = "ColorfulList-Accent3";
+                break;
+              case TableDesign.ColorfulListAccent4:
+                val.Value = "ColorfulList-Accent4";
+                break;
+              case TableDesign.ColorfulListAccent5:
+                val.Value = "ColorfulList-Accent5";
+                break;
+              case TableDesign.ColorfulListAccent6:
+                val.Value = "ColorfulList-Accent6";
+                break;
+
+              case TableDesign.ColorfulGrid:
+                val.Value = "ColorfulGrid";
+                break;
+              case TableDesign.ColorfulGridAccent1:
+                val.Value = "ColorfulGrid-Accent1";
+                break;
+              case TableDesign.ColorfulGridAccent2:
+                val.Value = "ColorfulGrid-Accent2";
+                break;
+              case TableDesign.ColorfulGridAccent3:
+                val.Value = "ColorfulGrid-Accent3";
+                break;
+              case TableDesign.ColorfulGridAccent4:
+                val.Value = "ColorfulGrid-Accent4";
+                break;
+              case TableDesign.ColorfulGridAccent5:
+                val.Value = "ColorfulGrid-Accent5";
+                break;
+              case TableDesign.ColorfulGridAccent6:
+                val.Value = "ColorfulGrid-Accent6";
+                break;
+
+              default:
+                break;
+            }
           }
-        }
-        else
-        {
-          switch( _design )
+
+          if( Document._styles == null )
           {
-            case TableDesign.TableNormal:
-              val.Value = "TableNormal";
-              break;
-            case TableDesign.TableGrid:
-              val.Value = "TableGrid";
-              break;
-            case TableDesign.LightShading:
-              val.Value = "LightShading";
-              break;
-            case TableDesign.LightShadingAccent1:
-              val.Value = "LightShading-Accent1";
-              break;
-            case TableDesign.LightShadingAccent2:
-              val.Value = "LightShading-Accent2";
-              break;
-            case TableDesign.LightShadingAccent3:
-              val.Value = "LightShading-Accent3";
-              break;
-            case TableDesign.LightShadingAccent4:
-              val.Value = "LightShading-Accent4";
-              break;
-            case TableDesign.LightShadingAccent5:
-              val.Value = "LightShading-Accent5";
-              break;
-            case TableDesign.LightShadingAccent6:
-              val.Value = "LightShading-Accent6";
-              break;
-            case TableDesign.LightList:
-              val.Value = "LightList";
-              break;
-            case TableDesign.LightListAccent1:
-              val.Value = "LightList-Accent1";
-              break;
-            case TableDesign.LightListAccent2:
-              val.Value = "LightList-Accent2";
-              break;
-            case TableDesign.LightListAccent3:
-              val.Value = "LightList-Accent3";
-              break;
-            case TableDesign.LightListAccent4:
-              val.Value = "LightList-Accent4";
-              break;
-            case TableDesign.LightListAccent5:
-              val.Value = "LightList-Accent5";
-              break;
-            case TableDesign.LightListAccent6:
-              val.Value = "LightList-Accent6";
-              break;
-            case TableDesign.LightGrid:
-              val.Value = "LightGrid";
-              break;
-            case TableDesign.LightGridAccent1:
-              val.Value = "LightGrid-Accent1";
-              break;
-            case TableDesign.LightGridAccent2:
-              val.Value = "LightGrid-Accent2";
-              break;
-            case TableDesign.LightGridAccent3:
-              val.Value = "LightGrid-Accent3";
-              break;
-            case TableDesign.LightGridAccent4:
-              val.Value = "LightGrid-Accent4";
-              break;
-            case TableDesign.LightGridAccent5:
-              val.Value = "LightGrid-Accent5";
-              break;
-            case TableDesign.LightGridAccent6:
-              val.Value = "LightGrid-Accent6";
-              break;
-            case TableDesign.MediumShading1:
-              val.Value = "MediumShading1";
-              break;
-            case TableDesign.MediumShading1Accent1:
-              val.Value = "MediumShading1-Accent1";
-              break;
-            case TableDesign.MediumShading1Accent2:
-              val.Value = "MediumShading1-Accent2";
-              break;
-            case TableDesign.MediumShading1Accent3:
-              val.Value = "MediumShading1-Accent3";
-              break;
-            case TableDesign.MediumShading1Accent4:
-              val.Value = "MediumShading1-Accent4";
-              break;
-            case TableDesign.MediumShading1Accent5:
-              val.Value = "MediumShading1-Accent5";
-              break;
-            case TableDesign.MediumShading1Accent6:
-              val.Value = "MediumShading1-Accent6";
-              break;
-            case TableDesign.MediumShading2:
-              val.Value = "MediumShading2";
-              break;
-            case TableDesign.MediumShading2Accent1:
-              val.Value = "MediumShading2-Accent1";
-              break;
-            case TableDesign.MediumShading2Accent2:
-              val.Value = "MediumShading2-Accent2";
-              break;
-            case TableDesign.MediumShading2Accent3:
-              val.Value = "MediumShading2-Accent3";
-              break;
-            case TableDesign.MediumShading2Accent4:
-              val.Value = "MediumShading2-Accent4";
-              break;
-            case TableDesign.MediumShading2Accent5:
-              val.Value = "MediumShading2-Accent5";
-              break;
-            case TableDesign.MediumShading2Accent6:
-              val.Value = "MediumShading2-Accent6";
-              break;
-            case TableDesign.MediumList1:
-              val.Value = "MediumList1";
-              break;
-            case TableDesign.MediumList1Accent1:
-              val.Value = "MediumList1-Accent1";
-              break;
-            case TableDesign.MediumList1Accent2:
-              val.Value = "MediumList1-Accent2";
-              break;
-            case TableDesign.MediumList1Accent3:
-              val.Value = "MediumList1-Accent3";
-              break;
-            case TableDesign.MediumList1Accent4:
-              val.Value = "MediumList1-Accent4";
-              break;
-            case TableDesign.MediumList1Accent5:
-              val.Value = "MediumList1-Accent5";
-              break;
-            case TableDesign.MediumList1Accent6:
-              val.Value = "MediumList1-Accent6";
-              break;
-            case TableDesign.MediumList2:
-              val.Value = "MediumList2";
-              break;
-            case TableDesign.MediumList2Accent1:
-              val.Value = "MediumList2-Accent1";
-              break;
-            case TableDesign.MediumList2Accent2:
-              val.Value = "MediumList2-Accent2";
-              break;
-            case TableDesign.MediumList2Accent3:
-              val.Value = "MediumList2-Accent3";
-              break;
-            case TableDesign.MediumList2Accent4:
-              val.Value = "MediumList2-Accent4";
-              break;
-            case TableDesign.MediumList2Accent5:
-              val.Value = "MediumList2-Accent5";
-              break;
-            case TableDesign.MediumList2Accent6:
-              val.Value = "MediumList2-Accent6";
-              break;
-            case TableDesign.MediumGrid1:
-              val.Value = "MediumGrid1";
-              break;
-            case TableDesign.MediumGrid1Accent1:
-              val.Value = "MediumGrid1-Accent1";
-              break;
-            case TableDesign.MediumGrid1Accent2:
-              val.Value = "MediumGrid1-Accent2";
-              break;
-            case TableDesign.MediumGrid1Accent3:
-              val.Value = "MediumGrid1-Accent3";
-              break;
-            case TableDesign.MediumGrid1Accent4:
-              val.Value = "MediumGrid1-Accent4";
-              break;
-            case TableDesign.MediumGrid1Accent5:
-              val.Value = "MediumGrid1-Accent5";
-              break;
-            case TableDesign.MediumGrid1Accent6:
-              val.Value = "MediumGrid1-Accent6";
-              break;
-            case TableDesign.MediumGrid2:
-              val.Value = "MediumGrid2";
-              break;
-            case TableDesign.MediumGrid2Accent1:
-              val.Value = "MediumGrid2-Accent1";
-              break;
-            case TableDesign.MediumGrid2Accent2:
-              val.Value = "MediumGrid2-Accent2";
-              break;
-            case TableDesign.MediumGrid2Accent3:
-              val.Value = "MediumGrid2-Accent3";
-              break;
-            case TableDesign.MediumGrid2Accent4:
-              val.Value = "MediumGrid2-Accent4";
-              break;
-            case TableDesign.MediumGrid2Accent5:
-              val.Value = "MediumGrid2-Accent5";
-              break;
-            case TableDesign.MediumGrid2Accent6:
-              val.Value = "MediumGrid2-Accent6";
-              break;
-            case TableDesign.MediumGrid3:
-              val.Value = "MediumGrid3";
-              break;
-            case TableDesign.MediumGrid3Accent1:
-              val.Value = "MediumGrid3-Accent1";
-              break;
-            case TableDesign.MediumGrid3Accent2:
-              val.Value = "MediumGrid3-Accent2";
-              break;
-            case TableDesign.MediumGrid3Accent3:
-              val.Value = "MediumGrid3-Accent3";
-              break;
-            case TableDesign.MediumGrid3Accent4:
-              val.Value = "MediumGrid3-Accent4";
-              break;
-            case TableDesign.MediumGrid3Accent5:
-              val.Value = "MediumGrid3-Accent5";
-              break;
-            case TableDesign.MediumGrid3Accent6:
-              val.Value = "MediumGrid3-Accent6";
-              break;
-
-            case TableDesign.DarkList:
-              val.Value = "DarkList";
-              break;
-            case TableDesign.DarkListAccent1:
-              val.Value = "DarkList-Accent1";
-              break;
-            case TableDesign.DarkListAccent2:
-              val.Value = "DarkList-Accent2";
-              break;
-            case TableDesign.DarkListAccent3:
-              val.Value = "DarkList-Accent3";
-              break;
-            case TableDesign.DarkListAccent4:
-              val.Value = "DarkList-Accent4";
-              break;
-            case TableDesign.DarkListAccent5:
-              val.Value = "DarkList-Accent5";
-              break;
-            case TableDesign.DarkListAccent6:
-              val.Value = "DarkList-Accent6";
-              break;
-
-            case TableDesign.ColorfulShading:
-              val.Value = "ColorfulShading";
-              break;
-            case TableDesign.ColorfulShadingAccent1:
-              val.Value = "ColorfulShading-Accent1";
-              break;
-            case TableDesign.ColorfulShadingAccent2:
-              val.Value = "ColorfulShading-Accent2";
-              break;
-            case TableDesign.ColorfulShadingAccent3:
-              val.Value = "ColorfulShading-Accent3";
-              break;
-            case TableDesign.ColorfulShadingAccent4:
-              val.Value = "ColorfulShading-Accent4";
-              break;
-            case TableDesign.ColorfulShadingAccent5:
-              val.Value = "ColorfulShading-Accent5";
-              break;
-            case TableDesign.ColorfulShadingAccent6:
-              val.Value = "ColorfulShading-Accent6";
-              break;
-
-            case TableDesign.ColorfulList:
-              val.Value = "ColorfulList";
-              break;
-            case TableDesign.ColorfulListAccent1:
-              val.Value = "ColorfulList-Accent1";
-              break;
-            case TableDesign.ColorfulListAccent2:
-              val.Value = "ColorfulList-Accent2";
-              break;
-            case TableDesign.ColorfulListAccent3:
-              val.Value = "ColorfulList-Accent3";
-              break;
-            case TableDesign.ColorfulListAccent4:
-              val.Value = "ColorfulList-Accent4";
-              break;
-            case TableDesign.ColorfulListAccent5:
-              val.Value = "ColorfulList-Accent5";
-              break;
-            case TableDesign.ColorfulListAccent6:
-              val.Value = "ColorfulList-Accent6";
-              break;
-
-            case TableDesign.ColorfulGrid:
-              val.Value = "ColorfulGrid";
-              break;
-            case TableDesign.ColorfulGridAccent1:
-              val.Value = "ColorfulGrid-Accent1";
-              break;
-            case TableDesign.ColorfulGridAccent2:
-              val.Value = "ColorfulGrid-Accent2";
-              break;
-            case TableDesign.ColorfulGridAccent3:
-              val.Value = "ColorfulGrid-Accent3";
-              break;
-            case TableDesign.ColorfulGridAccent4:
-              val.Value = "ColorfulGrid-Accent4";
-              break;
-            case TableDesign.ColorfulGridAccent5:
-              val.Value = "ColorfulGrid-Accent5";
-              break;
-            case TableDesign.ColorfulGridAccent6:
-              val.Value = "ColorfulGrid-Accent6";
-              break;
-
-            default:
-              break;
+            PackagePart word_styles = Document._package.GetPart( new Uri( "/word/styles.xml", UriKind.Relative ) );
+            using( TextReader tr = new StreamReader( word_styles.GetStream() ) )
+              Document._styles = XDocument.Load( tr );
           }
-        }
 
-        if( Document._styles == null )
-        {
-          PackagePart word_styles = Document._package.GetPart( new Uri( "/word/styles.xml", UriKind.Relative ) );
-          using( TextReader tr = new StreamReader( word_styles.GetStream() ) )
-            Document._styles = XDocument.Load( tr );
-        }
-
-        var tableStyle =
-        (
-            from e in Document._styles.Descendants()
-            let styleId = e.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) )
-            where ( styleId != null && styleId.Value == val.Value )
-            select e
-        ).FirstOrDefault();
-
-        if( tableStyle == null )
-        {
-          XDocument external_style_doc = HelperFunctions.DecompressXMLResource( "Xceed.Document.NET.Resources.styles.xml.gz" );
-
-          var styleElement =
+          var tableStyle =
           (
-              from e in external_style_doc.Descendants()
+              from e in Document._styles.Descendants()
               let styleId = e.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) )
               where ( styleId != null && styleId.Value == val.Value )
               select e
           ).FirstOrDefault();
 
-          if( styleElement != null )
-            Document._styles.Element( XName.Get( "styles", Document.w.NamespaceName ) ).Add( styleElement );
+          if( tableStyle == null )
+          {
+            XDocument external_style_doc = HelperFunctions.DecompressXMLResource( HelperFunctions.GetResources( ResourceType.Styles ) );
+
+            var styleElement =
+            (
+                from e in external_style_doc.Descendants()
+                let styleId = e.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) )
+                where ( styleId != null && styleId.Value == val.Value )
+                select e
+            ).FirstOrDefault();
+
+            if( styleElement != null )
+              Document._styles.Element( XName.Get( "styles", Document.w.NamespaceName ) ).Add( styleElement );
+          }
         }
       }
     }
@@ -924,7 +932,7 @@ namespace Xceed.Document.NET
         foreach( var column in columns )
         {
           string value = column.GetAttribute( XName.Get( "w", Document.w.NamespaceName ) );
-          columnWidths.Add( Convert.ToDouble( value, new CultureInfo( "en-US" ) ) );
+          columnWidths.Add( Convert.ToDouble( value, new CultureInfo( "en-US" ) ) / 20d );
         }
 
         return columnWidths;
@@ -1015,6 +1023,7 @@ namespace Xceed.Document.NET
                                           tableLook.GetAttribute( XName.Get( "noVBand", Document.w.NamespaceName ) ) == "1" );
         }
       }
+
     }
 
     #endregion
@@ -1398,8 +1407,8 @@ namespace Xceed.Document.NET
       var content = new List<XElement>();
       for( int i = 0; i < ColumnCount; i++ )
       {
-        var cell = ( ( _columnWidths != null ) && ( _columnWidths.Length > i ) )
-                   ? HelperFunctions.CreateTableCell( _columnWidths[ i ] * 20 )
+        var cell = ( this.GetColumnWidth( i ) != double.NaN )
+                   ? HelperFunctions.CreateTableCell( this.GetColumnWidth( i ) * 20 )
                    : HelperFunctions.CreateTableCell();
         content.Add( cell );
       }
@@ -1549,18 +1558,26 @@ namespace Xceed.Document.NET
 
     public void SetWidths( float[] widths )
     {
-      _columnWidths = widths;
+      if( widths == null )
+        return;
 
-      for( int i = 0; i < this.Rows.Count; ++i )
+      var totalTableWidth = widths.Sum();
+      var availableWidth = this.Document.PageWidth - this.Document.MarginLeft - this.Document.MarginRight;
+      // Using autoFit and total columns size exceed page size => use a percentage of the page.
+      if( ( this.AutoFit != AutoFit.Fixed ) && ( totalTableWidth > availableWidth ) )
       {
-        var row = this.Rows[ i ];
-
-        for( int j = 0; j < widths.Length; ++j )
+        var newWidths = new List<float>( widths.Length );
+        widths.ToList().ForEach( pWidth =>
         {
-          if( row.Cells.Count > j )
-          {
-            row.Cells[ j ].Width = widths[ j ];
-          }
+          newWidths.Add( pWidth / totalTableWidth * 100 );
+        } );
+        this.SetWidthsPercentage( newWidths.ToArray(), availableWidth );
+      }
+      else
+      {
+        for( int i = 0; i < widths.Length; ++i )
+        {
+          this.SetColumnWidth( i, widths[ i ] );
         }
       }
     }
@@ -1575,7 +1592,11 @@ namespace Xceed.Document.NET
       {
         widths.Add( ( pWidth * totalWidth.Value / 100 ) * ( 96 / 72 ) );
       } );
-      SetWidths( widths.ToArray() );
+      //Case 173653 : Using SetColumnWidth instead of SetWidths() to update gridCol in XML.
+      for( int i = 0; i < widths.Count; ++i )
+      {
+        this.SetColumnWidth( i, widths[ i ] );
+      }
     }
 
     /// <summary>
@@ -2124,6 +2145,7 @@ namespace Xceed.Document.NET
       if( tblPr == null )
       {
         // uses default border style
+        return b;
       }
 
       /*
@@ -2134,6 +2156,7 @@ namespace Xceed.Document.NET
       if( tblBorders == null )
       {
         // uses default border style
+        return b;
       }
 
       /*
@@ -2148,6 +2171,7 @@ namespace Xceed.Document.NET
       if( tblBorderType == null )
       {
         // uses default border style
+        return b;
       }
 
       // The val attribute is used for the border style
@@ -2270,7 +2294,7 @@ namespace Xceed.Document.NET
 
     public Double GetColumnWidth( Int32 columnIndex )
     {
-      List<Double> columnWidths = ColumnWidths;
+      List<Double> columnWidths = this.ColumnWidths;
       if( columnWidths == null || columnIndex > columnWidths.Count - 1 )
         return Double.NaN;
 
@@ -2288,7 +2312,7 @@ namespace Xceed.Document.NET
         columnWidths = new List<Double>();
         foreach( Cell c in Rows[ Rows.Count - 1 ].Cells )
         {
-          columnWidths.Add( c.Width * 20 );
+          columnWidths.Add( c.Width );
         }
       }
 
@@ -2318,7 +2342,7 @@ namespace Xceed.Document.NET
           newWidth = width;
         }
 
-        var newColumn = new XElement( XName.Get( "gridCol", Document.w.NamespaceName ), new XAttribute( XName.Get( "w", Document.w.NamespaceName ), newWidth ) );
+        var newColumn = new XElement( XName.Get( "gridCol", Document.w.NamespaceName ), new XAttribute( XName.Get( "w", Document.w.NamespaceName ), newWidth * 20d ) );
         grid?.Add( newColumn );
         index += 1;
       }
@@ -2361,7 +2385,7 @@ namespace Xceed.Document.NET
 
       side.RemoveAttributes();
       // Set value and side for cell Margin
-      side.Add( new XAttribute( XName.Get( "w", Document.w.NamespaceName ), margin ) );
+      side.Add( new XAttribute( XName.Get( "w", Document.w.NamespaceName ), margin * 20d ) );
       side.Add( new XAttribute( XName.Get( "type", Document.w.NamespaceName ), "dxa" ) );
     }
 
@@ -2556,6 +2580,32 @@ namespace Xceed.Document.NET
     }
 
     #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   }
 
   /// <summary>
@@ -3158,13 +3208,13 @@ namespace Xceed.Document.NET
           if( type.Value == "pct" )
           {
             if( this._row._table.ColumnWidths != null )
-              return ( ( widthInWordUnits / 5000d ) * this._row._table.ColumnWidths.Sum() ) / 20;
+              return ( ( widthInWordUnits / 5000d ) * this._row._table.ColumnWidths.Sum() );
           }
           else if( type.Value == "auto" )
           {
             var cellIndex = this._row.Cells.FindIndex( x => x.Xml == this.Xml );
             if( ( cellIndex >= 0 ) && ( this._row._table.ColumnWidths != null ) )
-              return this._row._table.ColumnWidths[ cellIndex ] / 20;
+              return this._row._table.ColumnWidths[ cellIndex ];
           }
         }
         // Using 20 to match Document._pageSizeMultiplier.
@@ -3943,6 +3993,7 @@ namespace Xceed.Document.NET
       if( tcPr == null )
       {
         // uses default border style
+        return b;
       }
 
       /*
@@ -3953,6 +4004,7 @@ namespace Xceed.Document.NET
       if( tcBorders == null )
       {
         // uses default border style
+        return b;
       }
 
       /*
@@ -3978,6 +4030,7 @@ namespace Xceed.Document.NET
       if( tcBorderType == null )
       {
         // uses default border style
+        return b;
       }
 
       // The val attribute is used for the border style

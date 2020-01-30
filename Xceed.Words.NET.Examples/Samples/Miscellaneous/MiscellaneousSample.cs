@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Miscellaneous Sample Application
-Copyright (c) 2009-2018 - Xceed Software Inc.
+Copyright (c) 2009-2019 - Xceed Software Inc.
 
 This application demonstrates how to create docs file by using the most common
 features of the API from the Xceed Words for .NET.
@@ -64,7 +64,7 @@ namespace Xceed.Words.NET.Examples
       {
         // Create a rotated picture from existing image.
         var image = document.AddImage( MiscellaneousSample.MiscellaneousSampleResourcesDirectory + @"cupcake.png" );
-        var picture = image.CreatePicture();
+        var picture = image.CreatePicture( 188, 188 );
         picture.Rotation = 20;
 
         // Create an hyperlink.
@@ -138,7 +138,7 @@ namespace Xceed.Words.NET.Examples
         headerFirstTable.AutoFit = AutoFit.Window;
         var upperLeftParagraph = oddHeader.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs[ 0 ];
         var logo = document.AddImage( MiscellaneousSample.MiscellaneousSampleResourcesDirectory + @"Phone.png" );
-        upperLeftParagraph.AppendPicture( logo.CreatePicture( 30, 100 ) );
+        upperLeftParagraph.AppendPicture( logo.CreatePicture( 22, 75 ) );
         upperLeftParagraph.Alignment = Alignment.left;
 
         // Define the pages header's text in a Table. Odd and even pages will have the same footers.
@@ -153,7 +153,7 @@ namespace Xceed.Words.NET.Examples
         footerFirstTable.Design = TableDesign.ColorfulGrid;
         footerFirstTable.AutoFit = AutoFit.Window;
         var lowerRightParagraph = oddFooter.Tables[ 0 ].Rows[ 0 ].Cells[ 1 ].Paragraphs[ 0 ];
-        lowerRightParagraph.AppendPicture( logo.CreatePicture( 30, 100 ) );
+        lowerRightParagraph.AppendPicture( logo.CreatePicture( 22, 75 ) );
         lowerRightParagraph.Alignment = Alignment.right;
 
         // Define the pages footer's text in a Table
@@ -267,7 +267,7 @@ namespace Xceed.Words.NET.Examples
       {
         paragraphWithDefaultLogo.Pictures.First().Remove();
         var newLogo = templateDoc.AddImage( MiscellaneousSample.MiscellaneousSampleResourcesDirectory + @"Phone.png" );
-        paragraphWithDefaultLogo.AppendPicture( newLogo.CreatePicture( 60, 180 ) );
+        paragraphWithDefaultLogo.AppendPicture( newLogo.CreatePicture( 45, 135 ) );
       }
 
       // Fill the details table.

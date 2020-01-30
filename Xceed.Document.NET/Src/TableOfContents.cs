@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -14,6 +14,8 @@
 
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -29,7 +31,7 @@ namespace Xceed.Document.NET
     #region Private Constants
 
     private const string HeaderStyle = "TOCHeading";
-    private const int RightTabPos = 9350;
+    private const int RightTabPos = 9010;
 
     #endregion
 
@@ -42,11 +44,35 @@ namespace Xceed.Document.NET
       return new TableOfContents( document, xml, headerStyle );
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     #endregion
 
-    #region Private Methods
+    #region Private Methods   
 
-    private void InitElement( string elementName, Document document, string headerStyle = "" )
+    private static void InitElement( string elementName, Document document, string headerStyle = "" )
     {
       if( elementName == "updateFields" )
       {
@@ -58,37 +84,37 @@ namespace Xceed.Document.NET
       }
       else if( elementName == "styles" )
       {
-        if( !HasStyle( document, headerStyle, "paragraph" ) )
+        if( !TableOfContents.HasStyle( document, headerStyle, "paragraph" ) )
         {
           var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsHeadingStyleBase, headerStyle ?? HeaderStyle ) ) );
           var xml = XElement.Load( reader );
           document._styles.Root.Add( xml );
         }
-        if( !HasStyle( document, "TOC1", "paragraph" ) )
+        if( !TableOfContents.HasStyle( document, "TOC1", "paragraph" ) )
         {
-          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC1", "toc 1" ) ) );
+          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC1", "toc 1", 0 ) ) );
           var xml = XElement.Load( reader );
           document._styles.Root.Add( xml );
         }
-        if( !HasStyle( document, "TOC2", "paragraph" ) )
+        if( !TableOfContents.HasStyle( document, "TOC2", "paragraph" ) )
         {
-          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC2", "toc 2" ) ) );
+          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC2", "toc 2", XmlTemplates.TableOfContentsElementDefaultIndentation ) ) );
           var xml = XElement.Load( reader );
           document._styles.Root.Add( xml );
         }
-        if( !HasStyle( document, "TOC3", "paragraph" ) )
+        if( !TableOfContents.HasStyle( document, "TOC3", "paragraph" ) )
         {
-          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC3", "toc 3" ) ) );
+          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC3", "toc 3", XmlTemplates.TableOfContentsElementDefaultIndentation * 2 ) ) );
           var xml = XElement.Load( reader );
           document._styles.Root.Add( xml );
         }
-        if( !HasStyle( document, "TOC4", "paragraph" ) )
+        if( !TableOfContents.HasStyle( document, "TOC4", "paragraph" ) )
         {
-          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC4", "toc 4" ) ) );
+          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC4", "toc 4", XmlTemplates.TableOfContentsElementDefaultIndentation * 3 ) ) );
           var xml = XElement.Load( reader );
           document._styles.Root.Add( xml );
         }
-        if( !HasStyle( document, "Hyperlink", "character" ) )
+        if( !TableOfContents.HasStyle( document, "Hyperlink", "character" ) )
         {
           var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsHyperLinkStyleBase ) ) );
           var xml = XElement.Load( reader );
@@ -97,7 +123,7 @@ namespace Xceed.Document.NET
       }
     }
 
-    private bool HasStyle( Document document, string value, string type )
+    private static bool HasStyle( Document document, string value, string type )
     {
       return document._styles.Descendants().Any( x => x.Name.Equals( Document.w + "style" ) && ( x.Attribute( Document.w + "type" ) == null || x.Attribute( Document.w + "type" ).Value.Equals( type ) ) && x.Attribute( Document.w + "styleId" ) != null && x.Attribute( Document.w + "styleId" ).Value.Equals( value ) );
     }
@@ -118,6 +144,65 @@ namespace Xceed.Document.NET
       return switchString;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     #endregion
 
     #region Constructor
@@ -125,8 +210,8 @@ namespace Xceed.Document.NET
     private TableOfContents( Document document, XElement xml, string headerStyle )
         : base( document, xml )
     {
-      InitElement( "updateFields", document );
-      InitElement( "styles", document, headerStyle );
+      TableOfContents.InitElement( "updateFields", document );
+      TableOfContents.InitElement( "styles", document, headerStyle );
     }
 
     #endregion

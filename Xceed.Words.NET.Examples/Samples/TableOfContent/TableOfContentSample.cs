@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Table of content Sample Application
-Copyright (c) 2009-2018 - Xceed Software Inc.
+Copyright (c) 2009-2019 - Xceed Software Inc.
 
 This application demonstrates how to insert a table of content when using the API 
 from the Xceed Words for .NET.
@@ -12,6 +12,7 @@ is only intended as a supplement to the documentation, and is provided
 using System;
 using System.IO;
 using Xceed.Document.NET;
+using System.Linq;
 
 namespace Xceed.Words.NET.Examples
 {
@@ -19,6 +20,7 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
+    private const string TableOfContentSampleResourcesDirectory = Program.SampleDirectory + @"TableOfContent\Resources\";
     private const string TableOfContentSampleOutputDirectory = Program.SampleDirectory + @"TableOfContent\Output\";
 
     #endregion
@@ -93,6 +95,17 @@ namespace Xceed.Words.NET.Examples
         document.Save();
         Console.WriteLine( "\tCreated: InsertTableOfContentWithReference.docx\n" );
       }
+    }
+
+    /// <summary>
+    /// Load a document containing a Table of Content, modify the document and update the Table of Content.
+    /// </summary>
+    public static void UpdateTableOfContent()
+    {
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     #endregion

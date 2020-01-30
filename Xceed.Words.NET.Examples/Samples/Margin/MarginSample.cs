@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Margin Sample Application
-Copyright (c) 2009-2018 - Xceed Software Inc.
+Copyright (c) 2009-2019 - Xceed Software Inc.
 
 This application demonstrates how to use margins, indentations and directions
 when using the API from the Xceed Words for .NET.
@@ -100,13 +100,13 @@ namespace Xceed.Words.NET.Examples
         // Add the second paragraph.
         var p2 = document.InsertParagraph( "This is the second paragraph. It contains an indentation on the first line." );        
         // Indent only the first line of the Paragraph.
-        p2.IndentationFirstLine = 1.0f;
+        p2.IndentationFirstLine = 28f;
         p2.SpacingAfter( 30 );
 
         // Add the third paragraph.
         var p3 = document.InsertParagraph( "This is the third paragraph. It contains an indentation on all the lines except the first one." );
         // Indent all the lines of the Paragraph, except the first.
-        p3.IndentationHanging = 1.0f;     
+        p3.IndentationHanging = 28f;     
 
         document.Save();
         Console.WriteLine( "\tCreated: Indentation.docx\n" );

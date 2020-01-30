@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Headers Footers Sample Application
-Copyright (c) 2009-2018 - Xceed Software Inc.
+Copyright (c) 2009-2019 - Xceed Software Inc.
 
 This application demonstrates how to create headers and footers when using the API 
 from the Xceed Words for .NET.
@@ -48,6 +48,9 @@ namespace Xceed.Words.NET.Examples
       // Create a document.
       using( var document = DocX.Create( HeaderFooterSample.HeaderFooterSampleOutputDirectory + @"HeadersFooters.docx" ) )
       {
+        // Add a title
+        document.InsertParagraph( "Headers and Footers" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
+
         // Insert a Paragraph in the first page of the document.
         var p1 = document.InsertParagraph("This is the ").Append( "first").Bold().Append(" page Content.");
         p1.SpacingBefore( 70d );

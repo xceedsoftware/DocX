@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Equation Sample Application
-Copyright (c) 2009-2018 - Xceed Software Inc.
+Copyright (c) 2009-2019 - Xceed Software Inc.
 
 This application demonstrates how to insert an equation when using the API 
 from the Xceed Words for .NET.
@@ -54,7 +54,7 @@ namespace Xceed.Words.NET.Examples
 
         document.InsertParagraph( "A Linear equation : " );
         // Insert first Equation in this document.
-        document.InsertEquation( "y = mx + b" ).SpacingAfter( 30d );
+        document.InsertEquation( "y = mx + b", Alignment.left ).SpacingAfter( 30d );
 
         document.InsertParagraph( "A Quadratic equation : " );
         // Insert second Equation in this document and add formatting.

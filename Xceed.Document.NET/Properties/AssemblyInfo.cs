@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -22,11 +22,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle( "Xceed Document for .NET" )]
-[assembly: AssemblyDescription( "This assembly implements the classes for Xceed Document for .NET." )]
+[assembly: AssemblyDescription( "This assembly implements the classes for Xceed Document for .NET Standard." )]
 
 [assembly: AssemblyCompany( "Xceed Software Inc." )]
-[assembly: AssemblyProduct( "Xceed Document for .NET" )]
-[assembly: AssemblyCopyright( "Copyright (C) Xceed Software Inc. 2009-2018" )]
+[assembly: AssemblyProduct( "Xceed Document for .NET Standard" )]
+[assembly: AssemblyCopyright( "Copyright (C) Xceed Software Inc. 2009-2019" )]
 [assembly: AssemblyCulture("")]
 
 
@@ -57,6 +57,9 @@ using System.Runtime.InteropServices;
     "1b7452ee003b80b936614cdda51db8eb6f8fde913e67d45395b480a992be17bf04744a7fe803ea" +
     "131b925dcf84a73d22264352eca7c3fcf9387f3eee1d60ac7974f04866e6c72928dc0609abe341" +
     "f92cbfb5")]
+
+
+
 
 
 

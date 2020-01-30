@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Sample Application
-Copyright (c) 2009-2018 - Xceed Software Inc.
+Copyright (c) 2009-2019 - Xceed Software Inc.
 
 This application demonstrates how to use the different features when using the API 
 from the Xceed Words for .NET.
@@ -11,18 +11,27 @@ is only intended as a supplement to the documentation, and is provided
 *************************************************************************************/
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 
 namespace Xceed.Words.NET.Examples
 {
   public class Program
   {
+#if NETCORE
+    internal const string SampleDirectory = @"..\..\..\Samples\";
+#else
     internal const string SampleDirectory = @"..\..\Samples\";
+#endif
 
     private static void Main( string[] args )
     {
 
       Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo( "en-US" );
+
+      var version = Assembly.GetExecutingAssembly().GetName().Version;
+      var versionNumber = version.Major + "." + version.Minor;
+      Console.WriteLine( "\nRunning Examples of Xceed Words for .NET version " + versionNumber + ".\n" );
 
       //Paragraphs      
       ParagraphSample.SimpleFormattedParagraphs();
@@ -30,10 +39,12 @@ namespace Xceed.Words.NET.Examples
       ParagraphSample.ForceMultiParagraphsOnSinglePage();
       ParagraphSample.TextActions();
       ParagraphSample.Heading();
+      ParagraphSample.AddObjectsFromOtherDocument();
 
       //Document
       DocumentSample.AddCustomProperties();
-      DocumentSample.ReplaceText();
+      DocumentSample.ReplaceTextWithText();
+      DocumentSample.ReplaceTextWithObjects();
       DocumentSample.ApplyTemplate();
       DocumentSample.AppendDocument();
       DocumentSample.LoadDocumentWithFilename();
@@ -56,6 +67,7 @@ namespace Xceed.Words.NET.Examples
 
       //Tables
       TableSample.InsertRowAndImageTable();
+      TableSample.AddTableWithTextWrapping();
       TableSample.TextDirectionTable();
       TableSample.CreateRowsFromTemplate();
       TableSample.ColumnsWidth();
@@ -88,6 +100,7 @@ namespace Xceed.Words.NET.Examples
       //Tale of Content
       TableOfContentSample.InsertTableOfContent();
       TableOfContentSample.InsertTableOfContentWithReference();
+      TableOfContentSample.UpdateTableOfContent();
 
       //Lines
       LineSample.InsertHorizontalLine();
@@ -108,11 +121,18 @@ namespace Xceed.Words.NET.Examples
       //PDF  
       PdfSample.ConvertToPDF();
 
+      //Shape
+      ShapeSample.AddShape();
+      ShapeSample.AddShapeWithTextWrapping();
+      ShapeSample.AddTextBox();
+      ShapeSample.AddTextBoxWithTextWrapping();
+
+      Console.WriteLine( "\nDone running Examples of Xceed Words for .NET version " + versionNumber + ".\n" );
       Console.WriteLine( "\nPress any key to exit." );
       Console.ReadKey();
     }
 
-    #region Charts
+#region Charts
 
     private class ChartData
     {
@@ -144,6 +164,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    #endregion
+#endregion
   }
 }

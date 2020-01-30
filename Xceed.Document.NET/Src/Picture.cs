@@ -2,10 +2,10 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2017 Xceed Software Inc.
+   Copyright (C) 2009-2019 Xceed Software Inc.
  
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 
 namespace Xceed.Document.NET
 {
@@ -51,9 +52,7 @@ namespace Xceed.Document.NET
 
     #region Internal Members
 
-    internal const int EmusInPixel = 9525;  // Result of : 914400 EMUs per inch / 96 pixel per inch.
-
-    internal Dictionary<PackagePart, PackageRelationship> _picture_rels;
+    internal const int EmusInPixel = ( Picture.InchToEmuFactor / 72 ); // 12700, Result of : 914400 EMUs per inch / 72 pixels per inch.
 
     internal Image _img;
 
@@ -230,12 +229,12 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return Width * EmusInPixel * EmuToInchFactor;
+        return this.Width / 72d;
       }
 
       set
       {
-        Width = ( int )( value * InchToEmuFactor / EmusInPixel );
+        Width = ( int )( value * 72d );
       }
     }
 
@@ -265,44 +264,24 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return Height * EmusInPixel * EmuToInchFactor;
+        return Height / 72d;
       }
 
       set
       {
-        Height = ( int )( value * InchToEmuFactor / EmusInPixel );
+        Height = ( int )( value * 72d );
       }
     }
 
+    public Stream Stream
+    {
+      get
+      {
+        return _img.GetStream( FileMode.Open, FileAccess.Read );
+      }
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#endregion
+    #endregion
 
     #region Constructors
 
@@ -314,8 +293,6 @@ namespace Xceed.Document.NET
     /// <param name="image"></param>
     internal Picture( Document document, XElement i, Image image ) : base( document, i )
     {
-      _picture_rels = new Dictionary<PackagePart, PackageRelationship>();
-
       _img = image;
 
       var imageId =
@@ -331,7 +308,7 @@ namespace Xceed.Document.NET
                 from e in Xml.Descendants()
                 where e.Name.LocalName.Equals( "imagedata" )
                 select e.Attribute( XName.Get( "id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships" ) ).Value
-             ).SingleOrDefault();
+             ).FirstOrDefault();
 
       var nameToFind =
       (
@@ -379,9 +356,14 @@ namespace Xceed.Document.NET
         if( style != null )
         {
           var widthString = style.Value.Substring( style.Value.IndexOf( "width:" ) + 6 );
-          var widthValueString = widthString.Substring( 0, widthString.IndexOf( "pt" ) );
-          var widthDouble = double.Parse( widthValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
-          _cx = System.Convert.ToInt32( widthDouble );
+          var widthIndex = widthString.IndexOf( "pt" );
+          Debug.Assert( widthIndex >= 0, "widthString has a wrong format." );
+          if( widthIndex >= 0 )
+          {
+            var widthValueString = widthString.Substring( 0, widthIndex );
+            var widthDouble = double.Parse( widthValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
+            _cx = System.Convert.ToInt32( widthDouble );
+          }
         }
       }
 
@@ -406,9 +388,14 @@ namespace Xceed.Document.NET
         if( style != null )
         {
           var heightString = style.Value.Substring( style.Value.IndexOf( "height:" ) + 7 );
-          var heightValueString = heightString.Substring( 0, heightString.IndexOf( "pt" ) );
-          var heightDouble = double.Parse( heightValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
-          _cy = System.Convert.ToInt32( heightDouble );
+          var heightIndex = heightString.IndexOf( "pt" );
+          Debug.Assert( heightIndex >= 0, "heightString has a wrong format." );
+          if( heightIndex >= 0 )
+          {
+            var heightValueString = heightString.Substring( 0, heightIndex );
+            var heightDouble = double.Parse( heightValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
+            _cy = System.Convert.ToInt32( heightDouble );
+          }
         }
       }
 
@@ -417,19 +404,21 @@ namespace Xceed.Document.NET
           from d in Xml.Descendants()
           where d.Name.LocalName.Equals( "xfrm" )
           select d
-      ).SingleOrDefault();
+      ).FirstOrDefault();
 
       _prstGeom =
       (
           from d in Xml.Descendants()
           where d.Name.LocalName.Equals( "prstGeom" )
           select d
-      ).SingleOrDefault();
+      ).FirstOrDefault();
 
       if( _xfrm != null )
       {
         _rotation = _xfrm.Attribute( XName.Get( "rot" ) ) == null ? 0 : uint.Parse( _xfrm.Attribute( XName.Get( "rot" ) ).Value );
       }
+
+
 
     }
 
@@ -535,6 +524,7 @@ namespace Xceed.Document.NET
       _prstGeom.Attribute( XName.Get( "prst" ) ).Value = shape.ToString();
     }
 
+    #endregion
 
 
 
@@ -555,7 +545,16 @@ namespace Xceed.Document.NET
 
 
 
-#endregion
+
+
+
+
+
+
+
+
+
+
   }
 
 

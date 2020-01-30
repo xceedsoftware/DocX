@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Paragraph Sample Application
-Copyright (c) 2009-2018 - Xceed Software Inc.
+Copyright (c) 2009-2019 - Xceed Software Inc.
 
 This application demonstrates how to create, format and position paragraphs
 when using the API from the Xceed Words for .NET.
@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Xceed.Document.NET;
 
@@ -27,6 +28,7 @@ namespace Xceed.Words.NET.Examples
         { "COST", "$13.95" },
     };
 
+    private const string ParagraphSampleResourcesDirectory = Program.SampleDirectory + @"Paragraph\Resources\";
     private const string ParagraphSampleOutputDirectory = Program.SampleDirectory + @"Paragraph\Output\";
 
     #endregion
@@ -267,6 +269,69 @@ namespace Xceed.Words.NET.Examples
 
         document.Save();
         Console.WriteLine( "\tCreated: Heading.docx\n" );
+      }
+    }
+
+    /// <summary>
+    /// Add objects from another document.
+    /// </summary>
+    public static void AddObjectsFromOtherDocument()
+    {
+      Console.WriteLine( "\tAddObjectsFromOtherDocument()" );
+
+      // Load a template document.
+      using( var templateDoc = DocX.Load( ParagraphSample.ParagraphSampleResourcesDirectory + @"Template.docx" ) )
+      {
+        // Create a document.
+        using( var document = DocX.Create( ParagraphSample.ParagraphSampleOutputDirectory + @"AddObjectsFromOtherDocument.docx" ) )
+        {
+          // Add a title.
+          document.InsertParagraph( "Adding objects from another document" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
+
+          // Insert a Paragraph into this document.
+          var p = document.InsertParagraph();
+
+          // Append some text and add formatting.
+          p.Append( "This is a simple paragraph containing an image added from another document:" )
+          .Font( new Xceed.Document.NET.Font( "Arial" ) )
+          .FontSize( 15 )
+          .SpacingAfter( 40d );
+
+          // Get the image from the other document.
+          var pictureToAdd = templateDoc.Pictures.FirstOrDefault();
+          // Add the image in the new document.
+          var newImage = document.AddImage( pictureToAdd.Stream );
+          var newPicture = newImage.CreatePicture( pictureToAdd.Height, pictureToAdd.Width );
+          p.AppendPicture( newPicture );
+
+          // Insert a Paragraph into this document.
+          var p2 = document.InsertParagraph();
+
+          // Append some text and add formatting.
+          p2.Append( "This is a simple paragraph added from another document, keeping its formatting:" )
+          .Font( new Xceed.Document.NET.Font( "Arial" ) )
+          .FontSize( 15 );
+
+          // Get the paragraph from the other document.
+          var paragraphToAdd = templateDoc.Paragraphs.FirstOrDefault( x => x.Text.Contains( "Main" ) );
+          // Add the paragraph in the new document.
+          p2.InsertParagraphAfterSelf( paragraphToAdd ).SpacingAfter( 40d );
+
+          // Insert a Paragraph into this document.
+          var p3 = document.InsertParagraph();
+
+          // Append some text and add formatting.
+          p3.Append( "This is a table added from another document, keeping its formatting:" )
+          .Font( new Xceed.Document.NET.Font( "Arial" ) )
+          .FontSize( 15 );
+
+          // Get the table from the other document.
+          var tableToAdd = templateDoc.Tables.FirstOrDefault();
+          // Add the table in the new document.
+          p3.InsertTableAfterSelf( tableToAdd );
+
+          document.Save();
+        }
       }
     }
 
