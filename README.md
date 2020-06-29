@@ -18,6 +18,11 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * has professional technical support included in the subscription
 * is available on .NET Standard 2.0 for .NET Core 2.0 Applications
 * can automatically update fields from a document
+* Insert html/rtf text (with tags), or html/rtf document, to a Word document
+* Clone lists or tables
+* Add or modify checkboxes
+* Set transparency in pictures
+* Create formatted hyperlinks based on a referenced hyperlinks
 
 ## What else do I need?
 
