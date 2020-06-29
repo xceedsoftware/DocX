@@ -179,6 +179,31 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td>YES</td>
 </tr>
 <tr>
+<td>Insert html/rtf text (with tags), or html/rtf document, to a Word document</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Clone lists or tables</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Add or modify checkboxes</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Set transparency in pictures</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Create formatted hyperlinks based on a referenced hyperlinks</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
 <td>Available on .net standard 2.0+ for .net core 2.0+ applications</td>
 <td></td>
 <td>YES</td>
