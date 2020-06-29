@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Paragraph Sample Application
-Copyright (c) 2009-2019 - Xceed Software Inc.
+Copyright (c) 2009-2020 - Xceed Software Inc.
 
 This application demonstrates how to create, format and position paragraphs
 when using the API from the Xceed Words for .NET.
@@ -59,7 +59,7 @@ namespace Xceed.Words.NET.Examples
       {
         document.SetDefaultFont( new Document.NET.Font( "Arial" ), 15d, Color.Green );
         document.PageBackground = Color.LightGray;
-        document.PageBorders = new Borders( new Border( BorderStyle.Tcbs_double, BorderSize.five, 20, Color.Blue ) );
+        document.PageBorders = new Borders( new Border( BorderStyle.Tcbs_double, BorderSize.five, 20f, Color.Blue ) );
 
         // Add a title
         document.InsertParagraph( "Formatted paragraphs" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
@@ -334,6 +334,38 @@ namespace Xceed.Words.NET.Examples
         }
       }
     }
+
+    /// <summary>
+    /// Create a document and add html text to it.
+    /// </summary>
+    public static void AddHtml()
+    {
+
+
+
+
+
+
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    /// <summary>
+    /// Create a document and add rtf text to it.
+    /// </summary>
+    public static void AddRtf()
+    {
+
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
 
     #endregion
 

@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Parallel Sample Application
-Copyright (c) 2009-2019 - Xceed Software Inc.
+Copyright (c) 2009-2020 - Xceed Software Inc.
 
 This application demonstrates how to do parallel actions when using the API 
 from the Xceed Words for .NET.
@@ -75,7 +75,7 @@ namespace Xceed.Words.NET.Examples
           if( oldPicture != null )
           {
             oldPicture.Remove();
-            p.AppendPicture( newImage.CreatePicture( 112, 112 ) );
+            p.AppendPicture( newImage.CreatePicture( 112f, 112f ) );
           }
         }
 

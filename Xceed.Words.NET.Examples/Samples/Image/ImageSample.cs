@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Image Sample Application
-Copyright (c) 2009-2019 - Xceed Software Inc.
+Copyright (c) 2009-2020 - Xceed Software Inc.
 
 This application demonstrates how to create, copy or modify a picture when using the API 
 from the Xceed Words for .NET.
@@ -58,13 +58,13 @@ namespace Xceed.Words.NET.Examples
 
         // Add a simple image from disk.
         var image = document.AddImage( ImageSample.ImageSampleResourcesDirectory + @"balloon.jpg" );
-        var picture = image.CreatePicture( 112, 112 );
+        var picture = image.CreatePicture( 112.5f, 112.5f );
         var p = document.InsertParagraph( "Here is a simple picture added from disk:" );
         p.AppendPicture( picture );
         p.SpacingAfter( 30 );
 
-        // Add a rotated image from disk.
-        var rotatedPicture = image.CreatePicture( 112, 112 );
+        // Add a rotated image from disk and set some alpha( 0 to 1 ).
+        var rotatedPicture = image.CreatePicture( 112f, 112f );
         rotatedPicture.Rotation = 25;
 
         var p2 = document.InsertParagraph( "Here is the same picture added from disk, but rotated:" );
@@ -73,7 +73,7 @@ namespace Xceed.Words.NET.Examples
 
         // Add a simple image from a stream
         var streamImage = document.AddImage( new FileStream( ImageSample.ImageSampleResourcesDirectory + @"balloon.jpg", FileMode.Open, FileAccess.Read ) );
-        var pictureStream = streamImage.CreatePicture( 112, 112 );
+        var pictureStream = streamImage.CreatePicture( 112f, 112f );
         var p3 = document.InsertParagraph( "Here is the same picture added from a stream:" );
         p3.AppendPicture( pictureStream );
 
@@ -108,7 +108,7 @@ namespace Xceed.Words.NET.Examples
 
         // Add a paragraph containing an image.
         var image = document.AddImage( ImageSample.ImageSampleResourcesDirectory + @"balloon.jpg" );
-        var picture = image.CreatePicture( 75, 75 );
+        var picture = image.CreatePicture( 75f, 75f );
         var p = document.InsertParagraph( "This is the first paragraph. " );
         p.AppendPicture( picture );
         p.AppendLine("It contains an image added from disk.");

@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -35,7 +36,7 @@ namespace Xceed.Document.NET
     private string _id;
     private string _name;
     private string _descr;
-    private int _cx, _cy;
+    private float _cx, _cy;
     private uint _rotation;
     private bool _hFlip, _vFlip;
     private object _pictureShape;
@@ -150,6 +151,10 @@ namespace Xceed.Document.NET
 
 
 
+
+
+
+
     /// <summary>
     /// Gets or sets the name of this Image.
     /// </summary>
@@ -206,7 +211,7 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Gets or sets the Width of this Image.
     /// </summary>
-    public int Width
+    public float Width
     {
       get
       {
@@ -225,23 +230,23 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Gets or sets the Width of this Image (in Inches)
     /// </summary>
-    public double WidthInches
+    public float WidthInches
     {
       get
       {
-        return this.Width / 72d;
+        return this.Width / 72f;
       }
 
       set
       {
-        Width = ( int )( value * 72d );
+        Width = ( value * 72f );
       }
     }
 
     /// <summary>
     /// Gets or sets the height of this Image.
     /// </summary>
-    public int Height
+    public float Height
     {
       get
       {
@@ -260,16 +265,16 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Gets or sets the Height of this Image (in Inches)
     /// </summary>
-    public double HeightInches
+    public float HeightInches
     {
       get
       {
-        return Height / 72d;
+        return Height / 72f;
       }
 
       set
       {
-        Height = ( int )( value * 72d );
+        Height = ( value * 72f );
       }
     }
 
@@ -340,10 +345,10 @@ namespace Xceed.Document.NET
           from e in Xml.Descendants()
           let a = e.Attribute( XName.Get( "cx" ) )
           where ( a != null )
-          select int.Parse( a.Value )
+          select float.Parse( a.Value )
       ).FirstOrDefault();
 
-      if( _cx == 0 )
+      if( _cx == 0f )
       {
         var style = 
         (
@@ -361,8 +366,7 @@ namespace Xceed.Document.NET
           if( widthIndex >= 0 )
           {
             var widthValueString = widthString.Substring( 0, widthIndex );
-            var widthDouble = double.Parse( widthValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
-            _cx = System.Convert.ToInt32( widthDouble );
+            _cx = float.Parse( widthValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
           }
         }
       }
@@ -372,10 +376,10 @@ namespace Xceed.Document.NET
           from e in Xml.Descendants()
           let a = e.Attribute( XName.Get( "cy" ) )
           where ( a != null )
-          select int.Parse( a.Value )
+          select float.Parse( a.Value )
       ).FirstOrDefault();
 
-      if( _cy == 0 )
+      if( _cy == 0f )
       {
         var style =
         (
@@ -393,8 +397,7 @@ namespace Xceed.Document.NET
           if( heightIndex >= 0 )
           {
             var heightValueString = heightString.Substring( 0, heightIndex );
-            var heightDouble = double.Parse( heightValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
-            _cy = System.Convert.ToInt32( heightDouble );
+            _cy = float.Parse( heightValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
           }
         }
       }
@@ -417,6 +420,7 @@ namespace Xceed.Document.NET
       {
         _rotation = _xfrm.Attribute( XName.Get( "rot" ) ) == null ? 0 : uint.Parse( _xfrm.Attribute( XName.Get( "rot" ) ).Value );
       }
+
 
 
 
@@ -506,6 +510,16 @@ namespace Xceed.Document.NET
     //    // Requires that every Image have a link to its paragraph
 
     //}
+
+    #endregion
+
+    #region Internal Methods
+
+    internal bool IsJpegImage()
+    {
+      return ( !string.IsNullOrEmpty( this.FileName ) && 
+        ( this.FileName.EndsWith( "jpg" ) || this.FileName.EndsWith( "jpeg" ) ) );
+    }
 
     #endregion
 

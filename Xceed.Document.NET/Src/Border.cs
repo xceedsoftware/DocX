@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -27,7 +28,7 @@ namespace Xceed.Document.NET
 
     public BorderStyle Tcbs { get; set; }
     public BorderSize Size { get; set; }
-    public int Space { get; set; }
+    public float Space { get; set; }
     public Color Color { get; set; }
 
     #endregion
@@ -38,11 +39,11 @@ namespace Xceed.Document.NET
     {
       this.Tcbs = BorderStyle.Tcbs_single;
       this.Size = BorderSize.one;
-      this.Space = 0;
+      this.Space = 0f;
       this.Color = Color.Black;
     }
 
-    public Border( BorderStyle tcbs, BorderSize size, int space, Color color )
+    public Border( BorderStyle tcbs, BorderSize size, float space, Color color )
     {
       this.Tcbs = tcbs;
       this.Size = size;

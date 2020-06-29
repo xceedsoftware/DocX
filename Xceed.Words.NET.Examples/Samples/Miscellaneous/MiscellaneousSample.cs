@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Miscellaneous Sample Application
-Copyright (c) 2009-2019 - Xceed Software Inc.
+Copyright (c) 2009-2020 - Xceed Software Inc.
 
 This application demonstrates how to create docs file by using the most common
 features of the API from the Xceed Words for .NET.
@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Xceed.Document.NET;
@@ -64,7 +65,7 @@ namespace Xceed.Words.NET.Examples
       {
         // Create a rotated picture from existing image.
         var image = document.AddImage( MiscellaneousSample.MiscellaneousSampleResourcesDirectory + @"cupcake.png" );
-        var picture = image.CreatePicture( 188, 188 );
+        var picture = image.CreatePicture( 188f, 188f );
         picture.Rotation = 20;
 
         // Create an hyperlink.
@@ -138,7 +139,7 @@ namespace Xceed.Words.NET.Examples
         headerFirstTable.AutoFit = AutoFit.Window;
         var upperLeftParagraph = oddHeader.Tables[ 0 ].Rows[ 0 ].Cells[ 0 ].Paragraphs[ 0 ];
         var logo = document.AddImage( MiscellaneousSample.MiscellaneousSampleResourcesDirectory + @"Phone.png" );
-        upperLeftParagraph.AppendPicture( logo.CreatePicture( 22, 75 ) );
+        upperLeftParagraph.AppendPicture( logo.CreatePicture( 22f, 75f ) );
         upperLeftParagraph.Alignment = Alignment.left;
 
         // Define the pages header's text in a Table. Odd and even pages will have the same footers.
@@ -153,7 +154,7 @@ namespace Xceed.Words.NET.Examples
         footerFirstTable.Design = TableDesign.ColorfulGrid;
         footerFirstTable.AutoFit = AutoFit.Window;
         var lowerRightParagraph = oddFooter.Tables[ 0 ].Rows[ 0 ].Cells[ 1 ].Paragraphs[ 0 ];
-        lowerRightParagraph.AppendPicture( logo.CreatePicture( 22, 75 ) );
+        lowerRightParagraph.AppendPicture( logo.CreatePicture( 22f, 75f ) );
         lowerRightParagraph.Alignment = Alignment.right;
 
         // Define the pages footer's text in a Table
@@ -267,7 +268,7 @@ namespace Xceed.Words.NET.Examples
       {
         paragraphWithDefaultLogo.Pictures.First().Remove();
         var newLogo = templateDoc.AddImage( MiscellaneousSample.MiscellaneousSampleResourcesDirectory + @"Phone.png" );
-        paragraphWithDefaultLogo.AppendPicture( newLogo.CreatePicture( 45, 135 ) );
+        paragraphWithDefaultLogo.AppendPicture( newLogo.CreatePicture( 45f, 135f ) );
       }
 
       // Fill the details table.
@@ -317,7 +318,7 @@ namespace Xceed.Words.NET.Examples
       // Calculate the total amount.
       var amountStrings = detailsTable.Rows.Select( r => r.Cells.Last().Paragraphs.Last().Text.Remove(0,1) ).ToList();
       amountStrings.RemoveAt( 0 ); // remove the header
-      var totalAmount = amountStrings.Select( s => double.Parse( s ) ).Sum();
+      var totalAmount = amountStrings.Select( s => double.Parse( s, CultureInfo.InvariantCulture ) ).Sum();
 
       // Add a Total row in the details table.
       var totalRow = detailsTable.InsertRow();

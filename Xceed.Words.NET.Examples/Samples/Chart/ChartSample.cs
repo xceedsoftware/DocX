@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Chart Sample Application
-Copyright (c) 2009-2019 - Xceed Software Inc.
+Copyright (c) 2009-2020 - Xceed Software Inc.
 
 This application demonstrates how to create a chart when using the API 
 from the Xceed Words for .NET.
@@ -83,7 +83,7 @@ namespace Xceed.Words.NET.Examples
 
         // Insert the chart into the document.
         document.InsertParagraph( "Expenses(M$) for selected categories per country" ).FontSize( 15 ).SpacingAfter( 10d );
-        document.InsertChart( c, 350, 550 );
+        document.InsertChart( c, 350f, 550f );
 
         document.Save();
         Console.WriteLine( "\tCreated: BarChart.docx\n" );
@@ -114,14 +114,17 @@ namespace Xceed.Words.NET.Examples
 
         // Create and add series
         var s1 = new Series( "Brazil" );
+        s1.Color = Color.Yellow;
         s1.Bind( brazil, "Category", "Expenses" );
         c.AddSeries( s1 );
 
         var s2 = new Series( "USA" );
+        s2.Color = Color.Blue;
         s2.Bind( usa, "Category", "Expenses" );
         c.AddSeries( s2 );
 
         var s3 = new Series( "Canada" );
+        s3.Color = Color.Red;
         s3.Bind( canada, "Category", "Expenses" );
         c.AddSeries( s3 );
 
@@ -155,12 +158,12 @@ namespace Xceed.Words.NET.Examples
         var brazil = ChartData.CreateBrazilExpenses();
 
         // Create and add series
-        var s1 = new Series( "Canada" );
+        var s1 = new Series( "Brazil" );
         s1.Bind( brazil, "Category", "Expenses" );
         c.AddSeries( s1 );
 
         // Insert chart into document
-        document.InsertParagraph( "Expenses(M$) for selected categories in Canada" ).FontSize( 15 ).SpacingAfter( 10d );
+        document.InsertParagraph( "Expenses(M$) for selected categories in Brazil" ).FontSize( 15 ).SpacingAfter( 10d );
         document.InsertChart( c );
 
         document.Save();

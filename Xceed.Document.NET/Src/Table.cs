@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -38,6 +39,7 @@ namespace Xceed.Document.NET
     private AutoFit _autofit;
     private TableDesign _design;
     private TableLook _tableLook;
+    private double _indentFromLeft;
     /// <summary>
     /// The custom design\style to apply to this table.
     /// 
@@ -237,6 +239,27 @@ namespace Xceed.Document.NET
         jc = new XElement( XName.Get( "jc", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), alignmentString ) );
         tblPr.Add( jc );
         _alignment = value;
+      }
+    }
+
+    public double IndentFromLeft
+    {
+      get
+      {
+        return _indentFromLeft / 20d;
+      }
+      set
+      {
+        _indentFromLeft = value * 20d;
+
+        var tblPr = this.Xml.Descendants( XName.Get( "tblPr", Document.w.NamespaceName ) ).First();
+        var tblInd = tblPr.Element( XName.Get( "tblInd", Document.w.NamespaceName ) );
+        if( tblInd == null )
+        {
+          tblPr.Add( new XElement( XName.Get( "tblInd", Document.w.NamespaceName ) ) );
+          tblInd = tblPr.Element( XName.Get( "tblInd", Document.w.NamespaceName ) );
+        }
+        tblInd.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), _indentFromLeft );
       }
     }
 
@@ -749,28 +772,31 @@ namespace Xceed.Document.NET
               Document._styles = XDocument.Load( tr );
           }
 
-          var tableStyle =
-          (
-              from e in Document._styles.Descendants()
-              let styleId = e.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) )
-              where ( styleId != null && styleId.Value == val.Value )
-              select e
-          ).FirstOrDefault();
-
-          if( tableStyle == null )
+          if( !string.IsNullOrEmpty( val.Value ) )
           {
-            XDocument external_style_doc = HelperFunctions.DecompressXMLResource( HelperFunctions.GetResources( ResourceType.Styles ) );
-
-            var styleElement =
+            var tableStyle =
             (
-                from e in external_style_doc.Descendants()
+                from e in Document._styles.Descendants()
                 let styleId = e.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) )
                 where ( styleId != null && styleId.Value == val.Value )
                 select e
             ).FirstOrDefault();
 
-            if( styleElement != null )
-              Document._styles.Element( XName.Get( "styles", Document.w.NamespaceName ) ).Add( styleElement );
+            if( tableStyle == null )
+            {
+              XDocument external_style_doc = HelperFunctions.DecompressXMLResource( HelperFunctions.GetResources( ResourceType.Styles ) );
+
+              var styleElement =
+              (
+                  from e in external_style_doc.Descendants()
+                  let styleId = e.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) )
+                  where ( styleId != null && styleId.Value == val.Value )
+                  select e
+              ).FirstOrDefault();
+
+              if( styleElement != null )
+                Document._styles.Element( XName.Get( "styles", Document.w.NamespaceName ) ).Add( styleElement );
+            }
           }
         }
       }
@@ -2206,7 +2232,7 @@ namespace Xceed.Document.NET
       {
         // If sz is not an int, something is wrong with this attributes value, so remove it
         int numerical_size;
-        if( !int.TryParse( sz.Value, out numerical_size ) )
+        if( !HelperFunctions.TryParseInt( sz.Value, out numerical_size ) )
         {
           sz.Remove();
         }
@@ -2257,9 +2283,9 @@ namespace Xceed.Document.NET
       }
       else
       {
-        // If space is not an int, something is wrong with this attributes value, so remove it
-        int borderspace;
-        if( !int.TryParse( space.Value, out borderspace ) )
+        // If space is not a float, something is wrong with this attributes value, so remove it
+        float borderspace;
+        if( !HelperFunctions.TryParseFloat( space.Value, out borderspace ) )
         {
           space.Remove();
           // uses default border style
@@ -2313,6 +2339,25 @@ namespace Xceed.Document.NET
         foreach( Cell c in Rows[ Rows.Count - 1 ].Cells )
         {
           columnWidths.Add( c.Width );
+        }
+
+        // When some column are NaN, use a width based on the available page width.
+        if( columnWidths.Contains( double.NaN ) )
+        {
+          var availablePageSpace = this.Document.PageWidth - this.Document.MarginLeft - this.Document.MarginRight;
+          var knownWidth = columnWidths.Where( c => !double.IsNaN( c ) );
+          var columnSpaceUsed = knownWidth.Sum();
+          var availableSpace = availablePageSpace - columnSpaceUsed;
+          var unknownWidthColumnCount = columnWidths.Count - knownWidth.Count();
+          var wantedColumnWidth = availableSpace / unknownWidthColumnCount;
+
+          for(int i = 0; i < columnWidths.Count; ++i )
+          {
+            if( double.IsNaN( columnWidths[ i ] ) )
+            {
+              columnWidths[ i ] = wantedColumnWidth;
+            }
+          }
         }
       }
 
@@ -2730,7 +2775,7 @@ namespace Xceed.Document.NET
 
         // If val is not a double, something is wrong with this attributes value, so remove it and return double.NaN;
         double heightInWordUnits;
-        if( !double.TryParse( val.Value, out heightInWordUnits ) )
+        if( !HelperFunctions.TryParseDouble( val.Value, out heightInWordUnits ) )
         {
           val.Remove();
           return double.NaN;
@@ -2910,7 +2955,7 @@ namespace Xceed.Document.NET
           XAttribute val = gridSpan.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
 
           int value;
-          if( val != null && int.TryParse( val.Value, out value ) )
+          if( val != null && HelperFunctions.TryParseInt( val.Value, out value ) )
             gridSpanSum += value - 1;
         }
 
@@ -2968,7 +3013,7 @@ namespace Xceed.Document.NET
 
       int start_value = 0;
       if( start_val != null )
-        if( int.TryParse( start_val.Value, out start_value ) )
+        if( HelperFunctions.TryParseInt( start_val.Value, out start_value ) )
           gridSpanSum += start_value - 1;
 
       // Set the val attribute to the number of merged cells.
@@ -3197,7 +3242,7 @@ namespace Xceed.Document.NET
 
         // If w is not a double, something is wrong with this attributes value, so remove it and return double.NaN;
         double widthInWordUnits;
-        if( !double.TryParse( w.Value, out widthInWordUnits ) )
+        if( !HelperFunctions.TryParseDouble( w.Value, out widthInWordUnits ) )
         {
           w.Remove();
           return double.NaN;
@@ -3320,7 +3365,7 @@ namespace Xceed.Document.NET
 
         // If w is not a double, something is wrong with this attributes value, so remove it and return double.NaN;
         double leftMarginInWordUnits;
-        if( !double.TryParse( w.Value, out leftMarginInWordUnits ) )
+        if( !HelperFunctions.TryParseDouble( w.Value, out leftMarginInWordUnits ) )
         {
           w.Remove();
           return double.NaN;
@@ -3433,7 +3478,7 @@ namespace Xceed.Document.NET
 
         // If w is not a double, something is wrong with this attributes value, so remove it and return double.NaN;
         double rightMarginInWordUnits;
-        if( !double.TryParse( w.Value, out rightMarginInWordUnits ) )
+        if( !HelperFunctions.TryParseDouble( w.Value, out rightMarginInWordUnits ) )
         {
           w.Remove();
           return double.NaN;
@@ -3546,7 +3591,7 @@ namespace Xceed.Document.NET
 
         // If w is not a double, something is wrong with this attributes value, so remove it and return double.NaN;
         double topMarginInWordUnits;
-        if( !double.TryParse( w.Value, out topMarginInWordUnits ) )
+        if( !HelperFunctions.TryParseDouble( w.Value, out topMarginInWordUnits ) )
         {
           w.Remove();
           return double.NaN;
@@ -3659,7 +3704,7 @@ namespace Xceed.Document.NET
 
         // If w is not a double, something is wrong with this attributes value, so remove it and return double.NaN;
         double bottomMarginInWordUnits;
-        if( !double.TryParse( w.Value, out bottomMarginInWordUnits ) )
+        if( !HelperFunctions.TryParseDouble( w.Value, out bottomMarginInWordUnits ) )
         {
           w.Remove();
           return double.NaN;
@@ -3807,7 +3852,7 @@ namespace Xceed.Document.NET
     }
 
     /// <summary>
-    /// Returns the Cell.GridSpan => How many cells are merged.
+    /// Returns the Cell.GridSpan => How many cells are merged horizontally.
     /// </summary>
     public int GridSpan
     {
@@ -3822,10 +3867,57 @@ namespace Xceed.Document.NET
           var gridSpanAttrValue = gridSpan.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
 
           int value;
-          if( gridSpanAttrValue != null && int.TryParse( gridSpanAttrValue.Value, out value ) )
+          if( gridSpanAttrValue != null && HelperFunctions.TryParseInt( gridSpanAttrValue.Value, out value ) )
             gridSpanValue = value;
         }
         return gridSpanValue;
+      }
+    }
+
+    /// <summary>
+    /// Returns the Cell.RowSpan => How many cells are merged vertically.
+    /// </summary>
+    public int RowSpan
+    {
+      get
+      {
+        int rowSpanValue = 0;
+
+        var tcPr = this.Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
+        var vMerge = tcPr?.Element( XName.Get( "vMerge", Document.w.NamespaceName ) );
+        if( vMerge != null )
+        {
+          var vMergeAttrValue = vMerge.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
+          // Starting a new vertical merge.
+          if( ( vMergeAttrValue != null ) && ( vMergeAttrValue.Value == "restart" ) )
+          {
+            var rows = this._row._table.Rows;
+            var rowIndex = rows.FindIndex( row => row.Xml == this._row.Xml );
+            var cellIndex = this._row.Cells.FindIndex( cell => cell.Xml == this.Xml );
+            if( ( rowIndex >= 0 ) && ( cellIndex >= 0 ) )
+            {
+              rowSpanValue = 1;
+
+              for( var i = rowIndex + 1; i < rows.Count; ++i )
+              {
+                var cell = rows[ i ].Cells[ cellIndex ];
+                var cell_tcPr = cell.Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
+                var cell_vMerge = cell_tcPr?.Element( XName.Get( "vMerge", Document.w.NamespaceName ) );
+                // vertical merge is done.
+                if( cell_vMerge == null )
+                  break;
+
+                var cell_vMergeAttrValue = cell_vMerge.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
+                // vertical merge is done, we are starting a new vMerge.
+                if( ( cell_vMergeAttrValue != null ) && ( cell_vMergeAttrValue.Value == "restart" ) )
+                  break;
+
+                rowSpanValue++;
+              }
+            }
+          }
+        }
+        return rowSpanValue;
       }
     }
 
@@ -4066,7 +4158,7 @@ namespace Xceed.Document.NET
       {
         // If sz is not an int, something is wrong with this attributes value, so remove it
         int numerical_size;
-        if( !int.TryParse( sz.Value, out numerical_size ) )
+        if( !HelperFunctions.TryParseInt( sz.Value, out numerical_size ) )
           sz.Remove();
         else
         {
@@ -4115,9 +4207,9 @@ namespace Xceed.Document.NET
       }
       else
       {
-        // If space is not an int, something is wrong with this attributes value, so remove it
-        int borderspace;
-        if( !int.TryParse( space.Value, out borderspace ) )
+        // If space is not a float, something is wrong with this attributes value, so remove it
+        float borderspace;
+        if( !HelperFunctions.TryParseFloat( space.Value, out borderspace ) )
         {
           space.Remove();
           // uses default border style

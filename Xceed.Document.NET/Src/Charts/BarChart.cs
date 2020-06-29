@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -59,6 +60,13 @@ namespace Xceed.Document.NET
       {
         XElementHelpers.SetValueFromEnum<BarGrouping>(
             ChartXml.Element( XName.Get( "grouping", Document.c.NamespaceName ) ), value );
+
+        var overlapVal = ( (value == BarGrouping.Stacked) || ( value == BarGrouping.PercentStacked ) ) ? "100" : "0";
+        var overlap = ChartXml.Element( XName.Get( "overlap", Document.c.NamespaceName ) );
+        if( overlap != null )
+        {
+          overlap.Attribute( XName.Get( "val" ) ).Value = overlapVal;
+        }
       }
     }
 
@@ -100,6 +108,7 @@ namespace Xceed.Document.NET
                     <c:barDir val=""col""/>
                     <c:grouping val=""clustered""/>                    
                     <c:gapWidth val=""150""/>
+                    <c:overlap val=""0""/>
                   </c:barChart>" );
     }
 

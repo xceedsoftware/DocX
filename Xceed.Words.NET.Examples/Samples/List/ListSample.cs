@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – List Sample Application
-Copyright (c) 2009-2019 - Xceed Software Inc.
+Copyright (c) 2009-2020 - Xceed Software Inc.
 
 This application demonstrates how to add lists when using the API 
 from the Xceed Words for .NET.
@@ -11,7 +11,6 @@ is only intended as a supplement to the documentation, and is provided
 *************************************************************************************/
 
 using System;
-using System.Drawing;
 using System.IO;
 using Xceed.Document.NET;
 
@@ -21,6 +20,7 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
+    private const string ListSampleResourceDirectory = Program.SampleDirectory + @"List\Resources\";
     private const string ListSampleOutputDirectory = Program.SampleDirectory + @"List\Output\";
 
     #endregion
@@ -98,6 +98,17 @@ namespace Xceed.Words.NET.Examples
         document.Save();
         Console.WriteLine( "\tCreated: AddList.docx\n" );
       }
+    }
+
+    /// <summary>
+    /// Clone a list and modify some ListItems.
+    /// </summary>
+    public static void CloneLists()
+    {
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     #endregion

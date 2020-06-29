@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Section Sample Application
-Copyright (c) 2009-2019 - Xceed Software Inc.
+Copyright (c) 2009-2020 - Xceed Software Inc.
 
 This application demonstrates how to insert sections when using the API 
 from the Xceed Words for .NET.
@@ -57,7 +57,7 @@ namespace Xceed.Words.NET.Examples
 
         // Section 1
         // Set Page parameters for section 1
-        document.Sections[ 0 ].PageBorders = new Borders( new Border( BorderStyle.Tcbs_double, BorderSize.four, 5, Color.Blue ) );
+        document.Sections[ 0 ].PageBorders = new Borders( new Border( BorderStyle.Tcbs_double, BorderSize.four, 5f, Color.Blue ) );
         // Set footers for section 1.
         document.Sections[ 0 ].AddFooters();
         document.Sections[ 0 ].DifferentFirstPage = true;
@@ -77,7 +77,7 @@ namespace Xceed.Words.NET.Examples
 
         // Section 2
         // Set Page parameters for section 2
-        document.Sections[ 1 ].PageBorders = new Borders( new Border( BorderStyle.Tcbs_none, BorderSize.one, 0, Color.Transparent ) );
+        document.Sections[ 1 ].PageBorders = new Borders( new Border( BorderStyle.Tcbs_none, BorderSize.one, 0f, Color.Transparent ) );
         document.Sections[ 1 ].PageWidth = 200f;
         document.Sections[ 1 ].PageHeight = 300f; 
         // Set footers for section 2.

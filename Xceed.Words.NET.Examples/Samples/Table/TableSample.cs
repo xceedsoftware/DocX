@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Table Sample Application
-Copyright (c) 2009-2019 - Xceed Software Inc.
+Copyright (c) 2009-2020 - Xceed Software Inc.
 
 This application demonstrates how to create and format a table when using the API 
 from the Xceed Words for .NET.
@@ -84,7 +84,7 @@ namespace Xceed.Words.NET.Examples
         // Add an image into the document.    
         var image = document.AddImage( TableSample.TableSampleResourcesDirectory + @"logo_xceed.png" );
         // Create a picture from image.
-        var picture = image.CreatePicture( 25, 100 );
+        var picture = image.CreatePicture( 25f, 100f );
 
         // Calculate totals points from second column in table.
         var totalPts = 0;
@@ -119,6 +119,17 @@ namespace Xceed.Words.NET.Examples
 
 
 
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    /// <summary>
+    /// Clone a table and modify data in it.
+    /// </summary>
+    public static void CloneTable()
+    {
 
 
 
@@ -246,7 +257,7 @@ namespace Xceed.Words.NET.Examples
         // Fill in the columns of the first row in the table.
         for( int i = 0; i < row.Cells.Count; ++i )
         {
-          row.Cells[i].Paragraphs.First().Append( "Data " + i );
+          row.Cells[ i ].Paragraphs.First().Append( "Data " + i );
         }
 
         // Add rows in the table.
@@ -265,7 +276,7 @@ namespace Xceed.Words.NET.Examples
         }
 
         // Set a blank border for the table's top/bottom borders.
-        var blankBorder = new Border( BorderStyle.Tcbs_none, 0, 0, Color.White );
+        var blankBorder = new Border( BorderStyle.Tcbs_none, 0, 0f, Color.White );
         t.SetBorder( TableBorderType.Bottom, blankBorder );
         t.SetBorder( TableBorderType.Top, blankBorder );
 

@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29418.71
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xceed.Words.NET.Examples", "Xceed.Words.NET.Examples\Xceed.Words.NET.Examples.csproj", "{F3022BB7-0E40-4C80-A495-37FEAF3671AB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E863D072-AA8B-4108-B5F1-785241B37F67} = {E863D072-AA8B-4108-B5F1-785241B37F67}
+		{6A9B96D0-A011-4F33-8EE2-AC31C948CCA9} = {6A9B96D0-A011-4F33-8EE2-AC31C948CCA9}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xceed.Words.NET", "Xceed.Words.NET\Xceed.Words.NET.csproj", "{6A9B96D0-A011-4F33-8EE2-AC31C948CCA9}"
 EndProject
@@ -81,7 +85,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {0D86AB62-9CBE-47FE-A213-4DCF354A6C87}
+		SolutionGuid = {430F8AE4-1D75-42E3-B228-BAF9839E50F6}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Xceed.Words.NET.vsmdi

@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -122,13 +123,13 @@ namespace Xceed.Document.NET
     /// 
     public Picture CreatePicture()
     {
-      return this.CreatePicture( -1, -1 );
+      return this.CreatePicture( -1f, -1f );
     }
 
     /// <summary>
     /// Add an image to a document with specific height and width, create a custom view of that image (picture) and then insert it into a Paragraph using append.
     /// </summary>
-    public Picture CreatePicture( int height, int width )
+    public Picture CreatePicture( float height, float width )
     {
       return Paragraph.CreatePicture( _document, _id, string.Empty, string.Empty, width, height );
     }

@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -253,11 +254,11 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Add a new series to this chart
     /// </summary>
-    public void AddSeries( Series series )
+    public virtual void AddSeries( Series series )
     {
-      var seriesCount = ChartXml.Elements( XName.Get( "ser", Document.c.NamespaceName ) ).Count();
-      if( seriesCount >= MaxSeriesCount )
-        throw new InvalidOperationException( "Maximum series for this chart is" + MaxSeriesCount.ToString() + "and have exceeded!" );
+      var seriesCount = this.ChartXml.Elements( XName.Get( "ser", Document.c.NamespaceName ) ).Count();
+      if( seriesCount >= this.MaxSeriesCount )
+        throw new InvalidOperationException( "Maximum series for this chart is" + this.MaxSeriesCount.ToString() + "and have exceeded!" );
 
       //To work in Words, all series need an Index and Order.
       var value = seriesCount + 1;
@@ -339,17 +340,22 @@ namespace Xceed.Document.NET
     {
       get
       {
-        var colorElement = Xml.Element( XName.Get( "spPr", Document.c.NamespaceName ) );
-        if( colorElement == null )
+        var spPr = this.Xml.Element( XName.Get( "spPr", Document.c.NamespaceName ) );
+        if( spPr == null )
           return Color.Transparent;
-        else
+
+        var srgbClr = spPr.Descendants( XName.Get( "srgbClr", Document.a.NamespaceName ) ).FirstOrDefault();
+        if( srgbClr != null )
         {
-          var val = colorElement.Element( XName.Get( "solidFill", Document.a.NamespaceName ) )
-                   .Element( XName.Get( "srgbClr", Document.a.NamespaceName ) )
-                   .Attribute( XName.Get( "val" ) )
-                   .Value;
-          return Color.FromArgb( Int32.Parse( val, NumberStyles.HexNumber ) );
+          var val = srgbClr.Attribute( XName.Get( "val" ) );
+          if( val != null )
+          {
+            var rgb = Color.FromArgb( Int32.Parse( val.Value, NumberStyles.HexNumber ) );
+            return Color.FromArgb( 255, rgb );
+          }
         }
+
+        return Color.Transparent;
       }
       set
       {
@@ -358,9 +364,15 @@ namespace Xceed.Document.NET
         {
           colorElement.Remove();
         }
-        colorElement = new XElement( XName.Get( "spPr", Document.c.NamespaceName ),
-                                     new XElement( XName.Get( "solidFill", Document.a.NamespaceName ),
-                                                   new XElement( XName.Get( "srgbClr", Document.a.NamespaceName ), new XAttribute( XName.Get( "val" ), value.ToHex() ) ) ) );
+
+        var colorData = new XElement( XName.Get( "solidFill", Document.a.NamespaceName ),
+                                   new XElement( XName.Get( "srgbClr", Document.a.NamespaceName ), new XAttribute( XName.Get( "val" ), value.ToHex() ) ) );
+
+        // When the chart containing this series is a lineChart, the line will be colored, else the shape will be colored.
+        colorElement = ( ( this.Xml.Parent != null ) && ( this.Xml.Parent.Name != null ) && (this.Xml.Parent.Name.LocalName == "lineChart" ) )
+                       ? new XElement( XName.Get( "spPr", Document.c.NamespaceName ),
+                                  new XElement( XName.Get( "ln", Document.a.NamespaceName ), colorData ) )
+                       : new XElement( XName.Get( "spPr", Document.c.NamespaceName ), colorData );
         this.Xml.Element( XName.Get( "tx", Document.c.NamespaceName ) ).AddAfterSelf( colorElement );
       }
     }

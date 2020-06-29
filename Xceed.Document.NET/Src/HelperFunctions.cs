@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -190,6 +191,18 @@ namespace Xceed.Document.NET
       return ft;
     }
 
+    internal static bool IsLineBreak( XElement xml )
+    {
+      if( xml == null )
+        return false;
+
+      if( xml.Name.LocalName != "br" )
+        return false;
+
+      var breakNodeValue = xml.HasAttributes && ( xml.Attribute( Document.w + "type" ) != null ) ? xml.Attribute( Document.w + "type" ).Value : null;
+      return ( ( breakNodeValue == null ) || ( breakNodeValue == "textWrapping" ) );
+    }
+
     internal static string ToText( XElement e )
     {
       switch( e.Name.LocalName )
@@ -203,8 +216,7 @@ namespace Xceed.Document.NET
         case "br":
           {
             // Manage only line Breaks.
-            var breakNodeValue = e.HasAttributes && ( e.Attribute( Document.w + "type" ) != null ) ? e.Attribute( Document.w + "type" ).Value : null;
-            if( ( breakNodeValue == null ) || ( breakNodeValue == "textWrapping" ) )
+            if( HelperFunctions.IsLineBreak( e ) )
               return "\n";
 
             return "";
@@ -765,7 +777,14 @@ namespace Xceed.Document.NET
       return numberingDoc;
     }
 
-    internal static List CreateItemInList( List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false )
+    internal static List CreateItemInList( List list, 
+                                           string listText, 
+                                           int level = 0,
+                                           ListItemType listType = ListItemType.Numbered,
+                                           int? startNumber = null, 
+                                           bool trackChanges = false, 
+                                           bool continueNumbering = false, 
+                                           Formatting formatting = null )
     {
       if( list.NumId == 0 )
       {
@@ -774,15 +793,36 @@ namespace Xceed.Document.NET
 
       if( listText != null )
       {
-        var newSection = new XElement
-        (
-            XName.Get( "p", Document.w.NamespaceName ),
-            new XElement( XName.Get( "pPr", Document.w.NamespaceName ),
-            new XElement( XName.Get( "numPr", Document.w.NamespaceName ),
-            new XElement( XName.Get( "ilvl", Document.w.NamespaceName ), new XAttribute( Document.w + "val", level ) ),
-            new XElement( XName.Get( "numId", Document.w.NamespaceName ), new XAttribute( Document.w + "val", list.NumId ) ) ) ),
-            new XElement( XName.Get( "r", Document.w.NamespaceName ), new XElement( XName.Get( "t", Document.w.NamespaceName ), listText ) )
-        );
+        var newSection = new XElement( XName.Get( "p", Document.w.NamespaceName ) );
+        var last_pPr = ( list.Items != null ) && ( list.Items.Count > 0 ) ? list.Items.Last().GetOrCreate_pPr() : null;
+        // This is the first listItem.
+        if( last_pPr == null )
+        {
+          newSection.Add( new XElement( XName.Get( "pPr", Document.w.NamespaceName ),
+                          new XElement( XName.Get( "numPr", Document.w.NamespaceName ),
+                          new XElement( XName.Get( "ilvl", Document.w.NamespaceName ), new XAttribute( Document.w + "val", level ) ),
+                          new XElement( XName.Get( "numId", Document.w.NamespaceName ), new XAttribute( Document.w + "val", list.NumId ) ) ) ) );
+        }
+        // Use the Paragraph properties of the last ListItem.
+        else
+        {
+          newSection.Add( new XElement( last_pPr ) );
+          // Use the wanted level.
+          var ilvl = newSection.Descendants( XName.Get( "ilvl", Document.w.NamespaceName ) ).FirstOrDefault();
+          if( ilvl != null )
+          {
+            ilvl.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), level );
+          }
+        }
+
+        if( formatting == null )
+        {
+          newSection.Add( new XElement( XName.Get( "r", Document.w.NamespaceName ), new XElement( XName.Get( "t", Document.w.NamespaceName ), listText ) ) );
+        }
+        else
+        {
+          newSection.Add( HelperFunctions.FormatInput( listText, formatting.Xml ) );
+        }
 
         if( trackChanges )
           newSection = CreateEdit( EditType.ins, DateTime.Now, newSection );
@@ -794,6 +834,11 @@ namespace Xceed.Document.NET
       }
       return list;
     }
+
+
+
+
+
 
     internal static UnderlineStyle GetUnderlineStyle( string styleName )
     {
@@ -1075,7 +1120,7 @@ namespace Xceed.Document.NET
 
       var borderSize = BorderSize.one;
       var borderColor = Color.Black;
-      var borderSpace = 0;
+      var borderSpace = 0f;
       var borderStyle = BorderStyle.Tcbs_single;
 
       var bdrColor = xml.Attribute( XName.Get( "color", Document.w.NamespaceName ) );
@@ -1111,7 +1156,7 @@ namespace Xceed.Document.NET
       var space = xml.Attribute( XName.Get( "space", Document.w.NamespaceName ) );
       if( space != null )
       {
-        borderSpace = System.Convert.ToInt32( space.Value );
+        borderSpace = System.Convert.ToSingle( space.Value );
       }
       var bdrStyle = xml.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
       if( bdrStyle != null )
@@ -1236,6 +1281,27 @@ namespace Xceed.Document.NET
       var styles = fileToConvert._styles.Element( XName.Get( "styles", Document.w.NamespaceName ) );
       return styles.Elements( XName.Get( "style", Document.w.NamespaceName ) )
                    .FirstOrDefault( x => ( x.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) ) != null ) && ( x.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) ).Value == styleName ) );
+    }
+
+    internal static bool TryParseFloat( string s, out float result )
+    {
+      if( float.TryParse( s, NumberStyles.Any, CultureInfo.InvariantCulture, out result ) )
+        return true;
+      return false;
+    }
+
+    internal static bool TryParseDouble( string s, out double result )
+    {
+      if( double.TryParse( s, NumberStyles.Any, CultureInfo.InvariantCulture, out result ) )
+        return true;
+      return false;
+    }
+
+    internal static bool TryParseInt( string s, out int result )
+    {
+      if( int.TryParse( s, NumberStyles.Any, CultureInfo.InvariantCulture, out result ) )
+        return true;
+      return false;
     }
 
     private static int GetLinkedStyleNumId( Document document, string numId )

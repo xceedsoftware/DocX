@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Sample Application
-Copyright (c) 2009-2019 - Xceed Software Inc.
+Copyright (c) 2009-2020 - Xceed Software Inc.
 
 This application demonstrates how to use the different features when using the API 
 from the Xceed Words for .NET.
@@ -27,8 +27,6 @@ namespace Xceed.Words.NET.Examples
     private static void Main( string[] args )
     {
 
-      Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo( "en-US" );
-
       var version = Assembly.GetExecutingAssembly().GetName().Version;
       var versionNumber = version.Major + "." + version.Minor;
       Console.WriteLine( "\nRunning Examples of Xceed Words for .NET version " + versionNumber + ".\n" );
@@ -40,6 +38,8 @@ namespace Xceed.Words.NET.Examples
       ParagraphSample.TextActions();
       ParagraphSample.Heading();
       ParagraphSample.AddObjectsFromOtherDocument();
+      ParagraphSample.AddHtml();
+      ParagraphSample.AddRtf();
 
       //Document
       DocumentSample.AddCustomProperties();
@@ -50,6 +50,8 @@ namespace Xceed.Words.NET.Examples
       DocumentSample.LoadDocumentWithFilename();
       DocumentSample.LoadDocumentWithStream();
       DocumentSample.LoadDocumentWithStringUrl();
+      DocumentSample.AddHtmlFromFile();
+      DocumentSample.AddRtfFromFile();
 
       //Images
       ImageSample.AddPicture();
@@ -67,6 +69,7 @@ namespace Xceed.Words.NET.Examples
 
       //Tables
       TableSample.InsertRowAndImageTable();
+      TableSample.CloneTable();
       TableSample.AddTableWithTextWrapping();
       TableSample.TextDirectionTable();
       TableSample.CreateRowsFromTemplate();
@@ -82,6 +85,7 @@ namespace Xceed.Words.NET.Examples
 
       //Lists
       ListSample.AddList();
+      ListSample.CloneLists();
 
       //Equations
       EquationSample.InsertEquation();
@@ -126,6 +130,10 @@ namespace Xceed.Words.NET.Examples
       ShapeSample.AddShapeWithTextWrapping();
       ShapeSample.AddTextBox();
       ShapeSample.AddTextBoxWithTextWrapping();
+
+      //CheckBox
+      CheckBoxSample.ModifyCheckBox();
+      CheckBoxSample.AddCheckBox();
 
       Console.WriteLine( "\nDone running Examples of Xceed Words for .NET version " + versionNumber + ".\n" );
       Console.WriteLine( "\nPress any key to exit." );

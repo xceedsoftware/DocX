@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -13,6 +14,8 @@
   *************************************************************************************/
 
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
 using System.Xml.Linq;
@@ -234,9 +237,35 @@ namespace Xceed.Words.NET
 
 
 
-#endregion
+    #endregion
 
     #region Overrides
+
+    public override void SaveAs( Stream stream )
+    {
+      if( this.IsPackageClosed( _package ) )
+      {
+        // When package is closed (already saved), reload the package and restart SaveAs();
+        var initialDoc = ( _stream.Length > 0 ) ? DocX.Load( _stream ) : DocX.Load( _filename );
+        initialDoc.SaveAs( stream );
+        return;
+      }
+
+      base.SaveAs( stream );
+    }
+
+    public override void SaveAs( string filename )
+    {
+      if( this.IsPackageClosed( _package ) )
+      {
+        // When package is closed (already saved), reload the package and restart SaveAs();
+        var initialDoc = !string.IsNullOrEmpty( _filename ) ? DocX.Load( _filename ) : DocX.Load( _stream );
+        initialDoc.SaveAs( filename );
+        return;
+      }
+
+      base.SaveAs( filename );
+    }
 
     /// <summary>
     /// Save this document back to the location it was loaded from.
@@ -262,6 +291,14 @@ namespace Xceed.Words.NET
     /// -->
     public override void Save()
     {
+      if( this.IsPackageClosed( _package ) )
+      {
+        // When package is closed (already saved), reload the package and restart Save();
+        var initialDoc = !string.IsNullOrEmpty( _filename ) ? DocX.Load( _filename ) : DocX.Load( _stream );
+        initialDoc.Save();
+        return;
+      }
+
       // Save the main document
       using( TextWriter tw = new StreamWriter( new PackagePartStream( this.PackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
       {
@@ -372,14 +409,25 @@ namespace Xceed.Words.NET
     /// <returns>Returns a copy of a the Document</returns>
     public override Xceed.Document.NET.Document Copy()
     {
+      try
+      {
+        var initialDoc = this;
+        if( this.IsPackageClosed( _package ) )
+        {
+          initialDoc = !string.IsNullOrEmpty( _filename ) ? DocX.Load( _filename ) : DocX.Load( _stream );
+        }
 
-      var initialDoc = !string.IsNullOrEmpty( _filename ) ? DocX.Load( _filename ) : DocX.Load( _stream );
+        var memorystream = new MemoryStream();
+        initialDoc.SaveAs( memorystream );
 
-      var memorystream = new MemoryStream();
-      initialDoc.SaveAs( memorystream );
-
-      memorystream.Seek( 0, SeekOrigin.Begin );
-      return DocX.Load( memorystream );
+        memorystream.Seek( 0, SeekOrigin.Begin );
+        return DocX.Load( memorystream );
+      }
+      catch( Exception e )
+      {
+        // If we can't load the filename or stream, just return the current document.
+        return this;
+      }
     }
 
     #endregion
@@ -509,6 +557,27 @@ namespace Xceed.Words.NET
           }
         }
       }
+    }
+
+    #endregion
+
+    #region Private Method
+
+    private bool IsPackageClosed( Package package )
+    {
+      if( package == null )
+        return true;
+
+      try
+      {
+        var access = package.FileOpenAccess;
+      }
+      catch( Exception e )
+      {
+        return true;
+      }
+
+      return false;
     }
 
     #endregion

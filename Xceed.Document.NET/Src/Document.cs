@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -31,6 +32,7 @@ using System.Drawing.Drawing2D;
 
 namespace Xceed.Document.NET
 {
+
   /// <summary>
   /// Represents a document.
   /// </summary>
@@ -53,6 +55,7 @@ namespace Xceed.Document.NET
     static internal XNamespace v = "urn:schemas-microsoft-com:vml";
     static internal XNamespace mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
     static internal XNamespace wps = "http://schemas.microsoft.com/office/word/2010/wordprocessingShape";
+    static internal XNamespace w14 = "http://schemas.microsoft.com/office/word/2010/wordml";
     #endregion
 
     #region Private Members    
@@ -62,6 +65,21 @@ namespace Xceed.Document.NET
     private string _defaultParagraphStyleName;
 
     private IList<Section> _cachedSections;
+
+    private static List<string> _imageContentTypes = new List<string>
+                                                    {
+                                                        "image/jpeg",
+                                                        "image/jpg",
+                                                        "image/png",
+                                                        "image/bmp",
+                                                        "image/gif",
+                                                        "image/tiff",
+                                                        "image/icon",
+                                                        "image/pcx",
+                                                        "image/emf",
+                                                        "image/x-emf",
+                                                        "image/wmf"
+                                                    };
 
     #endregion
 
@@ -453,7 +471,7 @@ namespace Xceed.Document.NET
       {
         if( this.Sections.Count > 1 )
         {
-          Debug.WriteLine("This document contains more than 1 section. Consider using Sections[wantedSection].Headers.");
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].Headers." );
         }
         return this.Sections[ 0 ].Headers;
       }
@@ -862,9 +880,21 @@ namespace Xceed.Document.NET
       {
         var bookmarks = new BookmarkCollection();
         // In Body.
-        foreach( var paragraph in this.Paragraphs )
+        // Faster to search the document.Xml instead of document.Paragraphs.
+        var documentBookmarks = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) );
+        foreach( var bookmark in documentBookmarks )
         {
-          bookmarks.AddRange( paragraph.GetBookmarks() );
+          var paraXml = bookmark.Parent;
+          while( paraXml.Name != XName.Get( "p", Document.w.NamespaceName ) )
+          {
+            paraXml = paraXml.Parent;
+          }
+
+          bookmarks.Add( new Bookmark
+          {
+            Name = bookmark.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value,
+            Paragraph = new Paragraph( this, paraXml, -1 )
+          } );
         }
 
         foreach( var section in this.Sections )
@@ -930,7 +960,12 @@ namespace Xceed.Document.NET
       }
     }
 
-    #endregion
+
+
+
+
+
+#endregion
 
     #region Public Methods
 
@@ -942,6 +977,190 @@ namespace Xceed.Document.NET
     public override void InsertSectionPageBreak( bool trackChanges = false )
     {
       this.InsertSection( trackChanges, true );
+    }
+
+    public override void ReplaceText( string searchValue,
+                                      string newValue,
+                                      bool trackChanges = false,
+                                      RegexOptions options = RegexOptions.None,
+                                      Formatting newFormatting = null,
+                                      Formatting matchFormatting = null,
+                                      MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
+                                      bool escapeRegEx = true,
+                                      bool useRegExSubstitutions = false,
+                                      bool removeEmptyParagraph = true )
+    {
+      // ReplaceText in the main body of document.
+      base.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+
+      // ReplaceText in Headers of the document.
+      foreach( var section in this.Sections )
+      {
+        var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
+        foreach( var h in headerList )
+        {
+          if( h != null )
+          {
+            foreach( var p in h.Paragraphs )
+            {
+              p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+            }
+          }
+        }
+      }
+
+      // ReplaceText in Footers of the document.
+      foreach( var section in this.Sections )
+      {
+        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
+        foreach( var f in footerList )
+        {
+          if( f != null )
+          {
+            foreach( var p in f.Paragraphs )
+            {
+              p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+            }
+          }
+        }
+      }
+    }
+
+    public override void ReplaceText( string searchValue,
+                                      Func<string, string> regexMatchHandler,
+                                      bool trackChanges = false,
+                                      RegexOptions options = RegexOptions.None,
+                                      Formatting newFormatting = null,
+                                      Formatting matchFormatting = null,
+                                      MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
+                                      bool removeEmptyParagraph = true )
+    {
+      // Replace text in body of the Document.
+      base.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
+
+      // Replace text in headers and footers of the Document.
+      foreach( var section in this.Sections )
+      {
+        var headersFootersList = new List<IParagraphContainer>()
+        {
+          section.Headers.First,
+          section.Headers.Even,
+          section.Headers.Odd,
+          section.Footers.First,
+          section.Footers.Even,
+          section.Footers.Odd,
+        };
+
+        foreach( var hf in headersFootersList )
+        {
+          if( hf != null )
+          {
+            foreach( var p in hf.Paragraphs )
+            {
+              p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
+            }
+          }
+        }
+      }
+    }
+
+    public override void ReplaceTextWithObject( string searchValue,
+                                                DocumentElement objectToAdd,
+                                                bool trackChanges = false,
+                                                RegexOptions options = RegexOptions.None,
+                                                Formatting matchFormatting = null,
+                                                MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
+                                                bool escapeRegEx = true,
+                                                bool removeEmptyParagraph = true )
+    {
+      base.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
+
+      // ReplaceText in Headers of the document.
+      foreach( var section in this.Sections )
+      {
+        var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
+        foreach( var h in headerList )
+        {
+          if( h != null )
+          {
+            foreach( var p in h.Paragraphs )
+            {
+              p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
+            }
+          }
+        }
+      }
+
+      // ReplaceText in Footers of the document.
+      foreach( var section in this.Sections )
+      {
+        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
+        foreach( var f in footerList )
+        {
+          if( f != null )
+          {
+            foreach( var p in f.Paragraphs )
+            {
+              p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
+            }
+          }
+        }
+      }
+    }
+
+    public override void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
+    {
+      // Insert in body of document.
+      base.InsertAtBookmark( toInsert, bookmarkName, formatting );
+
+      // Insert in headers/footers of document.
+      foreach( var section in this.Sections )
+      {
+        var headerCollection = section.Headers;
+        var headers = new List<Header> { headerCollection.First, headerCollection.Even, headerCollection.Odd };
+        foreach( var header in headers.Where( x => x != null ) )
+        {
+          foreach( var paragraph in header.Paragraphs )
+          {
+            paragraph.InsertAtBookmark( toInsert, bookmarkName, formatting );
+          }
+        }
+
+        var footerCollection = section.Footers;
+        var footers = new List<Footer> { footerCollection.First, footerCollection.Even, footerCollection.Odd };
+        foreach( var footer in footers.Where( x => x != null ) )
+        {
+          foreach( var paragraph in footer.Paragraphs )
+          {
+            paragraph.InsertAtBookmark( toInsert, bookmarkName, formatting );
+          }
+        }
+      }
+    }
+
+    public override string[] ValidateBookmarks( params string[] bookmarkNames )
+    {
+      // Validate in body of document.
+      var result = base.ValidateBookmarks( bookmarkNames ).ToList();
+
+      foreach( var bookmarkName in bookmarkNames )
+      {
+        // Validate in headers/footers of document.
+        foreach( var section in this.Sections )
+        {
+          var headers = new[] { section.Headers.First, section.Headers.Even, section.Headers.Odd }.Where( h => h != null ).ToList();
+          var footers = new[] { section.Footers.First, section.Footers.Even, section.Footers.Odd }.Where( f => f != null ).ToList();
+
+          if( headers.SelectMany( h => h.Paragraphs ).Any( p => p.ValidateBookmark( bookmarkName ) ) )
+            return new string[ 0 ];
+          if( footers.SelectMany( h => h.Paragraphs ).Any( p => p.ValidateBookmark( bookmarkName ) ) )
+            return new string[ 0 ];
+        }
+
+        result.Add( bookmarkName );
+      }
+
+      return result.ToArray();
     }
 
     /// <summary>
@@ -977,7 +1196,7 @@ namespace Xceed.Document.NET
       {
         XElement documentProtection = _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).FirstOrDefault();
         string edit_type = documentProtection.Attribute( XName.Get( "edit", w.NamespaceName ) ).Value;
-        return ( EditRestrictions )Enum.Parse( typeof( EditRestrictions ), edit_type );
+        return (EditRestrictions)Enum.Parse( typeof( EditRestrictions ), edit_type );
       }
 
       return EditRestrictions.none;
@@ -1048,6 +1267,7 @@ namespace Xceed.Document.NET
     /// </summary>
     /// <param name="remote_document">The document to insert at the end of this document.</param>
     /// <param name="append">When true, document is added at the end. If False, document is added at the beginning.</param>
+    /// <param name="useSectionBreak">When true, each joined document will be located in its own section. When false, the documents will remain in the same section.</param>
     /// <example>
     /// Create a new document and insert an old document into it.
     /// <code>
@@ -1069,7 +1289,7 @@ namespace Xceed.Document.NET
     /// If the document being inserted contains Images, CustomProperties and or custom styles, these will be correctly inserted into the new document. In the case of Images, new ID's are generated for the Images being inserted to avoid ID conflicts. CustomProperties with the same name will be ignored not replaced.
     /// </remarks>
     /// </example>
-    public void InsertDocument( Document remote_document, bool append = true )
+    public void InsertDocument( Document remote_document, bool append = true, bool useSectionBreak = true )
     {
       // We don't want to effect the origional XDocument, so create a new one from the old one.
       var remote_mainDoc = new XDocument( remote_document._mainDoc );
@@ -1095,9 +1315,25 @@ namespace Xceed.Document.NET
       // Get the body of the local document.
       var local_body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
 
-      // append : Move local body section to the last paragraph of the body.
-      // insert : Move Remote Body section to the last paragraph of the body.
-      this.MoveSectionIntoLastParagraph( append ? local_body : remote_body );
+      if( useSectionBreak )
+      {
+        // append : Move local body section to the last paragraph of the body.
+        // insert : Move Remote Body section to the last paragraph of the body.
+        this.MoveSectionIntoLastParagraph( append ? local_body : remote_body );
+      }
+      else
+      {
+        if( append )
+        {
+          // The last section of local will become the last section of remote(will be the last section of the resulting document).
+          this.ReplaceLastSection( local_body, remote_body );
+        }
+        else
+        {
+          // The last section of remote is removed. The last section of local will be the last section of the resulting document.
+          this.RemoveLastSection( remote_body );
+        }
+      }
 
       // Every file that is missing from the local document will have to be copied, every file that already exists will have to be merged.
       var ppc = remote_document._package.GetParts();
@@ -1112,23 +1348,10 @@ namespace Xceed.Document.NET
                 ContentTypeApplicationRelationShipXml
             };
 
-      var imageContentTypes = new List<string>
-            {
-                "image/jpeg",
-                "image/jpg",
-                "image/png",
-                "image/bmp",
-                "image/gif",
-                "image/tiff",
-                "image/icon",
-                "image/pcx",
-                "image/emf",
-                "image/wmf"
-            };
       // Check if each PackagePart pp exists in this document.
       foreach( PackagePart remote_pp in ppc )
       {
-        if( ignoreContentTypes.Contains( remote_pp.ContentType ) || imageContentTypes.Contains( remote_pp.ContentType ) )
+        if( ignoreContentTypes.Contains( remote_pp.ContentType ) || _imageContentTypes.Contains( remote_pp.ContentType ) )
           continue;
 
         // If this external PackagePart already exits then we must merge them.
@@ -1143,15 +1366,15 @@ namespace Xceed.Document.NET
 
             // Merge footnotes/endnotes before merging styles, then set the remote_footnotes to the just updated footnotes
             case "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml":
-              remote_footnotes = _footnotes;
+              merge_footnotes( remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes );
               break;
 
             case "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml":
-              remote_endnotes = _endnotes;
+              merge_endnotes( remote_pp, local_pp, remote_mainDoc, remote_document, remote_endnotes );
               break;
 
             case "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml":
-              merge_styles( remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes, remote_endnotes );
+              merge_styles( remote_pp, local_pp, remote_mainDoc, remote_document, _footnotes, _endnotes );
               break;
 
             // Merges Styles after merging the footnotes, so the changes will be applied to the correct document/footnotes.
@@ -1256,9 +1479,30 @@ namespace Xceed.Document.NET
         }
       }
 
+      //var remoteCustomXmlRelationship = remote_document.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml" );
+      //var localCustomXmlRelationship = this.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml" );
+      //if( ( remoteCustomXmlRelationship.Count() > 0 ) && ( localCustomXmlRelationship.Count() == 0 ) )
+      //{
+      //  foreach( var rel in remoteCustomXmlRelationship )
+      //  {
+      //    var uri = new Uri( "../" + rel.TargetUri.OriginalString, UriKind.Relative);
+      //    this.PackagePart.CreateRelationship( uri, rel.TargetMode, rel.RelationshipType );
+      //  }
+      //}
+
+      var remoteFontRelationship = remote_document._fontTablePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" );
+      var localFontRelationship = this._fontTablePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" );
+      if( ( remoteFontRelationship.Count() > 0 ) && ( localFontRelationship.Count() == 0 ) )
+      {
+        foreach( var rel in remoteFontRelationship )
+        {
+          this._fontTablePart.CreateRelationship( rel.TargetUri, rel.TargetMode, rel.RelationshipType );
+        }
+      }
+
       foreach( PackagePart remote_pp in ppc )
       {
-        if( imageContentTypes.Contains( remote_pp.ContentType ) )
+        if( _imageContentTypes.Contains( remote_pp.ContentType ) )
         {
           merge_images( remote_pp, remote_document, remote_mainDoc, remote_pp.ContentType );
         }
@@ -1270,7 +1514,7 @@ namespace Xceed.Document.NET
       {
         var a_id = local_docPr.Attribute( XName.Get( "id" ) );
         int a_id_value;
-        if( a_id != null && int.TryParse( a_id.Value, out a_id_value ) )
+        if( a_id != null && HelperFunctions.TryParseInt( a_id.Value, out a_id_value ) )
         {
           if( a_id_value > id )
           {
@@ -1365,6 +1609,9 @@ namespace Xceed.Document.NET
       t.PackagePart = this.PackagePart;
       return t;
     }
+
+
+
 
     /// <summary>
     /// Insert a Table into this document. The Table's source can be a completely different document.
@@ -1490,6 +1737,8 @@ namespace Xceed.Document.NET
       t.PackagePart = this.PackagePart;
       return t;
     }
+
+
 
 
 
@@ -1750,6 +1999,9 @@ namespace Xceed.Document.NET
       return AddImage( stream as object, contentType );
     }
 
+
+
+
     /// <summary>
     /// Adds a hyperlink with a uri to a document and creates a Paragraph which uses it.
     /// </summary>
@@ -1778,7 +2030,7 @@ namespace Xceed.Document.NET
     /// </example>
     public Hyperlink AddHyperlink( string text, Uri uri )
     {
-      return this.AddHyperlink( text, uri, null );     
+      return this.AddHyperlinkCore( text, uri, null, null, null );
     }
 
     /// <summary>
@@ -1789,7 +2041,7 @@ namespace Xceed.Document.NET
     /// <returns>Returns a hyperlink with an anchor that can be inserted into a Paragraph.</returns>
     public Hyperlink AddHyperlink( string text, string anchor )
     {
-      return this.AddHyperlink( text, null, anchor );
+      return this.AddHyperlinkCore( text, null, anchor, null, null );
     }
 
     /// <summary>
@@ -1908,7 +2160,7 @@ namespace Xceed.Document.NET
     /// document.SaveAs(@"C:\Example\Test2.docx");
     /// </code>
     /// </example>
-    public void SaveAs( string filename )
+    public virtual void SaveAs( string filename )
     {
       _filename = filename;
       _stream = null;
@@ -1964,7 +2216,7 @@ namespace Xceed.Document.NET
     /// }
     /// </code>
     /// </example>
-    public void SaveAs( Stream stream )
+    public virtual void SaveAs( Stream stream )
     {
       _filename = null;
       _stream = stream;
@@ -2008,8 +2260,8 @@ namespace Xceed.Document.NET
     /// <seealso cref="CustomProperties"/>
     public void AddCoreProperty( string propertyName, string propertyValue )
     {
-      var propertyNamespacePrefix = propertyName.Contains(":") ? propertyName.Split(':')[0] : "cp";
-      var propertyLocalName = propertyName.Contains(":") ? propertyName.Split(':')[1] : propertyName;
+      var propertyNamespacePrefix = propertyName.Contains( ":" ) ? propertyName.Split( ':' )[ 0 ] : "cp";
+      var propertyLocalName = propertyName.Contains( ":" ) ? propertyName.Split( ':' )[ 1 ] : propertyName;
 
       // If this document does not contain a coreFilePropertyPart create one.)
       if( !_package.PartExists( new Uri( "/docProps/core.xml", UriKind.Relative ) ) )
@@ -2161,12 +2413,18 @@ namespace Xceed.Document.NET
 
     public override Paragraph InsertParagraph( Paragraph p )
     {
+      // copy paragraph's pictures.
+      this.InsertParagraphPictures( p );
+
       p.PackagePart = this.PackagePart;
       return base.InsertParagraph( p );
     }
 
     public override Paragraph InsertParagraph( int index, Paragraph p )
     {
+      // copy paragraph's pictures.
+      this.InsertParagraphPictures( p );
+
       p.PackagePart = this.PackagePart;
       return base.InsertParagraph( index, p );
     }
@@ -2226,7 +2484,7 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Insert a chart in document
     /// </summary>
-    public void InsertChart( Chart chart, int width = 432, int height = 252 )
+    public void InsertChart( Chart chart, float width = 432f, float height = 252f )
     {
       this.InsertChart( chart, null, width, height );
     }
@@ -2234,84 +2492,34 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Insert a chart in document after the specified paragraph
     /// </summary>
-    public void InsertChartAfterParagraph( Chart chart, Paragraph paragraph, int width = 432, int height = 252 )
+    public void InsertChartAfterParagraph( Chart chart, Paragraph paragraph, float width = 432f, float height = 252f )
     {
       this.InsertChart( chart, paragraph, width, height );
-    }
-
-    private void InsertChart( Chart chart, Paragraph paragraph, int width = 432, int height = 252)
-    {
-      Paragraph p;
-
-      // Create a new chart part uri.
-      var chartPartUriPath = String.Empty;
-      var chartIndex = 1;
-      do
-      {
-        chartPartUriPath = String.Format( "/word/charts/chart{0}.xml", chartIndex );
-        chartIndex++;
-      } while( _package.PartExists( new Uri( chartPartUriPath, UriKind.Relative ) ) );
-
-      // Create chart part.
-      var chartPackagePart = _package.CreatePart( new Uri( chartPartUriPath, UriKind.Relative ), "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", CompressionOption.Normal );
-
-      // Create a new chart relationship
-      var relID = this.GetNextFreeRelationshipID();
-      var rel = this.PackagePart.CreateRelationship( chartPackagePart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", relID );
-
-      // Save a chart info the chartPackagePart
-      if( paragraph == null )
-      {
-        using( TextWriter tw = new StreamWriter( new PackagePartStream( chartPackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-        {
-          chart.Xml.Save( tw );
-        }
-        p = InsertParagraph();
-      }
-      else
-      {
-        using( TextWriter tw = new StreamWriter( chartPackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) )
-        {
-          chart.Xml.Save( tw );
-        }
-        p = paragraph;
-      }
-
-      var chartWidth = width * Picture.EmusInPixel;
-      var chartHeight = height * Picture.EmusInPixel;
-
-      // Insert a new chart into a paragraph.
-      var chartElement = new XElement( XName.Get( "r", w.NamespaceName ),
-                                       new XElement( XName.Get( "drawing", w.NamespaceName ),
-                                                     new XElement( XName.Get( "inline", wp.NamespaceName ),
-                                                                   new XElement( XName.Get( "extent", wp.NamespaceName ), new XAttribute( "cx", chartWidth ), new XAttribute( "cy", chartHeight ) ),
-                                                                   new XElement( XName.Get( "effectExtent", wp.NamespaceName ), new XAttribute( "l", "0" ), new XAttribute( "t", "0" ), new XAttribute( "r", "19050" ), new XAttribute( "b", "19050" ) ),
-                                                                   new XElement( XName.Get( "docPr", wp.NamespaceName ), new XAttribute( "id", "1" ), new XAttribute( "name", "chart" ) ),
-                                                                   new XElement( XName.Get( "graphic", a.NamespaceName ),
-                                                                                 new XElement( XName.Get( "graphicData", a.NamespaceName ),
-                                                                                               new XAttribute( "uri", c.NamespaceName ),
-                                                                                               new XElement( XName.Get( "chart", c.NamespaceName ),
-                                                                                                             new XAttribute( XName.Get( "id", r.NamespaceName ), relID ) ) ) ) ) ) );
-      p.Xml.Add( chartElement );
     }
 
     /// <summary>
     /// Create a new List
     /// </summary>
-    public List AddList( string listText = null, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false )
+    public List AddList( string listText = null, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false, Formatting formatting = null )
     {
-      return AddListItem( new List( this, null ), listText, level, listType, startNumber, trackChanges, continueNumbering );
+      return AddListItem( new List( this, null ), listText, level, listType, startNumber, trackChanges, continueNumbering, formatting );
     }
+
+
+
+
+
+
 
     /// <summary>
     /// Add a list item to an existing list
     /// </summary>
-    public List AddListItem( List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false )
+    public List AddListItem( List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false, Formatting formatting = null )
     {
       if( startNumber.HasValue && continueNumbering )
         throw new InvalidOperationException( "Cannot specify a start number and at the same time continue numbering from another list" );
 
-      var result = HelperFunctions.CreateItemInList( list, listText, level, listType, startNumber, trackChanges, continueNumbering );
+      var result = HelperFunctions.CreateItemInList( list, listText, level, listType, startNumber, trackChanges, continueNumbering, formatting );
       var lastItem = result.Items.LastOrDefault();
 
       if( lastItem != null )
@@ -2496,7 +2704,7 @@ namespace Xceed.Document.NET
 
         for( int i = 0; i < 4; i++ )
         {
-          keyValues[ i ] = Convert.ToByte( ( ( uint )( intCombinedkey & ( 0x000000FF << ( i * 8 ) ) ) ) >> ( i * 8 ) );
+          keyValues[ i ] = Convert.ToByte( ( (uint)( intCombinedkey & ( 0x000000FF << ( i * 8 ) ) ) ) >> ( i * 8 ) );
         }
       }
 
@@ -2583,7 +2791,7 @@ namespace Xceed.Document.NET
             szCs.SetAttributeValue( XName.Get( "val", w.NamespaceName ), fontSize * 2 );
 
             //color
-            if( (fontColor != null) && fontColor.HasValue )
+            if( ( fontColor != null ) && fontColor.HasValue )
             {
               var color = rPr.Element( XName.Get( "color", w.NamespaceName ) );
               if( color == null )
@@ -2597,6 +2805,15 @@ namespace Xceed.Document.NET
         }
       }
     }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2667,7 +2884,7 @@ namespace Xceed.Document.NET
 
       #region MainDocumentPart
       // Create the main document part for this package
-      var mainDocPart = ( (documentType == DocumentTypes.Document) || (documentType == DocumentTypes.Pdf) )
+      var mainDocPart = ( ( documentType == DocumentTypes.Document ) || ( documentType == DocumentTypes.Pdf ) )
                         ? package.CreatePart( new Uri( "/word/document.xml", UriKind.Relative ), HelperFunctions.DOCUMENT_DOCUMENTTYPE, CompressionOption.Normal )
                         : package.CreatePart( new Uri( "/word/document.xml", UriKind.Relative ), HelperFunctions.TEMPLATE_DOCUMENTTYPE, CompressionOption.Normal );
 
@@ -2784,7 +3001,7 @@ namespace Xceed.Document.NET
       {
         WebRequest request = null;
         HttpWebResponse response = null;
-        Stream receiveStream = null;   
+        Stream receiveStream = null;
         try
         {
           request = (HttpWebRequest)WebRequest.Create( filename );
@@ -2995,126 +3212,125 @@ namespace Xceed.Document.NET
     {
       // Open a Stream to the new image being added.
       var newImageStream = ( o is string ) ? new FileStream( o as string, FileMode.Open, FileAccess.Read ) : o as Stream;
-
-      // Get all image parts in word\document.xml
-      PackagePartCollection packagePartCollection = _package.GetParts();
-      var parts = packagePartCollection.Select( x => new
+      using( newImageStream )
       {
-        UriString = x.Uri.ToString(),
-        Part = x
-      } ).ToList();
 
-      var partLookup = parts.ToDictionary( x => x.UriString, x => x.Part, StringComparer.Ordinal );
+        //all document's parts, including image parts.
+        //var partLookup = _package.GetParts().ToDictionary( x => x.Uri.ToString(), x => x, StringComparer.Ordinal );
 
-      List<PackagePart> imageParts = new List<PackagePart>();
-      foreach( var item in this.PackagePart.GetRelationshipsByType( RelationshipImage ) )
-      {
-        var targetUri = item.TargetUri.ToString();
-        PackagePart part;
-        if( partLookup.TryGetValue( targetUri, out part ) )
+        //var imageParts = new List<PackagePart>();
+        //// all image relationships.
+        //var relationshipImages = this.PackagePart.GetRelationshipsByType( RelationshipImage );
+        //// take all used images (from relationships)
+        //foreach( var item in relationshipImages )
+        //{
+        //  var targetUri = item.TargetUri.ToString();
+        //  PackagePart part;
+        //  if( partLookup.TryGetValue( targetUri, out part ) )
+        //  {
+        //    // all document's used image parts.
+        //    imageParts.Add( part );
+        //  }
+        //}
+
+        //// all document's relationship parts.
+        //var relsParts = partLookup
+        // .Where(
+        //   item =>
+        //   item.Value.ContentType.Equals( ContentTypeApplicationRelationShipXml, StringComparison.Ordinal ) &&
+        //   item.Key.IndexOf( "/word/", StringComparison.Ordinal ) > -1 )
+        // .Select( item => item.Value );
+
+        //var xNameTarget = XName.Get( "Target" );
+        //var xNameTargetMode = XName.Get( "TargetMode" );
+
+        //foreach( var relsPart in relsParts )
+        //{
+        //  XDocument relsPartContent;
+        //  using( var tr = new StreamReader( relsPart.GetStream( FileMode.Open, FileAccess.Read ) ) )
+        //  {
+        //    relsPartContent = XDocument.Load( tr );
+        //  }
+
+        //  // relationship parts of images.
+        //  var imageRelationships =
+        //  relsPartContent.Root.Elements().Where
+        //  (
+        //      imageRel =>
+        //      imageRel.Attribute( XName.Get( "Type" ) ).Value.Equals( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" )
+        //  );
+
+        //  foreach( var imageRelationship in imageRelationships )
+        //  {
+        //    var attribute = imageRelationship.Attribute( xNameTarget );
+        //    if( attribute != null )
+        //    {
+        //      var targetModeAttr = imageRelationship.Attribute( xNameTargetMode );
+        //      var targetMode = ( targetModeAttr != null ) ? targetModeAttr.Value : string.Empty;
+
+        //      if( !targetMode.Equals( "External" ) )
+        //      {
+        //        var imagePartUri = Path.Combine( Path.GetDirectoryName( relsPart.Uri.ToString() ), attribute.Value );
+        //        imagePartUri = Path.GetFullPath( imagePartUri.Replace( "\\_rels", string.Empty ) );
+        //        imagePartUri = imagePartUri.Replace( Path.GetFullPath( "\\" ), string.Empty ).Replace( "\\", "/" );
+
+        //        if( !imagePartUri.StartsWith( "/" ) )
+        //        {
+        //          imagePartUri = "/" + imagePartUri;
+        //        }
+
+        //        var imagePart = _package.GetPart( new Uri( imagePartUri, UriKind.Relative ) );
+        //        imageParts.Add( imagePart );
+        //      }
+        //    }
+        //  }
+        //}
+
+        //// Loop through each image part in this document.
+        //foreach( var pp in imageParts )
+        //{
+        //  // Get the image object for this image part.
+        //  using( var tempStream = pp.GetStream( FileMode.Open, FileAccess.Read ) )
+        //  {
+        //    // Compare this image to the new image being added.
+        //    if( HelperFunctions.IsSameFile( tempStream, newImageStream ) )
+        //    {
+        //      // Return the Image object
+        //      var relationship = relationshipImages.First( x => x.TargetUri == pp.Uri );
+        //      return new Image( this, relationship );
+        //    }
+        //  }
+        //}
+
+        var imgPartUriPath = string.Empty;
+        var extension = contentType.Substring( contentType.LastIndexOf( "/" ) + 1 );
+        do
         {
-          imageParts.Add( part );
-        }
-      }
+          // Create a new image part.
+          imgPartUriPath = string.Format
+          (
+              "/word/media/{0}.{1}",
+              Guid.NewGuid(), // The unique part.
+              extension
+          );
 
-      IEnumerable<PackagePart> relsParts = parts
-        .Where(
-          part =>
-          part.Part.ContentType.Equals( ContentTypeApplicationRelationShipXml, StringComparison.Ordinal ) &&
-          part.UriString.IndexOf( "/word/", StringComparison.Ordinal ) > -1 )
-        .Select( part => part.Part );
+        } while( _package.PartExists( new Uri( imgPartUriPath, UriKind.Relative ) ) );
 
-      XName xNameTarget = XName.Get( "Target" );
-      XName xNameTargetMode = XName.Get( "TargetMode" );
+        // We are now guaranteed that imgPartUriPath is unique.
+        var img = _package.CreatePart( new Uri( imgPartUriPath, UriKind.Relative ), contentType, CompressionOption.Normal );
 
-      foreach( PackagePart relsPart in relsParts )
-      {
-        XDocument relsPartContent;
-        using( TextReader tr = new StreamReader( relsPart.GetStream( FileMode.Open, FileAccess.Read ) ) )
+        // Create a new image relationship
+        var rel = this.PackagePart.CreateRelationship( img.Uri, TargetMode.Internal, RelationshipImage );
+
+        // Open a Stream to the newly created Image part.
+        using( Stream stream = new PackagePartStream( img.GetStream( FileMode.Create, FileAccess.Write ) ) )
         {
-          relsPartContent = XDocument.Load( tr );
-        }
-
-        var imageRelationships =
-        relsPartContent.Root.Elements().Where
-        (
-            imageRel =>
-            imageRel.Attribute( XName.Get( "Type" ) ).Value.Equals( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" )
-        );
-
-        foreach( XElement imageRelationship in imageRelationships )
-        {
-          XAttribute attribute = imageRelationship.Attribute( xNameTarget );
-          if( attribute != null )
-          {
-            var targetModeAttr = imageRelationship.Attribute( xNameTargetMode );
-            var targetMode = ( targetModeAttr != null ) ? targetModeAttr.Value : string.Empty;
-
-            if( !targetMode.Equals( "External" ) )
-            {
-              var imagePartUri = Path.Combine( Path.GetDirectoryName( relsPart.Uri.ToString() ), attribute.Value );
-              imagePartUri = Path.GetFullPath( imagePartUri.Replace( "\\_rels", string.Empty ) );
-              imagePartUri = imagePartUri.Replace( Path.GetFullPath( "\\" ), string.Empty ).Replace( "\\", "/" );
-
-              if( !imagePartUri.StartsWith( "/" ) )
-              {
-                imagePartUri = "/" + imagePartUri;
-              }
-
-              var imagePart = _package.GetPart( new Uri( imagePartUri, UriKind.Relative ) );
-              imageParts.Add( imagePart );
-            }
-          }
-        }
-      }
-
-      // Loop through each image part in this document.
-      foreach( PackagePart pp in imageParts )
-      {
-        // Get the image object for this image part.
-        using( Stream tempStream = pp.GetStream( FileMode.Open, FileAccess.Read ) )
-        {
-          // Compare this image to the new image being added.
-          if( HelperFunctions.IsSameFile( tempStream, newImageStream ) )
-          {
-            // Return the Image object
-            PackageRelationship relationship = this.PackagePart.GetRelationshipsByType( RelationshipImage ).First( x => x.TargetUri == pp.Uri );
-            return new Image( this, relationship );
-          }
-        }
-      }
-
-      var imgPartUriPath = string.Empty;
-      var extension = contentType.Substring( contentType.LastIndexOf( "/" ) + 1 );
-      do
-      {
-        // Create a new image part.
-        imgPartUriPath = string.Format
-        (
-            "/word/media/{0}.{1}",
-            Guid.NewGuid(), // The unique part.
-            extension
-        );
-
-      } while( _package.PartExists( new Uri( imgPartUriPath, UriKind.Relative ) ) );
-
-      // We are now guaranteed that imgPartUriPath is unique.
-      var img = _package.CreatePart( new Uri( imgPartUriPath, UriKind.Relative ), contentType, CompressionOption.Normal );
-
-      // Create a new image relationship
-      var rel = this.PackagePart.CreateRelationship( img.Uri, TargetMode.Internal, RelationshipImage );
-
-      // Open a Stream to the newly created Image part.
-      using( Stream stream = new PackagePartStream( img.GetStream( FileMode.Create, FileAccess.Write ) ) )
-      {
-        // Using the Stream to the real image, copy this streams data into the newly create Image part.
-        using( newImageStream )
-        {
+          // Using the Stream to the real image, copy this streams data into the newly create Image part.
           HelperFunctions.CopyStream( newImageStream, stream, bufferSize: 4096 );
-        }// Close the Stream to the new image.
-      }// Close the Stream to the new image part.
+        }// Close the Stream to the new image part.
 
-      return new Image( this, rel );
+        return new Image( this, rel );
+      }
     }
 
     internal static void UpdateCorePropertyValue( Document document, string corePropertyName, string corePropertyValue )
@@ -3140,7 +3356,7 @@ namespace Xceed.Document.NET
       }
 
       // A list of documents, which will contain, if they exist: header1, header2, header3, footer1, footer2, footer3.
-      var documents = new List<XElement> {};
+      var documents = new List<XElement> { };
 
       foreach( var section in document.Sections )
       {
@@ -3260,7 +3476,7 @@ namespace Xceed.Document.NET
         #region Word 2010+
         foreach( XElement e in doc.Descendants( XName.Get( "instrText", w.NamespaceName ) ) )
         {
-          var attr_value = e.Value.Replace( " ", string.Empty ).Trim();          
+          var attr_value = e.Value.Replace( " ", string.Empty ).Trim();
 
           if( attr_value.Equals( match_value, StringComparison.CurrentCultureIgnoreCase ) )
           {
@@ -3415,8 +3631,10 @@ namespace Xceed.Document.NET
             existingIds.Add( idAtt.Value );
         }
 
-        while( existingIds.Contains( newDocPrId.ToString() ) )
-          newDocPrId++;
+        if( existingIds.Count > 0 )
+        {
+          newDocPrId = existingIds.Max( id => long.Parse( id ) ) + 1;
+        }
 
         nextFreeDocPrId = newDocPrId;
         return nextFreeDocPrId.Value;
@@ -3454,10 +3672,6 @@ namespace Xceed.Document.NET
       return _defaultParagraphStyleName;
     }
 
-    #endregion
-
-    #region Private Methods
-
     internal static void PrepareDocument( ref Document document, DocumentTypes documentType )
     {
       // Store this document in memory
@@ -3470,6 +3684,26 @@ namespace Xceed.Document.NET
       document = Document.Load( ms, document, documentType );
     }
 
+    #endregion
+
+    #region Private Methods
+
+    private void InsertParagraphPictures( Paragraph p )
+    {
+      if( ( p != null ) && ( p.Pictures != null ) && ( p.Pictures.Count > 0 ) )
+      {
+        var ppc = p.Document._package.GetParts();
+
+        foreach( var remote_pp in ppc )
+        {
+          if( _imageContentTypes.Contains( remote_pp.ContentType ) )
+          {
+            merge_images( remote_pp, p.Document, p.Document._mainDoc, remote_pp.ContentType );
+          }
+        }
+      }
+    }
+
     private void merge_images( PackagePart remote_pp, Document remote_document, XDocument remote_mainDoc, String contentType )
     {
       // Before doing any other work, check to see if this image is actually referenced in the document.
@@ -3479,7 +3713,16 @@ namespace Xceed.Document.NET
       {
         remote_rel = remote_document.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( remote_pp.Uri.OriginalString ) ).FirstOrDefault();
         if( remote_rel == null )
-          return;
+        {
+          // Look for images in _numbering.
+          remote_rel = remote_document._numberingPart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( remote_pp.Uri.OriginalString.Replace( "/word/", "" ) ) ).FirstOrDefault();
+          if( remote_rel == null )
+          {
+            remote_rel = remote_document._numberingPart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( remote_pp.Uri.OriginalString ) ).FirstOrDefault();
+            if( remote_rel == null )
+              return;
+          }
+        }
       }
 
       var remote_Id = remote_rel.Id;
@@ -3497,10 +3740,18 @@ namespace Xceed.Document.NET
           found = true;
 
           var local_rel = this.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString.Replace( "/word/", "" ) ) ).FirstOrDefault();
-
           if( local_rel == null )
           {
             local_rel = this.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString ) ).FirstOrDefault();
+            if( local_rel == null )
+            {
+              // Look in _numbering.
+              local_rel = _numberingPart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString.Replace( "/word/", "" ) ) ).FirstOrDefault();
+              if( local_rel == null )
+              {
+                local_rel = _numberingPart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString ) ).FirstOrDefault();
+              }
+            }
           }
 
           if( local_rel != null )
@@ -3602,7 +3853,7 @@ namespace Xceed.Document.NET
       {
         XAttribute id = endnote.Attribute( XName.Get( "id", w.NamespaceName ) );
         int i;
-        if( id != null && int.TryParse( id.Value, out i ) )
+        if( id != null && HelperFunctions.TryParseInt( id.Value, out i ) )
         {
           if( i > 0 )
           {
@@ -3640,7 +3891,7 @@ namespace Xceed.Document.NET
       {
         XAttribute id = footnote.Attribute( XName.Get( "id", Document.w.NamespaceName ) );
         int i;
-        if( id != null && int.TryParse( id.Value, out i ) )
+        if( id != null && HelperFunctions.TryParseInt( id.Value, out i ) )
         {
           if( i > 0 )
           {
@@ -3730,7 +3981,7 @@ namespace Xceed.Document.NET
         if( a != null )
         {
           int i;
-          if( int.TryParse( a.Value, out i ) )
+          if( HelperFunctions.TryParseInt( a.Value, out i ) )
           {
             if( i > guidd )
             {
@@ -3751,7 +4002,7 @@ namespace Xceed.Document.NET
         if( a != null )
         {
           int i;
-          if( int.TryParse( a.Value, out i ) )
+          if( HelperFunctions.TryParseInt( a.Value, out i ) )
           {
             if( i > guidd2 )
             {
@@ -3846,6 +4097,89 @@ namespace Xceed.Document.NET
       }
     }
 
+    private bool IsDefaultParagraphStyle( XElement style )
+    {
+      if( style == null )
+        return false;
+
+      return ( ( style.Attribute( XName.Get( "default", w.NamespaceName ) ) != null ) 
+      	 && ( style.Attribute( XName.Get( "default", w.NamespaceName ) ).Value == "1" )
+         && ( style.Attribute( XName.Get( "type", w.NamespaceName ) ) != null ) 
+         && ( style.Attribute( XName.Get( "type", w.NamespaceName ) ).Value == "paragraph" ) );
+    }
+
+    private void MergeDefaultParagraphStyles( Document remote, XElement remote_style )
+    {
+      if( ( remote == null ) || ( remote_style == null ) )
+        return;
+
+      var defaults = remote.GetDocDefaults();
+      if( defaults != null )
+      {
+        var remote_rPr_default = defaults.Element( XName.Get( "rPrDefault", w.NamespaceName ) );
+        if( remote_rPr_default != null )
+        {
+          // Update remote document default paragraph with default remote document values.
+          // This way, the remote default document values won't be necessary anymore.
+          // The final merged document default paragraph will be used by initial document only (not by remote document).
+          var remoteDefault_rPr = remote_rPr_default.Element( XName.Get( "rPr", w.NamespaceName ) );
+          if( remoteDefault_rPr != null )
+          {
+            // Update the rPr
+            var remoteDefaultStyleParagraph_rPr = remote_style.Element( XName.Get( "rPr", w.NamespaceName ) );
+            if( remoteDefaultStyleParagraph_rPr == null )
+            {
+              // No rPr in defaultParagraph of document. Copy the document's default rPr into the defaultParagraph of document.
+              remote_style.Add( remoteDefault_rPr );
+            }
+            else
+            {
+              // rPr exists in defaultParagraph of document. Copy only the missing rPr element from document's default into the defaultParagraph of document.
+              foreach( var rPr in remoteDefault_rPr.Elements() )
+              {
+                var rPrElement = remoteDefaultStyleParagraph_rPr.Element( rPr.Name );
+                if( rPrElement == null )
+                {
+                  // Add the missing rPr from defaultDocument to defaultParagraph.
+                  remoteDefaultStyleParagraph_rPr.Add( rPr );
+                }
+              }
+            }
+          }
+        }
+
+        var remote_pPr_default = defaults.Element( XName.Get( "pPrDefault", w.NamespaceName ) );
+        if( remote_pPr_default != null )
+        {
+          // Update document default paragraph with default document values.
+          var remoteDefault_pPr = remote_pPr_default.Element( XName.Get( "pPr", w.NamespaceName ) );
+          if( remoteDefault_pPr != null )
+          {
+            // Update the pPr
+            var remoteDefaultStyleParagraph_pPr = remote_style.Element( XName.Get( "pPr", w.NamespaceName ) );
+            if( remoteDefaultStyleParagraph_pPr == null )
+            {
+              // No pPr in defaultParagraph of document. Copy the document's default pPr into the defaultParagraph of document.
+              remote_style.Add( remoteDefault_pPr );
+            }
+            else
+            {
+              // pPr exists in defaultParagraph of document. Copy only the missing pPr element from document's default into the defaultParagraph of document.
+              foreach( var pPr in remoteDefault_pPr.Elements() )
+              {
+                var pPrElement = remoteDefaultStyleParagraph_pPr.Element( pPr.Name );
+                if( pPrElement == null )
+                {
+                  // Add the missing pPr from defaultDocument to defaultParagraph.
+                  remoteDefaultStyleParagraph_pPr.Add( pPr );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     private void merge_styles( PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, Document remote, XDocument remote_footnotes, XDocument remote_endnotes )
     {
       var local_styles = new Dictionary<string, string>();
@@ -3864,8 +4198,18 @@ namespace Xceed.Document.NET
 
       // Add each remote style to this document.
       var remote_styles = remote._styles.Root.Elements( XName.Get( "style", w.NamespaceName ) );
-      foreach( XElement remote_style in remote_styles )
+      foreach( var remote_style in remote_styles )
       {
+        if( this.IsDefaultParagraphStyle( remote_style ) )
+        {
+          // Update remote document default paragraph with default remote document values.
+          // This way, the remote default document values won't be necessary anymore.
+          // The final merged document default paragraph will be used by initial document only (not by remote document).
+          this.MergeDefaultParagraphStyles( remote, remote_style );
+
+          remote_style.Attribute( XName.Get( "default", w.NamespaceName ) ).Remove();
+        }
+
         var temp = new XElement( remote_style );
         var styleId = temp.Attribute( XName.Get( "styleId", w.NamespaceName ) );
         var value = styleId.Value;
@@ -3888,8 +4232,13 @@ namespace Xceed.Document.NET
         else
         {
           guuid = Guid.NewGuid().ToString();
-          // Set the styleId in the remote_style to this new Guid
+          // Set the styleId and name in the remote_style to this new Guid
           remote_style.SetAttributeValue( XName.Get( "styleId", w.NamespaceName ), guuid );
+          var name = remote_style.Element( XName.Get( "name", w.NamespaceName ) );
+          if( name != null )
+          {
+            name.SetAttributeValue( XName.Get( "val", w.NamespaceName ), guuid );
+          }
         }
 
         foreach( XElement e in remote_mainDoc.Root.Descendants( XName.Get( "pStyle", w.NamespaceName ) ) )
@@ -3985,6 +4334,24 @@ namespace Xceed.Document.NET
           }
         }
 
+        foreach( var e in remote._styles.Descendants( XName.Get( "basedOn", w.NamespaceName ) ) )
+        {
+          var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
+          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+          {
+            e_styleId.SetValue( guuid );
+          }
+        }
+
+        foreach( var e in remote._styles.Descendants( XName.Get( "next", w.NamespaceName ) ) )
+        {
+          var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
+          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+          {
+            e_styleId.SetValue( guuid );
+          }
+        }
+
         // Make sure they don't clash by using a uuid.
         styleId.SetValue( guuid );
         _styles.Root.Add( remote_style );
@@ -4041,10 +4408,20 @@ namespace Xceed.Document.NET
 
     private static void PopulateDocument( Document document, Package package )
     {
-      document.Xml = document._mainDoc.Root.Element( w + "body" );
+      document.Xml = document._mainDoc.Root.Element( XName.Get( "body", Document.w.NamespaceName ) );
+      if( document.Xml == null )
+        throw new InvalidDataException( "Can't find body of document's xml. Make sure document has a body from namespace w:http://schemas.openxmlformats.org/wordprocessingml/2006/main" );
+
       document._settingsPart = HelperFunctions.CreateOrGetSettingsPart( package );
 
-      var ps = package.GetParts();
+      try
+      {
+        var rel = document.PackagePart.GetRelationships();
+      }
+      catch( UriFormatException )
+      {
+        Document.UpdateRelationshipsUri( package );
+      }
 
       foreach( var rel in document.PackagePart.GetRelationships() )
       {
@@ -4107,6 +4484,55 @@ namespace Xceed.Document.NET
       document._cachedSections = document.GetSections();
     }
 
+    // This method will parse the Hyperlinks of the document and replace the mal-formed ones with "http://broken-link/" 
+    // in order for document.PackagePart.GetRelationships() to not throw exceptions.
+    private static void UpdateRelationshipsUri( Package package )
+    {
+      if( package == null )
+        return;
+
+      if( package.PartExists( new Uri( "/word/_rels/document.xml.rels", UriKind.Relative ) ) )
+      {
+        var docRelationships = package.GetPart( new Uri( "/word/_rels/document.xml.rels", UriKind.Relative ) );        
+        using( var tr = new StreamReader( docRelationships.GetStream( FileMode.Open, FileAccess.Read ) ) )
+        {
+          XDocument docRelationShipDocument;
+          docRelationShipDocument = XDocument.Load( tr, LoadOptions.PreserveWhitespace );
+
+          var urisToValidate = docRelationShipDocument
+                                  .Descendants( XName.Get( "Relationship", rel.NamespaceName ) )
+                                  .Where( relation => ( relation.Attribute( "TargetMode" ) != null) && (( string )relation.Attribute( "TargetMode" ) == "External") );
+
+          bool needUpdate = false;
+          foreach( var relation in urisToValidate )
+          {
+            var target = ( string )relation.Attribute( "Target" );
+            if( !string.IsNullOrEmpty( target ))
+            {
+              try
+              {
+                var uri = new Uri( target );
+              }
+              catch( UriFormatException )
+              {
+                var newUri = new Uri( "http://broken-link/" );
+                relation.Attribute( "Target" ).Value = newUri.ToString();
+                needUpdate = true;
+              }
+            }
+          }
+
+          if( needUpdate )
+          {
+            using( var tw = new StreamWriter( new PackagePartStream( docRelationships.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+            {
+              docRelationShipDocument.Save( tw, SaveOptions.None );
+            }
+          }
+        }
+      }
+    }
+
     private string GetNextFreeRelationshipID()
     {
       int id =
@@ -4119,7 +4545,7 @@ namespace Xceed.Document.NET
       // The convension for ids is rid01, rid02, etc
       var newId = id.ToString();
       int result;
-      if( int.TryParse( newId, out result ) )
+      if( HelperFunctions.TryParseInt( newId, out result ) )
         return ( "rId" + ( result + 1 ) );
 
       var guid = String.Empty;
@@ -4138,23 +4564,29 @@ namespace Xceed.Document.NET
       return result;
     }
 
-    private Hyperlink AddHyperlink( string text, Uri uri, string anchor )
+    private Hyperlink AddHyperlinkCore( string text, Uri uri, string anchor, Hyperlink baseHyperlink, Formatting formatting )
     {
-      var i = new XElement
-      (
-          XName.Get( "hyperlink", w.NamespaceName ),
-          new XAttribute( r + "id", string.Empty ),
-          new XAttribute( w + "history", "1" ),
-          !string.IsNullOrEmpty( anchor ) ? new XAttribute( w + "anchor", anchor ) : null,
-          new XElement( XName.Get( "r", w.NamespaceName ),
-          new XElement( XName.Get( "rPr", w.NamespaceName ),
-          new XElement( XName.Get( "rStyle", w.NamespaceName ),
-          new XAttribute( w + "val", "Hyperlink" ) ) ),
-          new XElement( XName.Get( "t", w.NamespaceName ), text ) )
-      );
+      XElement xElement = null;
 
-      var h = new Hyperlink( this, this.PackagePart, i );
 
+
+
+      {
+        xElement = new XElement
+       (
+           XName.Get( "hyperlink", w.NamespaceName ),
+           new XAttribute( r + "id", string.Empty ),
+           new XAttribute( w + "history", "1" ),
+           !string.IsNullOrEmpty( anchor ) ? new XAttribute( w + "anchor", anchor ) : null,
+           new XElement( XName.Get( "r", w.NamespaceName ),
+           new XElement( XName.Get( "rPr", w.NamespaceName ),
+           new XElement( XName.Get( "rStyle", w.NamespaceName ),
+           new XAttribute( w + "val", "Hyperlink" ) ) ),
+           new XElement( XName.Get( "t", w.NamespaceName ), text ) )
+       );
+      }
+
+      var h = new Hyperlink( this, this.PackagePart, xElement );
       h.text = text;
       if( uri != null )
       {
@@ -4172,6 +4604,8 @@ namespace Xceed.Document.NET
       this.SaveHeadersFooters();
 
       var sctPr = new XElement( this.Sections.Last().Xml );
+      this.Sections.Last().Xml.Elements( XName.Get( "headerReference", Document.w.NamespaceName ) ).Remove();
+      this.Sections.Last().Xml.Elements( XName.Get( "footerReference", Document.w.NamespaceName ) ).Remove();
       if( !isPageBreak )
       {
         sctPr.Add( new XElement( XName.Get( "type", Document.w.NamespaceName ), new XAttribute( Document.w + "val", "continuous" ) ) );
@@ -4214,6 +4648,90 @@ namespace Xceed.Document.NET
         }
         body_sectPr.Remove();
       }
+    }
+
+    private void RemoveLastSection( XElement body )
+    {
+      Debug.Assert( body != null, "body shouldn't be null." );
+
+      var body_sectPr = body.Elements( XName.Get( "sectPr", Document.w.NamespaceName ) ).LastOrDefault();
+      if( body_sectPr != null )
+      {
+        body_sectPr.Remove();
+      }
+    }
+
+    private void ReplaceLastSection( XElement first, XElement second )
+    {
+      Debug.Assert( first != null, "first shouldn't be null." );
+      Debug.Assert( second != null, "second shouldn't be null." );
+
+      var first_sectPr = first.Elements( XName.Get( "sectPr", Document.w.NamespaceName ) ).LastOrDefault();
+      if( first_sectPr != null )
+      {
+        var second_sectPr = second.Elements( XName.Get( "sectPr", Document.w.NamespaceName ) ).LastOrDefault();
+        if( second_sectPr != null )
+        {
+          second_sectPr.ReplaceWith( first_sectPr );
+          first_sectPr.Remove();
+        }
+      }
+    }
+
+    private void InsertChart( Chart chart, Paragraph paragraph, float width = 432f, float height = 252f )
+    {
+      Paragraph p;
+
+      // Create a new chart part uri.
+      var chartPartUriPath = String.Empty;
+      var chartIndex = 1;
+      do
+      {
+        chartPartUriPath = String.Format( "/word/charts/chart{0}.xml", chartIndex );
+        chartIndex++;
+      } while( _package.PartExists( new Uri( chartPartUriPath, UriKind.Relative ) ) );
+
+      // Create chart part.
+      var chartPackagePart = _package.CreatePart( new Uri( chartPartUriPath, UriKind.Relative ), "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", CompressionOption.Normal );
+
+      // Create a new chart relationship
+      var relID = this.GetNextFreeRelationshipID();
+      var rel = this.PackagePart.CreateRelationship( chartPackagePart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", relID );
+
+      // Save a chart info the chartPackagePart
+      if( paragraph == null )
+      {
+        using( TextWriter tw = new StreamWriter( new PackagePartStream( chartPackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+        {
+          chart.Xml.Save( tw );
+        }
+        p = InsertParagraph();
+      }
+      else
+      {
+        using( TextWriter tw = new StreamWriter( chartPackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) )
+        {
+          chart.Xml.Save( tw );
+        }
+        p = paragraph;
+      }
+
+      var chartWidth = width * Picture.EmusInPixel;
+      var chartHeight = height * Picture.EmusInPixel;
+
+      // Insert a new chart into a paragraph.
+      var chartElement = new XElement( XName.Get( "r", w.NamespaceName ),
+                                       new XElement( XName.Get( "drawing", w.NamespaceName ),
+                                                     new XElement( XName.Get( "inline", wp.NamespaceName ),
+                                                                   new XElement( XName.Get( "extent", wp.NamespaceName ), new XAttribute( "cx", chartWidth ), new XAttribute( "cy", chartHeight ) ),
+                                                                   new XElement( XName.Get( "effectExtent", wp.NamespaceName ), new XAttribute( "l", "0" ), new XAttribute( "t", "0" ), new XAttribute( "r", "19050" ), new XAttribute( "b", "19050" ) ),
+                                                                   new XElement( XName.Get( "docPr", wp.NamespaceName ), new XAttribute( "id", "1" ), new XAttribute( "name", "chart" ) ),
+                                                                   new XElement( XName.Get( "graphic", a.NamespaceName ),
+                                                                                 new XElement( XName.Get( "graphicData", a.NamespaceName ),
+                                                                                               new XAttribute( "uri", c.NamespaceName ),
+                                                                                               new XElement( XName.Get( "chart", c.NamespaceName ),
+                                                                                                             new XAttribute( XName.Get( "id", r.NamespaceName ), relID ) ) ) ) ) ) );
+      p.Xml.Add( chartElement );
     }
 
     #endregion

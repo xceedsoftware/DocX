@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Document Sample Application
-Copyright (c) 2009-2019 - Xceed Software Inc.
+Copyright (c) 2009-2020 - Xceed Software Inc.
 
 This application demonstrates how to modify the content of a document when using the API 
 from the Xceed Words for .NET.
@@ -84,7 +84,7 @@ namespace Xceed.Words.NET.Examples
       {
         // Create the image from disk and set its size.
         var image = document.AddImage( DocumentSample.DocumentSampleResourcesDirectory + @"2018.jpg" );
-        var picture = image.CreatePicture( 175, 325 );
+        var picture = image.CreatePicture( 175f, 325f );
 
         // Do the replacement of all the found tags with the specified image and ignore the case when searching for the tags.
         document.ReplaceTextWithObject( "<yEaR_IMAGE>", picture, false, RegexOptions.IgnoreCase );
@@ -99,7 +99,7 @@ namespace Xceed.Words.NET.Examples
         t.Design = TableDesign.DarkListAccent4;
         t.AutoFit = AutoFit.Window;
         t.Rows[ 0 ].Cells[ 0 ].Paragraphs[ 0 ].Append( "xceed.com" );
-        t.Rows[ 0 ].Cells[ 1 ].Paragraphs[ 0 ].Append( "@copyright 2019" );
+        t.Rows[ 0 ].Cells[ 1 ].Paragraphs[ 0 ].Append( "@copyright 2020" );
         document.ReplaceTextWithObject( "<year_table>", t );
 
         // Save this document to disk.
@@ -247,6 +247,28 @@ namespace Xceed.Words.NET.Examples
 
         doc.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"LoadDocumentWithUrl.docx" );
       }
+    }
+
+    /// <summary>
+    /// Create a document and add html text from an html file.
+    /// </summary>
+    public static void AddHtmlFromFile()
+    {
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    /// <summary>
+    /// Create a document and add rtf text from an rtf file.
+    /// </summary>
+    public static void AddRtfFromFile()
+    {
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     #endregion

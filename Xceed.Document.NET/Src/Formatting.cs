@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -44,9 +45,9 @@ namespace Xceed.Document.NET
     private Misc? _misc;
     private CapsStyle? _capsStyle;
     private Font _fontFamily;
-    private int? _percentageScale;
-    private int? _kerning;
-    private int? _position;
+    private float? _percentageScale;
+    private float? _kerning;
+    private float? _position;
     private double? _spacing;
     private string _styleName;
 
@@ -178,7 +179,7 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Percentage scale must be between 1 and 600.
     /// </summary>
-    public int? PercentageScale
+    public float? PercentageScale
     {
       get
       {
@@ -193,7 +194,7 @@ namespace Xceed.Document.NET
         }
         else
         {
-          if( ( value >= 1 ) && ( value <= 600 ) )
+          if( ( value >= 1f ) && ( value <= 600f ) )
           {
             _percentageScale = value;
           }
@@ -206,7 +207,7 @@ namespace Xceed.Document.NET
     /// <summary>
     /// The Kerning to apply to this text.
     /// </summary>
-    public int? Kerning
+    public float? Kerning
     {
       get
       {
@@ -222,7 +223,7 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Text position must be in the range (-1585 - 1585).
     /// </summary>
-    public int? Position
+    public float? Position
     {
       get
       {
@@ -231,7 +232,7 @@ namespace Xceed.Document.NET
 
       set
       {
-        if( value > -1585 && value < 1585 )
+        if( value > -1585f && value < 1585f )
           _position = value;
         else
           throw new ArgumentOutOfRangeException( "Position", "Value must be in the range -1585 - 1585" );
@@ -455,12 +456,12 @@ namespace Xceed.Document.NET
 
         if( _position.HasValue )
         {
-          _rPr.Add( new XElement( XName.Get( "position", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), _position.Value * 2 ) ) );
+          _rPr.Add( new XElement( XName.Get( "position", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), _position.Value * 2f ) ) );
         }
 
         if( _kerning.HasValue )
         {
-          _rPr.Add( new XElement( XName.Get( "kern", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), _kerning.Value * 2 ) ) );
+          _rPr.Add( new XElement( XName.Get( "kern", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), _kerning.Value * 2f ) ) );
         }
 
         if( _percentageScale.HasValue )
@@ -712,10 +713,10 @@ namespace Xceed.Document.NET
             formatting.Spacing = Double.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 20.0;
             break;
           case "position":
-            formatting.Position = Int32.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2;
+            formatting.Position = Int32.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2f;
             break;
           case "kern":
-            formatting.Kerning = Int32.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2;
+            formatting.Kerning = Int32.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2f;
             break;
           case "w":
             formatting.PercentageScale = Int32.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) );

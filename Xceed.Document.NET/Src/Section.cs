@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -21,6 +22,7 @@ using System.IO.Packaging;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Linq;
+using System.Globalization;
 
 namespace Xceed.Document.NET
 {
@@ -271,7 +273,7 @@ namespace Xceed.Document.NET
           if( w != null )
           {
             float f;
-            if( float.TryParse( w.Value, out f ) )
+            if( HelperFunctions.TryParseFloat( w.Value, out f ) )
               return (int)( f / _pageSizeMultiplier );
           }
         }
@@ -306,7 +308,7 @@ namespace Xceed.Document.NET
           if( start != null )
           {
             int i;
-            if( int.TryParse( start.Value, out i ) )
+            if( HelperFunctions.TryParseInt( start.Value, out i ) )
               return i;
           }
         }
@@ -340,7 +342,7 @@ namespace Xceed.Document.NET
           if( w != null )
           {
             float f;
-            if( float.TryParse( w.Value, out f ) )
+            if( HelperFunctions.TryParseFloat( w.Value, out f ) )
               return (int)( f / _pageSizeMultiplier );
           }
         }
@@ -411,44 +413,37 @@ namespace Xceed.Document.NET
 
     #region Constructors
 
-    internal Section( Document document, XElement xml, Section lastSection ) : base( document, xml )
-    {
-      this.PageLayout = new PageLayout( document, xml );
-
-      // Add last section header/footer references to this section xml.
-      this.UpdateXmlReferenceFromLastSection(  xml, lastSection?.Xml, true );
-      this.UpdateXmlReferenceFromLastSection( xml, lastSection?.Xml, false );
-
-      this.AddHeadersContainer( xml );
-      this.AddFootersContainer( xml );
-    }
-
     internal Section( Document document, XElement xml, IEnumerable<XElement> lastSectionsXml ) : base( document, xml )
     {
       this.PageLayout = new PageLayout( document, xml );
 
+      var xmlCopy = new XElement( xml );
+
       if( lastSectionsXml != null )
       {
-        foreach( var lastSectionXml in lastSectionsXml )
+        var lastSectionsXmlList = lastSectionsXml.ToList();
+        for( int i = lastSectionsXmlList.Count - 1; i >= 0; i-- )
         {
-          var lastSectionElements = lastSectionXml.Elements();
+          var lastSectionElements = lastSectionsXmlList[i].Elements();
           foreach( var lastSectionElement in lastSectionElements )
           {
-            if( ( xml.Element( lastSectionElement.Name ) == null )
+            if( ( xmlCopy.Element( lastSectionElement.Name ) == null )
                   && ( lastSectionElement.Name.LocalName != "headerReference" )
                   && ( lastSectionElement.Name.LocalName != "footerReference" ) )
             {
-              xml.Add( lastSectionElement );
+              xmlCopy.Add( lastSectionElement );
             }
           }
-          // Add last section header/footer references to this section xml.
-          this.UpdateXmlReferenceFromLastSection( xml, lastSectionXml, true );
-          this.UpdateXmlReferenceFromLastSection( xml, lastSectionXml, false );
         }
       }
 
-      this.AddHeadersContainer( xml );
-      this.AddFootersContainer( xml );
+      // Add last section header/footer references to this section xml copy.
+      this.UpdateXmlReferenceFromLastSection( xmlCopy, lastSectionsXml, true );
+      this.UpdateXmlReferenceFromLastSection( xmlCopy, lastSectionsXml, false );
+
+      // Create the Header/Footer container based on the xml copy.
+      this.AddHeadersContainer( xmlCopy );
+      this.AddFootersContainer( xmlCopy );
     }
 
     #endregion
@@ -568,13 +563,12 @@ namespace Xceed.Document.NET
 
     #region Private Methods
 
-    private void UpdateXmlReferenceFromLastSection( XElement xml, XElement lastSectionXml, bool isHeader )
+    private void UpdateXmlReferenceFromLastSection( XElement xml, IEnumerable<XElement> lastSectionsXml, bool isHeader )
     {
-      if( ( xml == null ) || ( lastSectionXml == null ) )
+      if( ( xml == null ) || ( lastSectionsXml == null ) || ( lastSectionsXml.Count() == 0 ) )
         return;
 
       var references = xml.Elements( XName.Get( isHeader ? "headerReference" : "footerReference", w.NamespaceName ) );
-      var lastSectionReferences = lastSectionXml.Elements( XName.Get( isHeader ? "headerReference" : "footerReference", w.NamespaceName ) );
 
       // First, Even, Odd(default)
       var definedReferenceTypes = new List<XElement>() { null, null, null };
@@ -595,29 +589,45 @@ namespace Xceed.Document.NET
         }
       }
 
-      // Current section do not have a reference, copy the one from last section if available.
-      if( definedReferenceTypes[ 0 ] == null )
+      // Current section do not have a reference, copy the one from preceding sections, if available.
+      if( definedReferenceTypes.Any( r => r == null ) )
       {
-        var lastSectionFirst = lastSectionReferences.FirstOrDefault( x => x.Attribute( w + "type" ).Value == "first" );
-        if( lastSectionFirst != null )
+        var lastSectionsXmlList = lastSectionsXml.ToList();
+        for( int i = lastSectionsXmlList.Count - 1; i >= 0; i-- )
         {
-          xml.Add( lastSectionFirst );
-        }
-      }
-      if( definedReferenceTypes[ 1 ] == null )
-      {
-        var lastSectionEven = lastSectionReferences.FirstOrDefault( x => x.Attribute( w + "type" ).Value == "even" );
-        if( lastSectionEven != null )
-        {
-          xml.Add( lastSectionEven );
-        }
-      }
-      if( definedReferenceTypes[ 2 ] == null )
-      {
-        var lastSectionDefault = lastSectionReferences.FirstOrDefault( x => x.Attribute( w + "type" ).Value == "default" );
-        if( lastSectionDefault != null )
-        {
-          xml.Add( lastSectionDefault );
+          var lastSectionXml = lastSectionsXmlList[ i ];
+          var lastSectionReferences = lastSectionXml.Elements( XName.Get( isHeader ? "headerReference" : "footerReference", w.NamespaceName ) );
+
+          if( definedReferenceTypes[ 0 ] == null )
+          {
+            var lastSectionFirst = lastSectionReferences.FirstOrDefault( x => x.Attribute( w + "type" ).Value == "first" );
+            if( lastSectionFirst != null )
+            {
+              xml.Add( lastSectionFirst );
+              definedReferenceTypes[ 0 ] = lastSectionFirst;
+            }
+          }
+          if( definedReferenceTypes[ 1 ] == null )
+          {
+            var lastSectionEven = lastSectionReferences.FirstOrDefault( x => x.Attribute( w + "type" ).Value == "even" );
+            if( lastSectionEven != null )
+            {
+              xml.Add( lastSectionEven );
+              definedReferenceTypes[ 1 ] = lastSectionEven;
+            }
+          }
+          if( definedReferenceTypes[ 2 ] == null )
+          {
+            var lastSectionDefault = lastSectionReferences.FirstOrDefault( x => x.Attribute( w + "type" ).Value == "default" );
+            if( lastSectionDefault != null )
+            {
+              xml.Add( lastSectionDefault );
+              definedReferenceTypes[ 2 ] = lastSectionDefault;
+            }
+          }
+
+          if( definedReferenceTypes.All( r => r != null ) )
+            break;
         }
       }
     }
@@ -764,7 +774,7 @@ namespace Xceed.Document.NET
       if( top != null )
       {
         float f;
-        if( float.TryParse( top.Value, out f ) )
+        if( HelperFunctions.TryParseFloat( top.Value, out f ) )
           return (int)( f / _pageSizeMultiplier );
       }
 

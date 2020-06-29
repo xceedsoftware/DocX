@@ -50,6 +50,7 @@
     <Compile Include="Samples\Bookmark\BookmarkSample.cs" />
     <Compile Include="Samples\Chart\ChartData.cs" />
     <Compile Include="Samples\Chart\ChartSample.cs" />
+    <Compile Include="Samples\CheckBox\CheckBoxSample.cs" />
     <Compile Include="Samples\Document\DocumentSample.cs" />
     <Compile Include="Samples\Equation\EquationSample.cs" />
     <Compile Include="Samples\HeaderFooter\HeaderFooterSample.cs" />
@@ -72,12 +73,15 @@
     <None Include="app.config" />
     <None Include="Samples\Bookmark\Resources\DocumentWithBookmarks.docx" />
     <None Include="Samples\Chart\Resources\Report.docx" />
+    <None Include="Samples\CheckBox\Resources\DocumentWithCheckBoxes.docx" />
     <None Include="Samples\Document\Resources\First.docx" />
     <None Include="Samples\Document\Resources\ReplaceText.docx" />
     <None Include="Samples\Document\Resources\ReplaceTextWithObjects.docx" />
+    <None Include="Samples\Document\Resources\RtfSample.rtf" />
     <None Include="Samples\Document\Resources\Second.docx" />
     <None Include="Samples\Document\Resources\Template.docx" />
     <None Include="Samples\Image\Resources\Input.docx" />
+    <None Include="Samples\List\Resources\TemplateLists.docx" />
     <None Include="Samples\Miscellaneous\Resources\TemplateInvoice.docx" />
     <None Include="Samples\Miscellaneous\Resources\TemplateMailMerge.docx" />
     <None Include="Samples\Paragraph\Resources\Template.docx" />
@@ -87,9 +91,11 @@
     <None Include="Samples\Pdf\Resources\DocumentToConvert.docx" />
     <None Include="Samples\TableOfContent\Resources\TOCDocument.docx" />
     <None Include="Samples\Table\Resources\DocumentWithTemplateTable.docx" />
+    <None Include="Samples\Table\Resources\TemplateTable.docx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Samples\Document\Resources\2018.jpg" />
+    <Content Include="Samples\Document\Resources\HtmlSample.html" />
     <Content Include="Samples\Image\Resources\balloon.jpg" />
     <Content Include="Samples\Image\Resources\W.png" />
     <Content Include="Samples\Image\Resources\WordsIcon.png" />
@@ -99,14 +105,12 @@
     <Content Include="Samples\Table\Resources\logo_xceed.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xceed.Document.NET\Xceed.Document.NET.csproj">
-      <Project>{e863d072-aa8b-4108-b5f1-785241b37f67}</Project>
-      <Name>Xceed.Document.NET</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xceed.Words.NET\Xceed.Words.NET.csproj">
-      <Project>{6a9b96d0-a011-4f33-8ee2-ac31c948cca9}</Project>
-      <Name>Xceed.Words.NET</Name>
-    </ProjectReference>
+    <Reference Include="Xceed.Document.NET.dll">
+      <HintPath>..\Xceed.Document.NET\bin\Debug\Xceed.Document.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Words.NET.dll">
+      <HintPath>..\Xceed.Words.NET\bin\Debug\Xceed.Words.NET.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

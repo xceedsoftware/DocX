@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -99,6 +100,14 @@ namespace Xceed.Document.NET
         if( this.CanAddListItem( paragraph ) )
         {
           this.NumId = numId;
+          if( this.ListType == null )
+          {
+            var listItemType = HelperFunctions.GetListItemType( paragraph, this.Document );
+            if( listItemType != null )
+            {
+              this.ListType = listItemType.Equals( "bullet" ) ? ListItemType.Bulleted : ListItemType.Numbered;
+            }
+          }
           this.Items.Add( paragraph );
         }
         else
@@ -175,7 +184,7 @@ namespace Xceed.Document.NET
       }
       var abstractNumTemplate = listTemplate.Descendants().Single( d => d.Name.LocalName == "abstractNum" );
       abstractNumTemplate.SetAttributeValue( Document.w + "abstractNumId", abstractNumId );
-      var abstractNumXml = GetAbstractNumXml( abstractNumId, numId, startNumber, continueNumbering );
+      var abstractNumXml = GetAbstractNumXml( abstractNumId, numId, startNumber, level, continueNumbering );
 
       var abstractNumNode = Document._numbering.Root.Descendants().LastOrDefault( xElement => xElement.Name.LocalName == "abstractNum" );
       var numXml = Document._numbering.Root.Descendants().LastOrDefault( xElement => xElement.Name.LocalName == "num" );
@@ -196,6 +205,12 @@ namespace Xceed.Document.NET
       NumId = numId;
     }
 
+
+
+
+
+
+
     /// <summary>
     /// Get the abstractNum definition for the given numId
     /// </summary>
@@ -212,20 +227,56 @@ namespace Xceed.Document.NET
 
     private void UpdateNumberingForLevelStartNumber( int iLevel, int start )
     {
-      var abstractNum = GetAbstractNum( NumId );
-      var level = abstractNum.Descendants().First( el => el.Name.LocalName == "lvl" && el.GetAttribute( Document.w + "ilvl" ) == iLevel.ToString() );
-      level.Descendants().First( el => el.Name.LocalName == "start" ).SetAttributeValue( Document.w + "val", start );
+      // Find num node in numbering.
+      var documentNumberingDescendants = this.Document._numbering.Descendants();
+      var numNodes = documentNumberingDescendants.Where( n => n.Name.LocalName == "num" );
+      var numNode = numNodes.FirstOrDefault( node => node.Attribute( Document.w + "numId" ).Value.Equals( this.NumId.ToString() ) );
+      if( numNode != null )
+      {
+        var isStartOverrideUpdated = false;
+        var lvlOverrides = numNode.Elements( XName.Get( "lvlOverride", Document.w.NamespaceName ) );
+        if( lvlOverrides.Count() > 0 )
+        {
+          foreach( var singleLvlOverride in lvlOverrides )
+          {
+            var ilvl = singleLvlOverride.GetAttribute( XName.Get( "ilvl", Document.w.NamespaceName ) );
+            // Found same level, update its startOverride.
+            if( !string.IsNullOrEmpty( ilvl ) && ( ilvl == iLevel.ToString() ) )
+            {
+              var startOverride = singleLvlOverride.Element( XName.Get( "startOverride", Document.w.NamespaceName ) );
+              if( startOverride != null )
+              {
+                startOverride.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), start );
+              }
+              else
+              {
+                singleLvlOverride.Add( new XElement( XName.Get( "startOverride", Document.w.NamespaceName ), new XAttribute( Document.w + "val", start ) ) );
+              }
+
+              isStartOverrideUpdated = true;
+              break;
+            }
+          }
+        }
+
+        if( !isStartOverrideUpdated )
+        {
+          var startOverride = new XElement( XName.Get( "startOverride", Document.w.NamespaceName ), new XAttribute( Document.w + "val", start ) );
+          var levelOverride = new XElement( XName.Get( "lvlOverride", Document.w.NamespaceName ), new XAttribute( Document.w + "ilvl", iLevel ), startOverride );
+          numNode.Add( levelOverride );
+        }
+      }
     }
 
-    private XElement GetAbstractNumXml( int abstractNumId, int numId, int? startNumber, bool continueNumbering )
+    private XElement GetAbstractNumXml( int abstractNumId, int numId, int? startNumber, int level, bool continueNumbering )
     {
       var start = new XElement( XName.Get( "startOverride", Document.w.NamespaceName ), new XAttribute( Document.w + "val", startNumber ?? 1 ) );
-      var level = new XElement( XName.Get( "lvlOverride", Document.w.NamespaceName ), new XAttribute( Document.w + "ilvl", 0 ), start );
+      var levelOverride = new XElement( XName.Get( "lvlOverride", Document.w.NamespaceName ), new XAttribute( Document.w + "ilvl", level ), start );
       var element = new XElement( XName.Get( "abstractNumId", Document.w.NamespaceName ), new XAttribute( Document.w + "val", abstractNumId ) );
 
       return continueNumbering
           ? new XElement( XName.Get( "num", Document.w.NamespaceName ), new XAttribute( Document.w + "numId", numId ), element )
-          : new XElement( XName.Get( "num", Document.w.NamespaceName ), new XAttribute( Document.w + "numId", numId ), element, level );
+          : new XElement( XName.Get( "num", Document.w.NamespaceName ), new XAttribute( Document.w + "numId", numId ), element, levelOverride );
     }
 
     /// <summary>

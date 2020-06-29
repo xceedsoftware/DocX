@@ -2,10 +2,11 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2019 Xceed Software Inc.
+   Copyright (C) 2009-2020 Xceed Software Inc.
  
-   This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at https://github.com/xceedsoftware/DocX/blob/master/license.md
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
  
    For more features and fast professional support,
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
@@ -197,7 +198,7 @@ namespace Xceed.Document.NET
         {
           sectionParagraphs.Add( paragraph );
 
-          var section = new Section( Document, sectionInPara, sections.LastOrDefault() );
+          var section = new Section( Document, sectionInPara, sections.Count() > 0 ? sections.Select(s => s.Xml) : null );
           section.SectionParagraphs = sectionParagraphs;
 
           sections.Add( section );
@@ -217,7 +218,7 @@ namespace Xceed.Document.NET
         var baseSectionXml = sectPrList.LastOrDefault();
         if( baseSectionXml != null )
         {
-          var baseSection = ( sections.Count > 0 ) ? new Section( Document, baseSectionXml, sections.LastOrDefault() )
+          var baseSection = ( sections.Count > 0 ) ? new Section( Document, baseSectionXml, sections.Select( s => s.Xml ) )
                                                    : new Section( Document, baseSectionXml, ( sectPrList.Count() > 1 ) ? sectPrList.Take( sectPrList.Count() - 1 ) : null );
           baseSection.SectionParagraphs = sectionParagraphs;
           sections.Add( baseSection );
@@ -341,42 +342,9 @@ namespace Xceed.Document.NET
         throw new ArgumentException( "newValue cannot be null.", "newValue" );
       }
 
-      // ReplaceText in Headers of the document.
-      foreach( var section in this.Document.Sections )
-      {
-        var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
-        foreach( var h in headerList )
-        {
-          if( h != null )
-          {
-            foreach( var p in h.Paragraphs )
-            {
-              p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
-            }
-          }
-        }
-      }
-
-      // ReplaceText int main body of document.
-      foreach( Paragraph p in this.Paragraphs )
+      foreach( var p in this.Paragraphs )
       {
         p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
-      }
-
-      // ReplaceText in Footers of the document.
-      foreach( var section in this.Document.Sections )
-      {
-        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
-        foreach( var f in footerList )
-        {
-          if( f != null )
-          {
-            foreach( var p in f.Paragraphs )
-            {
-              p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
-            }
-          }
-        }
       }
     }
 
@@ -409,31 +377,6 @@ namespace Xceed.Document.NET
         throw new ArgumentException( "regexMatchHandler cannot be null", "regexMatchHandler" );
       }
 
-      // Replace text in headers and footers of the Document.
-      foreach( var section in this.Document.Sections )
-      {
-        var headersFootersList = new List<IParagraphContainer>()
-        {
-          section.Headers.First,
-          section.Headers.Even,
-          section.Headers.Odd,
-          section.Footers.First,
-          section.Footers.Even,
-          section.Footers.Odd,
-        };
-
-        foreach( var hf in headersFootersList )
-        {
-          if( hf != null )
-          {
-            foreach( var p in hf.Paragraphs )
-            {
-              p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
-            }
-          }
-        }
-      }
-
       foreach( var p in this.Paragraphs )
       {
         p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
@@ -458,42 +401,10 @@ namespace Xceed.Document.NET
         throw new ArgumentException( "objectToAdd cannot be null.", "objectToAdd" );
       }
 
-      // ReplaceText in Headers of the document.
-      foreach( var section in this.Document.Sections )
-      {
-        var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
-        foreach( var h in headerList )
-        {
-          if( h != null )
-          {
-            foreach( var p in h.Paragraphs )
-            {
-              p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
-            }
-          }
-        }
-      }
-
-      // ReplaceText int main body of document.
+      // ReplaceText in the container
       foreach( Paragraph p in this.Paragraphs )
       {
         p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
-      }
-
-      // ReplaceText in Footers of the document.
-      foreach( var section in this.Document.Sections )
-      {
-        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
-        foreach( var f in footerList )
-        {
-          if( f != null )
-          {
-            foreach( var p in f.Paragraphs )
-            {
-              p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
-            }
-          }
-        }
       }
     }
 
@@ -501,29 +412,6 @@ namespace Xceed.Document.NET
     {
       if( string.IsNullOrWhiteSpace( bookmarkName ) )
         throw new ArgumentException( "bookmark cannot be null or empty", "bookmarkName" );
-
-      foreach( var section in this.Document.Sections )
-      {
-        var headerCollection = section.Headers;
-        var headers = new List<Header> { headerCollection.First, headerCollection.Even, headerCollection.Odd };
-        foreach( var header in headers.Where( x => x != null ) )
-        {
-          foreach( var paragraph in header.Paragraphs )
-          {
-            paragraph.InsertAtBookmark( toInsert, bookmarkName, formatting );
-          }
-        }
-
-        var footerCollection = section.Footers;
-        var footers = new List<Footer> { footerCollection.First, footerCollection.Even, footerCollection.Odd };
-        foreach( var footer in footers.Where( x => x != null ) )
-        {
-          foreach( var paragraph in footer.Paragraphs )
-          {
-            paragraph.InsertAtBookmark( toInsert, bookmarkName, formatting );
-          }
-        }
-      }
 
       foreach( var paragraph in Paragraphs )
       {
@@ -909,6 +797,22 @@ namespace Xceed.Document.NET
       return list;
     }
 
+    public virtual string[] ValidateBookmarks( params string[] bookmarkNames )
+    {
+      var result = new List<string>();
+
+      foreach( var bookmarkName in bookmarkNames )
+      {
+        // Validate in container.
+        if( this.Paragraphs.Any( p => p.ValidateBookmark( bookmarkName ) ) )
+          return new string[ 0 ];
+
+        result.Add( bookmarkName );
+      }
+
+      return result.ToArray();
+    }
+
     public int RemoveTextInGivenFormat( Formatting formattingToMatch, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch )
     {
       var count = 0;
@@ -916,32 +820,7 @@ namespace Xceed.Document.NET
         count += RecursiveRemoveText( element, formattingToMatch, formattingOptions );
 
       return count;
-    }
-
-    public string[] ValidateBookmarks( params string[] bookmarkNames )
-    {
-      var result = new List<string>();
-
-      foreach( var bookmarkName in bookmarkNames )
-      {
-        foreach( var section in this.Document.Sections )
-        {
-          var headers = new[] { section.Headers.First, section.Headers.Even, section.Headers.Odd }.Where( h => h != null ).ToList();
-          var footers = new[] { section.Footers.First, section.Footers.Even, section.Footers.Odd }.Where( f => f != null ).ToList();
-
-          if( headers.SelectMany( h => h.Paragraphs ).Any( p => p.ValidateBookmark( bookmarkName ) ) )
-            return new string[ 0 ];
-          if( footers.SelectMany( h => h.Paragraphs ).Any( p => p.ValidateBookmark( bookmarkName ) ) )
-            return new string[ 0 ];
-        }
-
-        if( this.Paragraphs.Any( p => p.ValidateBookmark( bookmarkName ) ) )
-          return new string[ 0 ];
-        result.Add( bookmarkName );
-      }
-
-      return result.ToArray();
-    }
+    }  
 
     #endregion
 
@@ -1108,6 +987,10 @@ namespace Xceed.Document.NET
       foreach( var p in paragraphs )
       {
         var nextElement = p.Xml.ElementsAfterSelf().FirstOrDefault();
+        if( ( nextElement == null ) && p.IsInSdt() )
+        {
+          nextElement = p.GetParentSdt().ElementsAfterSelf().FirstOrDefault();
+        }
         var containsSectionBreak = p.GetOrCreate_pPr().Element( XName.Get( "sectPr", Document.w.NamespaceName ) );
         // Add FollowingTable to paragraph....only when paragraph is not the last one from a section.
         while( ( nextElement != null ) && ( nextElement.Name.Equals( Document.w + "tbl" ) ) && ( containsSectionBreak == null ) )
