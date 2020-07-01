@@ -126,6 +126,7 @@ namespace Xceed.Words.NET.Examples
         document.AddCustomProperty( new CustomProperty( "Product", "Xceed Words for .NET" ) );
         document.AddCustomProperty( new CustomProperty( "Address", "3141 Taschereau, Greenfield Park" ) );
         document.AddCustomProperty( new CustomProperty( "Date", DateTime.Now ) );
+        document.AddCustomProperty( new CustomProperty("Formatted", $"First Line{Environment.NewLine}Second Line{Environment.NewLine}Third Line"), true );
 
         // Add a paragraph displaying the number of custom properties.
         var p = document.InsertParagraph( "This document contains " ).Append( document.CustomProperties.Count.ToString() ).Append(" Custom Properties :");

@@ -2331,7 +2331,7 @@ namespace Xceed.Document.NET
     /// </example>
     /// <seealso cref="CustomProperty"/>
     /// <seealso cref="CustomProperties"/>
-    public void AddCustomProperty( CustomProperty cp )
+    public void AddCustomProperty( CustomProperty cp, bool withFormatting = false)
     {
       // If this document does not contain a customFilePropertyPart create one.
       if( !_package.PartExists( new Uri( "/docProps/custom.xml", UriKind.Relative ) ) )
@@ -2394,7 +2394,7 @@ namespace Xceed.Document.NET
       }
 
       // Refresh all fields in this document which display this custom property.
-      Document.UpdateCustomPropertyValue( this, cp.Name, ( cp.Value ?? "" ).ToString() );
+      Document.UpdateCustomPropertyValue( this, cp.Name, ( cp.Value ?? "" ).ToString(), withFormatting );
     }
 
     public override Paragraph InsertParagraph()
@@ -3415,14 +3415,15 @@ namespace Xceed.Document.NET
       Document.PopulateDocument( document, document._package );
     }
 
-    /// <summary>
-    /// Update the custom properties inside the document
-    /// </summary>
-    /// <param name="document">The Document document</param>
-    /// <param name="customPropertyName">The property used inside the document</param>
-    /// <param name="customPropertyValue">The new value for the property</param>
-    /// <remarks>Different version of Word create different Document XML.</remarks>
-    internal static void UpdateCustomPropertyValue( Document document, string customPropertyName, string customPropertyValue )
+        /// <summary>
+        /// Update the custom properties inside the document
+        /// </summary>
+        /// <param name="document">The Document document</param>
+        /// <param name="customPropertyName">The property used inside the document</param>
+        /// <param name="customPropertyValue">The new value for the property</param>
+        /// <param name="withFormatting">Use formatting for the new value</param>
+        /// <remarks>Different version of Word create different Document XML.</remarks>
+        internal static void UpdateCustomPropertyValue( Document document, string customPropertyName, string customPropertyValue, bool withFormatting = false )
     {
       // A list of documents, which will contain, The Main Document and if they exist: header1, header2, header3, footer1, footer2, footer3.
       var documents = new List<XElement> { document._mainDoc.Root };
@@ -3492,7 +3493,14 @@ namespace Xceed.Document.NET
                 {
                   if( !found )
                   {
-                    match.First().Value = customPropertyValue;
+                    var first = match.First();
+                    if (withFormatting)
+                    {
+                      first.Value = "\n";
+                      first.Add(HelperFunctions.FormatInput(customPropertyValue, null));
+                    }
+                    else
+                      first.Value = customPropertyValue;
                     found = true;
                   }
                   else
