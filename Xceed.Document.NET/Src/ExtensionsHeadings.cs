@@ -26,7 +26,7 @@ namespace Xceed.Document.NET
     public static Paragraph Heading( this Paragraph paragraph, HeadingType headingType )
     {
       var description = headingType.EnumDescription();
-      paragraph.StyleName = description;
+      paragraph.StyleId = description;
       return paragraph;
     }
 

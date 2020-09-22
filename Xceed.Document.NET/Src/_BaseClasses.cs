@@ -141,6 +141,36 @@ namespace Xceed.Document.NET
       Xml.AddAfterSelf( p );
     }
 
+    public virtual Paragraph InsertCaptionAfterSelf( string captionText )
+    {
+      var p = this.InsertParagraphAfterSelf( captionText + " " );
+      p.StyleId = "Caption";
+
+      var fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
+      fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" SEQ " + captionText + @" \* ARABIC " ) );
+
+      var actualCaptions = this.Document.Xml.Descendants( XName.Get( "fldSimple", Document.w.NamespaceName ) )
+                                            .Where( field => (field != null) 
+                                                && (field.GetAttribute( XName.Get( "instr", Document.w.NamespaceName ) ) != null )
+                                                && field.GetAttribute( XName.Get( "instr", Document.w.NamespaceName ) ).StartsWith(" SEQ " + captionText) );
+      var captionNumber = actualCaptions.Count() + 1;
+
+      var content = XElement.Parse( string.Format(
+       @"<w:r xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+           <w:rPr>
+              <w:noProof /> 
+           </w:rPr>
+           <w:t>{0}</w:t> 
+         </w:r>",
+       captionNumber)
+      );
+      fldSimple.Add( content );
+
+      p.Xml.Add( fldSimple );
+
+      return p;
+    }
+
     public virtual Paragraph InsertParagraphBeforeSelf( Paragraph p )
     {
       Xml.AddBeforeSelf( p.Xml );

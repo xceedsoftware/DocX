@@ -38,9 +38,9 @@ namespace Xceed.Document.NET
 
     #region Internal Methods
 
-    internal static TableOfContents CreateTableOfContents( Document document, string title, TableOfContentsSwitches switches, string headerStyle = null, int lastIncludeLevel = 3, int? rightTabPos = null )
+    internal static TableOfContents CreateTableOfContents( Document document, string title, IDictionary<TableOfContentsSwitches, string> switchesDictionary, string headerStyle = null, int? rightTabPos = null )
     {
-      var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsXmlBase, headerStyle ?? HeaderStyle, title, rightTabPos ?? RightTabPos, BuildSwitchString( switches, lastIncludeLevel ) ) ) );
+      var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsXmlBase, headerStyle ?? HeaderStyle, title, rightTabPos ?? RightTabPos, TableOfContents.BuildSwitchString( switchesDictionary ) ) ) );
       var xml = XElement.Load( reader );
       return new TableOfContents( document, xml, headerStyle );
     }
@@ -68,6 +68,26 @@ namespace Xceed.Document.NET
 
 
 
+
+    internal static Dictionary<TableOfContentsSwitches, string> BuildTOCSwitchesDictionary( TableOfContentsSwitches switches, int maxIncludeLevel = 3)
+    {
+      var dict = new Dictionary<TableOfContentsSwitches, string>();
+
+      var allSwitches = Enum.GetValues( typeof( TableOfContentsSwitches ) ).Cast<TableOfContentsSwitches>();
+      foreach( var s in allSwitches.Where( s => s != TableOfContentsSwitches.None && switches.HasFlag( s ) ) )
+      {
+        if( s == TableOfContentsSwitches.O )
+        {
+          dict.Add( s, "1-" + maxIncludeLevel.ToString() );
+        }
+        else
+        {
+          dict.Add( s, "" );
+        }
+      }
+
+      return dict;
+    }
 
     #endregion
 
@@ -129,16 +149,22 @@ namespace Xceed.Document.NET
       return document._styles.Descendants().Any( x => x.Name.Equals( Document.w + "style" ) && ( x.Attribute( Document.w + "type" ) == null || x.Attribute( Document.w + "type" ).Value.Equals( type ) ) && x.Attribute( Document.w + "styleId" ) != null && x.Attribute( Document.w + "styleId" ).Value.Equals( value ) );
     }
 
-    private static string BuildSwitchString( TableOfContentsSwitches switches, int lastIncludeLevel )
+    private static string BuildSwitchString( IDictionary<TableOfContentsSwitches, string> switchesDictionray)
     {
-      var allSwitches = Enum.GetValues( typeof( TableOfContentsSwitches ) ).Cast<TableOfContentsSwitches>();
       var switchString = "TOC";
-      foreach( var s in allSwitches.Where( s => s != TableOfContentsSwitches.None && switches.HasFlag( s ) ) )
+
+      foreach( var entry in switchesDictionray )
       {
-        switchString += " " + s.EnumDescription();
-        if( s == TableOfContentsSwitches.O )
+        switchString += " " + entry.Key.EnumDescription();
+
+        if( !string.IsNullOrEmpty( entry.Value )
+          && (entry.Key != TableOfContentsSwitches.H)
+          && ( entry.Key != TableOfContentsSwitches.U )
+          && ( entry.Key != TableOfContentsSwitches.W )
+          && ( entry.Key != TableOfContentsSwitches.X )
+          && ( entry.Key != TableOfContentsSwitches.Z ) )
         {
-          switchString += string.Format( " '{0}-{1}'", 1, lastIncludeLevel );
+          switchString += " \"" + entry.Value + "\"";
         }
       }
 

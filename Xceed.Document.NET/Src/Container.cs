@@ -725,33 +725,19 @@ namespace Xceed.Document.NET
       return newTable;
     }
 
-    public virtual void InsertSection()
+    public virtual Section InsertSection()
     {
-      this.InsertSection( false );
+      return this.InsertSection( false );
     }
 
-    public virtual void InsertSection( bool trackChanges )
+    public virtual Section InsertSection( bool trackChanges )
     {
-      var newSection = new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ), new XElement( XName.Get( "sectPr", Document.w.NamespaceName ), new XElement( XName.Get( "type", Document.w.NamespaceName ), new XAttribute( Document.w + "val", "continuous" ) ) ) ) );
-
-      if( trackChanges )
-      {
-        newSection = HelperFunctions.CreateEdit( EditType.ins, DateTime.Now, newSection );
-      }
-
-      this.AddElementInXml( newSection );
+      return null;
     }
 
-    public virtual void InsertSectionPageBreak( bool trackChanges = false )
+    public virtual Section InsertSectionPageBreak( bool trackChanges = false )
     {
-      var newSection = new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ), new XElement( XName.Get( "sectPr", Document.w.NamespaceName ) ) ) );
-
-      if( trackChanges )
-      {
-        newSection = HelperFunctions.CreateEdit( EditType.ins, DateTime.Now, newSection );
-      }
-
-      this.AddElementInXml( newSection );
+      return null;
     }
 
     public virtual List InsertList( List list )
@@ -971,9 +957,9 @@ namespace Xceed.Document.NET
       }
     }
 
-    private ListItemType GetListItemType( string styleName )
+    private ListItemType GetListItemType( string listItemType )
     {
-      switch( styleName )
+      switch( listItemType )
       {
         case "bullet":
           return ListItemType.Bulleted;
@@ -984,6 +970,9 @@ namespace Xceed.Document.NET
 
     private void InitParagraphs( List<Paragraph> paragraphs )
     {
+      if( (this.Document.Sections == null) || (this.Document.Sections.Count == 0))
+        return;
+
       foreach( var p in paragraphs )
       {
         var nextElement = p.Xml.ElementsAfterSelf().FirstOrDefault();

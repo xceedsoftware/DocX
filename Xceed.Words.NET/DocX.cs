@@ -28,11 +28,23 @@ namespace Xceed.Words.NET
   /// </summary>
   public class DocX : Xceed.Document.NET.Document
   {
+    private static bool IsCommercialLicenseRead = false;
+
     #region Constructors
 
     internal DocX( Xceed.Document.NET.Document document, XElement xml )
         : base( document, xml )
     {
+      if( !DocX.IsCommercialLicenseRead )
+      {
+        Console.WriteLine( "===================================================================\n"
+                         + "Thank you for using Xceed's DocX library.                          \n"
+                         + "Please note that this software is used for non-commercial use only.\n"
+                         + "To obtain a commercial license, please visit www.xceed.com.        \n"
+                         + "===================================================================" );
+
+        DocX.IsCommercialLicenseRead = true;
+      }
     }
 
     #endregion
@@ -423,7 +435,7 @@ namespace Xceed.Words.NET
         memorystream.Seek( 0, SeekOrigin.Begin );
         return DocX.Load( memorystream );
       }
-      catch( Exception e )
+      catch( Exception )
       {
         // If we can't load the filename or stream, just return the current document.
         return this;
@@ -572,7 +584,7 @@ namespace Xceed.Words.NET
       {
         var access = package.FileOpenAccess;
       }
-      catch( Exception e )
+      catch( Exception )
       {
         return true;
       }

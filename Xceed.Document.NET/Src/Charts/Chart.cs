@@ -389,6 +389,7 @@ namespace Xceed.Document.NET
 
 
 
+
 #endregion
 
     #region Internal Properties
@@ -407,9 +408,27 @@ namespace Xceed.Document.NET
 
     internal Series( XElement xml )
     {
-      Xml = xml;
-      _strCache = xml.Element( XName.Get( "cat", Document.c.NamespaceName ) ).Element( XName.Get( "strRef", Document.c.NamespaceName ) ).Element( XName.Get( "strCache", Document.c.NamespaceName ) );
-      _numCache = xml.Element( XName.Get( "val", Document.c.NamespaceName ) ).Element( XName.Get( "numRef", Document.c.NamespaceName ) ).Element( XName.Get( "numCache", Document.c.NamespaceName ) );
+      this.Xml = xml;
+
+      var cat = xml.Element( XName.Get( "cat", Document.c.NamespaceName ) );
+      if( cat != null )
+      {
+        _strCache = cat.Descendants( XName.Get( "strCache", Document.c.NamespaceName ) ).FirstOrDefault();
+        if( _strCache == null )
+        {
+          _strCache = cat.Descendants( XName.Get( "strLit", Document.c.NamespaceName ) ).FirstOrDefault();
+        }
+      }
+
+      var val = xml.Element( XName.Get( "val", Document.c.NamespaceName ) );
+      if( val != null )
+      {      
+        _numCache = val.Descendants( XName.Get( "numCache", Document.c.NamespaceName ) ).FirstOrDefault();
+        if( _numCache == null )
+        {
+          _numCache = val.Descendants( XName.Get( "numLit", Document.c.NamespaceName ) ).FirstOrDefault();
+        }
+      }
     }
 
     public Series( String name )

@@ -85,7 +85,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {430F8AE4-1D75-42E3-B228-BAF9839E50F6}
+		SolutionGuid = {E50134DE-0403-4A0B-95CF-6F3E771A0669}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Xceed.Words.NET.vsmdi

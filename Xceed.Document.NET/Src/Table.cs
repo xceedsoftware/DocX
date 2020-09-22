@@ -4251,6 +4251,15 @@ namespace Xceed.Document.NET
       return table;
     }
 
+    public override Table InsertTable( Table t )
+    {
+      var table = base.InsertTable( t );
+      table.PackagePart = this.PackagePart;
+      this.InsertParagraph(); //It is necessary to put paragraph in the end of the cell, without it MS-Word will say that the document is corrupted
+                              //IMPORTANT: It will be better to check all methods that work with adding anything to cells
+      return table;
+    }
+
     #endregion
 
     // <summary>

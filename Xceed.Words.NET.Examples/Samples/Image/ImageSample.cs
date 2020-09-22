@@ -59,23 +59,29 @@ namespace Xceed.Words.NET.Examples
         // Add a simple image from disk.
         var image = document.AddImage( ImageSample.ImageSampleResourcesDirectory + @"balloon.jpg" );
         var picture = image.CreatePicture( 112.5f, 112.5f );
-        var p = document.InsertParagraph( "Here is a simple picture added from disk:" );
+        var p = document.InsertParagraph( "- Here is a simple picture added from disk:\n" );
         p.AppendPicture( picture );
-        p.SpacingAfter( 30 );
+        // Insert incremental "Figure 1" under picture.
+        p = p.InsertCaptionAfterSelf( "Figure" );
+        p.SpacingAfter( 40 );
 
         // Add a rotated image from disk and set some alpha( 0 to 1 ).
         var rotatedPicture = image.CreatePicture( 112f, 112f );
         rotatedPicture.Rotation = 25;
 
-        var p2 = document.InsertParagraph( "Here is the same picture added from disk, but rotated:" );
+        var p2 = document.InsertParagraph( "- Here is the same picture added from disk, but rotated:\n" );
         p2.AppendPicture( rotatedPicture );
-        p2.SpacingAfter( 30 );
+        // Insert incremental "Figure 2" under picture.
+        p2 = p2.InsertCaptionAfterSelf( "Figure" );
+        p2.SpacingAfter( 40 );
 
         // Add a simple image from a stream
         var streamImage = document.AddImage( new FileStream( ImageSample.ImageSampleResourcesDirectory + @"balloon.jpg", FileMode.Open, FileAccess.Read ) );
         var pictureStream = streamImage.CreatePicture( 112f, 112f );
-        var p3 = document.InsertParagraph( "Here is the same picture added from a stream:" );
+        var p3 = document.InsertParagraph( "- Here is the same picture added from a stream:\n" );
         p3.AppendPicture( pictureStream );
+        // Insert incremental "Figure 3" under picture.
+        p3.InsertCaptionAfterSelf( "Figure" );
 
         document.Save();
         Console.WriteLine( "\tCreated: AddPicture.docx\n" );

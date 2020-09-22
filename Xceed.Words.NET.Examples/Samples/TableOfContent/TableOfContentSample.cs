@@ -13,6 +13,7 @@ using System;
 using System.IO;
 using Xceed.Document.NET;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Xceed.Words.NET.Examples
 {
@@ -53,7 +54,14 @@ namespace Xceed.Words.NET.Examples
         document.InsertParagraph( "Insert Table of content" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
 
         // Insert a table of content and a page break.
-        document.InsertTableOfContents( "Teams", TableOfContentsSwitches.O | TableOfContentsSwitches.U | TableOfContentsSwitches.Z | TableOfContentsSwitches.H );
+        var tocSwitches = new Dictionary<TableOfContentsSwitches, string>()
+        {
+          { TableOfContentsSwitches.O, "1-3"},
+          { TableOfContentsSwitches.U, ""},
+          { TableOfContentsSwitches.Z, ""},
+          { TableOfContentsSwitches.H, ""},
+        };
+        document.InsertTableOfContents( "Teams", tocSwitches );
         document.InsertParagraph().InsertPageBreakAfterSelf();
 
         // Create a paragraph and add teams.
@@ -87,10 +95,14 @@ namespace Xceed.Words.NET.Examples
         TableOfContentSample.AddTeams( p );
 
         // Insert a table of content just before the paragraph p.
-        document.InsertTableOfContents( p, 
-                                        "Teams",
-                                        TableOfContentsSwitches.O | TableOfContentsSwitches.U | TableOfContentsSwitches.Z | TableOfContentsSwitches.H,
-                                        "Heading4" );
+        var tocSwitches = new Dictionary<TableOfContentsSwitches, string>()
+        {
+          { TableOfContentsSwitches.O, "1-3"},
+          { TableOfContentsSwitches.U, ""},
+          { TableOfContentsSwitches.Z, ""},
+          { TableOfContentsSwitches.H, ""}
+        };
+        document.InsertTableOfContents( p, "Teams", tocSwitches, "Heading4" );
 
         document.Save();
         Console.WriteLine( "\tCreated: InsertTableOfContentWithReference.docx\n" );
@@ -120,35 +132,35 @@ namespace Xceed.Words.NET.Examples
 
       // Add the content paragraphs and set a style for the Table of Content to recognize them.
       var p = title.InsertParagraphAfterSelf( "Boston Red Sox" ).Bold().FontSize( 15 ).SpacingAfter( 25d );
-      p.StyleName = "Heading1";
+      p.StyleId = "Heading1";
       var p1 = p.InsertParagraphAfterSelf( "Tom Smith, P" )
                 .AppendLine( "Mike Fitzgerald, C" )
                 .AppendLine( "Tom Clancy, 1B" )
                 .AppendLine( "Kevin Garnet, OF" ).SpacingAfter( 300d );
 
       var p2 = p1.InsertParagraphAfterSelf( "Tampa Rays" ).Bold().FontSize( 15 ).SpacingAfter( 25d );
-      p2.StyleName = "Heading1";
+      p2.StyleId = "Heading1";
       var p3 = p2.InsertParagraphAfterSelf( "Josh Hernandez, P" )
                  .AppendLine( "Jacob Trouba, C" )
                  .AppendLine( "Jesus Sanchez, 1B" )
                  .AppendLine( "Jose Ria, OF" ).SpacingAfter( 300d );
 
       var p4 = p3.InsertParagraphAfterSelf( "New York Yankees" ).Bold().FontSize( 15 ).SpacingAfter( 25d );
-      p4.StyleName = "Heading1";
+      p4.StyleId = "Heading1";
       var p5 = p4.InsertParagraphAfterSelf( "Derek Jones, P" )
                  .AppendLine( "Jose Riva, C" )
                  .AppendLine( "Bryan Smith, 1B" )
                  .AppendLine( "Carl Shattern, OF" ).SpacingAfter( 300d );
 
       var p6 = p5.InsertParagraphAfterSelf( "Baltimore Orioles" ).Bold().FontSize( 15 ).SpacingAfter( 25d );
-      p6.StyleName = "Heading1";
+      p6.StyleId = "Heading1";
       var p7 = p6.InsertParagraphAfterSelf( "Simon Delgar, P" )
                  .AppendLine( "Johnny Helpan, C" )
                  .AppendLine( "Miguel Danregados, 1B" )
                  .AppendLine( "Joe West, OF" ).SpacingAfter( 300d );
 
       var p8 = p7.InsertParagraphAfterSelf( "Toronto Blue Jays" ).Bold().FontSize( 15 ).SpacingAfter( 25d );
-      p8.StyleName = "Heading1";
+      p8.StyleId = "Heading1";
       var p9 = p8.InsertParagraphAfterSelf( "Samir Endoya, P" )
                  .AppendLine( "Steve Martin, C" )
                  .AppendLine( "Erik Young, 1B" )

@@ -77,7 +77,7 @@ namespace Xceed.Document.NET
         case "tab":
           return ( Xml.Parent.Name.LocalName != "tabs" ) ? 1 : 0;
         case "br":
-          return 1;
+          return ( HelperFunctions.IsLineBreak( Xml ) ) ? 1 : 0;
         case "t":
           goto case "delText";
         case "delText":
@@ -840,9 +840,9 @@ namespace Xceed.Document.NET
 
 
 
-    internal static UnderlineStyle GetUnderlineStyle( string styleName )
+    internal static UnderlineStyle GetUnderlineStyle( string underlineStyle )
     {
-      switch( styleName )
+      switch( underlineStyle )
       {
         case "single":
           return UnderlineStyle.singleLine;
@@ -948,7 +948,7 @@ namespace Xceed.Document.NET
           else if( ilvlValue == null )
           {
             var numStyleNode = node.Descendants().FirstOrDefault( n => n.Name.LocalName == "pStyle" );
-            if( ( numStyleNode != null ) && numStyleNode.GetAttribute( Document.w + "val" ).Equals( p.StyleName ) )
+            if( ( numStyleNode != null ) && numStyleNode.GetAttribute( Document.w + "val" ).Equals( p.StyleId ) )
             {
               lvlNode = node;
               break;
@@ -1249,7 +1249,7 @@ namespace Xceed.Document.NET
             select s
         );
 
-      // Check if this Paragraph StyleName exists in _styles.
+      // Check if this Paragraph styleIdToFind exists in _styles.
       var currentParagraphStyle =
      (
          from s in paragraphStyles
@@ -1257,6 +1257,28 @@ namespace Xceed.Document.NET
          where ( ( styleId != null ) && ( styleId.Value == styleIdToFind ) )
          select s
      ).FirstOrDefault();
+
+      return currentParagraphStyle;
+    }
+
+    internal static XElement GetParagraphStyleFromStyleName( Document document, string styleNameToFind )
+    {
+      if( ( document == null ) || string.IsNullOrEmpty( styleNameToFind ) )
+        return null;
+
+      var paragraphStyles =
+        (
+            from s in document._styles.Element( Document.w + "styles" ).Elements( Document.w + "style" )
+            let type = s.Attribute( XName.Get( "type", Document.w.NamespaceName ) )
+            where ( ( type != null ) && ( type.Value == "paragraph" ) )
+            select s
+        );
+
+      // Check if this Paragraph styleNameToFind exists in _styles.
+      var currentParagraphStyle = paragraphStyles.FirstOrDefault( x => ( x.Element( XName.Get( "name", Document.w.NamespaceName ) ) != null )
+                                                                    && ( x.Element( XName.Get( "name", Document.w.NamespaceName ) ).Attribute( XName.Get( "val", Document.w.NamespaceName ) ) != null )
+                                                                    && ( x.Element( XName.Get( "name", Document.w.NamespaceName ) ).Attribute( XName.Get( "val", Document.w.NamespaceName ) ).Value.ToLower().Equals( styleNameToFind.ToLower() ) ) );
+
 
       return currentParagraphStyle;
     }
@@ -1271,16 +1293,16 @@ namespace Xceed.Document.NET
       }
     }
 
-    internal static XElement GetStyle( Document fileToConvert, string styleName )
+    internal static XElement GetStyle( Document fileToConvert, string styleId )
     {
       if( fileToConvert == null )
         throw new ArgumentNullException( "fileToConvert" );
-      if( string.IsNullOrEmpty( styleName ) )
-        throw new ArgumentNullException( "styleName" );
+      if( string.IsNullOrEmpty( styleId ) )
+        throw new ArgumentNullException( "styleId" );
 
       var styles = fileToConvert._styles.Element( XName.Get( "styles", Document.w.NamespaceName ) );
       return styles.Elements( XName.Get( "style", Document.w.NamespaceName ) )
-                   .FirstOrDefault( x => ( x.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) ) != null ) && ( x.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) ).Value == styleName ) );
+                   .FirstOrDefault( x => ( x.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) ) != null ) && ( x.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) ).Value == styleId ) );
     }
 
     internal static bool TryParseFloat( string s, out float result )

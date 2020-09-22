@@ -46,6 +46,11 @@ namespace Xceed.Document.NET
       this.Paragraph.ReplaceAtBookmark( text, this.Name );
     }
 
+    public void SetText( string text, Formatting formatting = null )
+    {
+      this.Paragraph.ReplaceAtBookmark( text, this.Name, formatting );
+    }
+
     public void Remove()
     {
       this.Paragraph.RemoveBookmark( this.Name );

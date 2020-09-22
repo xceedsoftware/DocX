@@ -448,6 +448,32 @@ namespace Xceed.Document.NET
 
     #endregion
 
+    #region Overrides
+
+    public override Section InsertSection( bool trackChanges )
+    {
+      return this.InsertSection( trackChanges, false );
+    }
+
+    public override Section InsertSectionPageBreak( bool trackChanges = false )
+    {
+      return this.InsertSection( trackChanges, true );
+    }
+
+    protected internal override void AddElementInXml( object element )
+    {
+      if( this.SectionParagraphs.Count() > 0 )
+      {
+        this.SectionParagraphs.Last().Xml.AddBeforeSelf( element );
+      }
+      else
+      {
+        this.Xml.AddBeforeSelf( element );
+      }
+    }
+
+    #endregion
+
     #region Public Methods
 
     public void AddHeaders()
@@ -820,6 +846,61 @@ namespace Xceed.Document.NET
                             new XAttribute( XName.Get( "sz", Document.w.NamespaceName ),  Border.GetNumericSize( border.Size ) ),
                             new XAttribute( XName.Get( "val", Document.w.NamespaceName ), border.Tcbs.ToString().Remove(0, 5) )
                           };
+    }
+
+    private Section InsertSection( bool trackChanges, bool isPageBreak )
+    {
+      bool isLastSection = ( this.Document.Sections.Last() == this );
+
+      // Save any modified header/footer so that the new section can access it.
+      this.Document.SaveHeadersFooters();
+
+      var sctPr = new XElement( this.Xml );
+      this.Xml.Elements( XName.Get( "headerReference", Document.w.NamespaceName ) ).Remove();
+      this.Xml.Elements( XName.Get( "footerReference", Document.w.NamespaceName ) ).Remove();
+      if( !isPageBreak )
+      {
+        sctPr.Add( new XElement( XName.Get( "type", Document.w.NamespaceName ), new XAttribute( Document.w + "val", "continuous" ) ) );
+      }
+
+      if( isLastSection )
+      {
+        var currentSection = new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ), this.Xml ) );
+        if( this.SectionParagraphs.Count > 0 )
+        {
+          this.SectionParagraphs.Last().Xml.AddAfterSelf( currentSection );
+        }
+        else
+        {
+          this.Xml.AddBeforeSelf( currentSection );
+        }
+
+        this.Xml.Remove();
+        this.Xml = currentSection;
+
+        var newSection = sctPr;
+        if( trackChanges )
+        {
+          newSection = HelperFunctions.CreateEdit( EditType.ins, DateTime.Now, newSection );
+        }
+
+        currentSection.AddAfterSelf( newSection );
+      }
+      else
+      {
+        var newSection = new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ), sctPr ) );
+        if( trackChanges )
+        {
+          newSection = HelperFunctions.CreateEdit( EditType.ins, DateTime.Now, newSection );
+        }
+
+        this.SectionParagraphs.Last().Xml.AddAfterSelf( newSection );
+      }      
+
+      // Update the _cachedSection by reading the Xml to build new Sections.
+      this.Document.UpdateCacheSections();
+
+      return this.Document.Sections.FirstOrDefault( section => section.Xml == sctPr );
     }
 
     #endregion

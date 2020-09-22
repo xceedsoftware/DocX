@@ -50,6 +50,12 @@ namespace Xceed.Document.NET
       private set;
     }
 
+    internal Formatting Formatting
+    {
+      get;
+      set;
+    }
+
     #endregion
 
     #region Constructors
@@ -59,8 +65,8 @@ namespace Xceed.Document.NET
     /// </summary>
     /// <param name="name">The name of this CustomProperty.</param>
     /// <param name="value">The value of this CustomProperty.</param>
-    public CustomProperty( string name, string value ) 
-      : this( name, "lpwstr", value )
+    public CustomProperty( string name, string value, Formatting formatting = null ) 
+      : this( name, "lpwstr", value, formatting )
     {
     }
 
@@ -69,8 +75,8 @@ namespace Xceed.Document.NET
     /// </summary>
     /// <param name="name">The name of this CustomProperty.</param>
     /// <param name="value">The value of this CustomProperty.</param>
-    public CustomProperty( string name, int value )
-      : this( name, "i4", value )
+    public CustomProperty( string name, int value, Formatting formatting = null )
+      : this( name, "i4", value, formatting )
     {
     }
 
@@ -79,8 +85,8 @@ namespace Xceed.Document.NET
     /// </summary>
     /// <param name="name">The name of this CustomProperty.</param>
     /// <param name="value">The value of this CustomProperty.</param>
-    public CustomProperty( string name, double value ) 
-      : this( name, "r8", value )
+    public CustomProperty( string name, double value, Formatting formatting = null ) 
+      : this( name, "r8", value, formatting )
     {
     }
 
@@ -89,8 +95,8 @@ namespace Xceed.Document.NET
     /// </summary>
     /// <param name="name">The name of this CustomProperty.</param>
     /// <param name="value">The value of this CustomProperty.</param>
-    public CustomProperty( string name, DateTime value )
-      : this( name, "filetime", value.ToUniversalTime() )
+    public CustomProperty( string name, DateTime value, Formatting formatting = null )
+      : this( name, "filetime", value.ToUniversalTime(), formatting )
     {
     }
 
@@ -99,12 +105,12 @@ namespace Xceed.Document.NET
     /// </summary>
     /// <param name="name">The name of this CustomProperty.</param>
     /// <param name="value">The value of this CustomProperty.</param>
-    public CustomProperty( string name, bool value ) 
-      : this( name, "bool", value )
+    public CustomProperty( string name, bool value, Formatting formatting = null ) 
+      : this( name, "bool", value, formatting )
     {
     }
 
-    internal CustomProperty( string name, string type, string value )
+    internal CustomProperty( string name, string type, string value, Formatting formatting = null )
     {
       object realValue;
       switch( type )
@@ -146,14 +152,16 @@ namespace Xceed.Document.NET
       this.Name = name;
       this.Type = type;
       this.Value = realValue;
+      this.Formatting = formatting;
     }
 
-    private CustomProperty( string name, string type, object value )
+    private CustomProperty( string name, string type, object value, Formatting formatting = null )
     {
 
       this.Name = name;
       this.Type = type;
       this.Value = value;
+      this.Formatting = formatting;
     }
 
     #endregion

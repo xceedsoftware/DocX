@@ -253,7 +253,23 @@ namespace Xceed.Document.NET
     ///<summary>
     /// The style name of the paragraph.
     ///</summary>
+    [Obsolete( "This property is obsolete and should no longer be used. Use StyleId instead." )]
     public string StyleName
+    {
+      get
+      {
+        return this.StyleId;        
+      }
+      set
+      {
+        this.StyleId = value;
+      }
+    }
+
+    ///<summary>
+    /// The style id of the paragraph.
+    ///</summary>
+    public string StyleId
     {
       get
       {
@@ -265,13 +281,13 @@ namespace Xceed.Document.NET
           return attr.Value;
         }
 
-        return this.Document.GetNormalStyleName();
+        return this.Document.GetNormalStyleId();
       }
       set
       {
         if( string.IsNullOrEmpty( value ) )
         {
-          value = this.Document.GetNormalStyleName();
+          value = this.Document.GetNormalStyleId();
         }
         var element = this.GetOrCreate_pPr();
         var styleElement = element.Element( XName.Get( "pStyle", Document.w.NamespaceName ) );
@@ -282,7 +298,7 @@ namespace Xceed.Document.NET
         }
         styleElement.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), value );
 
-        this.AddParagraphStyleIfNotPresent( this.StyleName );
+        this.AddParagraphStyleIfNotPresent( this.StyleId );
       }
     }
 
@@ -1034,6 +1050,12 @@ namespace Xceed.Document.NET
     {
       t = base.InsertTableAfterSelf( t );
       t.PackagePart = this.PackagePart;
+
+      if( this.ParentContainer == ContainerType.Cell )
+      {
+        t.InsertParagraphAfterSelf( "" );
+      }
+
       return t;
     }
 
@@ -1063,7 +1085,14 @@ namespace Xceed.Document.NET
     /// </example>
     public override Table InsertTableAfterSelf( int rowCount, int columnCount )
     {
-      return base.InsertTableAfterSelf( rowCount, columnCount );
+      var t = base.InsertTableAfterSelf( rowCount, columnCount );
+
+      if( this.ParentContainer == ContainerType.Cell )
+      {
+        t.InsertParagraphAfterSelf( "" );
+      }
+
+      return t;
     }
 
     /// <summary>
@@ -1301,7 +1330,7 @@ namespace Xceed.Document.NET
       }
 
       // Check to see if a rel for this Picture exists, create it if not.
-      var Id = GetOrGenerateRel( h );
+      var Id = Paragraph.GetOrGenerateRel( h, this.PackagePart );
 
       XElement h_xml;
       if( index == 0 )
@@ -2211,7 +2240,7 @@ namespace Xceed.Document.NET
       }
 
       // Check to see if a rel for this Hyperlink exists, create it if not.
-      var Id = GetOrGenerateRel( h );
+      var Id = Paragraph.GetOrGenerateRel( h, this.PackagePart );
 
       this.Xml.Add( h.Xml );
       this.Xml.Elements().Last().SetAttributeValue( Document.r + "id", Id );
@@ -4011,15 +4040,7 @@ namespace Xceed.Document.NET
         fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" PAGE  \* ROMAN  \* MERGEFORMAT " ) );
       }
 
-      var content = XElement.Parse
-      (
-       @"<w:r w:rsidR='001D0226' xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
-                   <w:rPr>
-                       <w:noProof /> 
-                   </w:rPr>
-                   <w:t>1</w:t> 
-               </w:r>"
-      );
+      var content = this.GetNumberContentBasedOnLast_rPr();
 
       fldSimple.Add( content );
 
@@ -4083,15 +4104,7 @@ namespace Xceed.Document.NET
       else
         fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" PAGE  \* ROMAN  \* MERGEFORMAT " ) );
 
-      XElement content = XElement.Parse
-      (
-       @"<w:r w:rsidR='001D0226' xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
-                   <w:rPr>
-                       <w:noProof /> 
-                   </w:rPr>
-                   <w:t>1</w:t> 
-               </w:r>"
-      );
+      var content = this.GetNumberContentBasedOnLast_rPr();
 
       fldSimple.Add( content );
       Xml.Add( fldSimple );
@@ -4142,15 +4155,7 @@ namespace Xceed.Document.NET
       else
         fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" NUMPAGES  \* ROMAN  \* MERGEFORMAT " ) );
 
-      XElement content = XElement.Parse
-      (
-       @"<w:r w:rsidR='001D0226' xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
-                   <w:rPr>
-                       <w:noProof /> 
-                   </w:rPr>
-                   <w:t>1</w:t> 
-               </w:r>"
-      );
+      var content = this.GetNumberContentBasedOnLast_rPr();
 
       fldSimple.Add( content );
 
@@ -4212,15 +4217,7 @@ namespace Xceed.Document.NET
       else
         fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" NUMPAGES  \* ROMAN  \* MERGEFORMAT " ) );
 
-      XElement content = XElement.Parse
-      (
-       @"<w:r w:rsidR='001D0226' xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
-                   <w:rPr>
-                       <w:noProof /> 
-                   </w:rPr>
-                   <w:t>1</w:t> 
-               </w:r>"
-      );
+      var content = this.GetNumberContentBasedOnLast_rPr();
 
       fldSimple.Add( content );
       Xml.Add( fldSimple );
@@ -4398,7 +4395,7 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    public void ReplaceAtBookmark( string text, string bookmarkName )
+    public void ReplaceAtBookmark( string text, string bookmarkName, Formatting formatting = null )
     {
       var rList = new List<XElement>();
       var bookmarkStart = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
@@ -4433,7 +4430,7 @@ namespace Xceed.Document.NET
 
       if( rList.Count == 0 )
       {
-        this.ReplaceAtBookmark_Core( text, bookmarkStart );
+        this.ReplaceAtBookmark_Core( text, bookmarkStart, formatting );
         return;
       }
 
@@ -4443,13 +4440,25 @@ namespace Xceed.Document.NET
         var tXElement = r.Elements( XName.Get( "t", Document.w.NamespaceName ) ).FirstOrDefault();
         if( tXElement == null )
         {
-          this.ReplaceAtBookmark_Core( text, bookmarkStart );
+          if( !tXElementFilled )
+          {
+            this.ReplaceAtBookmark_Core( text, bookmarkStart, formatting );
+            tXElementFilled = true;
+          }
         }
         else
         {
           if( !tXElementFilled )
           {
-            this.ReplaceAtBookmark_Core( text, tXElement );
+            this.ReplaceAtBookmark_Core( text, tXElement, formatting );
+            if( formatting != null )
+            {
+              var rPr = r.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+              if( rPr != null )
+              {
+                rPr.Remove();
+              }
+            }
             tXElementFilled = true;
           }
           tXElement.Remove();
@@ -4722,8 +4731,8 @@ namespace Xceed.Document.NET
           // ooxml uses image size in EMU : 
           // image in inches(in) is : pt / 72
           // image in EMU is : in * 914400
-          cx = (img.Width * Picture.EmusInPixel);
-          cy = (img.Height * Picture.EmusInPixel);
+          cx = Convert.ToInt64( img.Width * (72f / img.HorizontalResolution)  * Picture.EmusInPixel);
+          cy = Convert.ToInt64( img.Height * (72f / img.VerticalResolution) * Picture.EmusInPixel);
         }
       }
 
@@ -4750,8 +4759,8 @@ namespace Xceed.Document.NET
                         <a:graphicData uri=""http://schemas.openxmlformats.org/drawingml/2006/picture"">
                             <pic:pic xmlns:pic=""http://schemas.openxmlformats.org/drawingml/2006/picture"">
                                 <pic:nvPicPr>
-                                <pic:cNvPr id=""0"" name=""{3}"" />
-                                    <pic:cNvPicPr />
+                                  <pic:cNvPr id=""0"" name=""{3}"" />
+                                <pic:cNvPicPr />
                                 </pic:nvPicPr>
                                 <pic:blipFill>
                                     <a:blip r:embed=""{2}"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships""/>
@@ -4990,14 +4999,16 @@ namespace Xceed.Document.NET
       return id;
     }
 
-    internal string GetOrGenerateRel( Hyperlink h )
+    internal static string GetOrGenerateRel( Hyperlink h, PackagePart packagePart )
     {
+      Debug.Assert( packagePart != null, "packagePart shouldn't be null." );
+
       string image_uri_string = ( h.Uri != null ) ? h.Uri.OriginalString : null;
 
       // Search for a relationship with a TargetUri that points at this Image.
       var Id =
       (
-          from r in this.PackagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" )
+          from r in packagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" )
           where r.TargetUri.OriginalString == image_uri_string
           select r.Id
       ).SingleOrDefault();
@@ -5006,7 +5017,7 @@ namespace Xceed.Document.NET
       if( ( Id == null ) && ( h.Uri != null ) )
       {
         // Check to see if a relationship for this Picture exists and create it if not.
-        var pr = this.PackagePart.CreateRelationship( h.Uri, TargetMode.External, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" );
+        var pr = packagePart.CreateRelationship( h.Uri, TargetMode.External, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" );
         Id = pr.Id;
       }
       return Id;
@@ -5324,7 +5335,7 @@ namespace Xceed.Document.NET
       else
       {
         // Look in style and basedOn styles of this paragraph.
-        var paragraphStyle = HelperFunctions.GetParagraphStyleFromStyleId( this.Document, this.StyleName );
+        var paragraphStyle = HelperFunctions.GetParagraphStyleFromStyleId( this.Document, this.StyleId );
         numPrNode = this.GetParagraphNumberPropertiesFromStyle( paragraphStyle );
       }
 
@@ -5392,9 +5403,9 @@ namespace Xceed.Document.NET
 
 
 
-    private void ReplaceAtBookmark_Core( string text, XElement bookmark )
+    private void ReplaceAtBookmark_Core( string text, XElement bookmark, Formatting formatting = null )
     {
-      var xElementList = HelperFunctions.FormatInput( text, null );
+      var xElementList = HelperFunctions.FormatInput( text, (formatting != null) ? formatting.Xml : null );
       bookmark.AddAfterSelf( xElementList );
 
       _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
@@ -5402,9 +5413,9 @@ namespace Xceed.Document.NET
       HelperFunctions.RenumberIDs( this.Document );
     }
 
-    private void AddParagraphStyleIfNotPresent( string wantedParagraphName )
+    private void AddParagraphStyleIfNotPresent( string wantedParagraphStyleId )
     {
-      if( string.IsNullOrEmpty( wantedParagraphName ) )
+      if( string.IsNullOrEmpty( wantedParagraphStyleId ) )
         return;
 
       // Load _styles if not loaded.
@@ -5418,9 +5429,9 @@ namespace Xceed.Document.NET
       }
 
       // Check if this Paragraph StyleName exists in _styles.
-      var paragraphStyleExist = HelperFunctions.GetParagraphStyleFromStyleId( this.Document, wantedParagraphName ) != null;     
+      var paragraphStyleExist = HelperFunctions.GetParagraphStyleFromStyleId( this.Document, wantedParagraphStyleId ) != null;     
 
-      // This Paragraph StyleName doesn't exists in _styles, add it.
+      // This Paragraph StyleId doesn't exists in _styles, add it.
       if( !paragraphStyleExist )
       {
         // Load the default_styles.
@@ -5440,7 +5451,7 @@ namespace Xceed.Document.NET
          (
              from s in availableParagraphStyles
              let styleId = s.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) )
-             where ( styleId != null && styleId.Value == wantedParagraphName )
+             where ( styleId != null && styleId.Value == wantedParagraphStyleId )
              select s
          );
 
@@ -5450,6 +5461,22 @@ namespace Xceed.Document.NET
           this.Document._styles.Element( Document.w + "styles" ).Add( wantedParagraphStyle );
         }
       }
+    }
+
+    private XElement GetNumberContentBasedOnLast_rPr()
+    {
+      var rPr = this.Xml.Descendants( XName.Get( "rPr", Document.w.NamespaceName ) ).LastOrDefault();
+      var rPrText = ( rPr != null ) ? rPr.ToString() : "<w:rPr><w:noProof/></w:rPr>";
+
+      var content = XElement.Parse( string.Format( @"
+              <w:r w:rsidR='001D0226' xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                   {0}
+                   <w:t>1</w:t> 
+               </w:r>"
+        , rPrText )
+      );
+
+      return content;
     }
 
     #endregion

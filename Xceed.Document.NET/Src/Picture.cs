@@ -36,7 +36,7 @@ namespace Xceed.Document.NET
     private string _id;
     private string _name;
     private string _descr;
-    private float _cx, _cy;
+    private long _cx, _cy;
     private uint _rotation;
     private bool _hFlip, _vFlip;
     private object _pictureShape;
@@ -155,6 +155,12 @@ namespace Xceed.Document.NET
 
 
 
+
+
+
+
+
+
     /// <summary>
     /// Gets or sets the name of this Image.
     /// </summary>
@@ -220,7 +226,7 @@ namespace Xceed.Document.NET
 
       set
       {
-        _cx = value * EmusInPixel;
+        _cx = Convert.ToInt64(value * EmusInPixel);
 
         foreach( XAttribute a in Xml.Descendants().Attributes( XName.Get( "cx" ) ) )
           a.Value = _cx.ToString();
@@ -255,7 +261,7 @@ namespace Xceed.Document.NET
 
       set
       {
-        _cy = value * EmusInPixel;
+        _cy = Convert.ToInt64(value * EmusInPixel);
 
         foreach( XAttribute a in Xml.Descendants().Attributes( XName.Get( "cy" ) ) )
           a.Value = _cy.ToString();
@@ -345,10 +351,10 @@ namespace Xceed.Document.NET
           from e in Xml.Descendants()
           let a = e.Attribute( XName.Get( "cx" ) )
           where ( a != null )
-          select float.Parse( a.Value )
+          select long.Parse( a.Value )
       ).FirstOrDefault();
 
-      if( _cx == 0f )
+      if( _cx == 0 )
       {
         var style = 
         (
@@ -366,7 +372,7 @@ namespace Xceed.Document.NET
           if( widthIndex >= 0 )
           {
             var widthValueString = widthString.Substring( 0, widthIndex );
-            _cx = float.Parse( widthValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
+            _cx = long.Parse( widthValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
           }
         }
       }
@@ -376,10 +382,10 @@ namespace Xceed.Document.NET
           from e in Xml.Descendants()
           let a = e.Attribute( XName.Get( "cy" ) )
           where ( a != null )
-          select float.Parse( a.Value )
+          select long.Parse( a.Value )
       ).FirstOrDefault();
 
-      if( _cy == 0f )
+      if( _cy == 0 )
       {
         var style =
         (
@@ -397,7 +403,7 @@ namespace Xceed.Document.NET
           if( heightIndex >= 0 )
           {
             var heightValueString = heightString.Substring( 0, heightIndex );
-            _cy = float.Parse( heightValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
+            _cy = long.Parse( heightValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
           }
         }
       }
@@ -420,6 +426,7 @@ namespace Xceed.Document.NET
       {
         _rotation = _xfrm.Attribute( XName.Get( "rot" ) ) == null ? 0 : uint.Parse( _xfrm.Attribute( XName.Get( "rot" ) ).Value );
       }
+
 
 
 

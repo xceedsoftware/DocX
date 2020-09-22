@@ -49,7 +49,7 @@ namespace Xceed.Document.NET
     private float? _kerning;
     private float? _position;
     private double? _spacing;
-    private string _styleName;
+    private string _styleId;
 
     private CultureInfo _language;
 
@@ -323,15 +323,28 @@ namespace Xceed.Document.NET
       }
     }
 
+    [Obsolete( "This property is obsolete and should no longer be used. Use StyleId instead." )]
     public string StyleName
     {
       get
       {
-        return _styleName;
+        return _styleId;
       }
       set
       {
-        _styleName = value;
+        _styleId = value;
+      }
+    }
+
+    public string StyleId
+    {
+      get
+      {
+        return _styleId;
+      }
+      set
+      {
+        _styleId = value;
       }
     }
 
@@ -449,9 +462,9 @@ namespace Xceed.Document.NET
           _rPr.Add( new XElement( XName.Get( "spacing", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), _spacing.Value * 20 ) ) );
         }
 
-        if( !string.IsNullOrEmpty( _styleName ) )
+        if( !string.IsNullOrEmpty( _styleId ) )
         {
-          _rPr.Add( new XElement( XName.Get( "rStyle", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), _styleName ) ) );
+          _rPr.Add( new XElement( XName.Get( "rStyle", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), _styleId ) ) );
         }
 
         if( _position.HasValue )
@@ -671,9 +684,9 @@ namespace Xceed.Document.NET
       {
         clone.Spacing = _spacing;
       }
-      if( !string.IsNullOrEmpty( _styleName ) )
+      if( !string.IsNullOrEmpty( _styleId ) )
       {
-        clone.StyleName = _styleName;
+        clone.StyleId = _styleId;
       }
       clone.StrikeThrough = _strikethrough;
       clone.UnderlineColor = _underlineColor;
@@ -862,7 +875,7 @@ namespace Xceed.Document.NET
             break;
           case "rStyle":
             var style = option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ), null );
-            formatting.StyleName = style;
+            formatting.StyleId = style;
             break;
           default:
             break;
@@ -933,7 +946,7 @@ namespace Xceed.Document.NET
       if( other._spacing != _spacing )
         return -1;
 
-      if( other._styleName != _styleName )
+      if( other._styleId != _styleId )
         return -1;
 
       if( !other._language.Equals( _language ) )

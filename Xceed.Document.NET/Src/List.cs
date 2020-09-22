@@ -329,7 +329,10 @@ namespace Xceed.Document.NET
 
       // If the internal document contains no /word/numbering.xml create one.
       if( !Document._package.PartExists( numberingUri ) )
+      {
         Document._numbering = HelperFunctions.AddDefaultNumberingXml( Document._package );
+        Document._numberingPart = Document._package.GetPart( numberingUri );
+      }
     }
 
     #endregion

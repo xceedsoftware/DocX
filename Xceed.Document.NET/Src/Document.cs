@@ -33,6 +33,14 @@ using System.Drawing.Drawing2D;
 namespace Xceed.Document.NET
 {
 
+  // When calling doc1.InsertDocument( doc2...), sets how to merge the documents styles and headers/footers.
+  public enum MergingMode
+  {
+    Local,
+    Remote,
+    Both
+  }
+
   /// <summary>
   /// Represents a document.
   /// </summary>
@@ -62,7 +70,7 @@ namespace Xceed.Document.NET
 
     private readonly object nextFreeDocPrIdLock = new object();
     private long? nextFreeDocPrId;
-    private string _defaultParagraphStyleName;
+    private string _defaultParagraphStyleId;
 
     private IList<Section> _cachedSections;
 
@@ -893,7 +901,7 @@ namespace Xceed.Document.NET
           bookmarks.Add( new Bookmark
           {
             Name = bookmark.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value,
-            Paragraph = new Paragraph( this, paraXml, -1 )
+            Paragraph = new Paragraph( this, paraXml, -1 ) { PackagePart = this.PackagePart }
           } );
         }
 
@@ -969,14 +977,14 @@ namespace Xceed.Document.NET
 
     #region Public Methods
 
-    public override void InsertSection( bool trackChanges )
+    public override Section InsertSection( bool trackChanges )
     {
-      this.InsertSection( trackChanges, false );
+      return this.InsertSection( trackChanges, false );
     }
 
-    public override void InsertSectionPageBreak( bool trackChanges = false )
+    public override Section InsertSectionPageBreak( bool trackChanges = false )
     {
-      this.InsertSection( trackChanges, true );
+      return this.InsertSection( trackChanges, true );
     }
 
     public override void ReplaceText( string searchValue,
@@ -1163,6 +1171,34 @@ namespace Xceed.Document.NET
       return result.ToArray();
     }
 
+    // Returns the name of the first occurence of a paragraph's style, with name == styleName.
+    public static string GetParagraphStyleIdFromStyleName( Document document, string styleName )
+    {
+      if( string.IsNullOrEmpty( styleName ) || (document == null))
+        return null;
+
+      // Load _styles if not loaded.
+      if( document._styles == null )
+      {
+        var word_styles = document._package.GetPart( new Uri( "/word/styles.xml", UriKind.Relative ) );
+        using( var tr = new StreamReader( word_styles.GetStream() ) )
+        {
+          document._styles = XDocument.Load( tr );
+        }
+      }
+
+      // Check if this Paragraph StyleName exists in _styles.
+      var paragraphStyle = HelperFunctions.GetParagraphStyleFromStyleName( document, styleName );
+      if( paragraphStyle != null )
+      {
+        var styleId = paragraphStyle.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) );
+        if( styleId != null )
+          return styleId.Value;
+      }
+
+      return null;
+    }
+
     /// <summary>
     /// Returns the type of editing protection imposed on this document.
     /// </summary>
@@ -1268,6 +1304,7 @@ namespace Xceed.Document.NET
     /// <param name="remote_document">The document to insert at the end of this document.</param>
     /// <param name="append">When true, document is added at the end. If False, document is added at the beginning.</param>
     /// <param name="useSectionBreak">When true, each joined document will be located in its own section. When false, the documents will remain in the same section.</param>
+    /// <param name="sameStyleSelectionMode">When styles have the same name and different attributes, should we keep the local one, the remote one or both of them. Default is Both.</param>
     /// <example>
     /// Create a new document and insert an old document into it.
     /// <code>
@@ -1289,9 +1326,9 @@ namespace Xceed.Document.NET
     /// If the document being inserted contains Images, CustomProperties and or custom styles, these will be correctly inserted into the new document. In the case of Images, new ID's are generated for the Images being inserted to avoid ID conflicts. CustomProperties with the same name will be ignored not replaced.
     /// </remarks>
     /// </example>
-    public void InsertDocument( Document remote_document, bool append = true, bool useSectionBreak = true )
+    public void InsertDocument( Document remote_document, bool append = true, bool useSectionBreak = true, MergingMode mergingMode = MergingMode.Both )
     {
-      // We don't want to effect the origional XDocument, so create a new one from the old one.
+      // We don't want to effect the original XDocument, so create a new one from the old one.
       var remote_mainDoc = new XDocument( remote_document._mainDoc );
 
       XDocument remote_footnotes = null;
@@ -1306,34 +1343,14 @@ namespace Xceed.Document.NET
         remote_endnotes = new XDocument( remote_document._endnotes );
       }
 
-      // Remove all header and footer references.
-      remote_mainDoc.Descendants( XName.Get( "headerReference", w.NamespaceName ) ).Remove();
-      remote_mainDoc.Descendants( XName.Get( "footerReference", w.NamespaceName ) ).Remove();
-
       // Get the body of the remote document.
       var remote_body = remote_mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
       // Get the body of the local document.
       var local_body = _mainDoc.Root.Element( XName.Get( "body", w.NamespaceName ) );
 
-      if( useSectionBreak )
-      {
-        // append : Move local body section to the last paragraph of the body.
-        // insert : Move Remote Body section to the last paragraph of the body.
-        this.MoveSectionIntoLastParagraph( append ? local_body : remote_body );
-      }
-      else
-      {
-        if( append )
-        {
-          // The last section of local will become the last section of remote(will be the last section of the resulting document).
-          this.ReplaceLastSection( local_body, remote_body );
-        }
-        else
-        {
-          // The last section of remote is removed. The last section of local will be the last section of the resulting document.
-          this.RemoveLastSection( remote_body );
-        }
-      }
+     // Remove all header and footer references.
+      remote_mainDoc.Descendants( XName.Get( "headerReference", w.NamespaceName ) ).Remove();
+      remote_mainDoc.Descendants( XName.Get( "footerReference", w.NamespaceName ) ).Remove();
 
       // Every file that is missing from the local document will have to be copied, every file that already exists will have to be merged.
       var ppc = remote_document._package.GetParts();
@@ -1342,7 +1359,7 @@ namespace Xceed.Document.NET
             {
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml",                
                 "application/vnd.openxmlformats-package.core-properties+xml",
                 "application/vnd.openxmlformats-officedocument.extended-properties+xml",
                 ContentTypeApplicationRelationShipXml
@@ -1364,6 +1381,8 @@ namespace Xceed.Document.NET
               merge_customs( remote_pp, local_pp, remote_mainDoc );
               break;
 
+
+
             // Merge footnotes/endnotes before merging styles, then set the remote_footnotes to the just updated footnotes
             case "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml":
               merge_footnotes( remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes );
@@ -1374,12 +1393,12 @@ namespace Xceed.Document.NET
               break;
 
             case "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml":
-              merge_styles( remote_pp, local_pp, remote_mainDoc, remote_document, _footnotes, _endnotes );
+              merge_styles( remote_pp, local_pp, remote_mainDoc, remote_document, _footnotes, _endnotes, mergingMode );
               break;
 
             // Merges Styles after merging the footnotes, so the changes will be applied to the correct document/footnotes.
             case "application/vnd.ms-word.stylesWithEffects+xml":
-              merge_styles( remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes, remote_endnotes );
+              merge_styles( remote_pp, local_pp, remote_mainDoc, remote_document, remote_footnotes, remote_endnotes, mergingMode );
               break;
 
             case "application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml":
@@ -1397,6 +1416,8 @@ namespace Xceed.Document.NET
           var packagePart = clonePackagePart( remote_pp );
           switch( remote_pp.ContentType )
           {
+
+
             case "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml":
               _endnotesPart = packagePart;
               _endnotes = remote_endnotes;
@@ -1437,6 +1458,28 @@ namespace Xceed.Document.NET
           }
 
           clonePackageRelationship( remote_document, remote_pp, remote_mainDoc );
+        }
+      }
+
+
+
+      if( useSectionBreak )
+      {
+        // append : Move local body section to the last paragraph of the body.
+        // insert : Move Remote Body section to the last paragraph of the body.
+        this.MoveSectionIntoLastParagraph( append ? local_body : remote_body );
+      }
+      else
+      {
+        if( append )
+        {
+          // The last section of local will become the last section of remote(will be the last section of the resulting document).
+          this.ReplaceLastSection( local_body, remote_body );
+        }
+        else
+        {
+          // The last section of remote is removed. The last section of local will be the last section of the resulting document.
+          this.RemoveLastSection( remote_body );
         }
       }
 
@@ -1552,7 +1595,7 @@ namespace Xceed.Document.NET
       }
 
       // Update the _cachedSection by reading the Xml to build new Sections.
-      _cachedSections = this.GetSections();
+      this.UpdateCacheSections();
     }
 
     /// <summary>
@@ -2394,7 +2437,7 @@ namespace Xceed.Document.NET
       }
 
       // Refresh all fields in this document which display this custom property.
-      Document.UpdateCustomPropertyValue( this, cp.Name, ( cp.Value ?? "" ).ToString() );
+      Document.UpdateCustomPropertyValue( this, cp );
     }
 
     public override Paragraph InsertParagraph()
@@ -2567,18 +2610,32 @@ namespace Xceed.Document.NET
 
     /// <summary>
     /// Insert a default Table of Contents in the current document
-    /// </summary>
+    /// </summary>    
     public TableOfContents InsertDefaultTableOfContents()
     {
-      return InsertTableOfContents( "Table of contents", TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z | TableOfContentsSwitches.U );
+      var switchesDictionary = TableOfContents.BuildTOCSwitchesDictionary( TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z | TableOfContentsSwitches.U );
+      return InsertTableOfContents( "Table of contents", switchesDictionary );
     }
 
     /// <summary>
     /// Insert a Table of Contents in the current document
     /// </summary>
+    public TableOfContents InsertTableOfContents( string title, IDictionary<TableOfContentsSwitches, string> switches, string headerStyle = null, int? rightTabPos = null )
+    {
+      var toc = TableOfContents.CreateTableOfContents( this, title, switches, headerStyle, rightTabPos );
+      this.AddElementInXml( toc.Xml );
+      return toc;
+    }
+
+    /// <summary>
+    /// Insert a Table of Contents in the current document
+    /// </summary>
+    [Obsolete( "This method is obsolete and should no longer be used. Use the InsertTableOfContents methods containing an IDictionary<TableOfContentsSwitches, string> parameter instead." )]
     public TableOfContents InsertTableOfContents( string title, TableOfContentsSwitches switches, string headerStyle = null, int maxIncludeLevel = 3, int? rightTabPos = null )
     {
-      var toc = TableOfContents.CreateTableOfContents( this, title, switches, headerStyle, maxIncludeLevel, rightTabPos );
+      var switchesDictionary = TableOfContents.BuildTOCSwitchesDictionary( switches, maxIncludeLevel );
+
+      var toc = TableOfContents.CreateTableOfContents( this, title, switchesDictionary, headerStyle, rightTabPos );
       this.AddElementInXml( toc.Xml );
       return toc;
     }
@@ -2586,9 +2643,21 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Insert a Table of Contents in the current document at a specific location (prior to the referenced paragraph)
     /// </summary>
+    [Obsolete( "This method is obsolete and should no longer be used. Use the InsertTableOfContents methods containing an IDictionary<TableOfContentsSwitches, string> parameter instead." )]
     public TableOfContents InsertTableOfContents( Paragraph reference, string title, TableOfContentsSwitches switches, string headerStyle = null, int maxIncludeLevel = 3, int? rightTabPos = null )
     {
-      var toc = TableOfContents.CreateTableOfContents( this, title, switches, headerStyle, maxIncludeLevel, rightTabPos );
+      var switchesDictionary = TableOfContents.BuildTOCSwitchesDictionary( switches, maxIncludeLevel );
+      var toc = TableOfContents.CreateTableOfContents( this, title, switchesDictionary, headerStyle, rightTabPos );
+      reference.Xml.AddBeforeSelf( toc.Xml );
+      return toc;
+    }
+
+    /// <summary>
+    /// Insert a Table of Contents in the current document at a specific location (prior to the referenced paragraph)
+    /// </summary>
+    public TableOfContents InsertTableOfContents( Paragraph reference, string title, IDictionary<TableOfContentsSwitches, string> switches, string headerStyle = null, int? rightTabPos = null )
+    {
+      var toc = TableOfContents.CreateTableOfContents( this, title, switches, headerStyle, rightTabPos );
       reference.Xml.AddBeforeSelf( toc.Xml );
       return toc;
     }
@@ -3167,47 +3236,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    internal void DeleteHeadersOrFooters( bool b )
-    {
-      string reference = "footer";
-      if( b )
-        reference = "header";
-
-      // Get all header Relationships in this document.
-      var header_relationships = this.PackagePart.GetRelationshipsByType( string.Format( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference ) );
-
-      foreach( PackageRelationship header_relationship in header_relationships )
-      {
-        // Get the TargetUri for this Part.
-        Uri header_uri = header_relationship.TargetUri;
-
-        // Check to see if the document actually contains the Part.
-        if( !header_uri.OriginalString.StartsWith( "/word/" ) )
-          header_uri = new Uri( "/word/" + header_uri.OriginalString, UriKind.Relative );
-
-        if( _package.PartExists( header_uri ) )
-        {
-          // Delete the Part
-          _package.DeletePart( header_uri );
-
-          // Get all references to this Relationship in the document.
-          var query =
-          (
-              from e in _mainDoc.Descendants( XName.Get( "body", w.NamespaceName ) ).Descendants()
-              where ( e.Name.LocalName == string.Format( "{0}Reference", reference ) ) && ( e.Attribute( r + "id" ).Value == header_relationship.Id )
-              select e
-          );
-
-          // Remove all references to this Relationship in the document.
-          for( int i = 0; i < query.Count(); i++ )
-            query.ElementAt( i ).Remove();
-
-          // Delete the Relationship.
-          _package.DeleteRelationship( header_relationship.Id );
-        }
-      }
-    }
-
     internal Image AddImage( object o, string contentType = "image/jpeg" )
     {
       // Open a Stream to the new image being added.
@@ -3422,8 +3450,11 @@ namespace Xceed.Document.NET
     /// <param name="customPropertyName">The property used inside the document</param>
     /// <param name="customPropertyValue">The new value for the property</param>
     /// <remarks>Different version of Word create different Document XML.</remarks>
-    internal static void UpdateCustomPropertyValue( Document document, string customPropertyName, string customPropertyValue )
+    internal static void UpdateCustomPropertyValue( Document document, CustomProperty cp )
     {
+      var customPropertyName = cp.Name;
+      var customPropertyValue = ( cp.Value ?? "" ).ToString();
+
       // A list of documents, which will contain, The Main Document and if they exist: header1, header2, header3, footer1, footer2, footer3.
       var documents = new List<XElement> { document._mainDoc.Root };
 
@@ -3492,7 +3523,10 @@ namespace Xceed.Document.NET
                 {
                   if( !found )
                   {
-                    match.First().Value = customPropertyValue;
+                    var element = match.First();
+                    element.Value = "\n";
+                    var newValue = HelperFunctions.FormatInput( customPropertyValue, ( cp.Formatting != null ) ? cp.Formatting.Xml : null );
+                    element.Add( newValue );
                     found = true;
                   }
                   else
@@ -3641,10 +3675,10 @@ namespace Xceed.Document.NET
       }
     }
 
-    internal string GetNormalStyleName()
+    internal string GetNormalStyleId()
     {
-      if( _defaultParagraphStyleName != null )
-        return _defaultParagraphStyleName;
+      if( _defaultParagraphStyleId != null )
+        return _defaultParagraphStyleId;
 
       var normalStyle =
       (
@@ -3660,16 +3694,16 @@ namespace Xceed.Document.NET
         var styleId = normalStyle.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) );
         if( styleId != null )
         {
-          _defaultParagraphStyleName = styleId.Value;
+          _defaultParagraphStyleId = styleId.Value;
         }
       }
 
-      if( _defaultParagraphStyleName == null )
+      if( _defaultParagraphStyleId == null )
       {
-        _defaultParagraphStyleName = "Normal";
+        _defaultParagraphStyleId = "Normal";
       }
 
-      return _defaultParagraphStyleName;
+      return _defaultParagraphStyleId;
     }
 
     internal static void PrepareDocument( ref Document document, DocumentTypes documentType )
@@ -3684,9 +3718,73 @@ namespace Xceed.Document.NET
       document = Document.Load( ms, document, documentType );
     }
 
-    #endregion
+    internal void UpdateCacheSections()
+    {
+      _cachedSections = this.GetSections();
+    }
 
-    #region Private Methods
+	#endregion
+
+	  #region Private Methods
+
+    private void DeleteHeadersOrFooters( bool isHeader, bool deleteReferences = true )
+    {
+      var reference = isHeader ? "header" : "footer";
+
+      // Get all header Relationships in this document.
+      var header_relationships = this.PackagePart.GetRelationshipsByType( string.Format( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference ) );
+
+      foreach( var header_relationship in header_relationships )
+      {
+        var body = _mainDoc.Descendants( XName.Get( "body", w.NamespaceName ) ).FirstOrDefault();
+        if( body != null )
+        {
+          this.DeleteHeaderOrFooter( header_relationship, reference, _package, body, deleteReferences );
+        }
+      }
+    }
+
+    private void DeleteHeaderOrFooter( PackageRelationship header_relationship, string reference, Package package, XElement documentBody, bool deleteReferences = true )
+    {
+      // Get the TargetUri for this Part.
+      Uri header_uri = header_relationship.TargetUri;
+
+      // Check to see if the document actually contains the Part.
+      if( !header_uri.OriginalString.StartsWith( "/word/" ) )
+        header_uri = new Uri( "/word/" + header_uri.OriginalString, UriKind.Relative );
+
+      if( package.PartExists( header_uri ) )
+      {
+        // Delete the Part
+        package.DeletePart( header_uri );
+
+        if( deleteReferences )
+        {
+          // Remove all references to this Relationship in the document.
+          this.RemoveReferences( header_relationship, reference, documentBody );
+        }
+
+        // Delete the Relationship.
+        package.DeleteRelationship( header_relationship.Id );
+      }
+    }
+
+    private void RemoveReferences( PackageRelationship header_relationship, string reference, XElement documentBody )
+    {
+      // Get all references to this Relationship in the document.
+      var query =
+      (
+          from e in documentBody.Descendants()
+          where ( e.Name.LocalName == string.Format( "{0}Reference", reference ) ) && ( e.Attribute( r + "id" ).Value == header_relationship.Id )
+          select e
+      );
+
+      // Remove all references to this Relationship in the document.
+      for( int i = 0; i < query.Count(); i++ )
+      {
+        query.ElementAt( i ).Remove();
+      }
+    }
 
     private void InsertParagraphPictures( Paragraph p )
     {
@@ -3714,6 +3812,9 @@ namespace Xceed.Document.NET
         remote_rel = remote_document.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( remote_pp.Uri.OriginalString ) ).FirstOrDefault();
         if( remote_rel == null )
         {
+          if( remote_document._numberingPart == null )
+            return;
+
           // Look for images in _numbering.
           remote_rel = remote_document._numberingPart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( remote_pp.Uri.OriginalString.Replace( "/word/", "" ) ) ).FirstOrDefault();
           if( remote_rel == null )
@@ -3726,45 +3827,51 @@ namespace Xceed.Document.NET
       }
 
       var remote_Id = remote_rel.Id;
-
-      var remote_hash = this.ComputeMD5HashString( remote_pp.GetStream() );
-      var image_parts = _package.GetParts().Where( pp => pp.ContentType.Equals( contentType ) );
-
       bool found = false;
-      foreach( var part in image_parts )
-      {
-        var local_hash = ComputeMD5HashString( part.GetStream() );
-        if( local_hash.Equals( remote_hash ) )
-        {
-          // This image already exists in this document.
-          found = true;
 
-          var local_rel = this.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString.Replace( "/word/", "" ) ) ).FirstOrDefault();
-          if( local_rel == null )
+      using( Stream s_read = remote_pp.GetStream() )
+      {
+        var remote_hash = this.ComputeMD5HashString( s_read );
+        var image_parts = _package.GetParts().Where( pp => pp.ContentType.Equals( contentType ) );
+
+        foreach( var part in image_parts )
+        {
+          using( Stream partStream = part.GetStream() )
           {
-            local_rel = this.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString ) ).FirstOrDefault();
-            if( local_rel == null )
+            var local_hash = ComputeMD5HashString( partStream );
+            if( local_hash.Equals( remote_hash ) )
             {
-              // Look in _numbering.
-              local_rel = _numberingPart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString.Replace( "/word/", "" ) ) ).FirstOrDefault();
+              // This image already exists in this document.
+              found = true;
+
+              var local_rel = this.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString.Replace( "/word/", "" ) ) ).FirstOrDefault();
               if( local_rel == null )
               {
-                local_rel = _numberingPart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString ) ).FirstOrDefault();
+                local_rel = this.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString ) ).FirstOrDefault();
+                if( local_rel == null )
+                {
+                  // Look in _numbering.
+                  local_rel = _numberingPart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString.Replace( "/word/", "" ) ) ).FirstOrDefault();
+                  if( local_rel == null )
+                  {
+                    local_rel = _numberingPart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( part.Uri.OriginalString ) ).FirstOrDefault();
+                  }
+                }
               }
+
+              if( local_rel != null )
+              {
+                var new_Id = local_rel.Id;
+
+                // Replace all instances of remote_Id in the local document with local_Id
+                this.ReplaceAllRemoteID( remote_mainDoc, "blip", "embed", a.NamespaceName, remote_Id, new_Id );
+                // Replace all instances of remote_Id in the local document with local_Id (for shapes)
+                this.ReplaceAllRemoteID( remote_mainDoc, "imagedata", "id", v.NamespaceName, remote_Id, new_Id );
+              }
+
+              break;
             }
           }
-
-          if( local_rel != null )
-          {
-            var new_Id = local_rel.Id;
-
-            // Replace all instances of remote_Id in the local document with local_Id
-            this.ReplaceAllRemoteID( remote_mainDoc, "blip", "embed", a.NamespaceName, remote_Id, new_Id );
-            // Replace all instances of remote_Id in the local document with local_Id (for shapes)
-            this.ReplaceAllRemoteID( remote_mainDoc, "imagedata", "id", v.NamespaceName, remote_Id, new_Id );
-          }
-
-          break;
         }
       }
 
@@ -4180,26 +4287,71 @@ namespace Xceed.Document.NET
       }
     }
 
-    private void merge_styles( PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, Document remote, XDocument remote_footnotes, XDocument remote_endnotes )
+    private void merge_styles( PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, Document remote, XDocument remote_footnotes, XDocument remote_endnotes, MergingMode mergingMode )
     {
-      var local_styles = new Dictionary<string, string>();
-      foreach( XElement local_style in _styles.Root.Elements( XName.Get( "style", w.NamespaceName ) ) )
+      var local_styles = new Dictionary<string, XElement>();
+
+      foreach( var local_style in _styles.Root.Elements( XName.Get( "style", w.NamespaceName ) ) )
       {
         var temp = new XElement( local_style );
         var styleId = temp.Attribute( XName.Get( "styleId", w.NamespaceName ) );
-        var value = styleId.Value;
-        styleId.Remove();
-        var key = Regex.Replace( temp.ToString(), @"\s+", "" );
-        if( !local_styles.ContainsKey( key ) )
-        {
-          local_styles.Add( key, value );
-        }
+        var styleIdValue = styleId.Value;
+
+        local_styles.Add( styleIdValue, local_style );
       }
 
       // Add each remote style to this document.
       var remote_styles = remote._styles.Root.Elements( XName.Get( "style", w.NamespaceName ) );
+
       foreach( var remote_style in remote_styles )
       {
+        String guuid;
+        var temp = new XElement( remote_style );
+        var styleId = temp.Attribute( XName.Get( "styleId", w.NamespaceName ) );
+        var styleIdValue = styleId.Value;
+
+        // Check to see if the local document already contains the remote styleId.
+        if( local_styles.ContainsKey( styleIdValue ) )
+        {
+          switch( mergingMode )
+          {
+            case MergingMode.Local:
+              {
+                // Keep the local document style : nothing to do.
+                continue;
+              }
+            case MergingMode.Remote:
+              {
+                // Replace the local document style with the remote document style.
+                var sameLocalStyle = local_styles[ styleIdValue ];
+                if( sameLocalStyle != null )
+                {
+                  sameLocalStyle.AddAfterSelf( remote_style );
+                  sameLocalStyle.Remove();
+                  local_styles[ styleIdValue ] = remote_style;
+                }
+                continue;
+              }
+            case MergingMode.Both:
+              {
+                // If local style and remote style are equals, nothing to do.
+                var sameLocalStyle = local_styles[ styleIdValue ];
+                if( sameLocalStyle.ToString() == remote_style.ToString() )
+                {
+                  continue;
+                }
+              }
+              break;
+            default:
+              {
+                Debug.Assert( false, "Unknown style selection type." );
+                break;
+              }
+          }
+        }
+
+        // Create a new style from the remote style and add it to the local document style.
+
         if( this.IsDefaultParagraphStyle( remote_style ) )
         {
           // Update remote document default paragraph with default remote document values.
@@ -4210,35 +4362,13 @@ namespace Xceed.Document.NET
           remote_style.Attribute( XName.Get( "default", w.NamespaceName ) ).Remove();
         }
 
-        var temp = new XElement( remote_style );
-        var styleId = temp.Attribute( XName.Get( "styleId", w.NamespaceName ) );
-        var value = styleId.Value;
-        styleId.Remove();
-        var key = Regex.Replace( temp.ToString(), @"\s+", "" );
-        String guuid;
-
-        // Check to see if the local document already contains the remote style.
-        if( local_styles.ContainsKey( key ) )
+        guuid = Guid.NewGuid().ToString();
+        // Set the styleId and name in the remote_style to this new Guid
+        remote_style.SetAttributeValue( XName.Get( "styleId", w.NamespaceName ), guuid );
+        var name = remote_style.Element( XName.Get( "name", w.NamespaceName ) );
+        if( name != null )
         {
-          String local_value;
-          local_styles.TryGetValue( key, out local_value );
-
-          // If the styleIds are the same then nothing needs to be done.
-          if( local_value == value )
-            continue;
-          // All we need to do is update the styleId.
-          guuid = local_value;
-        }
-        else
-        {
-          guuid = Guid.NewGuid().ToString();
-          // Set the styleId and name in the remote_style to this new Guid
-          remote_style.SetAttributeValue( XName.Get( "styleId", w.NamespaceName ), guuid );
-          var name = remote_style.Element( XName.Get( "name", w.NamespaceName ) );
-          if( name != null )
-          {
-            name.SetAttributeValue( XName.Get( "val", w.NamespaceName ), guuid );
-          }
+          name.SetAttributeValue( XName.Get( "val", w.NamespaceName ), guuid );
         }
 
         foreach( XElement e in remote_mainDoc.Root.Descendants( XName.Get( "pStyle", w.NamespaceName ) ) )
@@ -4358,6 +4488,13 @@ namespace Xceed.Document.NET
       }
     }
 
+
+
+
+
+
+
+
     protected void clonePackageRelationship( Document remote_document, PackagePart pp, XDocument remote_mainDoc )
     {
       var url = pp.Uri.OriginalString.Replace( "/", "" );
@@ -4446,13 +4583,17 @@ namespace Xceed.Document.NET
             using( TextReader tr = new StreamReader( document._stylesPart.GetStream() ) )
             {
               document._styles = XDocument.Load( tr );
-              var pPrDefault = document._styles.Root.Element( XName.Get( "docDefaults", Document.w.NamespaceName ) ).Element( XName.Get( "pPrDefault", Document.w.NamespaceName ) );
-              if( pPrDefault != null )
+              var docDefaults = document._styles.Root.Element( XName.Get( "docDefaults", Document.w.NamespaceName ) );
+              if( docDefaults != null )
               {
-                var pPr = pPrDefault.Element( XName.Get( "pPr", Document.w.NamespaceName ) );
-                if( pPr != null )
+                var pPrDefault = docDefaults.Element( XName.Get( "pPrDefault", Document.w.NamespaceName ) );
+                if( pPrDefault != null )
                 {
-                  Paragraph.SetDefaultValues( pPr );
+                  var pPr = pPrDefault.Element( XName.Get( "pPr", Document.w.NamespaceName ) );
+                  if( pPr != null )
+                  {
+                    Paragraph.SetDefaultValues( pPr );
+                  }
                 }
               }
             }
@@ -4564,6 +4705,12 @@ namespace Xceed.Document.NET
       return result;
     }
 
+
+
+
+
+
+
     private Hyperlink AddHyperlinkCore( string text, Uri uri, string anchor, Hyperlink baseHyperlink, Formatting formatting )
     {
       XElement xElement = null;
@@ -4598,28 +4745,16 @@ namespace Xceed.Document.NET
       return h;
     }
 
-    private void InsertSection( bool trackChanges, bool isPageBreak )
+    private Section InsertSection( bool trackChanges, bool isPageBreak )
     {
-      // Save any modified header/footer so that the new section can access it.
-      this.SaveHeadersFooters();
-
-      var sctPr = new XElement( this.Sections.Last().Xml );
-      this.Sections.Last().Xml.Elements( XName.Get( "headerReference", Document.w.NamespaceName ) ).Remove();
-      this.Sections.Last().Xml.Elements( XName.Get( "footerReference", Document.w.NamespaceName ) ).Remove();
-      if( !isPageBreak )
+      if( isPageBreak )
       {
-        sctPr.Add( new XElement( XName.Get( "type", Document.w.NamespaceName ), new XAttribute( Document.w + "val", "continuous" ) ) );
+        return this.Sections.Last().InsertSectionPageBreak( trackChanges );
       }
-
-      var newSection = new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ), sctPr ) );
-      if( trackChanges )
+      else
       {
-        newSection = HelperFunctions.CreateEdit( EditType.ins, DateTime.Now, newSection );
+        return this.Sections.Last().InsertSection( trackChanges );
       }
-      this.AddElementInXml( newSection );
-
-      // Update the _cachedSection by reading the Xml to build new Sections.
-      _cachedSections = this.GetSections();
     }
 
     private void MoveSectionIntoLastParagraph( XElement body )
@@ -4733,6 +4868,7 @@ namespace Xceed.Document.NET
                                                                                                              new XAttribute( XName.Get( "id", r.NamespaceName ), relID ) ) ) ) ) ) );
       p.Xml.Add( chartElement );
     }
+
 
     #endregion
 
