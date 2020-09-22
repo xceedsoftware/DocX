@@ -42,7 +42,7 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <tr>
 <td>Price</td>
 <td>Free</td>
-<td>$529.95</td>
+<td>$499.00</td>
 </tr>
 <tr>
 <td>License</td>
@@ -202,6 +202,11 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 </tr>
 <tr>
 <td>Create formatted hyperlinks based on a referenced hyperlinks</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Joining 2 documents gives the opportunity to choose which headers/footers to use</td>
 <td></td>
 <td>YES</td>
 </tr>
