@@ -24,6 +24,7 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * Add or modify checkboxes
 * Set transparency in pictures
 * Create formatted hyperlinks based on a referenced hyperlinks
+* Joining 2 documents gives the opportunity to choose the headers/footers of doc1, doc2 or both of them in the resulting document.
 
 ## What else do I need?
 
