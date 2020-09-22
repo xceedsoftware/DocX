@@ -269,7 +269,8 @@ A commercial license can be purchased at [Xceed](https://xceed.com).
 
 ## Release history
 
-
+* **September 22, 2020, released DocX v1.7.1 with [19 bug fixes and improvements](../../wiki/Release-Notes-v1.7.1).**
+* August 17, 2020, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.7.1 with [28 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus171).
 * **June 29, 2020, released DocX v1.7.0 with [27 bug fixes and improvements](../../wiki/Release-Notes-v1.7.0).**
 * **January 30, 2020, released DocX v1.6.0 with [24 bug fixes and improvements](../../wiki/Release-Notes-v1.6.0).**
 * January 30, 2020, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.7.0 with [62 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus170).
