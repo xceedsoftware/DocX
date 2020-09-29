@@ -856,8 +856,8 @@ namespace Xceed.Document.NET
       this.Document.SaveHeadersFooters();
 
       var sctPr = new XElement( this.Xml );
-      this.Xml.Elements( XName.Get( "headerReference", Document.w.NamespaceName ) ).Remove();
-      this.Xml.Elements( XName.Get( "footerReference", Document.w.NamespaceName ) ).Remove();
+      sctPr.Elements( XName.Get( "headerReference", Document.w.NamespaceName ) ).Remove();
+      sctPr.Elements( XName.Get( "footerReference", Document.w.NamespaceName ) ).Remove();
       if( !isPageBreak )
       {
         sctPr.Add( new XElement( XName.Get( "type", Document.w.NamespaceName ), new XAttribute( Document.w + "val", "continuous" ) ) );
