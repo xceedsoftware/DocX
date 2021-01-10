@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Xceed.Document.NET/obj
+/.vs
+/Xceed.Words.NET/obj/Debug
+/Xceed.Words.NET/obj/Release
+/Xceed.Words.NET.Examples/obj
+/Xceed.Document.NET/bin/Debug
+/Xceed.Words.NET/bin/Debug
+/Xceed.Words.NET.Examples/bin/Debug
+*.user

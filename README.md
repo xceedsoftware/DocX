@@ -1,3 +1,17 @@
+## Changes in this fork
+
+This fork/branch includes several changes that were introduced in support of a project to generate "Register Format" reports from GEDCOM files. This use-case anticipates that the output document is to be processed programatically just once, when it is created, and will be subsequently edited manually.    
+
+The changes include:
+
+* Character Styles: if the format object passed when appending text to a paragraph includes a style name (id) it is applied to the text as a character style (in the base version, it is simply ignored)
+* Indexing: supports inserting index entries (XE fields) into paragraphs and indexes (INDEX fields). Features supported include "type" (used to separate e.g. name index from place index)
+* Footnotes/Endnotes: supports inserting footnotes and/or endnotes into paragraphs.  Notes can include hyperlinks and can include references to other notes (of the same flavor).  NB: This is a "one-way" capability: existing Notes (including ones just added using this feature) cannot be modified and cannot be deleted (except, of course, by hand in an editor).
+
+Simple examples of footnotes, endnotes, and indexes are provided.
+
+Full, unedited text of the base project readme follows.
+
 ## What is DocX?
 
 DocX is a .NET library that allows developers to manipulate Word 2007/2010/2013 files, in an easy and intuitive manner. DocX is fast, lightweight and best of all it does not require Microsoft Word or Office to be installed.
