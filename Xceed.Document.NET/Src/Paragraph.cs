@@ -1304,7 +1304,52 @@ namespace Xceed.Document.NET
       base.InsertPageBreakAfterSelf();
     }
 
-    [Obsolete( "Instead use: InsertHyperlink(Hyperlink h, int index)" )]
+
+    public Paragraph InsertField(AbstractField f, int index = 0)
+    {
+        if (index == 0)
+        {
+            // Add this field as the first element.
+            Xml.AddFirst(f.Xml);
+        }
+        else
+        {
+            // Get the first run effected by this Insert
+            Run run = GetFirstRunEffectedByEdit(index);
+
+            if (run == null)
+            {
+                // Add this field as the last element.
+                Xml.Add(f.Xml);
+            }
+            else
+            {
+                // Split this run at the point you want to insert
+                XElement[] splitRun = Run.SplitRun(run, index);
+
+                // Replace the original run.
+                run.Xml.ReplaceWith
+                (
+                    splitRun[0],
+                    f.Xml,
+                    splitRun[1]
+                );
+            }
+        }
+
+        this._runs = Xml.Elements().Last().Elements(XName.Get("r", Document.w.NamespaceName)).ToList();
+        return this;
+    }
+
+    public Paragraph AppendField(AbstractField f)
+    {
+        Xml.Add(f.Xml);
+        this._runs = Xml.Elements().Last().Elements(XName.Get("r", Document.w.NamespaceName)).ToList();
+        return this;
+    }
+
+
+        [Obsolete( "Instead use: InsertHyperlink(Hyperlink h, int index)" )]
     public Paragraph InsertHyperlink( int index, Hyperlink h )
     {
       return InsertHyperlink( h, index );
@@ -2198,6 +2243,9 @@ namespace Xceed.Document.NET
       // UnderlineStyle
       if( format.UnderlineStyle.HasValue )
         UnderlineStyle( format.UnderlineStyle.Value );
+
+      if (!string.IsNullOrEmpty(format.StyleId)) 
+          Style(format.StyleId);
 
       return this;
     }
@@ -3349,44 +3397,51 @@ namespace Xceed.Document.NET
 
       return this;
     }
+    public Paragraph Style(string stylid)
+    {
 
-    /// <summary>
-    /// Append a field of type document property, this field will display the custom property cp, at the end of this paragraph.
-    /// </summary>
-    /// <param name="cp">The custom property to display.</param>
-    /// <param name="f">The formatting to use for this text.</param>
-    /// <param name="trackChanges"></param>
-    /// <example>
-    /// Create, add and display a custom property in a document.
-    /// <code>
-    /// // Load a document.
-    ///using (var document = DocX.Create("CustomProperty_Add.docx"))
-    ///{
-    ///    // Add a few Custom Properties to this document.
-    ///    document.AddCustomProperty(new CustomProperty("fname", "cathal"));
-    ///    document.AddCustomProperty(new CustomProperty("age", 24));
-    ///    document.AddCustomProperty(new CustomProperty("male", true));
-    ///    document.AddCustomProperty(new CustomProperty("newyear2012", new DateTime(2012, 1, 1)));
-    ///    document.AddCustomProperty(new CustomProperty("fav_num", 3.141592));
-    ///
-    ///    // Insert a new Paragraph and append a load of DocProperties.
-    ///    Paragraph p = document.InsertParagraph("fname: ")
-    ///        .AppendDocProperty(document.CustomProperties["fname"])
-    ///        .Append(", age: ")
-    ///        .AppendDocProperty(document.CustomProperties["age"])
-    ///        .Append(", male: ")
-    ///        .AppendDocProperty(document.CustomProperties["male"])
-    ///        .Append(", newyear2012: ")
-    ///        .AppendDocProperty(document.CustomProperties["newyear2012"])
-    ///        .Append(", fav_num: ")
-    ///        .AppendDocProperty(document.CustomProperties["fav_num"]);
-    ///    
-    ///    // Save the changes to the document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
-    public Paragraph AppendDocProperty( CustomProperty cp, bool trackChanges = false, Formatting f = null )
+        ApplyTextFormattingProperty(XName.Get("rStyle", Document.w.NamespaceName), string.Empty, new XAttribute(XName.Get("val", Document.w.NamespaceName), stylid));
+
+        return this;
+    }
+
+        /// <summary>
+        /// Append a field of type document property, this field will display the custom property cp, at the end of this paragraph.
+        /// </summary>
+        /// <param name="cp">The custom property to display.</param>
+        /// <param name="f">The formatting to use for this text.</param>
+        /// <param name="trackChanges"></param>
+        /// <example>
+        /// Create, add and display a custom property in a document.
+        /// <code>
+        /// // Load a document.
+        ///using (var document = DocX.Create("CustomProperty_Add.docx"))
+        ///{
+        ///    // Add a few Custom Properties to this document.
+        ///    document.AddCustomProperty(new CustomProperty("fname", "cathal"));
+        ///    document.AddCustomProperty(new CustomProperty("age", 24));
+        ///    document.AddCustomProperty(new CustomProperty("male", true));
+        ///    document.AddCustomProperty(new CustomProperty("newyear2012", new DateTime(2012, 1, 1)));
+        ///    document.AddCustomProperty(new CustomProperty("fav_num", 3.141592));
+        ///
+        ///    // Insert a new Paragraph and append a load of DocProperties.
+        ///    Paragraph p = document.InsertParagraph("fname: ")
+        ///        .AppendDocProperty(document.CustomProperties["fname"])
+        ///        .Append(", age: ")
+        ///        .AppendDocProperty(document.CustomProperties["age"])
+        ///        .Append(", male: ")
+        ///        .AppendDocProperty(document.CustomProperties["male"])
+        ///        .Append(", newyear2012: ")
+        ///        .AppendDocProperty(document.CustomProperties["newyear2012"])
+        ///        .Append(", fav_num: ")
+        ///        .AppendDocProperty(document.CustomProperties["fav_num"]);
+        ///    
+        ///    // Save the changes to the document.
+        ///    document.Save();
+        ///}
+        /// </code>
+        /// </example>
+        public Paragraph AppendDocProperty( CustomProperty cp, bool trackChanges = false, Formatting f = null )
     {
       this.InsertDocProperty( cp, trackChanges, f );
       return this;
@@ -4305,6 +4360,8 @@ namespace Xceed.Document.NET
 
       return this;
     }
+
+    public static int NextBookmarkId => bookmarkIdCounter++;
 
     public void ClearBookmarks()
     {

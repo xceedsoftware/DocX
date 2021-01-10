@@ -89,11 +89,17 @@ namespace Xceed.Document.NET
                                                         "image/wmf"
                                                     };
 
+    // when using foot/end notes in a new document, the entire part and/or the 
+    // referenced styles may be missing, checking is not cheap, so, keep track of 
+    // having checked so we only need to do it once per doc instead of per-note
+    private bool _footnoteDefaultsChecked;
+    private bool _endnoteDefaultsChecked;
+
     #endregion
 
-    #region Internal Constants
+        #region Internal Constants
 
-    internal const string RelationshipImage = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
+        internal const string RelationshipImage = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
     internal const string ContentTypeApplicationRelationShipXml = "application/vnd.openxmlformats-package.relationships+xml";
 
     #endregion
@@ -868,6 +874,157 @@ namespace Xceed.Document.NET
         foreach( var note in _footnotes.Root.Elements( w + "footnote" ) )
           yield return HelperFunctions.GetText( note );
       }
+    }
+
+    public Hyperlink AddHyperlinkToFootnotes(string text, Uri uri, string anchor = null, Hyperlink baseHyperlink = null, Formatting formatting = null)
+    {
+        return AddHyperlinkToPackagePart(_footnotesPart, text, uri, anchor??text, baseHyperlink, formatting);
+    }
+
+    public Hyperlink AddHyperlinkToEndnotes(string text, Uri uri, string anchor = null, Hyperlink baseHyperlink = null, Formatting formatting = null)
+    {
+        return AddHyperlinkToPackagePart(_endnotesPart, text, uri, anchor??text, baseHyperlink, formatting);
+    }
+
+    public Hyperlink AddHyperlinkToPackagePart(PackagePart pp, string text, Uri uri, string anchor, Hyperlink baseHyperlink = null, Formatting formatting = null)
+    {
+        // Convert the path of this Part to its equivalent rels file path.
+        string ppPath = pp.Uri.OriginalString;
+        string ppName = ppPath.Substring(ppPath.IndexOf('/', 1)+1);
+        var rels_path = new Uri("/word/_rels/" + ppName + ".rels", UriKind.Relative);
+
+        // Check to see if the rels file exists and create it if not.
+        if (!Document._package.PartExists(rels_path))
+        {
+            HelperFunctions.CreateRelsPackagePart(Document, rels_path);
+        }
+
+        Hyperlink h = AddHyperlinkCore(text, uri, anchor, baseHyperlink, formatting, pp);
+
+        // Check to see if a rel for this Hyperlink exists, create it if not.
+        string hid = Paragraph.GetOrGenerateRel(h, pp);
+
+        h.Xml.SetAttributeValue(Document.r + "id", hid);
+
+        return h;
+
+    }
+    public bool AppendFootnote(XElement footnoteElement)
+    {
+        if (footnoteElement?.Name.LocalName != "footnote") 
+            throw new ArgumentException("argument is not a footnote");
+
+        VerifyFootnoteContext();
+
+        _footnotes.Document?.Root?.Add(footnoteElement);
+        return true;
+    }
+
+    public bool HasNonDefaultFootnotes() => _footnotes != null && MaxFootnoteId() >= 1;
+    public bool HasNonDefaultEndnotes() => _endnotes != null && MaxEndnoteId() >= 1;
+
+    internal void VerifyFootnoteContext()
+    {
+        if (_footnoteDefaultsChecked) return;
+
+        // If this document does not contain a footnotesPart create one.
+        var fileUri = new Uri("/word/footnotes.xml", UriKind.Relative);
+        if (!_package.PartExists(fileUri))
+        {
+            _footnotes = HelperFunctions.AddDefaultFootnotesXml(this, _package, ref _footnotesPart);
+        }
+        HelperFunctions.EnsureDefaultFootnoteStyles(this);
+        _footnoteDefaultsChecked = true;
+    }
+
+    /// <summary>
+    /// Check the current styles and add any of the 'wanted' that are not currently defined
+    /// </summary>
+    /// <param name="wanted">styles to add if not defined</param>
+    /// <returns>count of styles added</returns>
+    public int VerifyOrAddStyles(List<XElement> wanted)
+    {
+        if ((wanted?.Count ?? 0) <= 0) return 0;
+
+        int rv = 0;
+        var stylesElement = _styles.Element(XName.Get("styles", Document.w.NamespaceName));
+        
+        var ids = (from d in stylesElement.Descendants(XName.Get("style", Document.w.NamespaceName))
+            let a = d.Attribute(XName.Get("styleId", Document.w.NamespaceName))
+            where a != null
+            select a.Value).ToList();
+
+        foreach (XElement style in wanted)
+        {
+            string wantedId = style.Attribute(XName.Get("styleId", Document.w.NamespaceName))?.Value;
+            if (string.IsNullOrEmpty(wantedId) || ids.Contains(wantedId)) continue;
+            stylesElement.Add(style);
+            rv++;
+        }
+
+        return rv;
+    }
+
+    public List<StyleInfo> ListStyles()
+    {
+        List<StyleInfo> rvl = new List<StyleInfo>();
+
+        if (_styles == null) return rvl;
+        var stylesElement = _styles.Element(XName.Get("styles", Document.w.NamespaceName));
+        foreach (XElement style in stylesElement.Descendants(XName.Get("style", Document.w.NamespaceName)))
+        {
+            string id = style.Attribute(XName.Get("styleId", Document.w.NamespaceName))?.Value;
+            string tipe = style.Attribute(XName.Get("type", Document.w.NamespaceName))?.Value;
+            string name = style.Descendants(XName.Get("name", Document.w.NamespaceName))
+                .FirstOrDefault()?.Attribute(XName.Get("val", Document.w.NamespaceName))?.Value;
+            rvl.Add(new StyleInfo(){Id = id, Name = name, StyleType = tipe});
+        }
+
+        return rvl;
+    }
+    public class StyleInfo
+    {
+        public string Name { get; set; }
+        public string Id { get; set; }
+        public string StyleType { get; set; }
+    }
+
+    public bool AppendEndnote(XElement endnoteElement)
+    {
+        if (endnoteElement?.Name.LocalName != "endnote")
+            throw new ArgumentException("argument is not an endnote");
+
+        VerifyEndnoteContext();
+
+        _endnotes.Document?.Root?.Add(endnoteElement);
+
+        return true;
+    }
+
+    public bool AppendEndnote(DocumentElement endnoteElement)
+    {
+
+        VerifyEndnoteContext();
+
+        _endnotes.Add(endnoteElement);
+
+        return true;
+    }
+
+
+
+    internal void VerifyEndnoteContext()
+    {
+        if (_endnoteDefaultsChecked) return;
+
+        // If this document does not contain a endnotesPart create one.
+        var fileUri = new Uri("/word/endnotes.xml", UriKind.Relative);
+        if (!_package.PartExists(fileUri))
+        {
+            _endnotes = HelperFunctions.AddDefaultEndnotesXml(this, _package, ref _endnotesPart);
+        }
+        HelperFunctions.EnsureDefaultEndnoteStyles(this);
+        _endnoteDefaultsChecked = true;
     }
 
     /// <summary>
@@ -1840,7 +1997,7 @@ namespace Xceed.Document.NET
       {
         PackagePart documentPart = null;
         XDocument documentDoc = null;
-        foreach( PackagePart packagePart in templatePackage.GetParts() )
+        foreach ( PackagePart packagePart in templatePackage.GetParts() )
         {
           switch( packagePart.Uri.ToString() )
           {
@@ -1877,6 +2034,19 @@ namespace Xceed.Document.NET
             case "/word/_rels/document.xml.rels":
               break;
             default:
+              //if (!includeContent)
+              //{
+              //  // footnotes and endnotes are "content" too...
+              //  // and it creates an invalid document to merge them in but delete the 
+              //  // paragraphs with the related elements.  here, we "should" either not merge them
+              //  // or else delete them.  but this gets complicated e.g. the relationship, 
+              //  // valid notes we already had, etc.  At this point, "punting" on this issue
+              //  // user can first load the merging doc and check/warn using HasNonDefaultFootnotes() 
+              //  //
+              //  // just skipping, as below, quickly fails:
+              //  if (packagePart.Uri.ToString() == "/word/footnotes.xml" || packagePart.Uri.ToString() == "/word/endnotes.xml")
+              //      break;
+              //}
               if( !_package.PartExists( packagePart.Uri ) )
               {
                 _package.CreatePart( packagePart.Uri, packagePart.ContentType, packagePart.CompressionOption );
@@ -3157,9 +3327,10 @@ namespace Xceed.Document.NET
         word_styles.Element( w + "styles" ).Add( style );
 
         // Save the styles document.
-        using( TextWriter tw = new StreamWriter( new PackagePartStream( _package.GetPart( word_styles_Uri ).GetStream() ) ) )
+        //using (TextWriter tw = new StreamWriter(new PackagePartStream(_package.GetPart(word_styles_Uri).GetStream())))
+        using (TextWriter tw = new StreamWriter(new PackagePartStream(_stylesPart.GetStream())))
         {
-          word_styles.Save( tw );
+            word_styles.Save( tw );
         }
       }
     }
@@ -3984,14 +4155,7 @@ namespace Xceed.Document.NET
 
     private void merge_footnotes( PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc, Document remote, XDocument remote_footnotes )
     {
-      IEnumerable<int> ids =
-      (
-          from d in _footnotes.Root.Descendants()
-          where d.Name.LocalName == "footnote"
-          select int.Parse( d.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value )
-      );
-
-      int max_id = ids.Max() + 1;
+      var max_id = MaxFootnoteId()+1;
       var footnoteReferences = remote_mainDoc.Descendants( XName.Get( "footnoteReference", Document.w.NamespaceName ) );
 
       foreach( var footnote in remote_footnotes.Root.Elements().OrderBy( fr => fr.Attribute( XName.Get( "id", Document.r.NamespaceName ) ) ).Reverse() )
@@ -4018,6 +4182,32 @@ namespace Xceed.Document.NET
           }
         }
       }
+    }
+
+    public int MaxFootnoteId()
+    {
+        VerifyFootnoteContext();
+        IEnumerable<int> ids =
+        (
+            from d in _footnotes.Root.Descendants()
+            where d.Name.LocalName == "footnote"
+            select int.Parse(d.Attribute(XName.Get("id", Document.w.NamespaceName)).Value)
+        );
+
+        return ids.Max();
+    }
+
+    public int MaxEndnoteId()
+    {
+        VerifyEndnoteContext();
+        IEnumerable<int> ids =
+        (
+            from d in _endnotes.Root.Descendants()
+            where d.Name.LocalName == "endnote"
+            select int.Parse(d.Attribute(XName.Get("id", Document.w.NamespaceName)).Value)
+        );
+
+        return ids.Max();
     }
 
     private void merge_customs( PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc )
@@ -4711,13 +4901,9 @@ namespace Xceed.Document.NET
 
 
 
-    private Hyperlink AddHyperlinkCore( string text, Uri uri, string anchor, Hyperlink baseHyperlink, Formatting formatting )
+    private Hyperlink AddHyperlinkCore( string text, Uri uri, string anchor, Hyperlink baseHyperlink, Formatting formatting, PackagePart targetPackagePart = null )
     {
       XElement xElement = null;
-
-
-
-
       {
         xElement = new XElement
        (
@@ -4733,7 +4919,7 @@ namespace Xceed.Document.NET
        );
       }
 
-      var h = new Hyperlink( this, this.PackagePart, xElement );
+      var h = new Hyperlink( this, targetPackagePart ?? this.PackagePart, xElement );
       h.text = text;
       if( uri != null )
       {

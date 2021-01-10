@@ -53,9 +53,12 @@
     <Compile Include="Samples\CheckBox\CheckBoxSample.cs" />
     <Compile Include="Samples\Document\DocumentSample.cs" />
     <Compile Include="Samples\Equation\EquationSample.cs" />
+    <Compile Include="Samples\FootnotesEndnotes\EndnoteSample.cs" />
+    <Compile Include="Samples\FootnotesEndnotes\FootnoteSample.cs" />
     <Compile Include="Samples\HeaderFooter\HeaderFooterSample.cs" />
     <Compile Include="Samples\Hyperlink\HyperlinkSample.cs" />
     <Compile Include="Samples\Image\ImageSample.cs" />
+    <Compile Include="Samples\Index\IndexSample.cs" />
     <Compile Include="Samples\Line\LineSample.cs" />
     <Compile Include="Samples\List\ListSample.cs" />
     <Compile Include="Samples\Margin\MarginSample.cs" />
@@ -112,6 +115,7 @@
       <HintPath>..\Xceed.Words.NET\bin\Debug\Xceed.Words.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
