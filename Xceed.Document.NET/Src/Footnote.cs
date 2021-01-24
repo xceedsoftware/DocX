@@ -192,8 +192,15 @@ namespace Xceed.Document.NET.Src
                         np.Add(nrf.Build().Xml);
                         break;
                     case FragmentType.Hyperlink:
-                        Hyperlink h = BuildHyperlink(fragment);
-                        np.Add(h.Xml);
+                        try
+                        {
+                            Hyperlink h = BuildHyperlink(fragment);
+                            np.Add(h?.Xml);
+                        }
+                        catch (UriFormatException ufx)
+                        {
+                            // giving up on it
+                        }
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
