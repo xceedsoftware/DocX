@@ -37,7 +37,7 @@ namespace Xceed.Document.NET
     NumberingDecimal,
     Numbering,
     Styles,
-    Theme
+    Theme,
   }
 
   internal static class HelperFunctions
@@ -462,6 +462,176 @@ namespace Xceed.Document.NET
 
       Debug.Assert( false, "Unkown resource type." );
       return null;
+    }
+
+    internal static XDocument AddDefaultFootnotesXml(Document document, Package package, ref PackagePart word_footnotes)
+    {
+        XDocument footnotesDoc;
+        // Create the main document part for this package
+        footnotesDoc = XDocument.Parse
+        (@"<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+            <w:footnotes xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+	            <w:footnote w:type='separator' w:id='-1'>
+		            <w:p>
+			            <w:r><w:separator/></w:r>
+		            </w:p>
+	            </w:footnote>
+	            <w:footnote w:type='continuationSeparator' w:id='0'>
+		            <w:p>
+			            <w:r><w:continuationSeparator/></w:r>
+		            </w:p>
+	            </w:footnote>
+            </w:footnotes>");
+        word_footnotes = package.CreatePart(new Uri("/word/footnotes.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml", CompressionOption.Maximum);
+
+        // Save /word/footnotes.xml
+        using (TextWriter tw = new StreamWriter(new PackagePartStream(word_footnotes.GetStream(FileMode.Create, FileAccess.Write))))
+        {
+            footnotesDoc.Save(tw, SaveOptions.None);
+        }
+
+        // set up the relationship to the main doc
+        var mainDocumentPart = GetMainDocumentPart(package);
+        mainDocumentPart.CreateRelationship(word_footnotes.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes");
+        
+        return footnotesDoc;
+    }
+
+    internal static void EnsureDefaultFootnoteStyles(Document document)
+    {
+        // Add the default footnote styles if not already defined
+        XDocument footnoteStyles = XDocument.Parse
+        (@"<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+            <w:styles xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+	            <w:style w:type='character' w:styleId='FootnoteReference' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+		            <w:name w:val='footnote reference' />
+		            <w:basedOn w:val='DefaultParagraphFont' />
+		            <w:uiPriority w:val='99' />
+		            <w:semiHidden />
+		            <w:unhideWhenUsed />
+		            <w:rsid w:val='00000042' />
+		            <w:rPr>
+			            <w:vertAlign w:val='superscript' />
+		            </w:rPr>
+	            </w:style>
+	            <w:style w:type='paragraph' w:styleId='FootnoteText' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+		            <w:name w:val='footnote text' />
+		            <w:basedOn w:val='Normal' />
+		            <w:link w:val='FootnoteTextChar' />
+		            <w:uiPriority w:val='99' />
+		            <w:semiHidden />
+		            <w:unhideWhenUsed />
+		            <w:rsid w:val='00000042' />
+		            <w:pPr>
+			            <w:spacing w:after='0' w:line='240' w:lineRule='auto' />
+                        <w:ind w:left='360' w:hanging='360'/>
+		            </w:pPr>
+		            <w:rPr>
+			            <w:sz w:val='20' />
+			            <w:szCs w:val='20' />
+		            </w:rPr>
+	            </w:style>
+	            <w:style w:type='character' w:customStyle='1' w:styleId='FootnoteTextChar' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+		            <w:name w:val='Footnote Text Char' />
+		            <w:basedOn w:val='DefaultParagraphFont' />
+		            <w:link w:val='FootnoteText' />
+		            <w:uiPriority w:val='99' />
+		            <w:semiHidden />
+		            <w:rsid w:val='00000042' />
+		            <w:rPr>
+			            <w:sz w:val='20' />
+			            <w:szCs w:val='20' />
+		            </w:rPr>
+	            </w:style>
+            </w:styles>");
+        List<XElement> wantedStyles =
+            new List<XElement>(footnoteStyles.Element(XName.Get("styles", Document.w.NamespaceName)).Elements());
+        document.VerifyOrAddStyles(wantedStyles);
+    }
+
+    internal static XDocument AddDefaultEndnotesXml(Document document, Package package, ref PackagePart word_endnotes)
+        {
+            XDocument endnotesDoc;
+            // Create the main document part for this package
+            endnotesDoc = XDocument.Parse
+            (@"<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+            <w:endnotes xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+	            <w:endnote w:type='separator' w:id='-1'>
+		            <w:p>
+			            <w:r><w:separator/></w:r>
+		            </w:p>
+	            </w:endnote>
+	            <w:endnote w:type='continuationSeparator' w:id='0'>
+		            <w:p>
+			            <w:r><w:continuationSeparator/></w:r>
+		            </w:p>
+	            </w:endnote>
+            </w:endnotes>");
+            word_endnotes = package.CreatePart(new Uri("/word/endnotes.xml", UriKind.Relative), "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml", CompressionOption.Maximum);
+
+            // Save /word/endnotes.xml
+            using (TextWriter tw = new StreamWriter(new PackagePartStream(word_endnotes.GetStream(FileMode.Create, FileAccess.Write))))
+            {
+                endnotesDoc.Save(tw, SaveOptions.None);
+            }
+
+            // set up the relationship to the main doc
+            var mainDocumentPart = GetMainDocumentPart(package);
+            mainDocumentPart.CreateRelationship(word_endnotes.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes");
+
+            return endnotesDoc;
+        }
+
+    internal static void EnsureDefaultEndnoteStyles(Document document)
+    {
+        // Add the default endnote styles if not already defined
+        XDocument endnoteStyles = XDocument.Parse
+        (@"<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+            <w:styles xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+	            <w:style w:type='character' w:styleId='EndnoteReference' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+		            <w:name w:val='endnote reference' />
+		            <w:basedOn w:val='DefaultParagraphFont' />
+		            <w:uiPriority w:val='99' />
+		            <w:semiHidden />
+		            <w:unhideWhenUsed />
+		            <w:rsid w:val='00000042' />
+		            <w:rPr>
+			            <w:vertAlign w:val='superscript' />
+		            </w:rPr>
+	            </w:style>
+	            <w:style w:type='paragraph' w:styleId='EndnoteText' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+		            <w:name w:val='endnote text' />
+		            <w:basedOn w:val='Normal' />
+		            <w:link w:val='EndnoteTextChar' />
+		            <w:uiPriority w:val='99' />
+		            <w:semiHidden />
+		            <w:unhideWhenUsed />
+		            <w:rsid w:val='00000042' />
+		            <w:pPr>
+			            <w:spacing w:after='0' w:line='240' w:lineRule='auto' />
+                        <w:ind w:left='360' w:hanging='360'/>
+		            </w:pPr>
+		            <w:rPr>
+			            <w:sz w:val='20' />
+			            <w:szCs w:val='20' />
+		            </w:rPr>
+	            </w:style>
+	            <w:style w:type='character' w:customStyle='1' w:styleId='EndnoteTextChar' xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>
+		            <w:name w:val='Endnote Text Char' />
+		            <w:basedOn w:val='DefaultParagraphFont' />
+		            <w:link w:val='EndnoteText' />
+		            <w:uiPriority w:val='99' />
+		            <w:semiHidden />
+		            <w:rsid w:val='00000042' />
+		            <w:rPr>
+			            <w:sz w:val='20' />
+			            <w:szCs w:val='20' />
+		            </w:rPr>
+	            </w:style>
+            </w:styles>");
+        List<XElement> wantedStyles =
+            new List<XElement>(endnoteStyles.Element(XName.Get("styles", Document.w.NamespaceName)).Elements());
+        document.VerifyOrAddStyles(wantedStyles);
     }
 
     /// <summary>

@@ -12,7 +12,6 @@ is only intended as a supplement to the documentation, and is provided
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
 
 namespace Xceed.Words.NET.Examples
 {
@@ -105,6 +104,15 @@ namespace Xceed.Words.NET.Examples
       TableOfContentSample.InsertTableOfContent();
       TableOfContentSample.InsertTableOfContentWithReference();
       TableOfContentSample.UpdateTableOfContent();
+
+      // indexing
+      IndexSample.SimpleIndex();
+      IndexSample.MultiIndex();
+
+      //Footnotes / Endnotes
+      FootnoteSample.BookmarkedFootnote();
+      FootnoteSample.SimpleFootnote();
+      EndnoteSample.SimpleEndnote();
 
       //Lines
       LineSample.InsertHorizontalLine();
