@@ -4187,27 +4187,15 @@ namespace Xceed.Document.NET
     public int MaxFootnoteId()
     {
         VerifyFootnoteContext();
-        IEnumerable<int> ids =
-        (
-            from d in _footnotes.Root.Descendants()
-            where d.Name.LocalName == "footnote"
-            select int.Parse(d.Attribute(XName.Get("id", Document.w.NamespaceName)).Value)
-        );
-
-        return ids.Max();
+        int rv = int.Parse((_footnotes?.Root?.LastNode as XElement)?.Attribute(XName.Get("id", Document.w.NamespaceName))?.Value ??"0");
+        return rv;
     }
 
     public int MaxEndnoteId()
     {
         VerifyEndnoteContext();
-        IEnumerable<int> ids =
-        (
-            from d in _endnotes.Root.Descendants()
-            where d.Name.LocalName == "endnote"
-            select int.Parse(d.Attribute(XName.Get("id", Document.w.NamespaceName)).Value)
-        );
-
-        return ids.Max();
+        int rv = int.Parse((_endnotes?.Root?.LastNode as XElement)?.Attribute(XName.Get("id", Document.w.NamespaceName))?.Value ??"0");
+        return rv;
     }
 
     private void merge_customs( PackagePart remote_pp, PackagePart local_pp, XDocument remote_mainDoc )
