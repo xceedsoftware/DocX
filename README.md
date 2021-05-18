@@ -15,6 +15,7 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * adds TextBoxes or Shapes containing Text
 * gets Shapes from Paragraphs
 * gets Charts from Paragraphs and can modify their categories/values
+* More properties in Charts configuration like axis Label position and series width
 * is at least two versions ahead of the DocX version
 * has professional technical support included in the subscription
 * is available on .NET Standard 2.0 for .NET Core 2.0 Applications
@@ -25,6 +26,7 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * Set transparency in pictures
 * Create formatted hyperlinks based on a referenced hyperlinks
 * Joining 2 documents gives the opportunity to choose the headers/footers of doc1, doc2 or both of them in the resulting document.
+* Automatic hyphenations and configurable hyphenations
 
 ## What else do I need?
 
