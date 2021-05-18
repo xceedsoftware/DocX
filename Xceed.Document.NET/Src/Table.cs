@@ -981,7 +981,7 @@ namespace Xceed.Document.NET
       var tblGrid = xml.Element( XName.Get( "tblGrid", Document.w.NamespaceName ) );
       if( tblGrid == null )
       {
-        this.SetColumnWidth();
+        this.SetColumnWidth(0, -1, false);
       }
 
       var alignment = properties?.Element( XName.Get( "jc", Document.w.NamespaceName ) );
@@ -1513,22 +1513,30 @@ namespace Xceed.Document.NET
       if( ( index < 0 ) || ( index >= colCount ) )
         throw new NullReferenceException( "index should be greater or equal to 0 and smaller to this.ColumnCount." );
 
+      var rows = this.Rows;
+      var firstRow = rows[ 0 ];
+
+      var newColumnWidth = direction
+                             ? ( index < firstRow.Cells.Count - 1 ) ? firstRow.Cells[ index + 1 ].Width : firstRow.Cells[ index ].Width
+                             : firstRow.Cells[ index ].Width;
+
       if( this.RowCount > 0 )
       {
         _cachedColumnCount = -1;
-        foreach( Row r in this.Rows )
+
+        foreach( var row in rows )
         {
-          // create cell
+          // create cell (width will be set lower)
           var cell = HelperFunctions.CreateTableCell();
 
           // insert cell 
-          if( r.Cells.Count < colCount )
+          if( row.Cells.Count < colCount )
           {
-            int gridAfterValue = r.GridAfter;
+            int gridAfterValue = row.GridAfter;
             int currentPosition = 0;
             int posIndex = 0;
 
-            foreach( var rowCell in r.Cells )
+            foreach( var rowCell in row.Cells )
             {
               int gridSpanValue = ( rowCell.GridSpan != 0 ) ? rowCell.GridSpan - 1 : 0;
 
@@ -1537,7 +1545,7 @@ namespace Xceed.Document.NET
                 && ( ( index - gridAfterValue ) <= ( currentPosition + gridSpanValue ) ) )
               {
                 var dir = ( direction && ( index == ( currentPosition + gridSpanValue ) ) );
-                this.AddCellToRow( r, cell, posIndex, dir );
+                this.AddCellToRow( row, cell, posIndex, dir );
                 break;
               }
 
@@ -1547,9 +1555,15 @@ namespace Xceed.Document.NET
           }
           else
           {
-            this.AddCellToRow( r, cell, index, direction );
+            this.AddCellToRow( row, cell, index, direction );
           }
-        }
+        }        
+
+        var newWidths = new List<float>( colCount + 1 );
+        this.ColumnWidths.ForEach( pWidth => newWidths.Add( Convert.ToSingle( pWidth ) ) );
+        newWidths.Insert( index, Convert.ToSingle( newColumnWidth ) );
+
+        this.SetWidths( newWidths.ToArray(), false );
       }
     }
 
@@ -1582,13 +1596,13 @@ namespace Xceed.Document.NET
       base.InsertPageBreakBeforeSelf();
     }
 
-    public void SetWidths( float[] widths )
+    public void SetWidths( float[] widths, bool fixWidths = true )
     {
       if( widths == null )
         return;
 
       var totalTableWidth = widths.Sum();
-      var availableWidth = this.Document.PageWidth - this.Document.MarginLeft - this.Document.MarginRight;
+      var availableWidth = this.Document.GetAvailableWidth();
       // Using autoFit and total columns size exceed page size => use a percentage of the page.
       if( ( this.AutoFit != AutoFit.Fixed ) && ( totalTableWidth > availableWidth ) )
       {
@@ -1597,13 +1611,13 @@ namespace Xceed.Document.NET
         {
           newWidths.Add( pWidth / totalTableWidth * 100 );
         } );
-        this.SetWidthsPercentage( newWidths.ToArray(), availableWidth );
+        this.SetWidthsPercentage( newWidths.ToArray(), Convert.ToSingle( availableWidth ) );
       }
       else
       {
         for( int i = 0; i < widths.Length; ++i )
         {
-          this.SetColumnWidth( i, widths[ i ] );
+          this.SetColumnWidth( i, widths[ i ], fixWidths );
         }
       }
     }
@@ -1611,7 +1625,9 @@ namespace Xceed.Document.NET
     public void SetWidthsPercentage( float[] widthsPercentage, float? totalWidth = null )
     {
       if( totalWidth == null )
-        totalWidth = this.Document.PageWidth - this.Document.MarginLeft - this.Document.MarginRight;
+      {
+        totalWidth = Convert.ToSingle( this.Document.GetAvailableWidth() );
+      }
 
       List<float> widths = new List<float>( widthsPercentage.Length );
       widthsPercentage.ToList().ForEach( pWidth =>
@@ -1621,7 +1637,7 @@ namespace Xceed.Document.NET
       //Case 173653 : Using SetColumnWidth instead of SetWidths() to update gridCol in XML.
       for( int i = 0; i < widths.Count; ++i )
       {
-        this.SetColumnWidth( i, widths[ i ] );
+        this.SetColumnWidth( i, widths[ i ], false );
       }
     }
 
@@ -2327,7 +2343,7 @@ namespace Xceed.Document.NET
       return columnWidths[ columnIndex ];
     }
 
-    public void SetColumnWidth( int columnIndex = 0, double width = -1 )
+    public void SetColumnWidth( int columnIndex = 0, double width = -1, bool fixWidth = true )
     {
       var columnWidths = this.ColumnWidths;
       if( columnWidths == null || ( columnIndex > columnWidths.Count - 1 ) )
@@ -2336,7 +2352,8 @@ namespace Xceed.Document.NET
           throw new Exception( "There is at least one row required to detect the existing columns." );
 
         columnWidths = new List<Double>();
-        foreach( Cell c in Rows[ Rows.Count - 1 ].Cells )
+        var cells = this.Rows[0].Cells;
+        foreach( var c in cells )
         {
           columnWidths.Add( c.Width );
         }
@@ -2344,7 +2361,7 @@ namespace Xceed.Document.NET
         // When some column are NaN, use a width based on the available page width.
         if( columnWidths.Contains( double.NaN ) )
         {
-          var availablePageSpace = this.Document.PageWidth - this.Document.MarginLeft - this.Document.MarginRight;
+          var availablePageSpace = this.Document.GetAvailableWidth();
           var knownWidth = columnWidths.Where( c => !double.IsNaN( c ) );
           var columnSpaceUsed = knownWidth.Sum();
           var availableSpace = availablePageSpace - columnSpaceUsed;
@@ -2392,19 +2409,22 @@ namespace Xceed.Document.NET
         index += 1;
       }
 
-      // remove cell widths
+      // remove cell width
       if( width >= 0 )
       {
-        foreach( Row row in this.Rows )
+        foreach( var row in this.Rows )
         {
-          foreach( Cell cell in row.Cells )
+          if( columnIndex < row.Cells.Count )
           {
-            cell.Width = -1;
+            row.Cells[ columnIndex ].Width = width;
           }
         }
 
-        // set AutoFit to Fixed
-        this.AutoFit = AutoFit.Fixed;
+        if( fixWidth )
+        {
+          // set AutoFit to Fixed
+          this.AutoFit = AutoFit.Fixed;
+        }
       }
     }
 

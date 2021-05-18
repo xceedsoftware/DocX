@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Bookmark Sample Application
-Copyright (c) 2009-2020 - Xceed Software Inc.
+Copyright (c) 2009-2021 - Xceed Software Inc.
 
 This application demonstrates how to create or replace a bookmark when using the API 
 from the Xceed Words for .NET.
@@ -73,7 +73,7 @@ namespace Xceed.Words.NET.Examples
         p2.Append( document.Bookmarks.Last().Name );
         p2.Append( "\" but displayed as \"" + _displayedBookmarkName + "\"." );
 
-        // Set a string to be displayed as the Bookmark in the second paragraph.
+        // Inserts the provided text at a bookmark location in this Paragraph.
         p2.InsertAtBookmark( _displayedBookmarkName, _bookmarkName );
 
         document.Save();

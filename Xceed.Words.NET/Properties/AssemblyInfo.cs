@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyCompany( "Xceed Software Inc." )]
 [assembly: AssemblyProduct( "Xceed Words for .NET" )]
-[assembly: AssemblyCopyright( "Copyright (C) Xceed Software Inc. 2009-2020" )]
+[assembly: AssemblyCopyright( "Copyright (C) Xceed Software Inc. 2009-2021" )]
 [assembly: AssemblyCulture("")]
 
 

@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Table Sample Application
-Copyright (c) 2009-2020 - Xceed Software Inc.
+Copyright (c) 2009-2021 - Xceed Software Inc.
 
 This application demonstrates how to create and format a table when using the API 
 from the Xceed Words for .NET.
@@ -71,6 +71,9 @@ namespace Xceed.Words.NET.Examples
         t.Rows[ 4 ].Cells[ 0 ].Paragraphs[ 0 ].Append( "Shawn" );
         t.Rows[ 4 ].Cells[ 1 ].Paragraphs[ 0 ].Append( "57" );
 
+        // Set the width of the 2 columns.
+        t.SetWidths( new float[] { 115f, 115f } );
+
         // Add a row at the end of the table and sets its values.
         var r = t.InsertRow();
         r.Cells[ 0 ].Paragraphs[ 0 ].Append( "Mario" );
@@ -116,6 +119,7 @@ namespace Xceed.Words.NET.Examples
     /// </summary>
     public static void AddTableWithTextWrapping()
     {
+
 
 
 

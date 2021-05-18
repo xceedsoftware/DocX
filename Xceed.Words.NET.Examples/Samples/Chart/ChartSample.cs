@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Chart Sample Application
-Copyright (c) 2009-2020 - Xceed Software Inc.
+Copyright (c) 2009-2021 - Xceed Software Inc.
 
 This application demonstrates how to create a chart when using the API 
 from the Xceed Words for .NET.
@@ -59,6 +59,7 @@ namespace Xceed.Words.NET.Examples
         c.BarDirection = BarDirection.Bar;
         c.BarGrouping = BarGrouping.Standard;
         c.GapWidth = 200;
+
 
         // Create the data.
         var canada = ChartData.CreateCanadaExpenses();

@@ -521,36 +521,32 @@ namespace Xceed.Document.NET
       );
     }
 
-    internal static XElement CreateTable( int rowCount, int columnCount )
+    internal static XElement CreateTable( int rowCount, int columnCount, double tableWidth )
     {
       if( ( rowCount <= 0 ) || ( columnCount <= 0 ) )
       {
         throw new ArgumentOutOfRangeException( "Row and Column count must be greater than 0." );
       }
-
-      int[] columnWidths = new int[ columnCount ];
-      for( int i = 0; i < columnCount; i++ )
+      if( tableWidth <= 0d )
       {
-        columnWidths[ i ] = 2310;
+        throw new ArgumentOutOfRangeException( "tableWidth must be greater than 0." );
       }
-      return CreateTable( rowCount, columnWidths );
-    }
 
-    internal static XElement CreateTable( int rowCount, int[] columnWidths )
-    {
       var newTable = new XElement( XName.Get( "tbl", Document.w.NamespaceName ),
                                    new XElement( XName.Get( "tblPr", Document.w.NamespaceName ),
                                                  new XElement( XName.Get( "tblStyle", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), "TableGrid" ) ),
                                                  new XElement( XName.Get( "tblW", Document.w.NamespaceName ), new XAttribute( XName.Get( "w", Document.w.NamespaceName ), "5000" ), new XAttribute( XName.Get( "type", Document.w.NamespaceName ), "auto" ) ),
                                                  new XElement( XName.Get( "tblLook", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), "04A0" ) ) ) );
 
+      var columnWidth = ( tableWidth / columnCount ) * 20d;
+
       for( int i = 0; i < rowCount; i++ )
       {
         var row = new XElement( XName.Get( "tr", Document.w.NamespaceName ) );
 
-        for( int j = 0; j < columnWidths.Length; j++ )
+        for( int j = 0; j < columnCount; j++ )
         {
-          var cell = HelperFunctions.CreateTableCell();
+          var cell = HelperFunctions.CreateTableCell( columnWidth );
           row.Add( cell );
         }
 
@@ -1167,7 +1163,7 @@ namespace Xceed.Document.NET
       return new Border( borderStyle, borderSize, borderSpace, borderColor );
     }
 
-    internal static void UpdateParagraphFromStyledParagraph( Paragraph p, Paragraph styledParagraph )
+    internal static void UpdateParagraphFromStyledParagraph( Paragraph p, Paragraph styledParagraph, bool overrideParagraphProperties = false )
     {
       if( ( p == null ) || ( styledParagraph == null ) )
         return;
@@ -1198,12 +1194,22 @@ namespace Xceed.Document.NET
               }
             }
           }
-          // Paragraph contains the property, add the missing attributes from this property.
-          foreach( var att in styleParagraphElement.Attributes() )
+
+          // Paragraph contains the property, override this property in the paragraph.
+          if( overrideParagraphProperties )
           {
-            if( paragraphElement.Attribute( att.Name ) == null && p.CanAddAttribute( att ) )
+            paragraphElement.Remove();
+            paragraph_Ppr.Add( styleParagraphElement );
+          }
+          else
+          {
+            // Paragraph contains the property, add the missing attributes from this property.
+            foreach( var att in styleParagraphElement.Attributes() )
             {
-              paragraphElement.Add( att );
+              if( paragraphElement.Attribute( att.Name ) == null && p.CanAddAttribute( att ) )
+              {
+                paragraphElement.Add( att );
+              }
             }
           }
         }
@@ -1222,12 +1228,21 @@ namespace Xceed.Document.NET
         }
         else
         {
-          // Paragraph contains the property, add the missing attributes from this property.
-          foreach( var att in styleParagraphElement.Attributes() )
+          // Paragraph contains the property, override this property in the paragraph.
+          if( overrideParagraphProperties )
           {
-            if( runElement.Attribute( att.Name ) == null )
+            runElement.Remove();
+            paragraph_rPr.Add( styleParagraphElement );
+          }
+          else
+          {
+            // Paragraph contains the property, add the missing attributes from this property.
+            foreach( var att in styleParagraphElement.Attributes() )
             {
-              runElement.Add( att );
+              if( runElement.Attribute( att.Name ) == null )
+              {
+                runElement.Add( att );
+              }
             }
           }
         }

@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Headers Footers Sample Application
-Copyright (c) 2009-2020 - Xceed Software Inc.
+Copyright (c) 2009-2021 - Xceed Software Inc.
 
 This application demonstrates how to create headers and footers when using the API 
 from the Xceed Words for .NET.
@@ -80,29 +80,23 @@ namespace Xceed.Words.NET.Examples
         // Insert a Paragraph into the first Header.
         document.Headers.First.InsertParagraph("This is the ").Append("first").Bold().Append(" page header");
 
-        // Insert a Paragraph into the first Footer.
+        // Insert a Paragraph and Page number into the first Footer.
         document.Footers.First.InsertParagraph( "This is the " ).Append( "first" ).Bold().Append( " page footer" );
+        document.Footers.First.InsertParagraph( "Page " ).AppendPageNumber( PageNumberFormat.normal ).Append( " of " ).AppendPageCount( PageNumberFormat.normal );
 
         // Insert a Paragraph into the even Header.
         document.Headers.Even.InsertParagraph( "This is an " ).Append( "even" ).Bold().Append( " page header" );
 
-        // Insert a Paragraph into the even Footer.
+        // Insert a Paragraph and Page number into the even Footer.
         document.Footers.Even.InsertParagraph( "This is an " ).Append( "even" ).Bold().Append( " page footer" );
+        document.Footers.Even.InsertParagraph( "Page " ).AppendPageNumber( PageNumberFormat.normal ).Append( " of " ).AppendPageCount( PageNumberFormat.normal );
 
         // Insert a Paragraph into the odd Header.
         document.Headers.Odd.InsertParagraph( "This is an " ).Append( "odd" ).Bold().Append( " page header" );
 
-        // Insert a Paragraph into the odd Footer.
+        // Insert a Paragraph and Page number into the odd Footer.
         document.Footers.Odd.InsertParagraph( "This is an " ).Append( "odd" ).Bold().Append( " page footer" );
-
-        // Add the page number in the first Footer.
-        document.Footers.First.InsertParagraph("Page #").AppendPageNumber( PageNumberFormat.normal );
-
-        // Add the page number in the even Footers.
-        document.Footers.Even.InsertParagraph( "Page #" ).AppendPageNumber( PageNumberFormat.normal );
-
-        // Add the page number in the odd Footers.
-        document.Footers.Odd.InsertParagraph( "Page #" ).AppendPageNumber( PageNumberFormat.normal );
+        document.Footers.Odd.InsertParagraph( "Page " ).AppendPageNumber( PageNumberFormat.normal ).Append( " of " ).AppendPageCount( PageNumberFormat.normal );
 
         document.Save();
         Console.WriteLine( "\tCreated: HeadersFooters.docx\n" );

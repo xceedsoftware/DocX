@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Miscellaneous Sample Application
-Copyright (c) 2009-2020 - Xceed Software Inc.
+Copyright (c) 2009-2021 - Xceed Software Inc.
 
 This application demonstrates how to create docs file by using the most common
 features of the API from the Xceed Words for .NET.

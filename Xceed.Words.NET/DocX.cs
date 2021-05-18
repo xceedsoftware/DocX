@@ -18,6 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Xml.Linq;
 using Xceed.Document.NET;
 
@@ -38,9 +41,9 @@ namespace Xceed.Words.NET
       if( !DocX.IsCommercialLicenseRead )
       {
         Console.WriteLine( "===================================================================\n"
-                         + "Thank you for using Xceed's DocX library.                          \n"
+                         + "Thank you for using Xceed's DocX library.\n"
                          + "Please note that this software is used for non-commercial use only.\n"
-                         + "To obtain a commercial license, please visit www.xceed.com.        \n"
+                         + "To obtain a commercial license, please visit www.xceed.com.\n"
                          + "===================================================================" );
 
         DocX.IsCommercialLicenseRead = true;
@@ -253,30 +256,30 @@ namespace Xceed.Words.NET
 
     #region Overrides
 
-    public override void SaveAs( Stream stream )
+    public override void SaveAs( Stream stream, string password = "" )
     {
       if( this.IsPackageClosed( _package ) )
       {
         // When package is closed (already saved), reload the package and restart SaveAs();
         var initialDoc = ( _stream.Length > 0 ) ? DocX.Load( _stream ) : DocX.Load( _filename );
-        initialDoc.SaveAs( stream );
+        initialDoc.SaveAs( stream, password );
         return;
       }
 
-      base.SaveAs( stream );
+      base.SaveAs( stream, password );
     }
 
-    public override void SaveAs( string filename )
+    public override void SaveAs( string filename, string password = "" )
     {
       if( this.IsPackageClosed( _package ) )
       {
         // When package is closed (already saved), reload the package and restart SaveAs();
         var initialDoc = !string.IsNullOrEmpty( _filename ) ? DocX.Load( _filename ) : DocX.Load( _stream );
-        initialDoc.SaveAs( filename );
+        initialDoc.SaveAs( filename, password );
         return;
       }
 
-      base.SaveAs( filename );
+      base.SaveAs( filename, password );
     }
 
     /// <summary>
@@ -301,8 +304,10 @@ namespace Xceed.Words.NET
     /// Bug found and fixed by krugs525 on August 12 2009.
     /// Use TFS compare to see exact code change.
     /// -->
-    public override void Save()
+    public override void Save( string password = "" )
     {
+      ValidatePasswordProtection( password );
+
       if( this.IsPackageClosed( _package ) )
       {
         // When package is closed (already saved), reload the package and restart Save();
@@ -317,7 +322,7 @@ namespace Xceed.Words.NET
         _mainDoc.Save( tw, SaveOptions.None );
       }
 
-      if( ( _settings == null ) || !this.isProtected )
+      if( ( _settings == null ) )
       {
         using( TextReader textReader = new StreamReader( _settingsPart.GetStream() ) )
         {
@@ -330,57 +335,57 @@ namespace Xceed.Words.NET
 
       // Save the settings document.
       using( TextWriter tw = new StreamWriter( new PackagePartStream( _settingsPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-        {
-          _settings.Save( tw, SaveOptions.None );
-        }
+      {
+        _settings.Save( tw, SaveOptions.None );
+      }
 
-        if( _endnotesPart != null )
+      if( _endnotesPart != null )
+      {
+        using( TextWriter tw = new StreamWriter( new PackagePartStream( _endnotesPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
         {
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _endnotesPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            _endnotes.Save( tw, SaveOptions.None );
-          }
+          _endnotes.Save( tw, SaveOptions.None );
         }
+      }
 
-        if( _footnotesPart != null )
+      if( _footnotesPart != null )
+      {
+        using( TextWriter tw = new StreamWriter( new PackagePartStream( _footnotesPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
         {
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _footnotesPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            _footnotes.Save( tw, SaveOptions.None );
-          }
+          _footnotes.Save( tw, SaveOptions.None );
         }
+      }
 
-        if( _stylesPart != null )
+      if( _stylesPart != null )
+      {
+        using( TextWriter tw = new StreamWriter( new PackagePartStream( _stylesPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
         {
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _stylesPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            _styles.Save( tw, SaveOptions.None );
-          }
+          _styles.Save( tw, SaveOptions.None );
         }
+      }
 
-        if( _stylesWithEffectsPart != null )
+      if( _stylesWithEffectsPart != null )
+      {
+        using( TextWriter tw = new StreamWriter( new PackagePartStream( _stylesWithEffectsPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
         {
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _stylesWithEffectsPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            _stylesWithEffects.Save( tw, SaveOptions.None );
-          }
+          _stylesWithEffects.Save( tw, SaveOptions.None );
         }
+      }
 
-        if( _numberingPart != null )
+      if( _numberingPart != null )
+      {
+        using( TextWriter tw = new StreamWriter( new PackagePartStream( _numberingPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
         {
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _numberingPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            _numbering.Save( tw, SaveOptions.None );
-          }
+          _numbering.Save( tw, SaveOptions.None );
         }
+      }
 
-        if( _fontTablePart != null )
+      if( _fontTablePart != null )
+      {
+        using( TextWriter tw = new StreamWriter( new PackagePartStream( _fontTablePart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
         {
-          using( TextWriter tw = new StreamWriter( new PackagePartStream( _fontTablePart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-          {
-            _fontTable.Save( tw, SaveOptions.None );
-          }
+          _fontTable.Save( tw, SaveOptions.None );
         }
+      }
 
       // Close the document so that it can be saved in .NETStandard.
       _package.Close();
@@ -398,7 +403,7 @@ namespace Xceed.Words.NET
             HelperFunctions.CopyStream( _memoryStream, fs );
           }
           else
-            fs.Write( _memoryStream.ToArray(), 0, (int)_memoryStream.Length );
+            fs.Write( _memoryStream.ToArray(), 0, ( int )_memoryStream.Length );
         }
       }
       else if( _stream.CanSeek )  //Check if stream can be seeked to support System.Web.HttpResponseStream.
@@ -568,6 +573,36 @@ namespace Xceed.Words.NET
             ).Save( tw, SaveOptions.None );
           }
         }
+      }
+    }
+
+    internal void ValidatePasswordProtection( string password )
+    {
+      if( !string.IsNullOrEmpty( password ) )
+      {
+        if( this.IsPasswordProtected )
+        {
+          if( _settings == null )
+            throw new NullReferenceException();   
+
+          var documentProtection = _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).FirstOrDefault();
+
+          var salt = documentProtection.Attribute( XName.Get( "salt", w.NamespaceName ) );
+          var hash = documentProtection.Attribute( XName.Get( "hash", w.NamespaceName ) );
+
+          if( hash != null && salt != null )
+          {
+            var encryption = new Encryption();
+            var keyValues = encryption.Decrypt( password, salt.Value );
+            if( hash.Value != keyValues )
+              throw new UnauthorizedAccessException( "Invalid password." );
+          }
+        }
+      }
+      else
+      {
+        if( this.IsPasswordProtected )
+          throw new UnauthorizedAccessException( "The document is password protected, please set the document password in the Save()/SaveAs() method." );
       }
     }
 

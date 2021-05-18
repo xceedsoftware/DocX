@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Protection Sample Application
-Copyright (c) 2009-2020 - Xceed Software Inc.
+Copyright (c) 2009-2021 - Xceed Software Inc.
 
 This application demonstrates how to add protection to a docx file when using the API 
 from the Xceed Words for .NET.
@@ -20,6 +20,7 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
+    private const string ProtectionSampleResourceDirectory = Program.SampleDirectory + @"Protection\Resources\";
     private const string ProtectionSampleOutputDirectory = Program.SampleDirectory + @"Protection\Output\";
 
     #endregion
@@ -65,7 +66,7 @@ namespace Xceed.Words.NET.Examples
         document.AddPasswordProtection( EditRestrictions.readOnly, "xceed" );
 
         // Save this document to disk.
-        document.Save();
+        document.Save( "xceed" );
         Console.WriteLine( "\tCreated: AddPasswordProtection.docx\n" );
       }
     }
@@ -98,6 +99,35 @@ namespace Xceed.Words.NET.Examples
         // Save this document to disk.
         document.Save();
         Console.WriteLine( "\tCreated: AddProtection.docx\n" );
+      }
+    }
+
+    /// <summary>
+    /// Load and change a document password protection.
+    /// </summary>
+    public static void ChangePasswordProtection()
+    {
+      Console.WriteLine( "\tChangePasswordProtection()" );
+
+      // Load a password protected document.
+      using( var document = DocX.Load( ProtectionSample.ProtectionSampleResourceDirectory + @"PasswordProtected.docx" ) )
+      {
+        // Check if the document is password protected.
+        if( document.IsPasswordProtected)
+        {
+          // Remove existing password protection.
+          document.RemovePasswordProtection( "xceed" );
+
+          // Set the document as read only and add a new password to unlock it.
+          document.AddPasswordProtection( EditRestrictions.readOnly, "words" );
+        }
+
+        // Replace displayed text in document.
+        document.ReplaceText( "xceed", "words" );
+
+        // Save this document to disk.
+        document.SaveAs( ProtectionSample.ProtectionSampleOutputDirectory + @"UpdatedPasswordProtected.docx", "words" );
+        Console.WriteLine( "\tCreated: UpdatedPasswordProtected.docx\n" );
       }
     }
 

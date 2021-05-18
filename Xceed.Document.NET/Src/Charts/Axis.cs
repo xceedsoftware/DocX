@@ -19,6 +19,7 @@ using System.Xml.Linq;
 
 namespace Xceed.Document.NET
 {
+
   /// <summary>
   /// Axis base class
   /// </summary>
@@ -55,7 +56,11 @@ namespace Xceed.Document.NET
       }
     }
 
-    #endregion
+
+
+
+
+#endregion
 
     #region Internal Properties
 

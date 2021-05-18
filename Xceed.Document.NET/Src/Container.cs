@@ -152,6 +152,10 @@ namespace Xceed.Document.NET
 
 
 
+
+
+
+
     public virtual List<List> Lists
     {
       get
@@ -408,6 +412,7 @@ namespace Xceed.Document.NET
       }
     }
 
+    /// Inserts the provided text at a bookmark location in this Container, using the specified formatting.
     public virtual void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
     {
       if( string.IsNullOrWhiteSpace( bookmarkName ) )
@@ -417,6 +422,76 @@ namespace Xceed.Document.NET
       {
         paragraph.InsertAtBookmark( toInsert, bookmarkName, formatting );
       }
+    }
+
+    /// Replaces the text of the Bookmark in this Container. Equivalent to document.Bookmarks[ "abc" ].SetText("new ABC");
+    public virtual void ReplaceAtBookmark( string text, string bookmarkName, Formatting formatting = null )
+    {
+      if( string.IsNullOrWhiteSpace( bookmarkName ) )
+        throw new ArgumentException( "bookmark cannot be null or empty", "bookmarkName" );
+
+      foreach( var paragraph in Paragraphs )
+      {
+        paragraph.ReplaceAtBookmark( text, bookmarkName, formatting );
+      }
+    }
+
+    public virtual string[] ValidateBookmarks( params string[] bookmarkNames )
+    {
+      var result = new List<string>();
+
+      foreach( var bookmarkName in bookmarkNames )
+      {
+        // Validate in container.
+        if( this.Paragraphs.Any( p => p.ValidateBookmark( bookmarkName ) ) )
+          return new string[ 0 ];
+
+        result.Add( bookmarkName );
+      }
+
+      return result.ToArray();
+    }
+
+    public virtual Paragraph InsertBookmark( string bookmarkName )
+    {
+      var p = InsertParagraph();
+      p.AppendBookmark( bookmarkName );
+      return p;
+    }
+
+    public virtual void RemoveBookmark( string bookmarkName )
+    {
+      if( string.IsNullOrWhiteSpace( bookmarkName ) )
+        throw new ArgumentException( "bookmark cannot be null or empty", "bookmarkName" );
+
+      foreach( var paragraph in Paragraphs )
+      {
+        paragraph.RemoveBookmark( bookmarkName );
+      }
+    }
+
+    public virtual void ClearBookmarks()
+    {
+      foreach( var paragraph in Paragraphs )
+      {
+        paragraph.ClearBookmarks();
+      }
+    }
+
+    public virtual IEnumerable<Bookmark> GetBookmarks()
+    {
+      var bookmarks = new List<Bookmark>();
+
+      foreach( var paragraph in Paragraphs )
+      {
+        var currentBookmarks = paragraph.GetBookmarks();
+        if( currentBookmarks.Any() )
+        {
+          bookmarks.AddRange( currentBookmarks );
+        }
+      }
+
+      return bookmarks;
     }
 
     public virtual Paragraph InsertParagraph( int index, string text, bool trackChanges )
@@ -663,16 +738,9 @@ namespace Xceed.Document.NET
       return p;
     }
 
-    public virtual Paragraph InsertBookmark( String bookmarkName )
-    {
-      var p = InsertParagraph();
-      p.AppendBookmark( bookmarkName );
-      return p;
-    }
-
     public virtual Table InsertTable( int rowCount, int columnCount )
     {
-      var newTable = HelperFunctions.CreateTable( rowCount, columnCount );
+      var newTable = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
       this.AddElementInXml( newTable );
 
       var table = new Table( this.Document, newTable, this.PackagePart );
@@ -682,7 +750,7 @@ namespace Xceed.Document.NET
 
     public virtual Table InsertTable( int index, int rowCount, int columnCount )
     {
-      var newTable = HelperFunctions.CreateTable( rowCount, columnCount );
+      var newTable = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
 
       var p = HelperFunctions.GetFirstParagraphEffectedByInsert( Document, index );
       if( p == null )
@@ -781,23 +849,7 @@ namespace Xceed.Document.NET
       p.Xml.ReplaceWith( elements.ToArray() );
 
       return list;
-    }
-
-    public virtual string[] ValidateBookmarks( params string[] bookmarkNames )
-    {
-      var result = new List<string>();
-
-      foreach( var bookmarkName in bookmarkNames )
-      {
-        // Validate in container.
-        if( this.Paragraphs.Any( p => p.ValidateBookmark( bookmarkName ) ) )
-          return new string[ 0 ];
-
-        result.Add( bookmarkName );
-      }
-
-      return result.ToArray();
-    }
+    }    
 
     public int RemoveTextInGivenFormat( Formatting formattingToMatch, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch )
     {

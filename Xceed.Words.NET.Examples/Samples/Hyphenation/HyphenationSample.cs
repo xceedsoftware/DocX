@@ -1,8 +1,8 @@
 ﻿/***************************************************************************************
-Xceed Words for .NET – Xceed.Words.NET.Examples – Section Sample Application
+Xceed Words for .NET – Xceed.Words.NET.Examples – Hyphenation Sample Application
 Copyright (c) 2009-2021 - Xceed Software Inc.
 
-This application demonstrates how to insert sections when using the API 
+This application demonstrates how to add and update text hyphenation when using the API 
 from the Xceed Words for .NET.
 
 This file is part of Xceed Words for .NET. The source code in this file 
@@ -12,26 +12,26 @@ is only intended as a supplement to the documentation, and is provided
 
 using System;
 using System.IO;
-using System.Linq;
+using Xceed.Document.NET;
 
 namespace Xceed.Words.NET.Examples
 {
-  public class CheckBoxSample
+  public class HyphenationSample
   {
     #region Private Members
 
-    private const string CheckBoxSampleResourcesDirectory = Program.SampleDirectory + @"CheckBox\Resources\";
-    private const string CheckBoxSampleOutputDirectory = Program.SampleDirectory + @"CheckBox\Output\";
+    private const string HyphenationSampleResourceDirectory = Program.SampleDirectory + @"Hyphenation\Resources\";
+    private const string HyphenationSampleOutputDirectory = Program.SampleDirectory + @"Hyphenation\Output\";
 
     #endregion
 
     #region Constructors
 
-    static CheckBoxSample()
+    static HyphenationSample()
     {
-      if( !Directory.Exists( CheckBoxSample.CheckBoxSampleOutputDirectory ) )
+      if( !Directory.Exists( HyphenationSample.HyphenationSampleOutputDirectory ) )
       {
-        Directory.CreateDirectory( CheckBoxSample.CheckBoxSampleOutputDirectory );
+        Directory.CreateDirectory( HyphenationSample.HyphenationSampleOutputDirectory );
       }
     }
 
@@ -40,19 +40,23 @@ namespace Xceed.Words.NET.Examples
     #region Public Methods
 
     /// <summary>
-    /// Modify a checkbox in a document.
+    /// Create a paragraph and set text hyphenation.
     /// </summary>
-    public static void ModifyCheckBox()
+    public static void CreateHyphenation()
     {
+
+
+
+
 
 
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     /// <summary>
-    /// Add a checkbox in a document.
+    /// Update document hyphenation options.
     /// </summary>
-    public static void AddCheckBox()
+    public static void UpdateHyphenation()
     {
 
 

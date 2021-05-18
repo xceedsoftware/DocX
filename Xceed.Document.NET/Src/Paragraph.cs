@@ -42,7 +42,7 @@ namespace Xceed.Document.NET
     internal List<XElement> _styles = new List<XElement>();
 
     internal const float DefaultSingleLineSpacing = 12f;
-    private static float DefaultLineSpacing = Paragraph.DefaultSingleLineSpacing;
+    internal static float DefaultLineSpacing = Paragraph.DefaultSingleLineSpacing;
     private static float DefaultLineSpacingAfter = 0f;
     private static float DefaultLineSpacingBefore = 0f;
     private static bool DefaultLineRuleAuto = false;
@@ -1604,18 +1604,20 @@ namespace Xceed.Document.NET
         if( temp.Count() > 0 )
           Xml.Add( CreateEdit( EditType.del, now, temp ) );
       }
-
       else
       {
-        // If this is the only Paragraph in the Cell then we cannot remove it.
-        if( Xml.Parent.Name.LocalName == "tc" && Xml.Parent.Elements( XName.Get( "p", Document.w.NamespaceName ) ).Count() == 1 )
-          Xml.Value = string.Empty;
-
+        // If this is the only Paragraph in the Cell(nothing else than a paragraph) then we cannot remove it.
+        if( ( this.Xml.Parent.Name.LocalName == "tc" )
+          && ( this.Xml.Parent.Elements( XName.Get( "p", Document.w.NamespaceName ) ).Count() == 1 )
+          && ( this.Xml.Parent.Elements( XName.Get( "altChunk", Document.w.NamespaceName ) ).Count() == 0 ) )
+        {
+          this.Xml.Value = string.Empty;
+        }
         else
         {
           // Remove this paragraph from the document
-          Xml.Remove();
-          Xml = null;
+          this.Xml.Remove();
+          this.Xml = null;
         }
       }
     }
@@ -2327,6 +2329,22 @@ namespace Xceed.Document.NET
 
 
 
+
+    public Paragraph NextParagraph
+    {
+      get
+      {
+        return this.Document.GetNextParagraph( this );
+      }
+    }
+
+    public Paragraph PreviousParagraph
+    {
+      get
+      {
+        return this.Document.GetPreviousParagraph( this );
+      }
+    }
 
     /// <summary>
     /// Add an equation to a document.
@@ -4244,7 +4262,7 @@ namespace Xceed.Document.NET
       var spacingTypeAttribute = ( spacingType == LineSpacingType.Before )
                                  ? "before"
                                  : ( spacingType == LineSpacingType.After ) ? "after" : "line";
-      spacing.SetAttributeValue( XName.Get( spacingTypeAttribute, Document.w.NamespaceName ), (int)( spacingFloat * 20f ) );
+      spacing.SetAttributeValue( XName.Get( spacingTypeAttribute, Document.w.NamespaceName ), ( int )( spacingFloat * 20f ) );
     }
 
     /// <summary>
@@ -4327,26 +4345,195 @@ namespace Xceed.Document.NET
 
     public IEnumerable<Bookmark> GetBookmarks()
     {
-      return Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
-          .Select( x => x.Attribute( XName.Get( "name", Document.w.NamespaceName ) ) )
-          .Select( x => new Bookmark
+      var bookmarks = new List<Bookmark>();
+
+      var bookmarksStartXml = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) );
+      var bookmarksEndXml = this.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) );
+
+      foreach( var bookmarkStartXml in bookmarksStartXml )
+      {
+        bookmarks.Add( new Bookmark()
+        {
+          Name = bookmarkStartXml.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value,
+          Id = bookmarkStartXml.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value,
+          Paragraph = this
+        } );
+      }
+
+      foreach( var bookmarkEndXml in bookmarksEndXml )
+      {
+        var id = bookmarkEndXml.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value;
+
+        // bookmarkStart is not part of this Paragraph, find it in Document.
+        if( bookmarks.Where( b => b.Id == id ).Count() == 0 )
+        {
+          var bookmarkStart = this.Document.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
+                                  .Where( x => x.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == id )
+                                  .FirstOrDefault();
+
+          if( bookmarks != null )
           {
-            Name = x.Value,
-            Paragraph = this
-          } );
+            bookmarks.Add( new Bookmark()
+            {
+              Name = bookmarkStart.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value,
+              Id = id,
+              Paragraph = this
+            } );
+          }
+        }
+      }
+
+      return bookmarks;
     }
 
+    /// Inserts the provided text at a bookmark location in this Paragraph, using the specified formatting.
     public void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
     {
-      var bookmark = Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
+      var bookmark = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
                           .Where( x => x.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value == bookmarkName ).SingleOrDefault();
-      if( bookmark != null )
+      var refPosition = bookmark;
+
+      // bookmarkStart is not part of this paragraph, look for it in Document.
+      if( bookmark == null )
+      {
+        var bookmarkStart = this.Document.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
+                                  .Where( x => x.Attribute( XName.Get( "name", Document.w.NamespaceName ) )?.Value == bookmarkName )
+                                  .FirstOrDefault();
+        if( bookmarkStart != null )
+        {
+          var bookmarkStartId = bookmarkStart.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value;
+
+          bookmark = this.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) )
+                          .Where( x => x.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value == bookmarkStartId ).SingleOrDefault();
+          if( bookmark != null )
+          {
+            refPosition = this.Xml.Element( XName.Get( "r", Document.w.NamespaceName ) );
+          }
+        }
+      }
+
+      if( refPosition != null )
       {
         var run = HelperFunctions.FormatInput( toInsert, ( formatting != null ) ? formatting.Xml : null );
-        bookmark.AddBeforeSelf( run );
+        refPosition.AddBeforeSelf( run );
         _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
         HelperFunctions.RenumberIDs( Document );
       }
+    }
+
+    /// Replaces the text of the Bookmark in this Paragraph. Equivalent to document.Bookmarks[ "abc" ].SetText("new ABC");
+    public void ReplaceAtBookmark( string text, string bookmarkName, Formatting formatting = null )
+    {
+      string bookmarkStartId = null;
+      XNode nextNode = null;
+
+      var rList = new List<XElement>();
+      var bookmarkStart = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
+                                  .Where( x => x.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value == bookmarkName )
+                                  .FirstOrDefault();
+      if( bookmarkStart != null )
+      {
+        bookmarkStartId = bookmarkStart.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value;
+        nextNode = bookmarkStart.NextNode;
+      }
+      // bookmarkStart is not in paragraph, look for bookmarkEnd.
+      else
+      {
+        var bookmarkEnds = this.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) );
+        if( bookmarkEnds.Count() > 1 )
+          throw new InvalidDataException("Unsupported exception: Paragraph do not contains the expected bookmarkStart and contains more than 1 bookmarkEnd.");
+        if( bookmarkEnds.Count() == 0 )
+          throw new InvalidDataException( "Unsupported exception: Paragraph do not contains a bookmarkStart or a bookmarkEnd." );
+
+        bookmarkStartId = bookmarkEnds.First().Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value;
+        nextNode = this.Xml.Element( XName.Get( "r", Document.w.NamespaceName ) );
+        bookmarkStart = this.Xml.Element( XName.Get( "pPr", Document.w.NamespaceName ) );
+      }      
+
+      XElement nextXElement = null;
+      while( nextNode != null )
+      {
+        nextXElement = nextNode as XElement;
+        if( ( nextXElement != null ) && ( nextXElement.Name.NamespaceName == Document.w.NamespaceName ) )
+        {
+          if( nextXElement.Name.LocalName == "r" )
+          {
+            rList.Add( nextXElement );
+          }
+          else if( ( nextXElement.Name.LocalName == "bookmarkEnd" )
+                  && ( nextXElement.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == bookmarkStartId ) )
+            break;
+        }
+
+        nextNode = nextNode.NextNode;
+      }
+
+      if( nextXElement == null )
+        return;
+
+      if( rList.Count == 0 )
+      {
+        this.ReplaceAtBookmark_Core( text, bookmarkStart, formatting );
+        return;
+      }
+
+      var tXElementFilled = false;
+      foreach( var r in rList )
+      {
+        var tXElement = r.Elements( XName.Get( "t", Document.w.NamespaceName ) ).FirstOrDefault();
+        if( tXElement == null )
+        {
+          if( !tXElementFilled )
+          {
+            this.ReplaceAtBookmark_Core( text, bookmarkStart, formatting );
+            tXElementFilled = true;
+          }
+        }
+        else
+        {
+          if( !tXElementFilled )
+          {
+            this.ReplaceAtBookmark_Core( text, r, formatting );
+            if( formatting != null )
+            {
+              var rPr = r.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+              if( rPr != null )
+              {
+                rPr.Remove();
+              }
+            }
+            tXElementFilled = true;
+          }
+          tXElement.Remove();
+        }
+      }
+    }
+
+    public void RemoveBookmark( string bookmarkName )
+    {
+      var bookmarkStartXml = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
+                                  .Where( x => x.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value == bookmarkName )
+                                  .FirstOrDefault();
+      // bookmarkStart is not part of this paragraph, look for it in Document.
+      if( bookmarkStartXml == null )
+      {
+        bookmarkStartXml = this.Document.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
+                                  .Where( x => x.Attribute( XName.Get( "name", Document.w.NamespaceName ) )?.Value == bookmarkName )
+                                  .FirstOrDefault();
+      }
+
+      if( bookmarkStartXml == null )
+        return;
+
+      var bookmarkStartId = bookmarkStartXml.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value;
+
+      var bookmarkEndXml = this.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) )
+                                  .Where( x => x.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == bookmarkStartId )
+                                  .FirstOrDefault();
+      Debug.Assert( bookmarkEndXml != null, "Can't find bookmark end.");
+
+      bookmarkStartXml.Remove();
+      bookmarkEndXml.Remove();
     }
 
     /// <summary>
@@ -4393,97 +4580,7 @@ namespace Xceed.Document.NET
       }
 
       return this;
-    }
-
-    public void ReplaceAtBookmark( string text, string bookmarkName, Formatting formatting = null )
-    {
-      var rList = new List<XElement>();
-      var bookmarkStart = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
-                                  .Where( x => x.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value == bookmarkName )
-                                  .FirstOrDefault();
-      if( bookmarkStart == null )
-        return;
-
-      var bookmarkStartId = bookmarkStart.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value;
-
-      var nextNode = bookmarkStart.NextNode;
-      XElement nextXElement = null;
-      while( nextNode != null )
-      {
-        nextXElement = nextNode as XElement;
-        if( ( nextXElement != null ) && ( nextXElement.Name.NamespaceName == Document.w.NamespaceName ) )
-        {
-          if( nextXElement.Name.LocalName == "r" )
-          {
-            rList.Add( nextXElement );
-          }
-          else if( ( nextXElement.Name.LocalName == "bookmarkEnd" )
-                  && ( nextXElement.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == bookmarkStartId ) )
-            break;
-        }
-
-        nextNode = nextNode.NextNode;
-      }
-
-      if( nextXElement == null )
-        return;
-
-      if( rList.Count == 0 )
-      {
-        this.ReplaceAtBookmark_Core( text, bookmarkStart, formatting );
-        return;
-      }
-
-      var tXElementFilled = false;
-      foreach( var r in rList )
-      {
-        var tXElement = r.Elements( XName.Get( "t", Document.w.NamespaceName ) ).FirstOrDefault();
-        if( tXElement == null )
-        {
-          if( !tXElementFilled )
-          {
-            this.ReplaceAtBookmark_Core( text, bookmarkStart, formatting );
-            tXElementFilled = true;
-          }
-        }
-        else
-        {
-          if( !tXElementFilled )
-          {
-            this.ReplaceAtBookmark_Core( text, tXElement, formatting );
-            if( formatting != null )
-            {
-              var rPr = r.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
-              if( rPr != null )
-              {
-                rPr.Remove();
-              }
-            }
-            tXElementFilled = true;
-          }
-          tXElement.Remove();
-        }
-      }
-    }
-
-    public void RemoveBookmark( string bookmarkName )
-    {
-      var bookmarkStart = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
-                                  .Where( x => x.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value == bookmarkName )
-                                  .FirstOrDefault();
-      if( bookmarkStart == null )
-        return;
-
-      var bookmarkStartId = bookmarkStart.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value;
-
-      var bookmarkEnd = this.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) )
-                                  .Where( x => x.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == bookmarkStartId )
-                                  .FirstOrDefault();
-      Debug.Assert( bookmarkEnd != null, "Can't find bookmark end.");
-
-      bookmarkStart.Remove();
-      bookmarkEnd.Remove();
-    }
+    }   
 
     [Obsolete( "Instead use : InsertHorizontalLine( HorizontalBorderPosition position, BorderStyle borderStyle, int size, int space, Color? color )" )]
     public void InsertHorizontalLine( HorizontalBorderPosition position = HorizontalBorderPosition.bottom, string lineType = "single", int size = 6, int space = 1, string color = "auto" )
@@ -5134,6 +5231,23 @@ namespace Xceed.Document.NET
       }
 
       return Paragraph.DefaultLineRuleAuto;
+    }
+
+    internal bool IsLineSpacingRuleExactlyOrAtLeast()
+    {
+      var pPr = GetOrCreate_pPr();
+      var spacing = pPr.Element( XName.Get( "spacing", Document.w.NamespaceName ) );
+
+      if( spacing != null )
+      {
+        var lineRule = spacing.Attribute( XName.Get( "lineRule", Document.w.NamespaceName ) );
+        if( lineRule != null )
+        {
+          return ( (lineRule.Value == "exact") || ( lineRule.Value == "atLeast" ) );
+        }
+      }
+
+      return false;
     }
 
     internal void ClearMagicTextCache()

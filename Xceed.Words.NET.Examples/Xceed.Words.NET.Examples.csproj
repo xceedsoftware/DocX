@@ -55,6 +55,7 @@
     <Compile Include="Samples\Equation\EquationSample.cs" />
     <Compile Include="Samples\HeaderFooter\HeaderFooterSample.cs" />
     <Compile Include="Samples\Hyperlink\HyperlinkSample.cs" />
+    <Compile Include="Samples\Hyphenation\HyphenationSample.cs" />
     <Compile Include="Samples\Image\ImageSample.cs" />
     <Compile Include="Samples\Line\LineSample.cs" />
     <Compile Include="Samples\List\ListSample.cs" />
@@ -80,8 +81,10 @@
     <None Include="Samples\Document\Resources\RtfSample.rtf" />
     <None Include="Samples\Document\Resources\Second.docx" />
     <None Include="Samples\Document\Resources\Template.docx" />
+    <None Include="Samples\Protection\Resources\PasswordProtected.docx" />
     <None Include="Samples\Image\Resources\Input.docx" />
     <None Include="Samples\List\Resources\TemplateLists.docx" />
+    <None Include="Samples\Hyphenation\Resources\HyphenatedDocument.docx" />
     <None Include="Samples\Miscellaneous\Resources\TemplateInvoice.docx" />
     <None Include="Samples\Miscellaneous\Resources\TemplateMailMerge.docx" />
     <None Include="Samples\Paragraph\Resources\Template.docx" />
@@ -89,6 +92,8 @@
     <None Include="Samples\Parallel\Resources\Doc2.docx" />
     <None Include="Samples\Parallel\Resources\Doc3.docx" />
     <None Include="Samples\Pdf\Resources\DocumentToConvert.docx" />
+    <None Include="Samples\Pdf\Resources\DocumentToConvertWithUninstalledFont.docx" />
+    <None Include="Samples\Pdf\Resources\The Bugatten.ttf" />
     <None Include="Samples\TableOfContent\Resources\TOCDocument.docx" />
     <None Include="Samples\Table\Resources\DocumentWithTemplateTable.docx" />
     <None Include="Samples\Table\Resources\TemplateTable.docx" />

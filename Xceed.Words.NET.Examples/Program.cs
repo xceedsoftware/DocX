@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Sample Application
-Copyright (c) 2009-2020 - Xceed Software Inc.
+Copyright (c) 2009-2021 - Xceed Software Inc.
 
 This application demonstrates how to use the different features when using the API 
 from the Xceed Words for .NET.
@@ -112,6 +112,7 @@ namespace Xceed.Words.NET.Examples
       //Protection
       ProtectionSample.AddPasswordProtection();
       ProtectionSample.AddProtection();
+      ProtectionSample.ChangePasswordProtection();
 
       //Parallel  
       ParallelSample.DoParallelActions();
@@ -123,7 +124,8 @@ namespace Xceed.Words.NET.Examples
       MiscellaneousSample.MailMerge();
 
       //PDF  
-      PdfSample.ConvertToPDF();
+      PdfSample.ConvertToPDFWithUninstalledFont();
+      PdfSample.ConvertToPDF();     
 
       //Shape
       ShapeSample.AddShape();
@@ -134,6 +136,10 @@ namespace Xceed.Words.NET.Examples
       //CheckBox
       CheckBoxSample.ModifyCheckBox();
       CheckBoxSample.AddCheckBox();
+
+      //Hyphenation
+      HyphenationSample.CreateHyphenation();
+      HyphenationSample.UpdateHyphenation();
 
       Console.WriteLine( "\nDone running Examples of Xceed Words for .NET version " + versionNumber + ".\n" );
       Console.WriteLine( "\nPress any key to exit." );

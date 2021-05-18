@@ -372,7 +372,8 @@ namespace Xceed.Document.NET
           if( widthIndex >= 0 )
           {
             var widthValueString = widthString.Substring( 0, widthIndex );
-            _cx = long.Parse( widthValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
+            var widthDouble = double.Parse( widthValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
+            _cx = System.Convert.ToInt64( widthDouble );
           }
         }
       }
@@ -403,7 +404,8 @@ namespace Xceed.Document.NET
           if( heightIndex >= 0 )
           {
             var heightValueString = heightString.Substring( 0, heightIndex );
-            _cy = long.Parse( heightValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
+            var heightDouble = double.Parse( heightValueString, CultureInfo.InvariantCulture ) * EmusInPixel;
+            _cy = System.Convert.ToInt64( heightDouble );
           }
         }
       }

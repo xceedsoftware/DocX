@@ -31,6 +31,16 @@ namespace Xceed.Document.NET
 
     #endregion
 
+    #region Internal Properties
+
+    internal string Id
+    {
+      get;
+      set;
+    }
+
+    #endregion
+
     #region Constructors
 
     public Bookmark()
@@ -40,11 +50,6 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Public Methods
-
-    public void SetText( string text )
-    {
-      this.Paragraph.ReplaceAtBookmark( text, this.Name );
-    }
 
     public void SetText( string text, Formatting formatting = null )
     {

@@ -858,10 +858,10 @@ namespace Xceed.Document.NET
             formatting.Script = Enum.TryParse( script, out enumScript ) ? enumScript : NET.Script.none;
             break;
           case "caps":
-            formatting.CapsStyle = ( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) == "0" ) ? NET.CapsStyle.none : NET.CapsStyle.caps;
+            formatting.CapsStyle = ( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) == "0" ) || ( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) == "false" ) ? NET.CapsStyle.none : NET.CapsStyle.caps;
             break;
           case "smallCaps":
-            formatting.CapsStyle = ( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) == "0" ) ? NET.CapsStyle.none : NET.CapsStyle.smallCaps;
+            formatting.CapsStyle = ( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) == "0" ) || ( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) == "false" ) ? NET.CapsStyle.none : NET.CapsStyle.smallCaps;
             break;
           case "shd":
             var fill = option.GetAttribute( XName.Get( "fill", Document.w.NamespaceName ) );

@@ -17,6 +17,7 @@
 using System.IO.Packaging;
 using System.Xml.Linq;
 using System.Linq;
+using System.Globalization;
 
 namespace Xceed.Document.NET
 {
@@ -64,10 +65,15 @@ namespace Xceed.Document.NET
       var spPr = series.Xml.Element( XName.Get( "spPr", Document.c.NamespaceName ) );
       if( spPr != null )
       {
-        var spPrContent = spPr.Elements().First();
-        var newSpPr = new XElement( XName.Get( "spPr", Document.c.NamespaceName ), new XElement( XName.Get( "ln", Document.a.NamespaceName ), spPrContent ) );
-        spPr.AddAfterSelf( newSpPr );
-        spPr.Remove();
+        if( spPr.Element( XName.Get( "ln", Document.a.NamespaceName ) ) == null )
+        {
+          var spPrContent = spPr.Elements().First(); // Only color tag is defined.
+
+          var newSpPr = new XElement( XName.Get( "spPr", Document.c.NamespaceName ), 
+                              new XElement( XName.Get( "ln", Document.a.NamespaceName ), spPrContent ) );
+          spPr.AddAfterSelf( newSpPr );
+          spPr.Remove();
+        }
       }
 
       base.AddSeries( series );

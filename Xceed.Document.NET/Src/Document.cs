@@ -29,6 +29,8 @@ using System.Collections.ObjectModel;
 using System.Net;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
+using System.Resources;
+using System.Globalization;
 
 namespace Xceed.Document.NET
 {
@@ -413,7 +415,7 @@ namespace Xceed.Document.NET
     /// // Create a new document.
     /// using (var document = DocX.Create(@"Test.docx"))
     /// {
-    ///     if(document.isProtected)
+    ///     if(document.IsProtected)
     ///         Console.WriteLine("Protected");
     ///     else
     ///         Console.WriteLine("Not protected");
@@ -426,11 +428,33 @@ namespace Xceed.Document.NET
     /// <seealso cref="AddProtection(EditRestrictions)"/>
     /// <seealso cref="RemoveProtection"/>
     /// <seealso cref="GetProtectionType"/>
-    public bool isProtected
+    public bool IsProtected
     {
       get
       {
         return _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).Count() > 0;
+      }
+    }
+
+    public bool IsPasswordProtected
+    {
+      get
+      {
+        if( !IsProtected )
+        {
+          return false;
+        }
+        else
+        {
+          var documentProtection = _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) );
+          return documentProtection.FirstOrDefault( x => x.Attribute( XName.Get( "cryptAlgorithmClass", w.NamespaceName ) ) != null ) != null &&
+                 documentProtection.FirstOrDefault( x => x.Attribute( XName.Get( "cryptAlgorithmType", w.NamespaceName ) ) != null ) != null &&
+                 documentProtection.FirstOrDefault( x => x.Attribute( XName.Get( "cryptAlgorithmSid", w.NamespaceName ) ) != null ) != null &&
+                 documentProtection.FirstOrDefault( x => x.Attribute( XName.Get( "cryptSpinCount", w.NamespaceName ) ) != null ) != null &&
+                 documentProtection.FirstOrDefault( x => x.Attribute( XName.Get( "cryptProviderType", w.NamespaceName ) ) != null ) != null &&
+                 documentProtection.FirstOrDefault( x => x.Attribute( XName.Get( "hash", w.NamespaceName ) ) != null ) != null &&
+                 documentProtection.FirstOrDefault( x => x.Attribute( XName.Get( "salt", w.NamespaceName ) ) != null ) != null;
+        }
       }
     }
 
@@ -563,31 +587,19 @@ namespace Xceed.Document.NET
     {
       get
       {
-        XDocument settings;
-        using( TextReader tr = new StreamReader( new PackagePartStream( _settingsPart.GetStream() ) ) )
-        {
-          settings = XDocument.Load( tr );
-        }
-
-        var evenAndOddHeaders = settings.Root.Element( w + "evenAndOddHeaders" );
+        var evenAndOddHeaders = _settings.Root.Element( w + "evenAndOddHeaders" );
 
         return ( evenAndOddHeaders != null );
       }
 
       set
       {
-        XDocument settings;
-        using( TextReader tr = new StreamReader( _settingsPart.GetStream() ) )
-        {
-          settings = XDocument.Load( tr );
-        }
-
-        var evenAndOddHeaders = settings.Root.Element( w + "evenAndOddHeaders" );
+        var evenAndOddHeaders = _settings.Root.Element( w + "evenAndOddHeaders" );
         if( evenAndOddHeaders == null )
         {
           if( value )
           {
-            settings.Root.AddFirst( new XElement( w + "evenAndOddHeaders" ) );
+            _settings.Root.AddFirst( new XElement( w + "evenAndOddHeaders" ) );
           }
         }
         else
@@ -596,11 +608,6 @@ namespace Xceed.Document.NET
           {
             evenAndOddHeaders.Remove();
           }
-        }
-
-        using( TextWriter tw = new StreamWriter( new PackagePartStream( _settingsPart.GetStream() ) ) )
-        {
-          settings.Save( tw );
         }
       }
     }
@@ -889,76 +896,101 @@ namespace Xceed.Document.NET
         var bookmarks = new BookmarkCollection();
         // In Body.
         // Faster to search the document.Xml instead of document.Paragraphs.
-        var documentBookmarks = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) );
-        foreach( var bookmark in documentBookmarks )
+        var documentBookmarkStartsXml = this.Xml.Descendants(XName.Get("bookmarkStart", Document.w.NamespaceName));
+        foreach (var bookmarkStartXml in documentBookmarkStartsXml )
         {
-          var paraXml = bookmark.Parent;
-          while( paraXml.Name != XName.Get( "p", Document.w.NamespaceName ) )
+          var bookmarkName = bookmarkStartXml.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value;
+
+          var paragraphXml = bookmarkStartXml.Parent;
+          while ((paragraphXml != null) && (paragraphXml.Name != XName.Get("p", Document.w.NamespaceName)))
           {
-            paraXml = paraXml.Parent;
+            paragraphXml = paragraphXml.Parent;
           }
 
-          bookmarks.Add( new Bookmark
+          // bookmarkStart is not in a paragraph, get bookmarkEnd.
+          if( paragraphXml == null )
           {
-            Name = bookmark.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value,
-            Paragraph = new Paragraph( this, paraXml, -1 ) { PackagePart = this.PackagePart }
-          } );
+            var bookmarkId = bookmarkStartXml.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value;
+            var bookmarkEnd = this.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) )
+                                  .Where( x => x.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value == bookmarkId )
+                                  .FirstOrDefault();
+
+            if( bookmarkEnd == null )
+              throw new InvalidDataException( "bookmarkEnd can't be found to match bookmarkStart with name " + bookmarkName + "." );
+
+            paragraphXml = bookmarkEnd.Parent;
+            while( ( paragraphXml != null ) && ( paragraphXml.Name != XName.Get( "p", Document.w.NamespaceName ) ) )
+            {
+              paragraphXml = paragraphXml.Parent;
+           }
+
+            // bookmarkStart is not in a paragraph, get bookmarkEnd.
+            if( paragraphXml == null )
+              throw new InvalidDataException( "bookmarkStart and bookmarkEnd are not part of a paragraph. This is currently not supported." );
+          }
+
+          bookmarks.Add(new Bookmark
+          {
+            Name = bookmarkName,
+            Id = bookmarkStartXml.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value,
+            Paragraph = new Paragraph(this, paragraphXml, -1) { PackagePart = this.PackagePart }
+          });
         }
 
-        foreach( var section in this.Sections )
+        foreach (var section in this.Sections)
         {
           // In Headers.
           var headers = section.Headers;
-          if( headers != null )
+          if (headers != null)
           {
-            if( headers.Odd != null )
+            if (headers.Odd != null)
             {
-              foreach( var paragraph in headers.Odd.Paragraphs )
+              foreach (var paragraph in headers.Odd.Paragraphs)
               {
-                bookmarks.AddRange( paragraph.GetBookmarks() );
+                bookmarks.AddRange(paragraph.GetBookmarks());
               }
             }
-            if( headers.Even != null )
+            if (headers.Even != null)
             {
-              foreach( var paragraph in headers.Even.Paragraphs )
+              foreach (var paragraph in headers.Even.Paragraphs)
               {
-                bookmarks.AddRange( paragraph.GetBookmarks() );
+                bookmarks.AddRange(paragraph.GetBookmarks());
               }
             }
-            if( headers.First != null )
+            if (headers.First != null)
             {
-              foreach( var paragraph in headers.First.Paragraphs )
+              foreach (var paragraph in headers.First.Paragraphs)
               {
-                bookmarks.AddRange( paragraph.GetBookmarks() );
+                bookmarks.AddRange(paragraph.GetBookmarks());
               }
             }
           }
 
           // In Footers.
           var footers = section.Footers;
-          if( footers != null )
+          if (footers != null)
           {
-            if( footers.Odd != null )
+            if (footers.Odd != null)
             {
-              foreach( var paragraph in footers.Odd.Paragraphs )
+              foreach (var paragraph in footers.Odd.Paragraphs)
               {
-                bookmarks.AddRange( paragraph.GetBookmarks() );
+                bookmarks.AddRange(paragraph.GetBookmarks());
               }
             }
 
-            if( footers.Even != null )
+            if (footers.Even != null)
             {
-              foreach( var paragraph in footers.Even.Paragraphs )
+              foreach (var paragraph in footers.Even.Paragraphs)
               {
-                bookmarks.AddRange( paragraph.GetBookmarks() );
+                bookmarks.AddRange(paragraph.GetBookmarks());
               }
             }
 
-            if( footers.First != null )
+            if (footers.First != null)
             {
-              foreach( var paragraph in footers.First.Paragraphs )
+              foreach (var paragraph in footers.First.Paragraphs)
               {
-                bookmarks.AddRange( paragraph.GetBookmarks() );
+                bookmarks.AddRange(paragraph.GetBookmarks());
               }
             }
           }
@@ -973,8 +1005,29 @@ namespace Xceed.Document.NET
 
 
 
-#endregion
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #endregion
     #region Public Methods
 
     public override Section InsertSection( bool trackChanges )
@@ -1174,7 +1227,7 @@ namespace Xceed.Document.NET
     // Returns the name of the first occurence of a paragraph's style, with name == styleName.
     public static string GetParagraphStyleIdFromStyleName( Document document, string styleName )
     {
-      if( string.IsNullOrEmpty( styleName ) || (document == null))
+      if( string.IsNullOrEmpty( styleName ) || ( document == null ) )
         return null;
 
       // Load _styles if not loaded.
@@ -1209,7 +1262,7 @@ namespace Xceed.Document.NET
     /// using (var document = DocX.Create(@"Test.docx"))
     /// {
     ///     // Make sure the document is protected before checking the protection type.
-    ///     if (document.isProtected)
+    ///     if (document.IsProtected)
     ///     {
     ///         EditRestrictions protection = document.GetProtectionType();
     ///         Console.WriteLine("Document is protected using " + protection.ToString());
@@ -1225,14 +1278,14 @@ namespace Xceed.Document.NET
     /// </example>
     /// <seealso cref="AddProtection"/>
     /// <seealso cref="RemoveProtection"/>
-    /// <seealso cref="isProtected"/>
+    /// <seealso cref="IsProtected"/>
     public EditRestrictions GetProtectionType()
     {
-      if( isProtected )
+      if( IsProtected )
       {
         XElement documentProtection = _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).FirstOrDefault();
         string edit_type = documentProtection.Attribute( XName.Get( "edit", w.NamespaceName ) ).Value;
-        return (EditRestrictions)Enum.Parse( typeof( EditRestrictions ), edit_type );
+        return ( EditRestrictions )Enum.Parse( typeof( EditRestrictions ), edit_type );
       }
 
       return EditRestrictions.none;
@@ -1257,7 +1310,7 @@ namespace Xceed.Document.NET
     /// </example>
     /// <seealso cref="RemoveProtection"/>
     /// <seealso cref="GetProtectionType"/>
-    /// <seealso cref="isProtected"/>
+    /// <seealso cref="IsProtected"/>
     public void AddProtection( EditRestrictions er )
     {
       // Call remove protection before adding a new protection element.
@@ -1291,9 +1344,12 @@ namespace Xceed.Document.NET
     /// </example>
     /// <seealso cref="AddProtection(EditRestrictions)"/>
     /// <seealso cref="GetProtectionType"/>
-    /// <seealso cref="isProtected"/>
+    /// <seealso cref="IsProtected"/>
     public void RemoveProtection()
     {
+      if( IsPasswordProtected )
+        throw new UnauthorizedAccessException( "The document is password protected." );
+
       // Remove every node of type documentProtection.
       _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).Remove();
     }
@@ -1533,13 +1589,16 @@ namespace Xceed.Document.NET
       //  }
       //}
 
-      var remoteFontRelationship = remote_document._fontTablePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" );
-      var localFontRelationship = this._fontTablePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" );
-      if( ( remoteFontRelationship.Count() > 0 ) && ( localFontRelationship.Count() == 0 ) )
+      if( ( remote_document._fontTablePart != null ) && ( this._fontTablePart != null ) )
       {
-        foreach( var rel in remoteFontRelationship )
+        var remoteFontRelationship = remote_document._fontTablePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" );
+        var localFontRelationship = this._fontTablePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" );
+        if( ( remoteFontRelationship.Count() > 0 ) && ( localFontRelationship.Count() == 0 ) )
         {
-          this._fontTablePart.CreateRelationship( rel.TargetUri, rel.TargetMode, rel.RelationshipType );
+          foreach( var rel in remoteFontRelationship )
+          {
+            this._fontTablePart.CreateRelationship( rel.TargetUri, rel.TargetMode, rel.RelationshipType );
+          }
         }
       }
 
@@ -1648,7 +1707,7 @@ namespace Xceed.Document.NET
       if( rowCount < 1 || columnCount < 1 )
         throw new ArgumentOutOfRangeException( "Row and Column count must be greater than zero." );
 
-      var t = new Table( this, HelperFunctions.CreateTable( rowCount, columnCount ), this.PackagePart );
+      var t = new Table( this, HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() ), this.PackagePart );
       t.PackagePart = this.PackagePart;
       return t;
     }
@@ -1790,7 +1849,6 @@ namespace Xceed.Document.NET
 
 
 
-
     ///<summary>
     /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
     ///</summary>
@@ -1815,6 +1873,10 @@ namespace Xceed.Document.NET
       }
       using( FileStream packageStream = new FileStream( templateFilePath, FileMode.Open, FileAccess.Read ) )
       {
+        if( packageStream.Length == 0 )
+        {
+          throw new FileNotFoundException( string.Format( "File should not be empty {0}", templateFilePath ) );
+        }
         ApplyTemplate( packageStream, includeContent );
       }
     }
@@ -2165,7 +2227,7 @@ namespace Xceed.Document.NET
       this.Sections[ 0 ].AddHeadersOrFootersXml( false );
     }
 
-    public virtual void Save()
+    public virtual void Save( string password = "" )
     {
     }
 
@@ -2203,11 +2265,11 @@ namespace Xceed.Document.NET
     /// document.SaveAs(@"C:\Example\Test2.docx");
     /// </code>
     /// </example>
-    public virtual void SaveAs( string filename )
+    public virtual void SaveAs( string filename, string password = "" )
     {
       _filename = filename;
       _stream = null;
-      Save();
+      Save( password );
     }
 
     /// <summary>
@@ -2259,11 +2321,11 @@ namespace Xceed.Document.NET
     /// }
     /// </code>
     /// </example>
-    public virtual void SaveAs( Stream stream )
+    public virtual void SaveAs( Stream stream, string password = "" )
     {
       _filename = null;
       _stream = stream;
-      Save();
+      Save( password );
     }
 
     /// <summary>
@@ -2673,144 +2735,51 @@ namespace Xceed.Document.NET
 
     public void AddPasswordProtection( EditRestrictions editRestrictions, string password )
     {
-      // Intellectual Property information :
-      //
-      // The following code handles password protection of Word documents (Open Specifications) 
-      // and is an implementation of algorithm(s) described in Office Document Cryptography Structure 
-      // here: https://msdn.microsoft.com/en-us/library/cc313071.aspx.
-      //
-      // The code’s use is covered under Microsoft’s Open Specification Promise 
-      // described here: https://msdn.microsoft.com/en-US/openspecifications/dn646765
-
-
-      // Remove existing password protection
-      this.RemoveProtection();
+      if( IsPasswordProtected )
+        throw new UnauthorizedAccessException( "Document is already password protected." );
 
       // If no EditRestrictions, nothing to do
       if( editRestrictions == EditRestrictions.none )
         return;
-
-      // Variables
-      int maxPasswordLength = 15;
-      var saltArray = new byte[ 16 ];
-      var keyValues = new byte[ 14 ];
 
       // Init DocumentProtection element
       var documentProtection = new XElement( XName.Get( "documentProtection", w.NamespaceName ) );
       documentProtection.Add( new XAttribute( XName.Get( "edit", w.NamespaceName ), editRestrictions.ToString() ) );
       documentProtection.Add( new XAttribute( XName.Get( "enforcement", w.NamespaceName ), "1" ) );
 
-      int[] InitialCodeArray = { 0xE1F0, 0x1D0F, 0xCC9C, 0x84C0, 0x110C, 0x0E10, 0xF1CE, 0x313E, 0x1872, 0xE139, 0xD40F, 0x84F9, 0x280C, 0xA96A, 0x4EC3 };
-      int[,] EncryptionMatrix = new int[ 15, 7 ]
-      {
-            /* char 1  */ { 0xAEFC, 0x4DD9, 0x9BB2, 0x2745, 0x4E8A, 0x9D14, 0x2A09},
-            /* char 2  */ { 0x7B61, 0xF6C2, 0xFDA5, 0xEB6B, 0xC6F7, 0x9DCF, 0x2BBF},
-            /* char 3  */ { 0x4563, 0x8AC6, 0x05AD, 0x0B5A, 0x16B4, 0x2D68, 0x5AD0},
-            /* char 4  */ { 0x0375, 0x06EA, 0x0DD4, 0x1BA8, 0x3750, 0x6EA0, 0xDD40},
-            /* char 5  */ { 0xD849, 0xA0B3, 0x5147, 0xA28E, 0x553D, 0xAA7A, 0x44D5},
-            /* char 6  */ { 0x6F45, 0xDE8A, 0xAD35, 0x4A4B, 0x9496, 0x390D, 0x721A},
-            /* char 7  */ { 0xEB23, 0xC667, 0x9CEF, 0x29FF, 0x53FE, 0xA7FC, 0x5FD9},
-            /* char 8  */ { 0x47D3, 0x8FA6, 0x0F6D, 0x1EDA, 0x3DB4, 0x7B68, 0xF6D0},
-            /* char 9  */ { 0xB861, 0x60E3, 0xC1C6, 0x93AD, 0x377B, 0x6EF6, 0xDDEC},
-            /* char 10 */ { 0x45A0, 0x8B40, 0x06A1, 0x0D42, 0x1A84, 0x3508, 0x6A10},
-            /* char 11 */ { 0xAA51, 0x4483, 0x8906, 0x022D, 0x045A, 0x08B4, 0x1168},
-            /* char 12 */ { 0x76B4, 0xED68, 0xCAF1, 0x85C3, 0x1BA7, 0x374E, 0x6E9C},
-            /* char 13 */ { 0x3730, 0x6E60, 0xDCC0, 0xA9A1, 0x4363, 0x86C6, 0x1DAD},
-            /* char 14 */ { 0x3331, 0x6662, 0xCCC4, 0x89A9, 0x0373, 0x06E6, 0x0DCC},
-            /* char 15 */ { 0x1021, 0x2042, 0x4084, 0x8108, 0x1231, 0x2462, 0x48C4}
-      };
-
-      // Generate the salt
-      var random = new RNGCryptoServiceProvider();
-      random.GetNonZeroBytes( saltArray );
-
-      // Validate the provided password
-      if( !String.IsNullOrEmpty( password ) )
-      {
-        password = password.Substring( 0, Math.Min( password.Length, maxPasswordLength ) );
-        var byteChars = new byte[ password.Length ];
-
-        for( int i = 0; i < password.Length; i++ )
-        {
-          var temp = Convert.ToInt32( password[ i ] );
-          byteChars[ i ] = Convert.ToByte( temp & 0x00FF );
-
-          if( byteChars[ i ] == 0 )
-          {
-            byteChars[ i ] = Convert.ToByte( ( temp & 0x00FF ) >> 8 );
-          }
-        }
-
-        var intHighOrderWord = InitialCodeArray[ byteChars.Length - 1 ];
-
-        for( int i = 0; i < byteChars.Length; i++ )
-        {
-          int tmp = maxPasswordLength - byteChars.Length + i;
-          for( int intBit = 0; intBit < 7; intBit++ )
-          {
-            if( ( byteChars[ i ] & ( 0x0001 << intBit ) ) != 0 )
-            {
-              intHighOrderWord ^= EncryptionMatrix[ tmp, intBit ];
-            }
-          }
-        }
-
-        int intLowOrderWord = 0;
-
-        // For each character in the strPassword, going backwards
-        for( int i = byteChars.Length - 1; i >= 0; i-- )
-        {
-          intLowOrderWord = ( ( ( intLowOrderWord >> 14 ) & 0x0001 ) | ( ( intLowOrderWord << 1 ) & 0x7FFF ) ) ^ byteChars[ i ];
-        }
-
-        intLowOrderWord = ( ( ( intLowOrderWord >> 14 ) & 0x0001 ) | ( ( intLowOrderWord << 1 ) & 0x7FFF ) ) ^ byteChars.Length ^ 0xCE4B;
-
-        // Combine the Low and High Order Word
-        var intCombinedkey = ( intHighOrderWord << 16 ) + intLowOrderWord;
-
-        // The byte order of the result shall be reversed [Example: 0x64CEED7E becomes 7EEDCE64. end example],
-        // and that value shall be hashed as defined by the attribute values.
-
-        for( int i = 0; i < 4; i++ )
-        {
-          keyValues[ i ] = Convert.ToByte( ( (uint)( intCombinedkey & ( 0x000000FF << ( i * 8 ) ) ) ) >> ( i * 8 ) );
-        }
-      }
-
-      var sb = new StringBuilder();
-      for( int intTemp = 0; intTemp < 4; intTemp++ )
-      {
-        sb.Append( Convert.ToString( keyValues[ intTemp ], 16 ) );
-      }
-
-      keyValues = Encoding.Unicode.GetBytes( sb.ToString().ToUpper() );
-      keyValues = MergeArrays( keyValues, saltArray );
-
-      int iterations = 100000;
-
-      var sha1 = new SHA1Managed();
-      keyValues = sha1.ComputeHash( keyValues );
-      var iterator = new byte[ 4 ];
-      for( int i = 0; i < iterations; i++ )
-      {
-        iterator[ 0 ] = Convert.ToByte( ( i & 0x000000FF ) >> 0 );
-        iterator[ 1 ] = Convert.ToByte( ( i & 0x0000FF00 ) >> 8 );
-        iterator[ 2 ] = Convert.ToByte( ( i & 0x00FF0000 ) >> 16 );
-        iterator[ 3 ] = Convert.ToByte( ( i & 0xFF000000 ) >> 24 );
-
-        keyValues = MergeArrays( iterator, keyValues );
-        keyValues = sha1.ComputeHash( keyValues );
-      }
+      Encryption encryption = new Encryption();
+      var encryptionObj = encryption.Encrypt( password );
 
       documentProtection.Add( new XAttribute( XName.Get( "cryptProviderType", w.NamespaceName ), "rsaFull" ) );
       documentProtection.Add( new XAttribute( XName.Get( "cryptAlgorithmClass", w.NamespaceName ), "hash" ) );
       documentProtection.Add( new XAttribute( XName.Get( "cryptAlgorithmType", w.NamespaceName ), "typeAny" ) );
       documentProtection.Add( new XAttribute( XName.Get( "cryptAlgorithmSid", w.NamespaceName ), "4" ) );
-      documentProtection.Add( new XAttribute( XName.Get( "cryptSpinCount", w.NamespaceName ), iterations.ToString() ) );
-      documentProtection.Add( new XAttribute( XName.Get( "hash", w.NamespaceName ), Convert.ToBase64String( keyValues ) ) );
-      documentProtection.Add( new XAttribute( XName.Get( "salt", w.NamespaceName ), Convert.ToBase64String( saltArray ) ) );
+      documentProtection.Add( new XAttribute( XName.Get( "cryptSpinCount", w.NamespaceName ), encryptionObj.Iterations.ToString() ) );
+      documentProtection.Add( new XAttribute( XName.Get( "hash", w.NamespaceName ), Convert.ToBase64String( encryptionObj.KeyValues ) ) );
+      documentProtection.Add( new XAttribute( XName.Get( "salt", w.NamespaceName ), Convert.ToBase64String( encryptionObj.SaltArray ) ) );
 
       _settings.Root.AddFirst( documentProtection );
+    }
+
+    public void RemovePasswordProtection( string password )
+    {
+      if( !IsPasswordProtected || string.IsNullOrEmpty( password ) )
+        return;
+
+      var documentProtection = _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).FirstOrDefault();
+
+      var salt = documentProtection.Attribute( XName.Get( "salt", w.NamespaceName ) );
+      var hash = documentProtection.Attribute( XName.Get( "hash", w.NamespaceName ) );
+
+      if( hash != null && salt != null )
+      {
+        var encryption = new Encryption();
+        var keyValues = encryption.Decrypt( password, salt.Value );
+        if( hash.Value != keyValues )
+          throw new UnauthorizedAccessException( "Invalid password." );
+      }
+
+      _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).Remove();
     }
 
     public void SetDefaultFont( Font fontFamily, double fontSize = 11d, Color? fontColor = null )
@@ -2896,6 +2865,20 @@ namespace Xceed.Document.NET
 
     protected internal virtual void SaveHeadersFooters()
     {
+    }
+
+    internal XDocument GetSettings()
+    {
+      if( _settings != null )
+        return _settings;
+
+      XDocument settings;
+      using( TextReader tr = new StreamReader( _settingsPart.GetStream() ) )
+      {
+        settings = XDocument.Load( tr );
+      }
+
+      return settings ?? null;
     }
 
     protected internal override void AddElementInXml( object element )
@@ -3073,8 +3056,8 @@ namespace Xceed.Document.NET
         Stream receiveStream = null;
         try
         {
-          request = (HttpWebRequest)WebRequest.Create( filename );
-          response = (HttpWebResponse)request.GetResponse();
+          request = ( HttpWebRequest )WebRequest.Create( filename );
+          response = ( HttpWebResponse )request.GetResponse();
           receiveStream = response.GetResponseStream();
           HelperFunctions.CopyStream( receiveStream, ms );
         }
@@ -3723,9 +3706,39 @@ namespace Xceed.Document.NET
       _cachedSections = this.GetSections();
     }
 
-	#endregion
+    internal Paragraph GetNextParagraph( Paragraph refParagraph )
+    {
+      if( refParagraph == null )
+        return null;
 
-	  #region Private Methods
+      var paragraphs = this.GetParagraphs();
+
+      var index = paragraphs.FindIndex( p => p._endIndex == refParagraph._endIndex );
+
+      if( ( index < 0 ) || ( index >= paragraphs.Count - 1 ) )
+        return null;
+
+      return paragraphs[ index + 1 ];
+    }
+
+    internal Paragraph GetPreviousParagraph( Paragraph refParagraph )
+    {
+      if( refParagraph == null )
+        return null;
+
+      var paragraphs = this.GetParagraphs();
+
+      var index = paragraphs.FindIndex( p => p._endIndex == refParagraph._endIndex );
+
+      if( index < 1 )
+        return null;
+
+      return paragraphs[ index - 1 ];
+    }
+
+    #endregion
+
+    #region Private Methods
 
     private void DeleteHeadersOrFooters( bool isHeader, bool deleteReferences = true )
     {
@@ -4209,9 +4222,9 @@ namespace Xceed.Document.NET
       if( style == null )
         return false;
 
-      return ( ( style.Attribute( XName.Get( "default", w.NamespaceName ) ) != null ) 
-      	 && ( style.Attribute( XName.Get( "default", w.NamespaceName ) ).Value == "1" )
-         && ( style.Attribute( XName.Get( "type", w.NamespaceName ) ) != null ) 
+      return ( ( style.Attribute( XName.Get( "default", w.NamespaceName ) ) != null )
+         && ( style.Attribute( XName.Get( "default", w.NamespaceName ) ).Value == "1" )
+         && ( style.Attribute( XName.Get( "type", w.NamespaceName ) ) != null )
          && ( style.Attribute( XName.Get( "type", w.NamespaceName ) ).Value == "paragraph" ) );
     }
 
@@ -4634,7 +4647,7 @@ namespace Xceed.Document.NET
 
       if( package.PartExists( new Uri( "/word/_rels/document.xml.rels", UriKind.Relative ) ) )
       {
-        var docRelationships = package.GetPart( new Uri( "/word/_rels/document.xml.rels", UriKind.Relative ) );        
+        var docRelationships = package.GetPart( new Uri( "/word/_rels/document.xml.rels", UriKind.Relative ) );
         using( var tr = new StreamReader( docRelationships.GetStream( FileMode.Open, FileAccess.Read ) ) )
         {
           XDocument docRelationShipDocument;
@@ -4642,13 +4655,13 @@ namespace Xceed.Document.NET
 
           var urisToValidate = docRelationShipDocument
                                   .Descendants( XName.Get( "Relationship", rel.NamespaceName ) )
-                                  .Where( relation => ( relation.Attribute( "TargetMode" ) != null) && (( string )relation.Attribute( "TargetMode" ) == "External") );
+                                  .Where( relation => ( relation.Attribute( "TargetMode" ) != null ) && ( ( string )relation.Attribute( "TargetMode" ) == "External" ) );
 
           bool needUpdate = false;
           foreach( var relation in urisToValidate )
           {
             var target = ( string )relation.Attribute( "Target" );
-            if( !string.IsNullOrEmpty( target ))
+            if( !string.IsNullOrEmpty( target ) )
             {
               try
               {
@@ -4695,14 +4708,6 @@ namespace Xceed.Document.NET
         guid = Guid.NewGuid().ToString();
       } while( Char.IsDigit( guid[ 0 ] ) );
       return guid;
-    }
-
-    private byte[] MergeArrays( byte[] array1, byte[] array2 )
-    {
-      byte[] result = new byte[ array1.Length + array2.Length ];
-      Buffer.BlockCopy( array2, 0, result, 0, array2.Length );
-      Buffer.BlockCopy( array1, 0, result, array2.Length, array1.Length );
-      return result;
     }
 
 
@@ -4913,6 +4918,176 @@ namespace Xceed.Document.NET
     public void Dispose()
     {
       _package.Close();
+    }
+
+    #endregion
+  }
+
+  /// <summary>
+  /// Represents encryption class
+  /// </summary>
+  internal class Encryption
+  {
+    #region Public fields
+
+    public int Iterations;
+    public byte[] KeyValues;
+    public byte[] SaltArray;
+
+    #endregion
+
+    #region Public Methods
+    public Encryption Encrypt( string password )
+    {
+      return EncryptOrDecrypt( password );
+    }
+
+    public string Decrypt( string password, string salt )
+    {
+      var decrypt = EncryptOrDecrypt( password, salt );
+      return Convert.ToBase64String( decrypt.KeyValues );
+    }
+
+    #endregion
+
+    #region private methods
+    private Encryption EncryptOrDecrypt( string password, string salt = "" )
+    {
+      // Intellectual Property information :
+      //
+      // The following code handles password protection of Word documents (Open Specifications) 
+      // and is an implementation of algorithm(s) described in Office Document Cryptography Structure 
+      // here: https://msdn.microsoft.com/en-us/library/cc313071.aspx.
+      //
+      // The code’s use is covered under Microsoft’s Open Specification Promise 
+      // described here: https://msdn.microsoft.com/en-US/openspecifications/dn646765
+
+      // Variables
+      int maxPasswordLength = 15;
+      var saltArray = !string.IsNullOrEmpty( salt ) ? Convert.FromBase64String( salt ) : new byte[ 16 ];
+      var keyValues = new byte[ 14 ];
+
+      int[] InitialCodeArray = { 0xE1F0, 0x1D0F, 0xCC9C, 0x84C0, 0x110C, 0x0E10, 0xF1CE, 0x313E, 0x1872, 0xE139, 0xD40F, 0x84F9, 0x280C, 0xA96A, 0x4EC3 };
+      int[,] EncryptionMatrix = new int[ 15, 7 ]
+      {
+            /* char 1  */ { 0xAEFC, 0x4DD9, 0x9BB2, 0x2745, 0x4E8A, 0x9D14, 0x2A09},
+            /* char 2  */ { 0x7B61, 0xF6C2, 0xFDA5, 0xEB6B, 0xC6F7, 0x9DCF, 0x2BBF},
+            /* char 3  */ { 0x4563, 0x8AC6, 0x05AD, 0x0B5A, 0x16B4, 0x2D68, 0x5AD0},
+            /* char 4  */ { 0x0375, 0x06EA, 0x0DD4, 0x1BA8, 0x3750, 0x6EA0, 0xDD40},
+            /* char 5  */ { 0xD849, 0xA0B3, 0x5147, 0xA28E, 0x553D, 0xAA7A, 0x44D5},
+            /* char 6  */ { 0x6F45, 0xDE8A, 0xAD35, 0x4A4B, 0x9496, 0x390D, 0x721A},
+            /* char 7  */ { 0xEB23, 0xC667, 0x9CEF, 0x29FF, 0x53FE, 0xA7FC, 0x5FD9},
+            /* char 8  */ { 0x47D3, 0x8FA6, 0x0F6D, 0x1EDA, 0x3DB4, 0x7B68, 0xF6D0},
+            /* char 9  */ { 0xB861, 0x60E3, 0xC1C6, 0x93AD, 0x377B, 0x6EF6, 0xDDEC},
+            /* char 10 */ { 0x45A0, 0x8B40, 0x06A1, 0x0D42, 0x1A84, 0x3508, 0x6A10},
+            /* char 11 */ { 0xAA51, 0x4483, 0x8906, 0x022D, 0x045A, 0x08B4, 0x1168},
+            /* char 12 */ { 0x76B4, 0xED68, 0xCAF1, 0x85C3, 0x1BA7, 0x374E, 0x6E9C},
+            /* char 13 */ { 0x3730, 0x6E60, 0xDCC0, 0xA9A1, 0x4363, 0x86C6, 0x1DAD},
+            /* char 14 */ { 0x3331, 0x6662, 0xCCC4, 0x89A9, 0x0373, 0x06E6, 0x0DCC},
+            /* char 15 */ { 0x1021, 0x2042, 0x4084, 0x8108, 0x1231, 0x2462, 0x48C4}
+      };
+
+      if( saltArray.All( item => item == 0 ) )
+      {
+        // Generate the salt
+        var random = new RNGCryptoServiceProvider();
+        random.GetNonZeroBytes( saltArray );
+      }
+
+      // Validate the provided password
+      if( !String.IsNullOrEmpty( password ) )
+      {
+        password = password.Substring( 0, Math.Min( password.Length, maxPasswordLength ) );
+        var byteChars = new byte[ password.Length ];
+
+        for( int i = 0; i < password.Length; i++ )
+        {
+          var temp = Convert.ToInt32( password[ i ] );
+          byteChars[ i ] = Convert.ToByte( temp & 0x00FF );
+
+          if( byteChars[ i ] == 0 )
+          {
+            byteChars[ i ] = Convert.ToByte( ( temp & 0x00FF ) >> 8 );
+          }
+        }
+
+        var intHighOrderWord = InitialCodeArray[ byteChars.Length - 1 ];
+
+        for( int i = 0; i < byteChars.Length; i++ )
+        {
+          int tmp = maxPasswordLength - byteChars.Length + i;
+          for( int intBit = 0; intBit < 7; intBit++ )
+          {
+            if( ( byteChars[ i ] & ( 0x0001 << intBit ) ) != 0 )
+            {
+              intHighOrderWord ^= EncryptionMatrix[ tmp, intBit ];
+            }
+          }
+        }
+
+        int intLowOrderWord = 0;
+
+        // For each character in the strPassword, going backwards
+        for( int i = byteChars.Length - 1; i >= 0; i-- )
+        {
+          intLowOrderWord = ( ( ( intLowOrderWord >> 14 ) & 0x0001 ) | ( ( intLowOrderWord << 1 ) & 0x7FFF ) ) ^ byteChars[ i ];
+        }
+
+        intLowOrderWord = ( ( ( intLowOrderWord >> 14 ) & 0x0001 ) | ( ( intLowOrderWord << 1 ) & 0x7FFF ) ) ^ byteChars.Length ^ 0xCE4B;
+
+        // Combine the Low and High Order Word
+        var intCombinedkey = ( intHighOrderWord << 16 ) + intLowOrderWord;
+
+        // The byte order of the result shall be reversed [Example: 0x64CEED7E becomes 7EEDCE64. end example],
+        // and that value shall be hashed as defined by the attribute values.
+
+        for( int i = 0; i < 4; i++ )
+        {
+          keyValues[ i ] = Convert.ToByte( ( ( uint )( intCombinedkey & ( 0x000000FF << ( i * 8 ) ) ) ) >> ( i * 8 ) );
+        }
+      }
+
+      var sb = new StringBuilder();
+      for( int intTemp = 0; intTemp < 4; intTemp++ )
+      {
+        sb.Append( Convert.ToString( keyValues[ intTemp ], 16 ) );
+      }
+
+      keyValues = Encoding.Unicode.GetBytes( sb.ToString().ToUpper() );
+      keyValues = MergeArrays( keyValues, saltArray );
+
+      int iterations = 100000;
+
+      var sha1 = new SHA1Managed();
+      keyValues = sha1.ComputeHash( keyValues );
+      var iterator = new byte[ 4 ];
+      for( int i = 0; i < iterations; i++ )
+      {
+        iterator[ 0 ] = Convert.ToByte( ( i & 0x000000FF ) >> 0 );
+        iterator[ 1 ] = Convert.ToByte( ( i & 0x0000FF00 ) >> 8 );
+        iterator[ 2 ] = Convert.ToByte( ( i & 0x00FF0000 ) >> 16 );
+        iterator[ 3 ] = Convert.ToByte( ( i & 0xFF000000 ) >> 24 );
+
+        keyValues = MergeArrays( iterator, keyValues );
+        keyValues = sha1.ComputeHash( keyValues );
+      }
+
+      Encryption encryption = new Encryption()
+      {
+        Iterations = iterations,
+        KeyValues = keyValues,
+        SaltArray = saltArray
+      };
+
+      return encryption;
+    }
+
+    private byte[] MergeArrays( byte[] array1, byte[] array2 )
+    {
+      byte[] result = new byte[ array1.Length + array2.Length ];
+      Buffer.BlockCopy( array2, 0, result, 0, array2.Length );
+      Buffer.BlockCopy( array1, 0, result, array2.Length, array1.Length );
+      return result;
     }
 
     #endregion

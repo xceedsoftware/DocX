@@ -84,6 +84,15 @@ namespace Xceed.Document.NET
     }
 
     #endregion
+
+    #region Internal Methods
+
+    internal double GetAvailableWidth()
+    {
+      return Convert.ToDouble( this.Document.PageWidth - this.Document.MarginLeft - this.Document.MarginRight );
+    }
+
+    #endregion
   }
 
   /// <summary>
@@ -250,7 +259,7 @@ namespace Xceed.Document.NET
 
     public virtual Table InsertTableAfterSelf( int rowCount, int columnCount )
     {
-      var newTable = HelperFunctions.CreateTable( rowCount, columnCount );
+      var newTable = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
       Xml.AddAfterSelf( newTable );
       var newlyInserted = this.Xml.ElementsAfterSelf().First();
 
@@ -273,7 +282,7 @@ namespace Xceed.Document.NET
 
     public virtual Table InsertTableBeforeSelf( int rowCount, int columnCount )
     {
-      var newTable = HelperFunctions.CreateTable( rowCount, columnCount );
+      var newTable = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
       this.Xml.AddBeforeSelf( newTable );
       var newlyInserted = this.Xml.ElementsBeforeSelf().Last();
 

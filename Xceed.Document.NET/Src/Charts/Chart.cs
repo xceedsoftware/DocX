@@ -34,7 +34,7 @@ namespace Xceed.Document.NET
     #region Private Members
 
 
-#endregion
+    #endregion
 
     #region Public Properties
 
@@ -58,7 +58,7 @@ namespace Xceed.Document.NET
         int index = 1;
         foreach( var element in ChartXml.Elements( ser ) )
         {
-          element.Add( new XElement( XName.Get("idx", Document.c.NamespaceName ) ), index.ToString() );
+          element.Add( new XElement( XName.Get( "idx", Document.c.NamespaceName ) ), index.ToString() );
           series.Add( new Series( element ) );
           ++index;
         }
@@ -247,7 +247,7 @@ namespace Xceed.Document.NET
     }
 
 
-#endregion
+    #endregion
 
     #region Public Methods
 
@@ -302,7 +302,7 @@ namespace Xceed.Document.NET
     }
 
 
-#endregion
+    #endregion
 
     #region Protected Methods
 
@@ -319,7 +319,7 @@ namespace Xceed.Document.NET
 
 
 
-#endregion
+    #endregion
   }
 
   /// <summary>
@@ -335,6 +335,9 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Public Properties
+
+
+
 
     public Color Color
     {
@@ -359,21 +362,42 @@ namespace Xceed.Document.NET
       }
       set
       {
-        var colorElement = this.Xml.Element( XName.Get( "spPr", Document.c.NamespaceName ) );
-        if( colorElement != null )
+        var spPrElement = this.Xml.Element( XName.Get( "spPr", Document.c.NamespaceName ) );
+        string widthValue = string.Empty;
+
+        if( spPrElement != null )
         {
-          colorElement.Remove();
+          var ln = spPrElement.Element( XName.Get( "ln", Document.a.NamespaceName ) );
+          if( ln != null )
+          {
+            var val = ln.Attribute( XName.Get( "w" ) );
+            if( val != null )
+            {
+              widthValue = val.Value;
+            }
+          }
+          spPrElement.Remove();
         }
 
         var colorData = new XElement( XName.Get( "solidFill", Document.a.NamespaceName ),
                                    new XElement( XName.Get( "srgbClr", Document.a.NamespaceName ), new XAttribute( XName.Get( "val" ), value.ToHex() ) ) );
 
         // When the chart containing this series is a lineChart, the line will be colored, else the shape will be colored.
-        colorElement = ( ( this.Xml.Parent != null ) && ( this.Xml.Parent.Name != null ) && (this.Xml.Parent.Name.LocalName == "lineChart" ) )
-                       ? new XElement( XName.Get( "spPr", Document.c.NamespaceName ),
-                                  new XElement( XName.Get( "ln", Document.a.NamespaceName ), colorData ) )
-                       : new XElement( XName.Get( "spPr", Document.c.NamespaceName ), colorData );
-        this.Xml.Element( XName.Get( "tx", Document.c.NamespaceName ) ).AddAfterSelf( colorElement );
+        if( string.IsNullOrEmpty( widthValue ) )
+        {
+          spPrElement = ( ( this.Xml.Parent != null ) && ( this.Xml.Parent.Name != null ) && ( this.Xml.Parent.Name.LocalName == "lineChart" ) )
+               ? new XElement( XName.Get( "spPr", Document.c.NamespaceName ),
+                          new XElement( XName.Get( "ln", Document.a.NamespaceName ), colorData ) )
+               : new XElement( XName.Get( "spPr", Document.c.NamespaceName ), colorData );
+        }
+        else
+        {
+          spPrElement = new XElement( XName.Get( "spPr", Document.c.NamespaceName ),
+                          new XElement( XName.Get( "ln", Document.a.NamespaceName ),
+                                       new XAttribute( XName.Get( "w" ), widthValue ), colorData ) );
+        }
+
+        this.Xml.Element( XName.Get( "tx", Document.c.NamespaceName ) ).AddAfterSelf( spPrElement );
       }
     }
 
@@ -390,7 +414,7 @@ namespace Xceed.Document.NET
 
 
 
-#endregion
+    #endregion
 
     #region Internal Properties
 
@@ -422,7 +446,7 @@ namespace Xceed.Document.NET
 
       var val = xml.Element( XName.Get( "val", Document.c.NamespaceName ) );
       if( val != null )
-      {      
+      {
         _numCache = val.Descendants( XName.Get( "numCache", Document.c.NamespaceName ) ).FirstOrDefault();
         if( _numCache == null )
         {
@@ -438,18 +462,18 @@ namespace Xceed.Document.NET
 
       this.Xml = new XElement( XName.Get( "ser", Document.c.NamespaceName ),
                                new XElement( XName.Get( "tx", Document.c.NamespaceName ),
-                                             new XElement( XName.Get( "strRef", Document.c.NamespaceName ), 
+                                             new XElement( XName.Get( "strRef", Document.c.NamespaceName ),
                                                            new XElement( XName.Get( "f", Document.c.NamespaceName ), "" ),
                                                            new XElement( XName.Get( "strCache", Document.c.NamespaceName ),
-                                                                         new XElement( XName.Get( "pt", Document.c.NamespaceName ), 
-                                                                                       new XAttribute( XName.Get( "idx" ), "0" ), 
+                                                                         new XElement( XName.Get( "pt", Document.c.NamespaceName ),
+                                                                                       new XAttribute( XName.Get( "idx" ), "0" ),
                                                                                        new XElement( XName.Get( "v", Document.c.NamespaceName ), name ) ) ) ) ),
                                new XElement( XName.Get( "invertIfNegative", Document.c.NamespaceName ), "0" ),
-                               new XElement( XName.Get( "cat", Document.c.NamespaceName ), 
+                               new XElement( XName.Get( "cat", Document.c.NamespaceName ),
                                              new XElement( XName.Get( "strRef", Document.c.NamespaceName ),
                                                            new XElement( XName.Get( "f", Document.c.NamespaceName ), "" ),
                                                            _strCache ) ),
-                               new XElement( XName.Get( "val", Document.c.NamespaceName ), 
+                               new XElement( XName.Get( "val", Document.c.NamespaceName ),
                                              new XElement( XName.Get( "numRef", Document.c.NamespaceName ),
                                                            new XElement( XName.Get( "f", Document.c.NamespaceName ), "" ),
                                                            _numCache ) )
@@ -470,7 +494,7 @@ namespace Xceed.Document.NET
 
       _strCache.Add( ptCount );
       _numCache.Add( formatCode );
-      _numCache.Add( ptCount );      
+      _numCache.Add( ptCount );
 
       Int32 index = 0;
       XElement pt;
@@ -587,7 +611,7 @@ namespace Xceed.Document.NET
     #region Internal Methods
 
 
-#endregion
+    #endregion
 
     #region Private Methods
 

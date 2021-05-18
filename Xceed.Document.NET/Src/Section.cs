@@ -856,8 +856,6 @@ namespace Xceed.Document.NET
       this.Document.SaveHeadersFooters();
 
       var sctPr = new XElement( this.Xml );
-      this.Xml.Elements( XName.Get( "headerReference", Document.w.NamespaceName ) ).Remove();
-      this.Xml.Elements( XName.Get( "footerReference", Document.w.NamespaceName ) ).Remove();
       if( !isPageBreak )
       {
         sctPr.Add( new XElement( XName.Get( "type", Document.w.NamespaceName ), new XAttribute( Document.w + "val", "continuous" ) ) );
@@ -865,7 +863,7 @@ namespace Xceed.Document.NET
 
       if( isLastSection )
       {
-        var currentSection = new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ), this.Xml ) );
+        var currentSection = new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ), sctPr ) );
         if( this.SectionParagraphs.Count > 0 )
         {
           this.SectionParagraphs.Last().Xml.AddAfterSelf( currentSection );
