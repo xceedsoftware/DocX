@@ -30,6 +30,7 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * Automatic hyphenations and configurable hyphenations
 * Digital signatures can be added to documents in the .NET Framework environment
 * Add footnotes and endnotes
+* ListOptions for List level configurations
 
 ## What else do I need?
 
@@ -242,6 +243,11 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 </tr>
 <tr>
 <td>Add footnotes and endnotes</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>ListOptions for List level configurations</td>
 <td></td>
 <td>YES</td>
 </tr>
