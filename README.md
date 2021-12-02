@@ -19,6 +19,7 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * is at least two versions ahead of the DocX version
 * has professional technical support included in the subscription
 * is available on .NET Standard 2.0 for .NET Core 2.0 Applications
+* is available on .NET 5 for .NET 5 Applications
 * can automatically update fields from a document
 * Insert html/rtf text (with tags), or html/rtf document, to a Word document
 * Clone lists or tables
