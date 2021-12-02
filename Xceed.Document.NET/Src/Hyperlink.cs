@@ -226,23 +226,18 @@ namespace Xceed.Document.NET
       this.instrText = instrText;
       this.runs = runs;
 
-      try
+      int start = instrText.Value.IndexOf( "HYPERLINK \"" );
+      if( start != -1 )
+        start += "HYPERLINK \"".Length;
+      int end = instrText.Value.IndexOf( "\"", Math.Max( 0, start ));
+      if( start != -1 && end != -1 )
       {
-        int start = instrText.Value.IndexOf( "HYPERLINK \"" );
-        if( start != -1 )
-          start += "HYPERLINK \"".Length;
-        int end = instrText.Value.IndexOf( "\"", Math.Max( 0, start ));
-        if( start != -1 && end != -1 )
-        {
-          this.uri = new Uri( instrText.Value.Substring( start, end - start ), UriKind.Absolute );
+        this.uri = new Uri( instrText.Value.Substring( start, end - start ), UriKind.Absolute );
 
-          StringBuilder sb = new StringBuilder();
-          HelperFunctions.GetTextRecursive( new XElement( XName.Get( "temp", Document.w.NamespaceName ), runs ), ref sb );
-          this.text = sb.ToString();
-        }
+        StringBuilder sb = new StringBuilder();
+        HelperFunctions.GetTextRecursive( new XElement( XName.Get( "temp", Document.w.NamespaceName ), runs ), ref sb );
+        this.text = sb.ToString();
       }
-
-      catch( Exception e ) { throw e; }
     }
 
     #endregion

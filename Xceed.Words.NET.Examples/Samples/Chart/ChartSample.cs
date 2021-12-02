@@ -96,7 +96,7 @@ namespace Xceed.Words.NET.Examples
     /// </summary>
     public static void LineChart()
     {
-      Console.WriteLine( "\tLineChartt()" );
+      Console.WriteLine( "\tLineChart()" );
 
       // Creates a document
       using( var document = DocX.Create( ChartSample.ChartSampleOutputDirectory + @"LineChart.docx" ) )
@@ -210,6 +210,7 @@ namespace Xceed.Words.NET.Examples
 
     public static void ModifyChartData()
     {
+
 
 
 

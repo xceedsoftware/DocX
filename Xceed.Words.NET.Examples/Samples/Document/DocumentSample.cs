@@ -156,6 +156,8 @@ namespace Xceed.Words.NET.Examples
         // The path to a template document,
         var templatePath = DocumentSample.DocumentSampleResourcesDirectory + @"Template.docx";
 
+        document.DifferentOddAndEvenPages = true;
+
         // Apply a template to the document based on a path.
         document.ApplyTemplate( templatePath );
 
@@ -187,6 +189,7 @@ namespace Xceed.Words.NET.Examples
           // Insert a document at the end of another document.
           // When true, document is added at the end. When false, document is added at beginning.
           document1.InsertDocument( document2, true );
+
 
           // Save this document to disk.
           document1.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"AppendDocument.docx" );

@@ -13,12 +13,13 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using Xceed.Words.NET.Example;
 
 namespace Xceed.Words.NET.Examples
 {
   public class Program
   {
-#if NETCORE
+#if NETCORE || NET5
     internal const string SampleDirectory = @"..\..\..\Samples\";
 #else
     internal const string SampleDirectory = @"..\..\Samples\";
@@ -31,8 +32,9 @@ namespace Xceed.Words.NET.Examples
       var versionNumber = version.Major + "." + version.Minor;
       Console.WriteLine( "\nRunning Examples of Xceed Words for .NET version " + versionNumber + ".\n" );
 
-      //Paragraphs      
+      //Paragraphs
       ParagraphSample.SimpleFormattedParagraphs();
+      ParagraphSample.StyleParagraphs();
       ParagraphSample.ForceParagraphOnSinglePage();
       ParagraphSample.ForceMultiParagraphsOnSinglePage();
       ParagraphSample.TextActions();
@@ -85,7 +87,11 @@ namespace Xceed.Words.NET.Examples
 
       //Lists
       ListSample.AddList();
+      ListSample.AddCustomNumberedList();
+      ListSample.AddCustomBulletedList();
+      ListSample.AddChapterList();
       ListSample.CloneLists();
+      ListSample.ModifyList();
 
       //Equations
       EquationSample.InsertEquation();
@@ -125,7 +131,7 @@ namespace Xceed.Words.NET.Examples
 
       //PDF  
       PdfSample.ConvertToPDFWithUninstalledFont();
-      PdfSample.ConvertToPDF();     
+      PdfSample.ConvertToPDF();
 
       //Shape
       ShapeSample.AddShape();
@@ -141,12 +147,24 @@ namespace Xceed.Words.NET.Examples
       HyphenationSample.CreateHyphenation();
       HyphenationSample.UpdateHyphenation();
 
+      //Footnotes Endnotes
+      FootnoteEndnoteSample.AddFootnotes();
+      FootnoteEndnoteSample.AddCustomFootnotes();
+      FootnoteEndnoteSample.AddEndnotes();
+
+      //Digital Signature
+      DigitalSignatureSample.SignWithSignatureLine();
+      DigitalSignatureSample.SignWithoutSignatureLine();
+      DigitalSignatureSample.VerifySignatures();
+      DigitalSignatureSample.RemoveSignatures();
+      DigitalSignatureSample.RemoveSignatureLines();
+
       Console.WriteLine( "\nDone running Examples of Xceed Words for .NET version " + versionNumber + ".\n" );
       Console.WriteLine( "\nPress any key to exit." );
       Console.ReadKey();
     }
 
-#region Charts
+    #region Charts
 
     private class ChartData
     {
@@ -178,6 +196,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-#endregion
+    #endregion
   }
 }

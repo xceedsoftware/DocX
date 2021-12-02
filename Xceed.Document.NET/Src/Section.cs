@@ -22,7 +22,7 @@ using System.IO.Packaging;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Linq;
-using System.Globalization;
+using System.ComponentModel;
 
 namespace Xceed.Document.NET
 {
@@ -38,8 +38,10 @@ namespace Xceed.Document.NET
     #region Private Members
 
     private static float _pageSizeMultiplier = 20.0f;
+    private NoteProperties _footnoteProperties;
+    private NoteProperties _endnoteProperties;
 
-    #endregion
+#endregion
 
     #region Properties
 
@@ -75,6 +77,74 @@ namespace Xceed.Document.NET
     {
       get;
       internal set;
+    }
+
+    public NoteProperties FootnoteProperties
+    {
+      get
+      {
+        if( _footnoteProperties != null )
+          return _footnoteProperties;
+
+        _footnoteProperties = this.GetNoteProperties( "footnotePr" );
+        if( _footnoteProperties != null )
+        {
+          _footnoteProperties.PropertyChanged += this.FootnoteProperties_PropertyChanged;
+        }
+
+        return _footnoteProperties;
+      }
+
+      set
+      {
+        if( _footnoteProperties != null )
+        {
+          _footnoteProperties.PropertyChanged -= this.FootnoteProperties_PropertyChanged;
+        }
+
+        _footnoteProperties = value;
+
+        if( _footnoteProperties != null )
+        {
+          _footnoteProperties.PropertyChanged += this.FootnoteProperties_PropertyChanged;
+        }
+
+        this.SetNoteProperties( "footnotePr", _footnoteProperties );
+      }
+    }
+
+    public NoteProperties EndnoteProperties
+    {
+      get
+      {
+        if( _endnoteProperties != null )
+          return _endnoteProperties;
+
+        _endnoteProperties = this.GetNoteProperties( "endnotePr" );
+        if( _endnoteProperties != null )
+        {
+          _endnoteProperties.PropertyChanged += this.EndnoteProperties_PropertyChanged;
+        }
+
+        return _endnoteProperties;
+      }
+
+      set
+      {
+        if( _endnoteProperties != null )
+        {
+          _endnoteProperties.PropertyChanged -= this.EndnoteProperties_PropertyChanged;
+        }
+
+        _endnoteProperties = value;
+
+        if( _endnoteProperties != null )
+        {
+          _endnoteProperties.PropertyChanged += this.EndnoteProperties_PropertyChanged;
+        }
+
+        this.SetNoteProperties( "endnotePr", _endnoteProperties );
+      }
     }
 
     public Headers Headers
@@ -901,6 +971,98 @@ namespace Xceed.Document.NET
       return this.Document.Sections.FirstOrDefault( section => section.Xml == sctPr );
     }
 
+    private NoteProperties GetNoteProperties( string propertiesType )
+    {
+      var notePr = this.Xml.Element( XName.Get( propertiesType, Document.w.NamespaceName ) );
+      if( notePr != null )
+      {
+        var numberFormat = NoteNumberFormat.number;
+        var numberStart = 1;
+
+        var numFmt = notePr.Element( XName.Get( "numFmt", Document.w.NamespaceName ) );
+        if( numFmt != null )
+        {
+          var val = numFmt.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) );
+          if( !string.IsNullOrEmpty( val ) )
+          {
+            NoteNumberFormat enumNumberFormat;
+            numberFormat = Enum.TryParse( val, out enumNumberFormat ) ? enumNumberFormat : NoteNumberFormat.number;
+          }
+        }
+
+        var numStart = notePr.Element( XName.Get( "numStart", Document.w.NamespaceName ) );
+        if( numStart != null )
+        {
+          var val = numStart.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) );
+          if( !string.IsNullOrEmpty( val ) )
+          {
+            numberStart = int.Parse( val );
+          }
+        }
+
+        return new NoteProperties()
+        {
+          NumberFormat = numberFormat,
+          NumberStart = numberStart
+        };
+      }
+
+      return null;
+    }
+
+    private void SetNoteProperties( string propertiesType, NoteProperties newValue )
+    {
+      if( newValue != null )
+      {
+        var notePr = this.Xml.Element( XName.Get( propertiesType, Document.w.NamespaceName ) );
+        if( notePr == null )
+        {
+          this.Xml.Add( new XElement( XName.Get( propertiesType, Document.w.NamespaceName ) ) );
+          notePr = this.Xml.Element( XName.Get( propertiesType, Document.w.NamespaceName ) );
+        }
+
+        var numFmt = notePr.Element( XName.Get( "numFmt", Document.w.NamespaceName ) );
+        if( numFmt == null )
+        {
+          notePr.Add( new XElement( XName.Get( "numFmt", Document.w.NamespaceName ) ) );
+          numFmt = notePr.Element( XName.Get( "numFmt", Document.w.NamespaceName ) );
+        }
+
+        numFmt.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), newValue.NumberFormat );
+
+        var numStart = notePr.Element( XName.Get( "numStart", Document.w.NamespaceName ) );
+        if( numStart == null )
+        {
+          notePr.Add( new XElement( XName.Get( "numStart", Document.w.NamespaceName ) ) );
+          numStart = notePr.Element( XName.Get( "numStart", Document.w.NamespaceName ) );
+        }
+
+        numStart.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), newValue.NumberStart );
+      }
+      else
+      {
+        var notePr = this.Xml.Element( XName.Get( propertiesType, Document.w.NamespaceName ) );
+        if( notePr != null )
+        {
+          notePr.Remove();
+        }
+      }
+    }
+
     #endregion
+
+    #region Event Handlers
+
+    private void FootnoteProperties_PropertyChanged( object sender, PropertyChangedEventArgs e )
+    {
+      this.SetNoteProperties( "footnotePr", _footnoteProperties );
+    }
+
+    private void EndnoteProperties_PropertyChanged( object sender, PropertyChangedEventArgs e )
+    {
+      this.SetNoteProperties( "endnotePr", _endnoteProperties );
+    }
+
+#endregion
   }
 }

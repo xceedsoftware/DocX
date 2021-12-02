@@ -2740,7 +2740,7 @@ namespace Xceed.Document.NET
       {
         List<Cell> cells =
         (
-            from c in Xml.Elements( XName.Get( "tc", Document.w.NamespaceName ) )
+            from c in Xml.Descendants( XName.Get( "tc", Document.w.NamespaceName ) )
             select new Cell( this, Document, c )
         ).ToList();
 
@@ -2966,13 +2966,14 @@ namespace Xceed.Document.NET
       int gridSpanSum = 0;
 
       // Foreach each Cell between startIndex and endIndex inclusive.
-      foreach( Cell c in Cells.Where( ( z, i ) => i > startIndex && i <= endIndex ) )
+      var cellsToMerge = this.Cells.Where( ( z, i ) => i > startIndex && i <= endIndex );
+      foreach( var c in cellsToMerge )
       {
-        XElement tcPr = c.Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
-        XElement gridSpan = tcPr?.Element( XName.Get( "gridSpan", Document.w.NamespaceName ) );
+        var tcPr = c.Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
+        var gridSpan = tcPr?.Element( XName.Get( "gridSpan", Document.w.NamespaceName ) );
         if( gridSpan != null )
         {
-          XAttribute val = gridSpan.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
+          var val = gridSpan.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
 
           int value;
           if( val != null && HelperFunctions.TryParseInt( val.Value, out value ) )
@@ -2980,7 +2981,9 @@ namespace Xceed.Document.NET
         }
 
         // Add this cells Pragraph to the merge start Cell.
-        Cells[ startIndex ].Xml.Add( c.Xml.Elements( XName.Get( "p", Document.w.NamespaceName ) ) );
+        this.Cells[ startIndex ].Xml.Add( c.Xml.Elements( XName.Get( "p", Document.w.NamespaceName ) ) );
+
+        this.Cells[startIndex].Width += c.Width;
 
         // Remove this Cell.
         c.Xml.Remove();
@@ -3920,6 +3923,9 @@ namespace Xceed.Document.NET
 
               for( var i = rowIndex + 1; i < rows.Count; ++i )
               {
+                if( cellIndex >= rows[i].Cells.Count )
+                  break;
+
                 var cell = rows[ i ].Cells[ cellIndex ];
                 var cell_tcPr = cell.Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
                 var cell_vMerge = cell_tcPr?.Element( XName.Get( "vMerge", Document.w.NamespaceName ) );

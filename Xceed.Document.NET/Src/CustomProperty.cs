@@ -141,7 +141,9 @@ namespace Xceed.Document.NET
 
         case "bool":
           {
-            realValue = bool.Parse( value );
+            realValue = ( value == "0" )
+                        ? false
+                        : ( value == "1" ) ? true : bool.Parse( value );
             break;
           }
 

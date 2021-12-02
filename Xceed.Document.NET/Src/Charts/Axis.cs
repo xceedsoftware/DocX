@@ -15,6 +15,9 @@
 
 
 using System;
+using System.ComponentModel;
+using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace Xceed.Document.NET
@@ -25,12 +28,19 @@ namespace Xceed.Document.NET
   /// </summary>
   public abstract class Axis
   {
+
+    #region Private properties
+
+
+    #endregion
+
+
     #region Public Properties
 
     /// <summary>
     /// ID of this Axis 
     /// </summary>
-    public String Id
+    public string Id
     {
       get
       {
@@ -41,7 +51,7 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Return true if this axis is visible
     /// </summary>
-    public Boolean IsVisible
+    public bool IsVisible
     {
       get
       {
@@ -60,7 +70,25 @@ namespace Xceed.Document.NET
 
 
 
-#endregion
+
+
+
+
+
+    #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     #region Internal Properties
 

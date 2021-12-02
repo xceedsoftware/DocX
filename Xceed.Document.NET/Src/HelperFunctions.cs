@@ -37,7 +37,7 @@ namespace Xceed.Document.NET
     NumberingDecimal,
     Numbering,
     Styles,
-    Theme
+    Theme,
   }
 
   internal static class HelperFunctions
@@ -386,7 +386,7 @@ namespace Xceed.Document.NET
       // XDocument to load the compressed Xml resource into.
       XDocument document;
 
-      // Get a reference to the executing assembly.
+      //// Get a reference to the executing assembly.
       Assembly assembly = Assembly.GetExecutingAssembly();
 
       // Open a Stream to the embedded resource.
@@ -412,51 +412,27 @@ namespace Xceed.Document.NET
       {
         case ResourceType.DefaultStyle:
           {
-#if NETSTANDARD
-            return "Xceed.Document.NETStandard.Resources.default_styles.xml.gz";
-#else
             return "Xceed.Document.NET.Resources.default_styles.xml.gz";
-#endif
           }
         case ResourceType.Numbering:
           {
-#if NETSTANDARD
-            return "Xceed.Document.NETStandard.Resources.numbering.xml.gz";
-#else
             return "Xceed.Document.NET.Resources.numbering.xml.gz";
-#endif
           }
         case ResourceType.NumberingBullet:
           {
-#if NETSTANDARD
-            return "Xceed.Document.NETStandard.Resources.numbering.default_bullet_abstract.xml.gz";
-#else
             return "Xceed.Document.NET.Resources.numbering.default_bullet_abstract.xml.gz";
-#endif
           }
         case ResourceType.NumberingDecimal:
           {
-#if NETSTANDARD
-            return "Xceed.Document.NETStandard.Resources.numbering.default_decimal_abstract.xml.gz";
-#else
             return "Xceed.Document.NET.Resources.numbering.default_decimal_abstract.xml.gz";
-#endif
           }
         case ResourceType.Styles:
           {
-#if NETSTANDARD
-            return "Xceed.Document.NETStandard.Resources.styles.xml.gz";
-#else
             return "Xceed.Document.NET.Resources.styles.xml.gz";
-#endif
           }
         case ResourceType.Theme:
           {
-#if NETSTANDARD
-            return "Xceed.Document.NETStandard.Resources.theme.xml.gz";
-#else
             return "Xceed.Document.NET.Resources.theme.xml.gz";
-#endif
           }
       }
 
@@ -495,7 +471,7 @@ namespace Xceed.Document.NET
     {
       if( t == EditType.del )
       {
-        foreach( object o in (IEnumerable<XElement>)content )
+        foreach( object o in ( IEnumerable<XElement> )content )
         {
           if( o is XElement )
           {
@@ -567,6 +543,15 @@ namespace Xceed.Document.NET
                                                        new XAttribute( XName.Get( "type", Document.w.NamespaceName ), "dxa" ) ) ),
                            new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ) ) ) );
     }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -773,13 +758,13 @@ namespace Xceed.Document.NET
       return numberingDoc;
     }
 
-    internal static List CreateItemInList( List list, 
-                                           string listText, 
+    internal static List CreateItemInList( List list,
+                                           string listText,
                                            int level = 0,
                                            ListItemType listType = ListItemType.Numbered,
-                                           int? startNumber = null, 
-                                           bool trackChanges = false, 
-                                           bool continueNumbering = false, 
+                                           int? startNumber = null,
+                                           bool trackChanges = false,
+                                           bool continueNumbering = false,
                                            Formatting formatting = null )
     {
       if( list.NumId == 0 )
@@ -826,7 +811,7 @@ namespace Xceed.Document.NET
         if( startNumber == null )
           list.AddItem( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ) );
         else
-          list.AddItemWithStartValue( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ), (int)startNumber );
+          list.AddItemWithStartValue( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ), ( int )startNumber );
       }
       return list;
     }
@@ -980,6 +965,33 @@ namespace Xceed.Document.NET
       var abstractNumNode = abstractNumNodes.FirstOrDefault( node => node.Attribute( Document.w + "abstractNumId" ).Value.Equals( abstractNumNodeValue ) );
 
       return abstractNumNode;
+    }
+
+    internal static IEnumerable<XElement> GetAbstractNumLevelNodes( Document document, string numId )
+    {
+      var abstractNum = GetAbstractNum( document, numId );
+
+      if( abstractNum != null )
+      {
+        var levelNodes = abstractNum.Elements( XName.Get( "lvl", Document.w.NamespaceName ) );
+        if( levelNodes != null )
+        {
+          return levelNodes;
+        }
+      }
+
+      return null;
+    }
+
+    internal static XElement GetNumberingNumNode( Document document, string numId )
+    {
+      if( document == null )
+        return null;
+      if( numId == null )
+        return null;
+
+      var numNodes = document._numbering.Root.Elements( XName.Get( "num", Document.w.NamespaceName ) );
+      return numNodes?.SingleOrDefault( node => node.Attribute( Document.w + "numId" ).Value.Equals( numId ) ) ?? null;
     }
 
     internal static string GetAbstractNumIdValue( Document document, string numId )
@@ -1157,7 +1169,7 @@ namespace Xceed.Document.NET
       var bdrStyle = xml.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
       if( bdrStyle != null )
       {
-        borderStyle = (BorderStyle)Enum.Parse( typeof( BorderStyle ), "Tcbs_" + bdrStyle.Value );
+        borderStyle = ( BorderStyle )Enum.Parse( typeof( BorderStyle ), "Tcbs_" + bdrStyle.Value );
       }
 
       return new Border( borderStyle, borderSize, borderSpace, borderColor );

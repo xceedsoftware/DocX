@@ -18,25 +18,52 @@ using System;
 
 namespace Xceed.Document.NET
 {
-    public sealed class Font
+  public sealed class Font
+  {
+    public Font( string name )
     {
-        public Font(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
+      if( string.IsNullOrEmpty( name ) )
+        throw new ArgumentNullException( nameof( name ) );
 
-            Name = name;
-        }
-
-        public string Name
-        {
-            get;
-            private set;
-        }
-
-        public override string ToString()
-        {
-            return Name;
-        }
+      Name = name;
     }
+
+    public string Name
+    {
+      get;
+      private set;
+    }
+
+    public override string ToString()
+    {
+      return Name;
+    }
+
+    public static bool operator ==( Font x, Font y )
+    {
+      return object.Equals( x, y );
+    }
+
+    public static bool operator !=( Font x, Font y )
+    {
+      return !object.Equals( x, y );
+    }
+
+    public override bool Equals( object obj )
+    {
+      if( obj == null )
+        return false;
+      if( ReferenceEquals( obj, this ) )
+        return true;
+      if( obj.GetType() != this.GetType() )
+        return false;
+      Font rhs = obj as Font;
+      return this.Name == rhs.Name;
+    }
+
+    public override int GetHashCode()
+    {
+      return this.Name.GetHashCode();
+    }
+  }
 }

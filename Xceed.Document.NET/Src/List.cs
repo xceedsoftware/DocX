@@ -18,6 +18,8 @@ using System;
 using System.Linq;
 using System.Xml.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace Xceed.Document.NET
 {
@@ -26,6 +28,20 @@ namespace Xceed.Document.NET
   /// </summary>
   public class List : InsertBeforeOrAfter
   {
+
+    #region Private properties
+
+    private static Random _random = new Random();
+
+    #endregion
+
+    #region Private Members
+
+    private ListItemType? _listType;
+
+
+    #endregion
+
     #region Public Properties
 
     /// <summary>
@@ -51,12 +67,21 @@ namespace Xceed.Document.NET
     /// </summary>
     public ListItemType? ListType
     {
-      get; private set;
+      get
+      {
+        return _listType;
+      }
     }
 
-    #endregion
 
-    #region Internal Properties
+
+
+
+
+
+
+
+
 
     public int AbstractNumId
     {
@@ -75,7 +100,6 @@ namespace Xceed.Document.NET
         : base( document, xml )
     {
       Items = new List<Paragraph>();
-      ListType = null;
     }
 
     #endregion
@@ -100,12 +124,12 @@ namespace Xceed.Document.NET
         if( this.CanAddListItem( paragraph ) )
         {
           this.NumId = numId;
-          if( this.ListType == null )
+          if( _listType == null )
           {
             var listItemType = HelperFunctions.GetListItemType( paragraph, this.Document );
             if( listItemType != null )
             {
-              this.ListType = listItemType.Equals( "bullet" ) ? ListItemType.Bulleted : ListItemType.Numbered;
+              _listType = listItemType.Equals( "bullet" ) ? ListItemType.Bulleted : ListItemType.Numbered;
             }
           }
           this.Items.Add( paragraph );
@@ -148,9 +172,32 @@ namespace Xceed.Document.NET
       return false;
     }
 
+
+
     public bool ContainsLevel( int ilvl )
     {
       return Items.Any( i => i.ParagraphNumberProperties.Descendants().First( el => el.Name.LocalName == "ilvl" ).Value == ilvl.ToString() );
+    }
+
+    public void Remove()
+    {
+      // Remove AbstractNum and Num from numbering.xml.
+      var abstractNumId = this.GetAbstractNum( this.NumId );
+      if( abstractNumId != null )
+      {
+        abstractNumId.Remove();
+      }
+
+      var numNode = this.Document._numbering.Descendants()
+                                            .Where( n => n.Name.LocalName == "num" )
+                                            .FirstOrDefault( node => node.Attribute( Document.w + "numId" ).Value.Equals( this.NumId.ToString() ) );
+      if( numNode != null )
+      {
+        numNode.Remove();
+      }
+
+      // Remove listItems from document.
+      this.Items.ForEach( paragraph => paragraph.Remove( false ) );
     }
 
     #endregion
@@ -159,31 +206,20 @@ namespace Xceed.Document.NET
 
     internal void CreateNewNumberingNumId( int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool continueNumbering = false )
     {
-      ValidateDocXNumberingPartExists();
-      if( Document._numbering.Root == null )
+      int numId, abstractNumId;
+      XElement abstractNumTemplate;
+      SetAbstractNumTemplate( listType, out numId, out abstractNumId, out abstractNumTemplate );
+
+      // When documents contains many lists, generate different "nsid" for each abstractNumTemplate.
+      // Each "nsid" value should be unique.
+      var nsid = abstractNumTemplate.Element( Document.w + "nsid" );
+      var val = nsid.Attribute( Document.w + "val" );
+      if( val != null )
       {
-        throw new InvalidOperationException( "Numbering section did not instantiate properly." );
+        var newNSidVal = GetRandomHexNumber();
+        nsid.SetAttributeValue( Document.w + "val", newNSidVal );
       }
 
-      ListType = listType;
-
-      var numId = GetMaxNumId() + 1;
-      var abstractNumId = GetMaxAbstractNumId() + 1;
-
-      XDocument listTemplate;
-      switch( listType )
-      {
-        case ListItemType.Bulleted:
-          listTemplate = HelperFunctions.DecompressXMLResource( HelperFunctions.GetResources( ResourceType.NumberingBullet ) );
-          break;
-        case ListItemType.Numbered:
-          listTemplate = HelperFunctions.DecompressXMLResource( HelperFunctions.GetResources( ResourceType.NumberingDecimal ) );
-          break;
-        default:
-          throw new InvalidOperationException( string.Format( "Unable to deal with ListItemType: {0}.", listType.ToString() ) );
-      }
-      var abstractNumTemplate = listTemplate.Descendants().Single( d => d.Name.LocalName == "abstractNum" );
-      abstractNumTemplate.SetAttributeValue( Document.w + "abstractNumId", abstractNumId );
       var abstractNumXml = GetAbstractNumXml( abstractNumId, numId, startNumber, level, continueNumbering );
 
       var abstractNumNode = Document._numbering.Root.Descendants().LastOrDefault( xElement => xElement.Name.LocalName == "abstractNum" );
@@ -205,6 +241,24 @@ namespace Xceed.Document.NET
       NumId = numId;
     }
 
+    internal static string GetRandomHexNumber()
+    {
+      int digits = 8;
+      byte[] buffer = new byte[ digits / 2 ];
+
+      _random.NextBytes( buffer );
+      string result = string.Concat( buffer.Select( x => x.ToString( "X2" ) ).ToArray() );
+      if( digits % 2 == 0 )
+        return result;
+      return result + _random.Next( 16 ).ToString( "X" );
+    }
+
+
+
+
+
+
+
 
 
 
@@ -224,6 +278,94 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Private Methods
+
+    private XDocument GetListTemplate( ListItemType listType )
+    {
+      switch( listType )
+      {
+        case ListItemType.Bulleted:
+          return HelperFunctions.DecompressXMLResource( HelperFunctions.GetResources( ResourceType.NumberingBullet ) );
+        case ListItemType.Numbered:
+          return HelperFunctions.DecompressXMLResource( HelperFunctions.GetResources( ResourceType.NumberingDecimal ) );
+        default:
+          throw new InvalidOperationException( string.Format( "Unable to deal with ListItemType: {0}.", listType.ToString() ) );
+      }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private void SetAbstractNumTemplate( ListItemType listType, out int numId, out int abstractNumId, out XElement abstractNumTemplate )
+    {
+      ValidateDocXNumberingPartExists();
+      if( Document._numbering.Root == null )
+      {
+        throw new InvalidOperationException( "Numbering section did not instantiate properly." );
+      }
+
+      _listType = listType;
+
+      numId = GetMaxNumId() + 1;
+      abstractNumId = GetMaxAbstractNumId() + 1;
+      XDocument listTemplate = GetListTemplate( listType );
+
+      abstractNumTemplate = listTemplate.Descendants().Single( d => d.Name.LocalName == "abstractNum" );
+      abstractNumTemplate.SetAttributeValue( Document.w + "abstractNumId", abstractNumId );
+    }
 
     private void UpdateNumberingForLevelStartNumber( int iLevel, int start )
     {
@@ -278,6 +420,7 @@ namespace Xceed.Document.NET
           ? new XElement( XName.Get( "num", Document.w.NamespaceName ), new XAttribute( Document.w + "numId", numId ), element )
           : new XElement( XName.Get( "num", Document.w.NamespaceName ), new XAttribute( Document.w + "numId", numId ), element, levelOverride );
     }
+
 
     /// <summary>
     /// Method to determine the last numId for a list element. 
@@ -337,4 +480,5 @@ namespace Xceed.Document.NET
 
     #endregion
   }
+
 }

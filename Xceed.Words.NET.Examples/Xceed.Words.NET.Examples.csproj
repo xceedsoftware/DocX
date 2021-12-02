@@ -21,7 +21,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETFRAMEWORK</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -30,7 +30,7 @@
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;NETFRAMEWORK</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -51,8 +51,10 @@
     <Compile Include="Samples\Chart\ChartData.cs" />
     <Compile Include="Samples\Chart\ChartSample.cs" />
     <Compile Include="Samples\CheckBox\CheckBoxSample.cs" />
+    <Compile Include="Samples\DigitalSignature\DigitalSignatureSample.cs" />
     <Compile Include="Samples\Document\DocumentSample.cs" />
     <Compile Include="Samples\Equation\EquationSample.cs" />
+    <Compile Include="Samples\FootnoteEndnote\FootnoteEndnoteSample.cs" />
     <Compile Include="Samples\HeaderFooter\HeaderFooterSample.cs" />
     <Compile Include="Samples\Hyperlink\HyperlinkSample.cs" />
     <Compile Include="Samples\Hyphenation\HyphenationSample.cs" />
@@ -75,12 +77,15 @@
     <None Include="Samples\Bookmark\Resources\DocumentWithBookmarks.docx" />
     <None Include="Samples\Chart\Resources\Report.docx" />
     <None Include="Samples\CheckBox\Resources\DocumentWithCheckBoxes.docx" />
+    <None Include="Samples\DigitalSignature\Resources\CustomCertificate.pfx" />
+    <None Include="Samples\DigitalSignature\Resources\SignedDocument.docx" />
     <None Include="Samples\Document\Resources\First.docx" />
     <None Include="Samples\Document\Resources\ReplaceText.docx" />
     <None Include="Samples\Document\Resources\ReplaceTextWithObjects.docx" />
     <None Include="Samples\Document\Resources\RtfSample.rtf" />
     <None Include="Samples\Document\Resources\Second.docx" />
     <None Include="Samples\Document\Resources\Template.docx" />
+    <None Include="Samples\List\Resources\Lists.docx" />
     <None Include="Samples\Protection\Resources\PasswordProtected.docx" />
     <None Include="Samples\Image\Resources\Input.docx" />
     <None Include="Samples\List\Resources\TemplateLists.docx" />
@@ -88,6 +93,7 @@
     <None Include="Samples\Miscellaneous\Resources\TemplateInvoice.docx" />
     <None Include="Samples\Miscellaneous\Resources\TemplateMailMerge.docx" />
     <None Include="Samples\Paragraph\Resources\Template.docx" />
+    <None Include="Samples\Paragraph\Resources\TemplateStyledParagraph.docx" />
     <None Include="Samples\Parallel\Resources\Doc1.docx" />
     <None Include="Samples\Parallel\Resources\Doc2.docx" />
     <None Include="Samples\Parallel\Resources\Doc3.docx" />
@@ -99,8 +105,11 @@
     <None Include="Samples\Table\Resources\TemplateTable.docx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Samples\DigitalSignature\Resources\MarkStoneSignature.png" />
+    <Content Include="Samples\DigitalSignature\Resources\TomSawyerSignature.png" />
     <Content Include="Samples\Document\Resources\2018.jpg" />
     <Content Include="Samples\Document\Resources\HtmlSample.html" />
+    <Content Include="Samples\FootnoteEndnote\Resources\xceed.png" />
     <Content Include="Samples\Image\Resources\balloon.jpg" />
     <Content Include="Samples\Image\Resources\W.png" />
     <Content Include="Samples\Image\Resources\WordsIcon.png" />

@@ -302,10 +302,8 @@ namespace Xceed.Words.NET.Examples
         // Add a title.
         document.InsertParagraph( "Merge and delete cells" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
 
-        // Add A table.
-        var t = document.AddTable( 3, 2 );
-
-        var t1 = document.InsertTable( t );
+        // Insert a table.
+        var t1 = document.InsertTable( 3, 2 );
 
         // Add 4 columns in the table.
         t1.InsertColumn();

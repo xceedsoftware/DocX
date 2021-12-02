@@ -34,6 +34,8 @@ namespace Xceed.Document.NET
     private const string HeaderStyle = "TOCHeading";
     private const int RightTabPos = 9010;
 
+    private static float DefaultIndentationLeft = 11f * 20f;
+
     #endregion
 
     #region Internal Methods
@@ -44,6 +46,8 @@ namespace Xceed.Document.NET
       var xml = XElement.Load( reader );
       return new TableOfContents( document, xml, headerStyle );
     }
+
+
 
 
 
@@ -135,6 +139,36 @@ namespace Xceed.Document.NET
           var xml = XElement.Load( reader );
           document._styles.Root.Add( xml );
         }
+        if( !TableOfContents.HasStyle( document, "TOC5", "paragraph" ) )
+        {
+          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC5", "toc 5", XmlTemplates.TableOfContentsElementDefaultIndentation * 4 ) ) );
+          var xml = XElement.Load( reader );
+          document._styles.Root.Add( xml );
+        }
+        if( !TableOfContents.HasStyle( document, "TOC6", "paragraph" ) )
+        {
+          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC6", "toc 6", XmlTemplates.TableOfContentsElementDefaultIndentation * 5 ) ) );
+          var xml = XElement.Load( reader );
+          document._styles.Root.Add( xml );
+        }
+        if( !TableOfContents.HasStyle( document, "TOC7", "paragraph" ) )
+        {
+          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC7", "toc 7", XmlTemplates.TableOfContentsElementDefaultIndentation * 6 ) ) );
+          var xml = XElement.Load( reader );
+          document._styles.Root.Add( xml );
+        }
+        if( !TableOfContents.HasStyle( document, "TOC8", "paragraph" ) )
+        {
+          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC8", "toc 8", XmlTemplates.TableOfContentsElementDefaultIndentation * 7 ) ) );
+          var xml = XElement.Load( reader );
+          document._styles.Root.Add( xml );
+        }
+        if( !TableOfContents.HasStyle( document, "TOC9", "paragraph" ) )
+        {
+          var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsElementStyleBase, "TOC9", "toc 9", XmlTemplates.TableOfContentsElementDefaultIndentation * 8 ) ) );
+          var xml = XElement.Load( reader );
+          document._styles.Root.Add( xml );
+        }
         if( !TableOfContents.HasStyle( document, "Hyperlink", "character" ) )
         {
           var reader = XmlReader.Create( new StringReader( string.Format( XmlTemplates.TableOfContentsHyperLinkStyleBase ) ) );
@@ -170,6 +204,9 @@ namespace Xceed.Document.NET
 
       return switchString;
     }
+
+
+
 
 
 

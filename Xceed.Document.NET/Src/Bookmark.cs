@@ -24,6 +24,7 @@ namespace Xceed.Document.NET
     {
       get; set;
     }
+
     public Paragraph Paragraph
     {
       get; set;

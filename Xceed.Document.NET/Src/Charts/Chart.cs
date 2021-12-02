@@ -33,6 +33,9 @@ namespace Xceed.Document.NET
   {
     #region Private Members
 
+    private Paragraph _parentParagraph;
+    private PackageRelationship _packageRelationship;
+
 
     #endregion
 
@@ -54,13 +57,10 @@ namespace Xceed.Document.NET
       get
       {
         var series = new List<Series>();
-        var ser = XName.Get( "ser", Document.c.NamespaceName );
-        int index = 1;
-        foreach( var element in ChartXml.Elements( ser ) )
+        var ser = ChartXml.Elements( XName.Get( "ser", Document.c.NamespaceName ) );
+        foreach( var element in ser )
         {
-          element.Add( new XElement( XName.Get( "idx", Document.c.NamespaceName ) ), index.ToString() );
           series.Add( new Series( element ) );
-          ++index;
         }
         return series;
       }
@@ -91,7 +91,12 @@ namespace Xceed.Document.NET
     /// </summary>
     public CategoryAxis CategoryAxis
     {
-      get; private set;
+      get
+      {
+        var catAxXML = ChartRootXml.Descendants( XName.Get( "catAx", Document.c.NamespaceName ) ).SingleOrDefault();
+
+        return ( catAxXML != null ) ? new CategoryAxis( catAxXML ) : null;
+      }
     }
 
     /// <summary>
@@ -99,7 +104,12 @@ namespace Xceed.Document.NET
     /// </summary>
     public ValueAxis ValueAxis
     {
-      get; private set;
+      get
+      {
+        var valAxXML = ChartRootXml.Descendants( XName.Get( "valAx", Document.c.NamespaceName ) ).SingleOrDefault();
+
+        return ( valAxXML != null ) ? new ValueAxis( valAxXML ) : null;
+      }
     }
 
     /// <summary>
@@ -220,11 +230,11 @@ namespace Xceed.Document.NET
       // if axes exists, create their
       if( this.IsAxisExist )
       {
-        this.CategoryAxis = new CategoryAxis( "148921728" );
-        this.ValueAxis = new ValueAxis( "154227840" );
+        var categoryAxis = new CategoryAxis( "148921728" );
+        var valueAxis = new ValueAxis( "154227840" );
 
-        var axIDcatXml = XElement.Parse( String.Format( @"<c:axId val=""{0}"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>", this.CategoryAxis.Id ) );
-        var axIDvalXml = XElement.Parse( String.Format( @"<c:axId val=""{0}"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>", this.ValueAxis.Id ) );
+        var axIDcatXml = XElement.Parse( String.Format( @"<c:axId val=""{0}"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>", categoryAxis.Id ) );
+        var axIDvalXml = XElement.Parse( String.Format( @"<c:axId val=""{0}"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>", valueAxis.Id ) );
 
         var gapWidth = this.ChartXml.Element( XName.Get( "gapWidth", Document.c.NamespaceName ) );
         if( gapWidth != null )
@@ -238,8 +248,8 @@ namespace Xceed.Document.NET
           this.ChartXml.Add( axIDvalXml );
         }
 
-        plotAreaXml.Add( this.CategoryAxis.Xml );
-        plotAreaXml.Add( this.ValueAxis.Xml );
+        plotAreaXml.Add( categoryAxis.Xml );
+        plotAreaXml.Add( valueAxis.Xml );
       }
 
       this.ChartRootXml = this.Xml.Root.Element( XName.Get( "chart", Document.c.NamespaceName ) );
@@ -300,6 +310,33 @@ namespace Xceed.Document.NET
         this.Legend = null;
       }
     }
+
+    public void Remove()
+    {
+      if( _packageRelationship.Package != null )
+      {
+        _packageRelationship.Package.DeletePart( _packageRelationship.TargetUri );
+      }
+
+      if( _parentParagraph.Document.PackagePart != null )
+      {
+        _parentParagraph.Document.PackagePart.DeleteRelationship( _packageRelationship.Id );
+      }
+
+      // Remove the Xml from document.
+      var parentParagrahChart = _parentParagraph.Xml.Descendants( XName.Get( "chart", Document.c.NamespaceName ) )
+                                                   .FirstOrDefault( c => c.GetAttribute( XName.Get( "id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships" ) ) == _packageRelationship.Id );
+      if( parentParagrahChart != null )
+      {
+        var parentDrawing = parentParagrahChart.Ancestors( XName.Get( "drawing", Document.w.NamespaceName ) ).FirstOrDefault();
+        if( parentDrawing != null )
+        {
+          parentDrawing.Remove();
+        }
+      }
+    }
+
+
 
 
     #endregion
@@ -529,10 +566,10 @@ namespace Xceed.Document.NET
       for( int index = 0; index < categories.Count; index++ )
       {
         pt = new XElement( XName.Get( "pt", Document.c.NamespaceName ), new XAttribute( XName.Get( "idx" ), index ),
-                           new XElement( XName.Get( "v", Document.c.NamespaceName ), categories[ index ].ToString() ) );
+                           new XElement( XName.Get( "v", Document.c.NamespaceName ), categories[index].ToString() ) );
         _strCache.Add( pt );
         pt = new XElement( XName.Get( "pt", Document.c.NamespaceName ), new XAttribute( XName.Get( "idx" ), index ),
-                           new XElement( XName.Get( "v", Document.c.NamespaceName ), values[ index ].ToString() ) );
+                           new XElement( XName.Get( "v", Document.c.NamespaceName ), values[index].ToString() ) );
         _numCache.Add( pt );
       }
     }

@@ -29,8 +29,9 @@ using System.Collections.ObjectModel;
 using System.Net;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
-using System.Resources;
-using System.Globalization;
+using System.Reflection;
+using System.ComponentModel;
+
 
 namespace Xceed.Document.NET
 {
@@ -66,6 +67,11 @@ namespace Xceed.Document.NET
     static internal XNamespace mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
     static internal XNamespace wps = "http://schemas.microsoft.com/office/word/2010/wordprocessingShape";
     static internal XNamespace w14 = "http://schemas.microsoft.com/office/word/2010/wordml";
+    static internal XNamespace w15 = "http://schemas.microsoft.com/office/word/2012/wordml";
+    static internal XNamespace o = "urn:schemas-microsoft-com:office:office";
+    static internal XNamespace d = "http://www.w3.org/2000/09/xmldsig#";
+    static internal XNamespace doffice = "http://schemas.microsoft.com/office/2006/digsig";
+    static internal XNamespace w10 = "urn:schemas-microsoft-com:office:word";
     #endregion
 
     #region Private Members    
@@ -145,6 +151,48 @@ namespace Xceed.Document.NET
       get
       {
         return _cachedSections;
+      }
+    }
+
+    public NoteProperties EndnoteProperties
+    {
+      get
+      {
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].EndnoteProperties." );
+        }
+        return this.Sections[ 0 ].EndnoteProperties;
+      }
+
+      set
+      {
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].EndnoteProperties." );
+        }
+        this.Sections[ 0 ].EndnoteProperties = value;
+      }
+    }
+
+    public NoteProperties FootnoteProperties
+    {
+      get
+      {
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].FootnoteProperties." );
+        }
+        return this.Sections[ 0 ].FootnoteProperties;
+      }
+
+      set
+      {
+        if( this.Sections.Count > 1 )
+        {
+          Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].FootnoteProperties." );
+        }
+        this.Sections[ 0 ].FootnoteProperties = value;
       }
     }
 
@@ -896,13 +944,13 @@ namespace Xceed.Document.NET
         var bookmarks = new BookmarkCollection();
         // In Body.
         // Faster to search the document.Xml instead of document.Paragraphs.
-        var documentBookmarkStartsXml = this.Xml.Descendants(XName.Get("bookmarkStart", Document.w.NamespaceName));
-        foreach (var bookmarkStartXml in documentBookmarkStartsXml )
+        var documentBookmarkStartsXml = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) );
+        foreach( var bookmarkStartXml in documentBookmarkStartsXml )
         {
           var bookmarkName = bookmarkStartXml.Attribute( XName.Get( "name", Document.w.NamespaceName ) ).Value;
 
           var paragraphXml = bookmarkStartXml.Parent;
-          while ((paragraphXml != null) && (paragraphXml.Name != XName.Get("p", Document.w.NamespaceName)))
+          while( ( paragraphXml != null ) && ( paragraphXml.Name != XName.Get( "p", Document.w.NamespaceName ) ) )
           {
             paragraphXml = paragraphXml.Parent;
           }
@@ -922,75 +970,75 @@ namespace Xceed.Document.NET
             while( ( paragraphXml != null ) && ( paragraphXml.Name != XName.Get( "p", Document.w.NamespaceName ) ) )
             {
               paragraphXml = paragraphXml.Parent;
-           }
+            }
 
             // bookmarkStart is not in a paragraph, get bookmarkEnd.
             if( paragraphXml == null )
               throw new InvalidDataException( "bookmarkStart and bookmarkEnd are not part of a paragraph. This is currently not supported." );
           }
 
-          bookmarks.Add(new Bookmark
+          bookmarks.Add( new Bookmark
           {
             Name = bookmarkName,
             Id = bookmarkStartXml.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value,
-            Paragraph = new Paragraph(this, paragraphXml, -1) { PackagePart = this.PackagePart }
-          });
+            Paragraph = new Paragraph( this, paragraphXml, -1 ) { PackagePart = this.PackagePart }
+          } );
         }
 
-        foreach (var section in this.Sections)
+        foreach( var section in this.Sections )
         {
           // In Headers.
           var headers = section.Headers;
-          if (headers != null)
+          if( headers != null )
           {
-            if (headers.Odd != null)
+            if( headers.Odd != null )
             {
-              foreach (var paragraph in headers.Odd.Paragraphs)
+              foreach( var paragraph in headers.Odd.Paragraphs )
               {
-                bookmarks.AddRange(paragraph.GetBookmarks());
+                bookmarks.AddRange( paragraph.GetBookmarks() );
               }
             }
-            if (headers.Even != null)
+            if( headers.Even != null )
             {
-              foreach (var paragraph in headers.Even.Paragraphs)
+              foreach( var paragraph in headers.Even.Paragraphs )
               {
-                bookmarks.AddRange(paragraph.GetBookmarks());
+                bookmarks.AddRange( paragraph.GetBookmarks() );
               }
             }
-            if (headers.First != null)
+            if( headers.First != null )
             {
-              foreach (var paragraph in headers.First.Paragraphs)
+              foreach( var paragraph in headers.First.Paragraphs )
               {
-                bookmarks.AddRange(paragraph.GetBookmarks());
+                bookmarks.AddRange( paragraph.GetBookmarks() );
               }
             }
           }
 
           // In Footers.
           var footers = section.Footers;
-          if (footers != null)
+          if( footers != null )
           {
-            if (footers.Odd != null)
+            if( footers.Odd != null )
             {
-              foreach (var paragraph in footers.Odd.Paragraphs)
+              foreach( var paragraph in footers.Odd.Paragraphs )
               {
-                bookmarks.AddRange(paragraph.GetBookmarks());
+                bookmarks.AddRange( paragraph.GetBookmarks() );
               }
             }
 
-            if (footers.Even != null)
+            if( footers.Even != null )
             {
-              foreach (var paragraph in footers.Even.Paragraphs)
+              foreach( var paragraph in footers.Even.Paragraphs )
               {
-                bookmarks.AddRange(paragraph.GetBookmarks());
+                bookmarks.AddRange( paragraph.GetBookmarks() );
               }
             }
 
-            if (footers.First != null)
+            if( footers.First != null )
             {
-              foreach (var paragraph in footers.First.Paragraphs)
+              foreach( var paragraph in footers.First.Paragraphs )
               {
-                bookmarks.AddRange(paragraph.GetBookmarks());
+                bookmarks.AddRange( paragraph.GetBookmarks() );
               }
             }
           }
@@ -1022,13 +1070,11 @@ namespace Xceed.Document.NET
 
 
 
-
-
-
-
-
     #endregion
+
     #region Public Methods
+
+
 
     public override Section InsertSection( bool trackChanges )
     {
@@ -1849,6 +1895,172 @@ namespace Xceed.Document.NET
 
 
 
+    public Footnote AddFootnote( object footnoteContent, Formatting formatting = null )
+    {
+      if( footnoteContent == null )
+        return null;
+
+      var footnotes_package_uri = new Uri( "/word/footnotes.xml", UriKind.Relative );
+
+      if( !this.Document._package.PartExists( footnotes_package_uri ) )
+      {
+        var mainDocPart = HelperFunctions.GetMainDocumentPart( this.Document._package );
+        mainDocPart.CreateRelationship( footnotes_package_uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes" );
+
+        // Create default footnotes in _footnotes.
+        this.Document._footnotes = XDocument.Parse
+           ( @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+                  <w:footnotes xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                    <w:footnote w:id=""-1"" w:type=""separator"">
+                      <w:p>
+                        <w:pPr>
+                          <w:spacing w:lineRule=""auto"" w:line=""240"" w:after=""0""/>
+                        </w:pPr>
+                        <w:r>
+                          <w:separator/>
+                        </w:r>
+                      </w:p>
+                    </w:footnote>
+                    <w:footnote w:id=""0"" w:type=""continuationSeparator"">
+                      <w:p>
+                        <w:pPr>
+                          <w:spacing w:lineRule=""auto"" w:line=""240"" w:after=""0""/>
+                        </w:pPr>
+                        <w:r>
+                          <w:continuationSeparator/>
+                        </w:r>
+                      </w:p>
+                    </w:footnote>
+                  </w:footnotes>"
+           );
+
+        // Create Footnotes package.
+        var footnotes_package = this.Document._package.CreatePart( footnotes_package_uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml", CompressionOption.Maximum );
+        this.Document._footnotesPart = footnotes_package;
+      }
+
+      var newFootnoteId = this.GetMaxId( this.Document._footnotes.Root.LastNode as XElement );
+      if( newFootnoteId < 0 )
+        return null;
+
+      // Create new footnote.
+      var newFootnoteXml = XElement.Parse
+         ( string.Format( @"<w:footnote w:id=""{0}"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">                             
+                            </w:footnote>", newFootnoteId )
+         );
+
+      // Create new footnote paragraph.
+      var newFootnoteParagraphXml = XElement.Parse(
+                                    @"<w:p xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                                        <w:pPr>
+                                          <w:pStyle w:val=""FootnoteText""/>
+                                        </w:pPr>
+                                        <w:r>
+                                          <w:rPr>
+                                            <w:rStyle w:val=""FootnoteReference""/>
+                                          </w:rPr>
+                                          <w:footnoteRef/>
+                                        </w:r>
+                                        <w:r>
+                                          <w:t xml:space=""preserve""> </w:t>
+                                        </w:r>
+                                      </w:p>" );
+      var newFootnoteParagraph = new Paragraph( this, newFootnoteParagraphXml, 0 ) { PackagePart = _footnotesPart };
+
+      this.UpdateNoteXmlFromContent( newFootnoteXml, newFootnoteParagraph, footnoteContent, formatting );
+
+      // Create new footnote from updated newFootnoteXml.
+      var newFootnote = new Footnote( this, _footnotesPart, newFootnoteXml );
+
+      // Add newFootnote in _footnotes.
+      this.Document._footnotes.Root.Add( newFootnote.Xml );
+
+      return newFootnote;
+    }
+
+    public Endnote AddEndnote( object endnoteContent, Formatting formatting = null )
+    {
+      if( endnoteContent == null )
+        return null;
+
+      var endnotes_package_uri = new Uri( "/word/endnotes.xml", UriKind.Relative );
+
+      if( !this.Document._package.PartExists( endnotes_package_uri ) )
+      {
+        var mainDocPart = HelperFunctions.GetMainDocumentPart( this.Document._package );
+        mainDocPart.CreateRelationship( endnotes_package_uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes" );
+
+        // Create default endnotes in _endnotes.
+        this.Document._endnotes = XDocument.Parse
+           ( @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+                  <w:endnotes xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                    <w:endnote w:id=""-1"" w:type=""separator"">
+                      <w:p>
+                        <w:pPr>
+                          <w:spacing w:lineRule=""auto"" w:line=""240"" w:after=""0""/>
+                        </w:pPr>
+                        <w:r>
+                          <w:separator/>
+                        </w:r>
+                      </w:p>
+                    </w:endnote>
+                    <w:endnote w:id=""0"" w:type=""continuationSeparator"">
+                      <w:p>
+                        <w:pPr>
+                          <w:spacing w:lineRule=""auto"" w:line=""240"" w:after=""0""/>
+                        </w:pPr>
+                        <w:r>
+                          <w:continuationSeparator/>
+                        </w:r>
+                      </w:p>
+                    </w:endnote>
+                  </w:endnotes>"
+           );
+
+        // Create Endnotes package.
+        var endnotes_package = this.Document._package.CreatePart( endnotes_package_uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml", CompressionOption.Maximum );
+        this.Document._endnotesPart = endnotes_package;
+      }
+
+      var newEndnoteId = this.GetMaxId( this.Document._endnotes.Root.LastNode as XElement );
+      if( newEndnoteId < 0 )
+        return null;
+
+      // Create new endnote.
+      var newEndnoteXml = XElement.Parse
+         ( string.Format( @"<w:endnote w:id=""{0}"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">                             
+                            </w:endnote>", newEndnoteId )
+         );
+
+      // Create new endnote paragraph.
+      var newEndnoteParagraphXml = XElement.Parse(
+                                    @"<w:p xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                                        <w:pPr>
+                                          <w:pStyle w:val=""EndnoteText""/>
+                                        </w:pPr>
+                                        <w:r>
+                                          <w:rPr>
+                                            <w:rStyle w:val=""EndnoteReference""/>
+                                          </w:rPr>
+                                          <w:endnoteRef/>
+                                        </w:r>
+                                        <w:r>
+                                          <w:t xml:space=""preserve""> </w:t>
+                                        </w:r>
+                                      </w:p>" );
+      var newEndnoteParagraph = new Paragraph( this, newEndnoteParagraphXml, 0 ) { PackagePart = _endnotesPart };
+
+      this.UpdateNoteXmlFromContent( newEndnoteXml, newEndnoteParagraph, endnoteContent, formatting );
+
+      // Create new endnote from updated newEndnoteXml.
+      var newEndnote = new Endnote( this, _endnotesPart, newEndnoteXml );
+
+      // Add newEndnote in _endnotes.
+      this.Document._endnotes.Root.Add( newEndnote.Xml );
+
+      return newEndnote;
+    }
+
     ///<summary>
     /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
     ///</summary>
@@ -2009,7 +2221,6 @@ namespace Xceed.Document.NET
       }
       finally
       {
-        _package.Flush();
         templatePackage.Close();
         PopulateDocument( Document, _package );
       }
@@ -2607,8 +2818,23 @@ namespace Xceed.Document.NET
     /// </summary>
     public List AddList( string listText = null, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false, Formatting formatting = null )
     {
-      return AddListItem( new List( this, null ), listText, level, listType, startNumber, trackChanges, continueNumbering, formatting );
+      if( startNumber.HasValue && continueNumbering )
+        throw new InvalidOperationException( "Cannot specify a start number and at the same time continue numbering from another list" );
+
+      var list = new List( this, null );
+      var result = HelperFunctions.CreateItemInList( list, listText, level, listType, startNumber, trackChanges, continueNumbering, formatting );
+      var lastItem = result.Items.LastOrDefault();
+
+      if( lastItem != null )
+      {
+        lastItem.PackagePart = this.PackagePart;
+      }
+
+      return result;
     }
+
+
+
 
 
 
@@ -2619,7 +2845,14 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Add a list item to an existing list
     /// </summary>
-    public List AddListItem( List list, string listText, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false, Formatting formatting = null )
+    public List AddListItem( List list,
+                             string listText,
+                             int level = 0,
+                             ListItemType listType = ListItemType.Numbered,
+                             int? startNumber = null,
+                             bool trackChanges = false,
+                             bool continueNumbering = false,
+                             Formatting formatting = null )
     {
       if( startNumber.HasValue && continueNumbering )
         throw new InvalidOperationException( "Cannot specify a start number and at the same time continue numbering from another list" );
@@ -2662,7 +2895,7 @@ namespace Xceed.Document.NET
     /// Insert a list at an index location in the document
     /// </summary>
     /// <param name="index">Index in document to insert the list.</param>
- 	  /// <param name="list">The list that was inserted into the document.</param>
+    /// <param name="list">The list that was inserted into the document.</param>
     /// <returns></returns>
     public new List InsertList( int index, List list )
     {
@@ -2859,6 +3092,8 @@ namespace Xceed.Document.NET
 
 
 
+
+
     #endregion
 
     #region Internal Methods
@@ -2866,6 +3101,11 @@ namespace Xceed.Document.NET
     protected internal virtual void SaveHeadersFooters()
     {
     }
+
+
+
+
+
 
     internal XDocument GetSettings()
     {
@@ -3010,6 +3250,13 @@ namespace Xceed.Document.NET
         }
       }
 
+      var docType = document._mainDoc.DocumentType;
+      if( ( docType != null ) && !string.IsNullOrEmpty( docType.InternalSubset ) )
+      {
+        if( docType.InternalSubset.Contains( "ENTITY" ) )
+          throw new InvalidDataException( "Document to load contains external entities which are not supported" );
+      }
+
       return document;
     }
 
@@ -3035,6 +3282,7 @@ namespace Xceed.Document.NET
       document._package = package;
       document._memoryStream = ms;
       document._stream = stream;
+
       return document;
     }
 
@@ -3056,6 +3304,7 @@ namespace Xceed.Document.NET
         Stream receiveStream = null;
         try
         {
+          ServicePointManager.SecurityProtocol = ( SecurityProtocolType )3072;
           request = ( HttpWebRequest )WebRequest.Create( filename );
           response = ( HttpWebResponse )request.GetResponse();
           receiveStream = response.GetResponseStream();
@@ -3344,6 +3593,44 @@ namespace Xceed.Document.NET
       }
     }
 
+    internal Image GetImage( Stream stream )
+    {
+      if( stream == null )
+        return null;
+
+      stream.Position = 0;
+
+      var imageParts = new Dictionary<PackageRelationship, PackagePart>();
+      var partLookup = _package.GetParts().ToDictionary( x => x.Uri.ToString(), x => x, StringComparer.Ordinal );
+
+      // all image relationships.
+      var relationshipImages = this.PackagePart.GetRelationshipsByType( RelationshipImage );
+      // take all used images (from relationships)
+      foreach( var item in relationshipImages )
+      {
+        var targetUri = item.TargetUri.ToString();
+        PackagePart part;
+        if( partLookup.TryGetValue( targetUri, out part ) )
+        {
+          // all document's used image parts.
+          imageParts.Add( item, part );
+        }
+      }
+
+      foreach( var entry in imageParts )
+      {
+        // Get the image object for this image part.
+        using( var tempStream = entry.Value.GetStream( FileMode.Open, FileAccess.Read ) )
+        {
+          // Compare this image to the new image being added.
+          if( HelperFunctions.IsSameFile( tempStream, stream ) )
+            return new Image( this, entry.Key );
+        }
+      }
+
+      return null;
+    }
+
     internal static void UpdateCorePropertyValue( Document document, string corePropertyName, string corePropertyValue )
     {
       var matchPattern = string.Format( @"(DOCPROPERTY)?{0}\\\*MERGEFORMAT", corePropertyName ).ToLower();
@@ -3488,9 +3775,22 @@ namespace Xceed.Document.NET
       foreach( XElement doc in documents )
       {
         #region Word 2010+
-        foreach( XElement e in doc.Descendants( XName.Get( "instrText", w.NamespaceName ) ) )
+        var instrTexts = doc.Descendants( XName.Get( "instrText", w.NamespaceName ) );
+        for( int i = 0; i < instrTexts.Count(); ++i )
         {
+          var e = instrTexts.ElementAt( i );
           var attr_value = e.Value.Replace( " ", string.Empty ).Trim();
+
+          if( attr_value.StartsWith( "DOCPROPERTY" ) && !attr_value.EndsWith( "MERGEFORMAT" ) && ( i < instrTexts.Count() - 1 ) )
+          {
+            var nextInstrText = instrTexts.ElementAt( i + 1 );
+            var nextAttr_value = nextInstrText.Value.Replace( " ", string.Empty ).Trim();
+            if( !nextAttr_value.StartsWith( "DOCPROP" ) && nextAttr_value.EndsWith( "FORMAT" ) )
+            {
+              attr_value += nextAttr_value;
+              i++;
+            }
+          }
 
           if( attr_value.Equals( match_value, StringComparison.CurrentCultureIgnoreCase ) )
           {
@@ -4508,6 +4808,20 @@ namespace Xceed.Document.NET
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     protected void clonePackageRelationship( Document remote_document, PackagePart pp, XDocument remote_mainDoc )
     {
       var url = pp.Uri.OriginalString.Replace( "/", "" );
@@ -4873,6 +5187,53 @@ namespace Xceed.Document.NET
                                                                                                              new XAttribute( XName.Get( "id", r.NamespaceName ), relID ) ) ) ) ) ) );
       p.Xml.Add( chartElement );
     }
+
+    private void UpdateNoteXmlFromContent( XElement noteXml, Paragraph noteParagraph, object footnoteContent, Formatting formatting )
+    {
+      Debug.Assert( noteXml != null, "noteXml should not be null." );
+      Debug.Assert( noteParagraph != null, "noteParagraph should not be null." );
+
+      if( footnoteContent is string )
+      {
+        noteParagraph.InsertText( footnoteContent as string, false, formatting );
+      }
+      else if( footnoteContent is Hyperlink )
+      {
+        noteParagraph.InsertHyperlink( footnoteContent as Hyperlink, noteParagraph.Text.Length );
+      }
+      else if( footnoteContent is Picture )
+      {
+        noteParagraph.InsertPicture( footnoteContent as Picture, noteParagraph.Text.Length );
+      }
+      else if( !( footnoteContent is Table ) )
+      {
+        throw new ArgumentException( "Unknown object received for footnote/endnote. Valid objects are string, Picture, Hyperlink or Table. If other configuration is needed, try using the Note.Paragraphs property and configure the Footnote/Endnote paragraphs." );
+      }
+
+      noteXml.Add( noteParagraph.Xml );
+
+      // Tables need to be added after the newFootnoteParagraph is included inside the newFootnoteXml. This is because table is located after paragraph.
+      if( footnoteContent is Table )
+      {
+        noteParagraph.InsertTableAfterSelf( footnoteContent as Table );
+      }
+    }
+
+    private int GetMaxId( XElement xElement )
+    {
+      if( xElement == null )
+        return -1;
+
+      var lastId = xElement.Attribute( XName.Get( "id", Document.w.NamespaceName ) );
+      if( lastId == null )
+        return -1;
+
+      return Int32.Parse( lastId.Value ) + 1;
+    }
+
+
+
+
 
 
     #endregion

@@ -306,24 +306,34 @@ namespace Xceed.Document.NET
     {
       _img = image;
 
-      var imageId =
-      (
-          from e in Xml.Descendants()
-          where e.Name.LocalName.Equals( "blip" )
-          select e.Attribute( XName.Get( "embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships" ) ).Value
-      ).SingleOrDefault();
-
-      _id = ( imageId != null ) 
-           ? imageId
+      _id = ( image != null ) 
+           ? image.Id
            : (
                 from e in Xml.Descendants()
                 where e.Name.LocalName.Equals( "imagedata" )
                 select e.Attribute( XName.Get( "id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships" ) ).Value
              ).FirstOrDefault();
 
+      var pic = this.Xml.Descendants( XName.Get( "pic", Document.pic.NamespaceName ) ).FirstOrDefault( p =>
+      {
+        var id =
+        (
+          from e in p.Descendants()
+          where e.Name.LocalName.Equals( "blip" )
+          select e.Attribute( XName.Get( "embed", "http://schemas.openxmlformats.org/officeDocument/2006/relationships" ) ).Value
+        );
+
+        return (id.FirstOrDefault() == _id);
+      } );
+
+      if( pic == null )
+      {
+        pic = this.Xml;
+      }
+
       var nameToFind =
       (
-          from e in Xml.Descendants()
+          from e in pic.Descendants()
           let a = e.Attribute( XName.Get( "name" ) )
           where ( a != null )
           select a.Value
@@ -332,7 +342,7 @@ namespace Xceed.Document.NET
       _name = ( nameToFind != null )
              ? nameToFind
              : (
-                  from e in Xml.Descendants()
+                  from e in pic.Descendants()
                   let a = e.Attribute( XName.Get( "title" ) )
                   where ( a != null )
                   select a.Value
@@ -340,7 +350,7 @@ namespace Xceed.Document.NET
 
       _descr =
       (
-          from e in Xml.Descendants()
+          from e in pic.Descendants()
           let a = e.Attribute( XName.Get( "descr" ) )
           where ( a != null )
           select a.Value
@@ -348,7 +358,7 @@ namespace Xceed.Document.NET
 
       _cx =
       (
-          from e in Xml.Descendants()
+          from e in pic.Descendants()
           let a = e.Attribute( XName.Get( "cx" ) )
           where ( a != null )
           select long.Parse( a.Value )
@@ -358,7 +368,7 @@ namespace Xceed.Document.NET
       {
         var style = 
         (
-            from e in Xml.Descendants()
+            from e in pic.Descendants()
             let a = e.Attribute( XName.Get( "style" ) )
             where ( a != null )
             select a
@@ -380,7 +390,7 @@ namespace Xceed.Document.NET
 
       _cy =
       (
-          from e in Xml.Descendants()
+          from e in pic.Descendants()
           let a = e.Attribute( XName.Get( "cy" ) )
           where ( a != null )
           select long.Parse( a.Value )
@@ -390,7 +400,7 @@ namespace Xceed.Document.NET
       {
         var style =
         (
-            from e in Xml.Descendants()
+            from e in pic.Descendants()
             let a = e.Attribute( XName.Get( "style" ) )
             where ( a != null )
             select a
@@ -412,14 +422,14 @@ namespace Xceed.Document.NET
 
       _xfrm =
       (
-          from d in Xml.Descendants()
+          from d in pic.Descendants()
           where d.Name.LocalName.Equals( "xfrm" )
           select d
       ).FirstOrDefault();
 
       _prstGeom =
       (
-          from d in Xml.Descendants()
+          from d in pic.Descendants()
           where d.Name.LocalName.Equals( "prstGeom" )
           select d
       ).FirstOrDefault();

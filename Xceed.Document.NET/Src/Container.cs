@@ -179,7 +179,12 @@ namespace Xceed.Document.NET
             }
           }
         }
-        lists.Add( list );
+
+        if( list.Items.Count > 0 )
+        {
+          lists.Add( list );
+        }
+
         return lists;
       }
     }
@@ -1028,9 +1033,17 @@ namespace Xceed.Document.NET
       foreach( var p in paragraphs )
       {
         var nextElement = p.Xml.ElementsAfterSelf().FirstOrDefault();
-        if( ( nextElement == null ) && p.IsInSdt() )
+        if ((nextElement == null) && p.IsInSdt())
         {
           nextElement = p.GetParentSdt().ElementsAfterSelf().FirstOrDefault();
+        }
+        else if ((nextElement != null) && nextElement.Name.Equals(Document.w + "sdt"))
+        {
+          var sdtContent = nextElement.Element(XName.Get("sdtContent", Document.w.NamespaceName));
+          if (sdtContent != null)
+          {
+            nextElement = sdtContent.Element(XName.Get("tbl", Document.w.NamespaceName));
+          }
         }
         var containsSectionBreak = p.GetOrCreate_pPr().Element( XName.Get( "sectPr", Document.w.NamespaceName ) );
         // Add FollowingTable to paragraph....only when paragraph is not the last one from a section.

@@ -91,9 +91,28 @@ namespace Xceed.Document.NET
       get; set;
     }
 
+    internal int OutlineLevel
+    {
+      get
+      {
+        var pPr = GetOrCreate_pPr();
+        var outlineLvl = pPr.Element( XName.Get( "outlineLvl", Document.w.NamespaceName ) );
+        if( outlineLvl != null )
+        {
+          var val = outlineLvl.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
+          return ( val != null ) ? Int32.Parse( val.Value ) : 0;
+        }
+
+        return 0;
+      }
+    }
+
     #endregion
 
     #region Public Properties
+
+
+
 
 
 
@@ -258,7 +277,7 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return this.StyleId;        
+        return this.StyleId;
       }
       set
       {
@@ -860,7 +879,7 @@ namespace Xceed.Document.NET
       get
       {
         IsListItemBacker = IsListItemBacker ?? ( ParagraphNumberProperties != null );
-        return (bool)IsListItemBacker;
+        return ( bool )IsListItemBacker;
       }
     }
 
@@ -1339,7 +1358,7 @@ namespace Xceed.Document.NET
         Xml.AddFirst( h.Xml );
 
         // Extract the picture back out of the DOM.
-        h_xml = (XElement)Xml.FirstNode;
+        h_xml = ( XElement )Xml.FirstNode;
       }
       else
       {
@@ -1352,7 +1371,7 @@ namespace Xceed.Document.NET
           Xml.Add( h.Xml );
 
           // Extract the picture back out of the DOM.
-          h_xml = (XElement)Xml.LastNode;
+          h_xml = ( XElement )Xml.LastNode;
         }
         else
         {
@@ -1362,16 +1381,16 @@ namespace Xceed.Document.NET
           // Replace the origional run.
           run.Xml.ReplaceWith
           (
-              splitRun[ 0 ],
+              splitRun[0],
               h.Xml,
-              splitRun[ 1 ]
+              splitRun[1]
           );
 
           // Get the first run effected by this Insert
           run = GetFirstRunEffectedByEdit( index );
 
           // The picture has to be the next element, extract it back out of the DOM.
-          h_xml = (XElement)run.Xml.NextNode;
+          h_xml = ( XElement )run.Xml.NextNode;
         }
       }
 
@@ -1583,7 +1602,7 @@ namespace Xceed.Document.NET
         List<XElement> temp = new List<XElement>();
         for( int i = 0; i < elements.Count(); i++ )
         {
-          XElement e = elements[ i ];
+          XElement e = elements[i];
 
           if( e.Name.LocalName != "del" )
           {
@@ -1905,6 +1924,7 @@ namespace Xceed.Document.NET
       // Timestamp to mark the start of insert
       var now = DateTime.Now;
       var insert_datetime = new DateTime( now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc );
+      var reCalculateIds = false;
 
       // Get the first run effected by this Insert
       var run = this.GetFirstRunEffectedByEdit( index );
@@ -1916,6 +1936,7 @@ namespace Xceed.Document.NET
         if( trackChanges )
         {
           insert = CreateEdit( EditType.ins, insert_datetime, insert );
+          reCalculateIds = true;
         }
         this.Xml.Add( insert );
       }
@@ -1990,6 +2011,7 @@ namespace Xceed.Document.NET
               if( trackChanges )
               {
                 insert = CreateEdit( EditType.ins, insert_datetime, newRuns );
+                reCalculateIds = true;
               }
 
               // Split this Edit at the point you want to insert
@@ -1998,9 +2020,9 @@ namespace Xceed.Document.NET
               // Replace the origional run
               parentElement.ReplaceWith
               (
-                  splitEdit[ 0 ],
+                  splitEdit[0],
                   insert,
-                  splitEdit[ 1 ]
+                  splitEdit[1]
               );
 
               break;
@@ -2012,6 +2034,7 @@ namespace Xceed.Document.NET
               if( trackChanges && !parentElement.Name.LocalName.Equals( "ins" ) )
               {
                 insert = CreateEdit( EditType.ins, insert_datetime, newRuns );
+                reCalculateIds = true;
               }
               // Split this run at the point you want to insert
               var splitRun = Run.SplitRun( run, index );
@@ -2019,9 +2042,9 @@ namespace Xceed.Document.NET
               // Replace the origional run
               run.Xml.ReplaceWith
               (
-                  splitRun[ 0 ],
+                  splitRun[0],
                   insert,
-                  splitRun[ 1 ]
+                  splitRun[1]
               );
 
               break;
@@ -2031,7 +2054,10 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
-      HelperFunctions.RenumberIDs( Document );
+      if( reCalculateIds )
+      {
+        HelperFunctions.RenumberIDs( Document );
+      }
     }
 
     /// <summary>
@@ -2330,6 +2356,25 @@ namespace Xceed.Document.NET
 
 
 
+
+
+
+
+
+
+
+
+    public Paragraph AppendNote( Note note, Formatting noteNumberFormatting = null )
+    {
+      if( note != null )
+      {
+        // Append the note to the paragraph and format the number in the paragraph.
+        this.Xml.Add( note.CreateReferenceRun( noteNumberFormatting ) );
+      }
+
+      return this;
+    }
+
     public Paragraph NextParagraph
     {
       get
@@ -2376,7 +2421,8 @@ namespace Xceed.Document.NET
         case Alignment.right:
           alignString = "right";
           break;
-        default: alignString = "center";
+        default:
+          alignString = "center";
           break;
       }
 
@@ -2500,14 +2546,14 @@ namespace Xceed.Document.NET
           firstRun.AddBeforeSelf( p.Xml );
 
           // Extract the picture back out of the DOM.
-          p_xml = (XElement)firstRun.PreviousNode;
+          p_xml = ( XElement )firstRun.PreviousNode;
         }
         else
         {
           Xml.AddFirst( p.Xml );
 
           // Extract the picture back out of the DOM.
-          p_xml = (XElement)Xml.FirstNode;
+          p_xml = ( XElement )Xml.FirstNode;
         }
       }
       else
@@ -2520,7 +2566,7 @@ namespace Xceed.Document.NET
           Xml.Add( p.Xml );
 
           // Extract the picture back out of the DOM.
-          p_xml = (XElement)Xml.LastNode;
+          p_xml = ( XElement )Xml.LastNode;
         }
         else
         {
@@ -2528,13 +2574,13 @@ namespace Xceed.Document.NET
           var splitRun = Run.SplitRun( run, index );
 
           // Replace the origional run.
-          run.Xml.ReplaceWith( splitRun[ 0 ], p.Xml, splitRun[ 1 ] );
+          run.Xml.ReplaceWith( splitRun[0], p.Xml, splitRun[1] );
 
           // Get the first run effected by this Insert
           run = GetFirstRunEffectedByEdit( index );
 
           // The picture has to be the next element, extract it back out of the DOM.
-          p_xml = (XElement)run.Xml.NextNode;
+          p_xml = ( XElement )run.Xml.NextNode;
         }
       }
 
@@ -2558,8 +2604,9 @@ namespace Xceed.Document.NET
     /// <param name="alignment">Specifies the alignment of the Tab stop.</param>
     /// <param name="position">Specifies the horizontal position of the tab stop.</param>
     /// <param name="leader">Specifies the character used to fill in the space created by a tab.</param>
+    /// <param name="index">The TabStopPosition index to insert at.</param>
     /// <returns>The modified Paragraph.</returns>
-    public Paragraph InsertTabStopPosition( Alignment alignment, float position, TabStopPositionLeader leader = TabStopPositionLeader.none )
+    public Paragraph InsertTabStopPosition( Alignment alignment, float position, TabStopPositionLeader leader = TabStopPositionLeader.none, int index = -1 )
     {
       var pPr = GetOrCreate_pPr();
       var tabs = pPr.Element( XName.Get( "tabs", Document.w.NamespaceName ) );
@@ -2614,7 +2661,15 @@ namespace Xceed.Document.NET
       }
       newTab.SetAttributeValue( XName.Get( "leader", Document.w.NamespaceName ), leaderString );
 
-      tabs.Add( newTab );
+      var tabsList = tabs.Elements().ToList();
+      if( (index >= 0) && (index < tabsList.Count()) )
+      {
+        tabsList[index].AddBeforeSelf( newTab );
+      }
+      else
+      {
+        tabs.Add( newTab );
+      }
       return this;
     }
 
@@ -2821,8 +2876,8 @@ namespace Xceed.Document.NET
     /// </example>
     public Paragraph FontSize( double fontSize )
     {
-      double tempSize = (int)fontSize * 2;
-      if( tempSize - (int)tempSize == 0 )
+      double tempSize = ( int )fontSize * 2;
+      if( tempSize - ( int )tempSize == 0 )
       {
         if( !( fontSize > 0 && fontSize < 1639 ) )
           throw new ArgumentException( "Size", "Value must be in the range 0 - 1638" );
@@ -3226,7 +3281,7 @@ namespace Xceed.Document.NET
     {
       spacing *= 20;
 
-      if( spacing - (int)spacing == 0 )
+      if( spacing - ( int )spacing == 0 )
       {
         if( !( spacing > -1585 && spacing < 1585 ) )
           throw new ArgumentException( "Spacing", "Value must be in the range: -1584 - 1584" );
@@ -3505,6 +3560,7 @@ namespace Xceed.Document.NET
 
       // The number of characters processed so far
       int processed = 0;
+      var reCalculateIds = false;
 
       do
       {
@@ -3521,16 +3577,17 @@ namespace Xceed.Document.NET
               var min = Math.Min( count - processed, run.Xml.ElementsAfterSelf().Sum( e => GetElementTextLength( e ) ) );
               var splitEditAfter = this.SplitEdit( parentElement, index + min, EditType.del );
 
-              var temp = this.SplitEdit( splitEditBefore[ 1 ], index + min, EditType.del )[ 1 ];
+              var temp = this.SplitEdit( splitEditBefore[1], index + min, EditType.del )[1];
               var middle = Paragraph.CreateEdit( EditType.del, remove_datetime, temp.Elements() );
               processed += Paragraph.GetElementTextLength( middle as XElement );
+              reCalculateIds = true;
 
               if( !trackChanges )
               {
                 middle = null;
               }
 
-              parentElement.ReplaceWith( splitEditBefore[ 0 ], middle, splitEditAfter[ 0 ] );
+              parentElement.ReplaceWith( splitEditBefore[0], middle, splitEditAfter[0] );
 
               processed += Paragraph.GetElementTextLength( middle as XElement );
               break;
@@ -3558,15 +3615,16 @@ namespace Xceed.Document.NET
                 var min = Math.Min( index + ( count - processed ), run.EndIndex );
                 var splitRunAfter = Run.SplitRun( run, min, EditType.del );
 
-                var middle = Paragraph.CreateEdit( EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun( new Run( Document, splitRunBefore[ 1 ], run.StartIndex + GetElementTextLength( splitRunBefore[ 0 ] ) ), min, EditType.del )[ 0 ] } );
+                var middle = Paragraph.CreateEdit( EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun( new Run( Document, splitRunBefore[1], run.StartIndex + GetElementTextLength( splitRunBefore[0] ) ), min, EditType.del )[0] } );
                 processed = processed + Paragraph.GetElementTextLength( middle as XElement );
+                reCalculateIds = true;
 
                 if( !trackChanges )
                 {
                   middle = null;
                 }
 
-                run.Xml.ReplaceWith( splitRunBefore[ 0 ], middle, splitRunAfter[ 1 ] );
+                run.Xml.ReplaceWith( splitRunBefore[0], middle, splitRunAfter[1] );
               }
               else
               {
@@ -3595,7 +3653,10 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
-      HelperFunctions.RenumberIDs( Document );
+      if( reCalculateIds )
+      {
+        HelperFunctions.RenumberIDs( Document );
+      }
     }
 
 
@@ -3747,13 +3808,13 @@ namespace Xceed.Document.NET
               int lastcap = 0;
               for( int k = 0; k < m.Groups.Count; k++ )
               {
-                var g = m.Groups[ k ];
+                var g = m.Groups[k];
                 if( ( g == null ) || ( g.Value == "" ) )
                   continue;
                 newValue = newValue.Replace( "$" + k.ToString(), g.Value );
                 lastcap = k;
               }
-              newValue = newValue.Replace( "$+", m.Groups[ lastcap ].Value );
+              newValue = newValue.Replace( "$+", m.Groups[lastcap].Value );
             }
             if( m.Index > 0 )
             {
@@ -3816,7 +3877,16 @@ namespace Xceed.Document.NET
         // Replace text when formatting matches.
         if( formattingMatch )
         {
-          var newValue = regexMatchHandler.Invoke( match.Groups[ 1 ].Value );
+          int lastcap = 0;
+          for( int k = 0; k < match.Groups.Count; k++ )
+          {
+            var g = match.Groups[k];
+            if( ( g == null ) || ( g.Value == "" ) )
+              continue;
+            lastcap = k;
+          }
+
+          var newValue = regexMatchHandler.Invoke( match.Groups[lastcap].Value );
           this.InsertText( match.Index + match.Value.Length, newValue, trackChanges, newFormatting );
           this.RemoveText( match.Index, match.Value.Length, trackChanges, removeEmptyParagraph );
         }
@@ -3882,15 +3952,15 @@ namespace Xceed.Document.NET
           {
             if( objectToAdd is Picture )
             {
-              this.InsertPicture( (Picture)objectToAdd, m.Index + m.Length );
+              this.InsertPicture( ( Picture )objectToAdd, m.Index + m.Length );
             }
             else if( objectToAdd is Hyperlink )
             {
-              this.InsertHyperlink( (Hyperlink)objectToAdd, m.Index + m.Length );
+              this.InsertHyperlink( ( Hyperlink )objectToAdd, m.Index + m.Length );
             }
             else if( objectToAdd is Table )
             {
-              this.InsertTableAfterSelf( (Table)objectToAdd );
+              this.InsertTableAfterSelf( ( Table )objectToAdd );
             }
             else
             {
@@ -4072,9 +4142,9 @@ namespace Xceed.Document.NET
         var splitEdit = SplitEdit( r.Xml, index, EditType.ins );
         r.Xml.ReplaceWith
         (
-            splitEdit[ 0 ],
+            splitEdit[0],
             fldSimple,
-            splitEdit[ 1 ]
+            splitEdit[1]
         );
       }
     }
@@ -4185,9 +4255,9 @@ namespace Xceed.Document.NET
         XElement[] splitEdit = SplitEdit( r.Xml, index, EditType.ins );
         r.Xml.ReplaceWith
         (
-            splitEdit[ 0 ],
+            splitEdit[0],
             fldSimple,
-            splitEdit[ 1 ]
+            splitEdit[1]
         );
       }
     }
@@ -4262,7 +4332,7 @@ namespace Xceed.Document.NET
       var spacingTypeAttribute = ( spacingType == LineSpacingType.Before )
                                  ? "before"
                                  : ( spacingType == LineSpacingType.After ) ? "after" : "line";
-      spacing.SetAttributeValue( XName.Get( spacingTypeAttribute, Document.w.NamespaceName ), ( int )( spacingFloat * 20f ) );
+      spacing.SetAttributeValue( XName.Get( spacingTypeAttribute, Document.w.NamespaceName ), (int)( spacingFloat * 20f ) );
     }
 
     /// <summary>
@@ -4369,7 +4439,7 @@ namespace Xceed.Document.NET
         {
           var bookmarkStart = this.Document.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
                                   .Where( x => x.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == id )
-                                  .FirstOrDefault();
+                                  .LastOrDefault();
 
           if( bookmarks != null )
           {
@@ -4417,7 +4487,6 @@ namespace Xceed.Document.NET
         var run = HelperFunctions.FormatInput( toInsert, ( formatting != null ) ? formatting.Xml : null );
         refPosition.AddBeforeSelf( run );
         _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
-        HelperFunctions.RenumberIDs( Document );
       }
     }
 
@@ -4441,14 +4510,14 @@ namespace Xceed.Document.NET
       {
         var bookmarkEnds = this.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) );
         if( bookmarkEnds.Count() > 1 )
-          throw new InvalidDataException("Unsupported exception: Paragraph do not contains the expected bookmarkStart and contains more than 1 bookmarkEnd.");
+          throw new InvalidDataException( "Unsupported exception: Paragraph do not contains the expected bookmarkStart and contains more than 1 bookmarkEnd." );
         if( bookmarkEnds.Count() == 0 )
           throw new InvalidDataException( "Unsupported exception: Paragraph do not contains a bookmarkStart or a bookmarkEnd." );
 
         bookmarkStartId = bookmarkEnds.First().Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value;
         nextNode = this.Xml.Element( XName.Get( "r", Document.w.NamespaceName ) );
         bookmarkStart = this.Xml.Element( XName.Get( "pPr", Document.w.NamespaceName ) );
-      }      
+      }
 
       XElement nextXElement = null;
       while( nextNode != null )
@@ -4530,7 +4599,16 @@ namespace Xceed.Document.NET
       var bookmarkEndXml = this.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) )
                                   .Where( x => x.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == bookmarkStartId )
                                   .FirstOrDefault();
-      Debug.Assert( bookmarkEndXml != null, "Can't find bookmark end.");
+      // bookmarkEnd is not part of this paragraph, look for it in Document.
+      if( bookmarkEndXml == null )
+      {
+        bookmarkEndXml = this.Document.Xml.Descendants( XName.Get( "bookmarkEnd", Document.w.NamespaceName ) )
+                                  .Where( x => x.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == bookmarkStartId )
+                                  .FirstOrDefault();
+      }
+
+      if( bookmarkEndXml == null )
+        return;
 
       bookmarkStartXml.Remove();
       bookmarkEndXml.Remove();
@@ -4580,7 +4658,7 @@ namespace Xceed.Document.NET
       }
 
       return this;
-    }   
+    }
 
     [Obsolete( "Instead use : InsertHorizontalLine( HorizontalBorderPosition position, BorderStyle borderStyle, int size, int space, Color? color )" )]
     public void InsertHorizontalLine( HorizontalBorderPosition position = HorizontalBorderPosition.bottom, string lineType = "single", int size = 6, int space = 1, string color = "auto" )
@@ -4777,6 +4855,16 @@ namespace Xceed.Document.NET
       return ind;
     }
 
+    internal int GetTabStopPositionsCount()
+    {
+      var pPr = this.GetOrCreate_pPr();
+      var tabs = pPr.Element( XName.Get( "tabs", Document.w.NamespaceName ) );
+      if( tabs == null )
+        return 0;
+
+      return tabs.Elements().Count();
+    }
+
     internal void RemoveHyperlinkRecursive( XElement xml, int index, ref int count, ref bool found )
     {
       if( xml.Name.LocalName.Equals( "hyperlink", StringComparison.CurrentCultureIgnoreCase ) )
@@ -4828,8 +4916,8 @@ namespace Xceed.Document.NET
           // ooxml uses image size in EMU : 
           // image in inches(in) is : pt / 72
           // image in EMU is : in * 914400
-          cx = Convert.ToInt64( img.Width * (72f / img.HorizontalResolution)  * Picture.EmusInPixel);
-          cy = Convert.ToInt64( img.Height * (72f / img.VerticalResolution) * Picture.EmusInPixel);
+          cx = Convert.ToInt64( img.Width * ( 72f / img.HorizontalResolution ) * Picture.EmusInPixel );
+          cy = Convert.ToInt64( img.Height * ( 72f / img.VerticalResolution ) * Picture.EmusInPixel );
         }
       }
 
@@ -4837,17 +4925,9 @@ namespace Xceed.Document.NET
       ( string.Format( @"
         <w:r xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
             <w:drawing xmlns = ""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
-                <wp:inline distT=""0"" distB=""0"" distL=""0"" distR=""0"" simplePos=""0"" relativeHeight=""0"" behindDoc=""0"" locked=""0"" layoutInCell=""1"" allowOverlap=""1"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"">
-                    <wp:simplePos x=""0"" y=""0"" />
-                    <wp:positionH relativeFrom=""margin"" >
-                      <wp:align>left</wp:align>
-                    </wp:positionH>
-                    <wp:positionV relativeFrom=""margin"" >
-                      <wp:align>top</wp:align>
-                    </wp:positionV>
+                <wp:inline distT=""0"" distB=""0"" distL=""0"" distR=""0"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"">
                     <wp:extent cx=""{0}"" cy=""{1}"" />
                     <wp:effectExtent l=""0"" t=""0"" r=""0"" b=""0"" />
-                    <wp:wrapNone />
                     <wp:docPr id=""{5}"" name=""{3}"" descr=""{4}"" />
                     <wp:cNvGraphicFramePr>
                         <a:graphicFrameLocks xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" noChangeAspect=""1"" />
@@ -4905,7 +4985,7 @@ namespace Xceed.Document.NET
     {
       if( t == EditType.del )
       {
-        foreach( object o in (IEnumerable<XElement>)content )
+        foreach( object o in ( IEnumerable<XElement> )content )
         {
           if( o is XElement )
           {
@@ -5053,11 +5133,11 @@ namespace Xceed.Document.NET
 
       XElement[] splitRun = Run.SplitRun( run, index, type );
 
-      XElement splitLeft = new XElement( edit.Name, edit.Attributes(), run.Xml.ElementsBeforeSelf(), splitRun[ 0 ] );
+      XElement splitLeft = new XElement( edit.Name, edit.Attributes(), run.Xml.ElementsBeforeSelf(), splitRun[0] );
       if( GetElementTextLength( splitLeft ) == 0 )
         splitLeft = null;
 
-      XElement splitRight = new XElement( edit.Name, edit.Attributes(), splitRun[ 1 ], run.Xml.ElementsAfterSelf() );
+      XElement splitRight = new XElement( edit.Name, edit.Attributes(), splitRun[1], run.Xml.ElementsAfterSelf() );
       if( GetElementTextLength( splitRight ) == 0 )
         splitRight = null;
 
@@ -5077,8 +5157,10 @@ namespace Xceed.Document.NET
 
       // Search for a relationship with a TargetUri that points at this Image.
       string id = null;
-      foreach( var r in this.PackagePart.GetRelationshipsByType( Document.RelationshipImage ) )
+      var imageRelationships = this.PackagePart.GetRelationshipsByType( Document.RelationshipImage );
+      for( int i = imageRelationships.Count() - 1; i >= 0; --i )
       {
+        var r = imageRelationships.ElementAt( i );
         if( string.Equals( r.TargetUri.OriginalString, image_uri_string, StringComparison.Ordinal ) )
         {
           id = r.Id;
@@ -5147,13 +5229,13 @@ namespace Xceed.Document.NET
         if( content as XAttribute != null )
         {
           // Add or Update the attribute to the last element
-          if( lastElement.Attribute( ( (XAttribute)( content ) ).Name ) == null )
+          if( lastElement.Attribute( ( ( XAttribute )( content ) ).Name ) == null )
           {
             lastElement.Add( content );
           }
           else
           {
-            lastElement.Attribute( ( (XAttribute)( content ) ).Name ).Value = ( (XAttribute)( content ) ).Value;
+            lastElement.Attribute( ( ( XAttribute )( content ) ).Name ).Value = ( ( XAttribute )( content ) ).Value;
           }
         }
         return;
@@ -5185,13 +5267,13 @@ namespace Xceed.Document.NET
         {
           foreach( object property in fontProperties )
           {
-            if( last.Attribute( ( (XAttribute)( property ) ).Name ) == null )
+            if( last.Attribute( ( ( XAttribute )( property ) ).Name ) == null )
             {
               last.Add( property );
             }
             else
             {
-              last.Attribute( ( (XAttribute)( property ) ).Name ).Value = ( (XAttribute)( property ) ).Value;
+              last.Attribute( ( ( XAttribute )( property ) ).Name ).Value = ( ( XAttribute )( property ) ).Value;
             }
           }
         }
@@ -5199,13 +5281,13 @@ namespace Xceed.Document.NET
 
         if( content as XAttribute != null )//If content is an attribute
         {
-          if( last.Attribute( ( (XAttribute)( content ) ).Name ) == null )
+          if( last.Attribute( ( ( XAttribute )( content ) ).Name ) == null )
           {
             last.Add( content ); //Add this attribute if element doesn't have it
           }
           else
           {
-            last.Attribute( ( (XAttribute)( content ) ).Name ).Value = ( (XAttribute)( content ) ).Value; //Apply value only if element already has it
+            last.Attribute( ( ( XAttribute )( content ) ).Name ).Value = ( ( XAttribute )( content ) ).Value; //Apply value only if element already has it
           }
         }
         else
@@ -5243,7 +5325,7 @@ namespace Xceed.Document.NET
         var lineRule = spacing.Attribute( XName.Get( "lineRule", Document.w.NamespaceName ) );
         if( lineRule != null )
         {
-          return ( (lineRule.Value == "exact") || ( lineRule.Value == "atLeast" ) );
+          return ( ( lineRule.Value == "exact" ) || ( lineRule.Value == "atLeast" ) );
         }
       }
 
@@ -5310,10 +5392,58 @@ namespace Xceed.Document.NET
         if( ( sdt != null ) && ( sdt.Name == XName.Get( "sdt", Document.w.NamespaceName ) ) )
         {
           return ( sdt.Descendants( XName.Get( "docPartGallery", Document.w.NamespaceName ) )
-                     .FirstOrDefault( x => x.Attribute( XName.Get( "val", Document.w.NamespaceName ) ).Value == "Table of Contents" ) != null );
+                      .FirstOrDefault( x => x.Attribute( XName.Get( "val", Document.w.NamespaceName ) ).Value == "Table of Contents" ) != null );
         }
       }
       return false;
+    }
+
+    internal bool IsInTOCVisible()
+    {
+      if( this.IsInTOC() )
+      {
+        var sdtContent = this.Xml.Parent;
+        if( ( sdtContent != null ) && ( sdtContent.Name == XName.Get( "sdtContent", Document.w.NamespaceName ) ) )
+        {
+          if( this.StyleId.StartsWith( "TOC" ) )
+          {
+            var styleDigit = this.StyleId.Where( c => char.IsDigit( c ) );
+            // TOCHeading
+            if( styleDigit.Count() <= 0 )
+              return true;
+
+            var sdt = sdtContent.Parent;
+            if( ( sdt != null ) && ( sdt.Name == XName.Get( "sdt", Document.w.NamespaceName ) ) )
+            {
+              var tocSwitches = sdt.Descendants( XName.Get( "instrText", Document.w.NamespaceName ) ).FirstOrDefault( instrText => instrText.Value.Contains( "TOC" ) );
+              if( tocSwitches != null )
+              {
+                var includedHeadingStylesIndex = tocSwitches.Value.IndexOf( "o" );
+                if( includedHeadingStylesIndex >= 0 )
+                {
+                  var bound1 = tocSwitches.Value.IndexOf( "\"", includedHeadingStylesIndex ) + 1;
+                  var bound2 = tocSwitches.Value.IndexOf( "\"", bound1 );
+                  var includedHeadingStyles = tocSwitches.Value.Substring( bound1, bound2 - bound1 );
+
+                  var maxStyle = int.Parse( includedHeadingStyles[includedHeadingStyles.Length - 1].ToString() );
+                  int counter = 1;
+                  var styleDigitValue = int.Parse( string.Concat( styleDigit ) );
+                  while( counter <= maxStyle )
+                  {
+                    if( styleDigitValue == counter )
+                      return true;
+                    ++counter;
+                  }
+
+                  return false;
+                }
+              }
+            }
+          }
+        } 
+      }
+
+      return true;
     }
 
     internal List<XElement> GetSdtContentRuns()
@@ -5345,7 +5475,7 @@ namespace Xceed.Document.NET
 
     internal bool IsInSdt()
     {
-      return (this.GetParentSdt() != null);
+      return ( this.GetParentSdt() != null );
     }
 
     internal XElement GetParentSdt()
@@ -5430,11 +5560,14 @@ namespace Xceed.Document.NET
 
     private void RebuildDocProperties()
     {
-      docProperties =
-      (
-          from xml in Xml.Descendants( XName.Get( "fldSimple", Document.w.NamespaceName ) )
-          select new DocProperty( Document, xml )
-      ).ToList();
+      if( this.Xml != null )
+      {
+        docProperties =
+        (
+            from xml in Xml.Descendants( XName.Get( "fldSimple", Document.w.NamespaceName ) )
+            select new DocProperty( Document, xml )
+        ).ToList();
+      }
     }
 
     private XElement GetParagraphNumberProperties()
@@ -5485,15 +5618,16 @@ namespace Xceed.Document.NET
        (
            from p in Xml.Descendants()
            where ( p.Name.LocalName == localName )
-           let id =
+           let ids =
            (
                from e in p.Descendants()
                where e.Name.LocalName.Equals( localNameEquals )
                select e.Attribute( XName.Get( attributeName, "http://schemas.openxmlformats.org/officeDocument/2006/relationships" ) ).Value
-           ).SingleOrDefault()
-           where id != null
-           let img = new Image( this.Document, this.PackagePart.GetRelationship( id ) )
-           select new Picture( this.Document, p, img ) { PackagePart = this.PackagePart }
+           )
+           where (ids != null) && (ids.Count() > 0)
+           from id in ids
+           select new Picture( this.Document, p, new Image( this.Document, this.PackagePart.GetRelationship( id ) ) ) { PackagePart = this.PackagePart }
+
        ).ToList();
 
       return pictures;
@@ -5517,14 +5651,14 @@ namespace Xceed.Document.NET
 
 
 
+
+
     private void ReplaceAtBookmark_Core( string text, XElement bookmark, Formatting formatting = null )
     {
-      var xElementList = HelperFunctions.FormatInput( text, (formatting != null) ? formatting.Xml : null );
+      var xElementList = HelperFunctions.FormatInput( text, ( formatting != null ) ? formatting.Xml : null );
       bookmark.AddAfterSelf( xElementList );
 
       _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
-
-      HelperFunctions.RenumberIDs( this.Document );
     }
 
     private void AddParagraphStyleIfNotPresent( string wantedParagraphStyleId )
@@ -5543,7 +5677,7 @@ namespace Xceed.Document.NET
       }
 
       // Check if this Paragraph StyleName exists in _styles.
-      var paragraphStyleExist = HelperFunctions.GetParagraphStyleFromStyleId( this.Document, wantedParagraphStyleId ) != null;     
+      var paragraphStyleExist = HelperFunctions.GetParagraphStyleFromStyleId( this.Document, wantedParagraphStyleId ) != null;
 
       // This Paragraph StyleId doesn't exists in _styles, add it.
       if( !paragraphStyleExist )
@@ -5723,11 +5857,11 @@ namespace Xceed.Document.NET
       Text t = r.GetFirstTextEffectedByEdit( index, type );
       XElement[] splitText = Text.SplitText( t, index );
 
-      XElement splitLeft = new XElement( r.Xml.Name, r.Xml.Attributes(), r.Xml.Element( XName.Get( "rPr", Document.w.NamespaceName ) ), t.Xml.ElementsBeforeSelf().Where( n => n.Name.LocalName != "rPr" ), splitText[ 0 ] );
+      XElement splitLeft = new XElement( r.Xml.Name, r.Xml.Attributes(), r.Xml.Element( XName.Get( "rPr", Document.w.NamespaceName ) ), t.Xml.ElementsBeforeSelf().Where( n => n.Name.LocalName != "rPr" ), splitText[0] );
       if( Paragraph.GetElementTextLength( splitLeft ) == 0 )
         splitLeft = null;
 
-      XElement splitRight = new XElement( r.Xml.Name, r.Xml.Attributes(), r.Xml.Element( XName.Get( "rPr", Document.w.NamespaceName ) ), splitText[ 1 ], t.Xml.ElementsAfterSelf().Where( n => n.Name.LocalName != "rPr" ) );
+      XElement splitRight = new XElement( r.Xml.Name, r.Xml.Attributes(), r.Xml.Element( XName.Get( "rPr", Document.w.NamespaceName ) ), splitText[1], t.Xml.ElementsAfterSelf().Where( n => n.Name.LocalName != "rPr" ) );
       if( Paragraph.GetElementTextLength( splitRight ) == 0 )
         splitRight = null;
 

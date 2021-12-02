@@ -11,7 +11,11 @@ is only intended as a supplement to the documentation, and is provided
 *************************************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Drawing;
 using System.IO;
+using System.Linq;
 using Xceed.Document.NET;
 
 namespace Xceed.Words.NET.Examples
@@ -59,16 +63,15 @@ namespace Xceed.Words.NET.Examples
         document.AddListItem( numberedList, "Blueberries", 1 );
         document.AddListItem( numberedList, "Raspberries", 1 );
         // Add an item (level 0)
-        document.AddListItem( numberedList, "Banana" );
+        document.AddListItem( numberedList, "Banana", 0 );
         // Add an item (level 0)
-        document.AddListItem( numberedList, "Apple" );
+        document.AddListItem( numberedList, "Apple", 0 );
         // Add Sub-items(level 1) to the preceding ListItem.
         document.AddListItem( numberedList, "Red", 1 );
         document.AddListItem( numberedList, "Green", 1 );
         document.AddListItem( numberedList, "Yellow", 1 );
-
         // Add a bulleted list with its first item.
-        var bulletedList = document.AddList( "Canada", 0, ListItemType.Bulleted);
+        var bulletedList = document.AddList( "Canada", 0, ListItemType.Bulleted );
         // Add Sub-items(level 1) to the preceding ListItem.
         document.AddListItem( bulletedList, "Toronto", 1 );
         document.AddListItem( bulletedList, "Montreal", 1 );
@@ -87,17 +90,100 @@ namespace Xceed.Words.NET.Examples
         document.AddListItem( bulletedList, "France" );
         // Add Sub-items(level 1) to the preceding ListItem.
         document.AddListItem( bulletedList, "Paris", 1 );
-
         // Insert the lists into the document.
         document.InsertParagraph( "This is a Numbered List:\n" );
         document.InsertList( numberedList );
         document.InsertParagraph().SpacingAfter( 40d );
         document.InsertParagraph( "This is a Bulleted List:\n" );
-        document.InsertList( bulletedList, new Xceed.Document.NET.Font( "Cooper Black"), 15 );
+        document.InsertList( bulletedList, new Xceed.Document.NET.Font( "Cooper Black" ), 15 );
 
         document.Save();
         Console.WriteLine( "\tCreated: AddList.docx\n" );
       }
+    }
+
+    /// <summary>
+    /// Create a custom numbered list with different listItem's levels, items and numbering formatting.
+    /// </summary>
+    public static void AddCustomNumberedList()
+    {
+
+
+
+
+
+
+
+
+
+        // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    /// <summary>
+    /// Create a custom bulleted lists with different listItem's levels, items and numbering formatting.
+    /// </summary>
+    public static void AddCustomBulletedList()
+    {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    /// <summary>
+    /// Create a chapter numbered list with different listItem's levels, items and numbering formatting.
+    /// </summary>
+    public static void AddChapterList()
+    {
+
+
+
+
+
+
+        // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+
+    /// <summary>
+    /// Changing document list numbering type and levels configurations.
+    /// </summary>
+    public static void ModifyList()
+    {
+
+
+
+
+
+
+
+
+
+
+        // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     /// <summary>
@@ -108,9 +194,13 @@ namespace Xceed.Words.NET.Examples
 
 
 
-      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+            // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     #endregion
   }
+
+
+
+
 }

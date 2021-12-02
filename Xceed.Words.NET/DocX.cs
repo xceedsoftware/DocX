@@ -19,8 +19,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
+#if NETFRAMEWORK
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
+using Microsoft.Win32;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Xml;
+#endif
 using System.Xml.Linq;
 using Xceed.Document.NET;
 
@@ -252,6 +258,52 @@ namespace Xceed.Words.NET
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     #endregion
 
     #region Overrides
@@ -306,7 +358,7 @@ namespace Xceed.Words.NET
     /// -->
     public override void Save( string password = "" )
     {
-      ValidatePasswordProtection( password );
+
 
       if( this.IsPackageClosed( _package ) )
       {
@@ -316,18 +368,20 @@ namespace Xceed.Words.NET
         return;
       }
 
-      // Save the main document
-      using( TextWriter tw = new StreamWriter( new PackagePartStream( this.PackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-      {
-        _mainDoc.Save( tw, SaveOptions.None );
-      }
-
       if( ( _settings == null ) )
       {
         using( TextReader textReader = new StreamReader( _settingsPart.GetStream() ) )
         {
           _settings = XDocument.Load( textReader );
         }
+      }
+
+      ValidatePasswordProtection( password );
+
+      // Save the main document
+      using( TextWriter tw = new StreamWriter( new PackagePartStream( this.PackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+      {
+        _mainDoc.Save( tw, SaveOptions.None );
       }
 
       // Save the header/footer content.
@@ -387,36 +441,11 @@ namespace Xceed.Words.NET
         }
       }
 
-      // Close the document so that it can be saved in .NETStandard.
+      // Close the document so that it can be saved in .NETStandard/NET5.
       _package.Close();
 
       #region Save this document back to a file or stream, that was specified by the user at save time.
-      if( _filename != null )
-      {
-        var saveFileName = _filename.EndsWith( ".docx" ) || _filename.EndsWith( ".doc" ) ? _filename : _filename + ".docx";
-        using( FileStream fs = new FileStream( saveFileName, FileMode.Create ) )
-        {
-          if( _memoryStream.CanSeek )
-          {
-            // Write to the beginning of the stream
-            _memoryStream.Position = 0;
-            HelperFunctions.CopyStream( _memoryStream, fs );
-          }
-          else
-            fs.Write( _memoryStream.ToArray(), 0, ( int )_memoryStream.Length );
-        }
-      }
-      else if( _stream.CanSeek )  //Check if stream can be seeked to support System.Web.HttpResponseStream.
-      {
-        // Set the length of this stream to 0
-        _stream.SetLength( 0 );
-
-        // Write to the beginning of the stream
-        _stream.Position = 0;
-
-        _memoryStream.WriteTo( _stream );
-        _memoryStream.Flush();
-      }
+      this.WriteToFileOrStream();
       #endregion
     }
 
@@ -446,6 +475,18 @@ namespace Xceed.Words.NET
         return this;
       }
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
     #endregion
 
@@ -583,7 +624,7 @@ namespace Xceed.Words.NET
         if( this.IsPasswordProtected )
         {
           if( _settings == null )
-            throw new NullReferenceException();   
+            throw new NullReferenceException();
 
           var documentProtection = _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).FirstOrDefault();
 
@@ -609,6 +650,93 @@ namespace Xceed.Words.NET
     #endregion
 
     #region Private Method
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private void WriteToFileOrStream()
+    {
+      if( _filename != null )
+      {
+        var saveFileName = _filename.EndsWith( ".docx" ) || _filename.EndsWith( ".doc" ) ? _filename : _filename + ".docx";
+        using( var fs = new FileStream( saveFileName, FileMode.Create ) )
+        {
+          if( _memoryStream.CanSeek )
+          {
+            // Write to the beginning of the stream
+            _memoryStream.Position = 0;
+            HelperFunctions.CopyStream( _memoryStream, fs );
+          }
+          else
+            fs.Write( _memoryStream.ToArray(), 0, (int)_memoryStream.Length );
+        }
+      }
+      else if( _stream.CanSeek )  //Check if stream can be seeked to support System.Web.HttpResponseStream.
+      {
+        // Set the length of this stream to 0
+        _stream.SetLength( 0 );
+
+        // Write to the beginning of the stream
+        _stream.Position = 0;
+
+        _memoryStream.WriteTo( _stream );
+        _memoryStream.Flush();
+      }
+    }
 
     private bool IsPackageClosed( Package package )
     {

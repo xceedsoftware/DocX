@@ -112,6 +112,38 @@ namespace Xceed.Words.NET.Examples
     }
 
     /// <summary>
+    /// Create a document with styled paragraphs. The styles are already defined in a template document.
+    /// </summary>
+    public static void StyleParagraphs()
+    {
+      Console.WriteLine("\tStyleParagraphs()");
+
+      // Load a template document.
+      using ( var templateDoc = DocX.Load( ParagraphSample.ParagraphSampleResourcesDirectory + @"TemplateStyledParagraph.docx" ) )
+      {
+        // Retrieve the wanted styles from templateDoc.
+        var styleId1 = DocX.GetParagraphStyleIdFromStyleName(templateDoc, "Heading 1");  // styleName must match the style name from templateDoc.
+        var styleId2 = DocX.GetParagraphStyleIdFromStyleName(templateDoc, "CustomStyle");// styleName must match the style name from templateDoc.
+
+        // Insert a paragraph with the Heading 1 style.
+        var p = templateDoc.InsertParagraph();
+        p.InsertText("This paragraph is using an Heading 1 style.");
+        p.StyleId = styleId1;
+        p.AppendLine();
+
+        // Insert a paragraph with the CustomStyle style.
+        var p2 = templateDoc.InsertParagraph();
+        p2.InsertText("This paragraph is using a custom style.");
+        p2.StyleId = styleId2;
+
+        // Save the updated document as StyleParagraphs.docx.
+        templateDoc.SaveAs( ParagraphSample.ParagraphSampleOutputDirectory + @"StyleParagraphs.docx" );
+
+        Console.WriteLine("\tStyleParagraphs.docx\n");
+      }
+    }
+
+    /// <summary>
     /// Create a document and add a paragraph with all its lines on a single page.
     /// </summary>
     public static void ForceParagraphOnSinglePage()

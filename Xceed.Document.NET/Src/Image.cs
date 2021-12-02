@@ -134,6 +134,19 @@ namespace Xceed.Document.NET
       return Paragraph.CreatePicture( _document, _id, string.Empty, string.Empty, width, height );
     }
 
+    public void Remove()
+    {
+      if( _pr.Package != null )
+      {
+        _pr.Package.DeletePart( _pr.TargetUri );
+      }
+
+      if( _document.PackagePart != null )
+      {
+        _document.PackagePart.DeleteRelationship( _id );
+      }
+    }
+
     #endregion
   }
 }

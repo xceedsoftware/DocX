@@ -182,22 +182,23 @@ namespace Xceed.Document.NET
 
     public virtual Paragraph InsertParagraphBeforeSelf( Paragraph p )
     {
-      Xml.AddBeforeSelf( p.Xml );
-      XElement newlyInserted = Xml.ElementsBeforeSelf().First();
+      this.Xml.AddBeforeSelf( p.Xml );
+      var newlyInserted = this.Xml.ElementsBeforeSelf().Last();
+
+      if( this as Paragraph != null )
+        return new Paragraph( this.Document, newlyInserted, ( this as Paragraph )._endIndex );
 
       p.Xml = newlyInserted;
-
       return p;
     }
 
     public virtual Paragraph InsertParagraphAfterSelf( Paragraph p )
     {
-      Xml.AddAfterSelf( p.Xml );
-      XElement newlyInserted = Xml.ElementsAfterSelf().First();
+      this.Xml.AddAfterSelf( p.Xml );
+      var newlyInserted = this.Xml.ElementsAfterSelf().First();
 
-      //Dmitchern
       if( this as Paragraph != null )
-        return new Paragraph( Document, newlyInserted, ( this as Paragraph )._endIndex );
+        return new Paragraph( this.Document, newlyInserted, ( this as Paragraph )._endIndex );
 
       p.Xml = newlyInserted; //IMPORTANT: I think we have return new paragraph in any case, but I dont know what to put as startIndex parameter into Paragraph constructor
       return p;

@@ -162,17 +162,24 @@ namespace Xceed.Document.NET
       {
         double? temp = value * 2;
 
-        if( temp - (int)temp == 0 )
+        // Accepting only whole number or half number.
+        if( temp - (int)temp != 0 )
         {
-          if( value > 0 && value < 1639 )
+          if( value.HasValue )
           {
-            _size = value;
+            value = Math.Round( value.Value );
           }
-          else
-            throw new ArgumentException( "Size", "Value must be in the range 0 - 1638" );
+        }
+
+        if( value == 0 )
+          return;
+
+        if( value > 0 && value < 1639 )
+        {
+          _size = value;
         }
         else
-          throw new ArgumentException( "Size", "Value must be either a whole or half number, examples: 32, 32.5" );
+          throw new ArgumentException( "Size", "Value must be in the range 0 - 1638" );
       }
     }
 

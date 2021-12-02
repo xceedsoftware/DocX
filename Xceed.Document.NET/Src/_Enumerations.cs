@@ -22,8 +22,8 @@ namespace Xceed.Document.NET
 
   public enum ListItemType
   {
-    Bulleted,
-    Numbered
+    Numbered,
+    Bulleted
   }
 
   public enum SectionBreakType
@@ -778,6 +778,19 @@ namespace Xceed.Document.NET
     underscore,
     hyphen
   }
+
+  public enum NoteNumberFormat
+  {
+    number,
+    lowerLetter,
+    upperLetter,
+    lowerRoman,
+    upperRoman,
+    chicago
+  }
+
+
+
 
 
 

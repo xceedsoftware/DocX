@@ -28,14 +28,14 @@ namespace Xceed.Words.NET.Examples
     private const string MiscellaneousSampleOutputDirectory = Program.SampleDirectory + @"Miscellaneous\Output\";
     private const string MiscellaneousSampleOutputMailMergeDirectory = MiscellaneousSample.MiscellaneousSampleOutputDirectory + @"MailMerge\";
 
-    private static List<Candidate> Canditates = new List<Candidate>() 
+    private static List<Candidate> Canditates = new List<Candidate>()
                                           {
                                             new Candidate() { ID = 153581, Name = "Michael Brown", Address = " 141 Robinson st, \n Pittsburgh PA, \n 25896" },
                                             new Candidate() { ID = 155285, Name = "Jennifer Cullen", Address = " 8685 Tulip rd, \n Newark NJ, \n 58236" },
                                             new Candidate() { ID = 159632, Name = "Stanley Wong", Address = " 12 Main st, \n Daisy town AK, \n 87452" },
                                             new Candidate() { ID = 161002, Name = "Julia McMorris", Address = " 323 Cummins av, \n Philadelphia PA, \n 25698" },
                                             new Candidate() { ID = 162558, Name = "Tommy McWire", Address = " 12009 Ocean st, \n Miami FL, \n 42512" },
-                                          }; 
+                                          };
 
     #endregion
 
@@ -80,7 +80,6 @@ namespace Xceed.Words.NET.Examples
         document.AddListItem( bulletsList, "2 teaspoons of baking powder" );
         document.AddListItem( bulletsList, "1⁄2 teaspoon of salt" );
         document.AddListItem( bulletsList, "1 teaspoon of vanilla essence" );
-
         // Create a table for text and the picture.
         var table = document.AddTable( 1, 2 );
         table.Design = TableDesign.LightListAccent3;
@@ -102,7 +101,7 @@ namespace Xceed.Words.NET.Examples
         var paragraph = document.InsertParagraph();
         paragraph.AppendLine();
         paragraph.AppendLine();
-        paragraph.AppendLine( "Ingredients" ).FontSize( 15 ).Bold().Color(Color.BlueViolet);
+        paragraph.AppendLine( "Ingredients" ).FontSize( 15 ).Bold().Color( Color.BlueViolet );
         document.InsertList( bulletsList );
         var paragraph2 = document.InsertParagraph();
         paragraph2.AppendLine();
@@ -169,15 +168,15 @@ namespace Xceed.Words.NET.Examples
         paragraph.InsertPageBreakAfterSelf();
 
         // Define Data in second page : a Bar Chart.
-        document.InsertParagraph("").SpacingAfter( 150d );
+        document.InsertParagraph( "" ).SpacingAfter( 150d );
         var barChart = new BarChart();
         var sales = CompanyData.CreateSales();
         var salesSeries = new Series( "Sales Per Month" );
         salesSeries.Color = Color.GreenYellow;
         salesSeries.Bind( sales, "Month", "Sales" );
-        barChart.AddSeries( salesSeries );        
+        barChart.AddSeries( salesSeries );
         document.InsertChart( barChart );
-        document.InsertParagraph("Sales were 11% greater in 2016 compared to 2015, with the usual drop during spring time.").SpacingBefore(35d).InsertPageBreakAfterSelf();
+        document.InsertParagraph( "Sales were 11% greater in 2016 compared to 2015, with the usual drop during spring time." ).SpacingBefore( 35d ).InsertPageBreakAfterSelf();
 
         // Define Data in third page : a Line Chart.
         document.InsertParagraph( "" ).SpacingAfter( 150d );
@@ -189,7 +188,7 @@ namespace Xceed.Words.NET.Examples
         document.InsertChart( lineChart );
         document.InsertParagraph( "The number of calls received was much lower in 2016 compared to 2015, by 31%. Winter is still the busiest time of year." ).SpacingBefore( 35d );
 
-       // Save this document to disk.
+        // Save this document to disk.
         document.Save();
         Console.WriteLine( "\tCreated: CompanyReport.docx\n" );
       }
@@ -316,7 +315,7 @@ namespace Xceed.Words.NET.Examples
       }
 
       // Calculate the total amount.
-      var amountStrings = detailsTable.Rows.Select( r => r.Cells.Last().Paragraphs.Last().Text.Remove(0,1) ).ToList();
+      var amountStrings = detailsTable.Rows.Select( r => r.Cells.Last().Paragraphs.Last().Text.Remove( 0, 1 ) ).ToList();
       amountStrings.RemoveAt( 0 ); // remove the header
       var totalAmount = amountStrings.Select( s => double.Parse( s, CultureInfo.InvariantCulture ) ).Sum();
 
