@@ -28,6 +28,7 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * Create formatted hyperlinks based on a referenced hyperlinks
 * Joining 2 documents gives the opportunity to choose the headers/footers of doc1, doc2 or both of them in the resulting document.
 * Automatic hyphenations and configurable hyphenations
+* Digital signatures can be added to documents in the .NET Framework environment
 
 ## What else do I need?
 
@@ -228,8 +229,13 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td></td>
 <td>YES</td>
 </tr>
-</tr>
+<tr>
 <td>Available on .net 5 for .net 5 applications</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Digital signatures in .NET Framework</td>
 <td></td>
 <td>YES</td>
 </tr>
