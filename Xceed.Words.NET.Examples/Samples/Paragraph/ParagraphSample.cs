@@ -57,7 +57,7 @@ namespace Xceed.Words.NET.Examples
       // Create a new document.
       using( var document = DocX.Create( ParagraphSample.ParagraphSampleOutputDirectory + @"SimpleFormattedParagraphs.docx" ) )
       {
-        document.SetDefaultFont( new Document.NET.Font( "Arial" ), 15d, Color.Green );
+        document.SetDefaultFont( new Xceed.Document.NET.Font( "Arial" ), 15d, Color.Green );
         document.PageBackground = Color.LightGray;
         document.PageBorders = new Borders( new Border( BorderStyle.Tcbs_double, BorderSize.five, 20f, Color.Blue ) );
 
