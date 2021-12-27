@@ -21,7 +21,7 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
-    private const string EquationSampleOutputDirectory = Program.SampleDirectory + @"Equation\Output\";
+    private static string EquationSampleOutputDirectory = Program.SampleDirectory + @"Equation\Output\";
 
     #endregion
 

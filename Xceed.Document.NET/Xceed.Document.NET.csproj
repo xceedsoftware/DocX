@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net40</TargetFrameworks>
+    <TargetFrameworks>net40;netstandard2.0</TargetFrameworks>
 
     <AssemblyTitle>Xceed Document for .NET</AssemblyTitle>
     <Description>This assembly implements the classes for Xceed Document for .NET.</Description>
@@ -27,7 +27,11 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\SignatureLine.emf" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="System.IO.Packaging" Version="6.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 </Project>

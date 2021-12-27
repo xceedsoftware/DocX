@@ -24,8 +24,8 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
-    private const string ImageSampleResourcesDirectory = Program.SampleDirectory + @"Image\Resources\";
-    private const string ImageSampleOutputDirectory = Program.SampleDirectory + @"Image\Output\";
+    private static string ImageSampleResourcesDirectory = Program.SampleDirectory + @"Image\Resources\";
+    private static string ImageSampleOutputDirectory = Program.SampleDirectory + @"Image\Output\";
 
     #endregion
 

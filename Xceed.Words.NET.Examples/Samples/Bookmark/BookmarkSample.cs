@@ -21,8 +21,8 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
-    private const string BookmarkSampleResourcesDirectory = Program.SampleDirectory + @"Bookmark\Resources\";
-    private const string BookmarkSampleOutputDirectory = Program.SampleDirectory + @"Bookmark\Output\";
+    private static string BookmarkSampleResourcesDirectory = Program.SampleDirectory + @"Bookmark\Resources\";
+    private static string BookmarkSampleOutputDirectory = Program.SampleDirectory + @"Bookmark\Output\";
 
     #endregion
 

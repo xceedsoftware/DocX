@@ -20,8 +20,8 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
-    private const string CheckBoxSampleResourcesDirectory = Program.SampleDirectory + @"CheckBox\Resources\";
-    private const string CheckBoxSampleOutputDirectory = Program.SampleDirectory + @"CheckBox\Output\";
+    private static string CheckBoxSampleResourcesDirectory = Program.SampleDirectory + @"CheckBox\Resources\";
+    private static string CheckBoxSampleOutputDirectory = Program.SampleDirectory + @"CheckBox\Output\";
 
     #endregion
 

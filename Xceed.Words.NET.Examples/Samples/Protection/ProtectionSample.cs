@@ -20,8 +20,8 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
-    private const string ProtectionSampleResourceDirectory = Program.SampleDirectory + @"Protection\Resources\";
-    private const string ProtectionSampleOutputDirectory = Program.SampleDirectory + @"Protection\Output\";
+    private static string ProtectionSampleResourceDirectory = Program.SampleDirectory + @"Protection\Resources\";
+    private static string ProtectionSampleOutputDirectory = Program.SampleDirectory + @"Protection\Output\";
 
     #endregion
 

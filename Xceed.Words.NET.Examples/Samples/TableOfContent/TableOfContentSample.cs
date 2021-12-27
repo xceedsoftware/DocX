@@ -21,8 +21,8 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
-    private const string TableOfContentSampleResourcesDirectory = Program.SampleDirectory + @"TableOfContent\Resources\";
-    private const string TableOfContentSampleOutputDirectory = Program.SampleDirectory + @"TableOfContent\Output\";
+    private static string TableOfContentSampleResourcesDirectory = Program.SampleDirectory + @"TableOfContent\Resources\";
+    private static string TableOfContentSampleOutputDirectory = Program.SampleDirectory + @"TableOfContent\Output\";
 
     #endregion
 

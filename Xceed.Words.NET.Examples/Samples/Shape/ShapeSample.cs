@@ -23,7 +23,7 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
-    private const string ShapeSampleOutputDirectory = Program.SampleDirectory + @"Shape\Output\";
+    private static string ShapeSampleOutputDirectory = Program.SampleDirectory + @"Shape\Output\";
 
     #endregion
 

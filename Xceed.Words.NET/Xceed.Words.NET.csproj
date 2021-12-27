@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net40</TargetFrameworks>
+    <TargetFrameworks>net40;netstandard2.0</TargetFrameworks>
 
     <AssemblyTitle>Xceed Words for .NET</AssemblyTitle>
     <Description>This assembly implements the classes for Xceed Words for .NET.</Description>
@@ -26,7 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Xceed.Document.NET\Xceed.Document.NET.csproj" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <Reference Include="WindowsBase" />
   </ItemGroup>
 </Project>

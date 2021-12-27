@@ -28,8 +28,8 @@ namespace Xceed.Words.NET.Examples
         { "COST", "$13.95" },
     };
 
-    private const string ParagraphSampleResourcesDirectory = Program.SampleDirectory + @"Paragraph\Resources\";
-    private const string ParagraphSampleOutputDirectory = Program.SampleDirectory + @"Paragraph\Output\";
+    private static string ParagraphSampleResourcesDirectory = Program.SampleDirectory + @"Paragraph\Resources\";
+    private static string ParagraphSampleOutputDirectory = Program.SampleDirectory + @"Paragraph\Output\";
 
     #endregion
 

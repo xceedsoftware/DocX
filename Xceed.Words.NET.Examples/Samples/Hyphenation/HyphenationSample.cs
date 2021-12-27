@@ -20,8 +20,8 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
-    private const string HyphenationSampleResourceDirectory = Program.SampleDirectory + @"Hyphenation\Resources\";
-    private const string HyphenationSampleOutputDirectory = Program.SampleDirectory + @"Hyphenation\Output\";
+    private static string HyphenationSampleResourceDirectory = Program.SampleDirectory + @"Hyphenation\Resources\";
+    private static string HyphenationSampleOutputDirectory = Program.SampleDirectory + @"Hyphenation\Output\";
 
     #endregion
 
