@@ -2037,6 +2037,7 @@ namespace Xceed.Document.NET
                 reCalculateIds = true;
               }
               // Split this run at the point you want to insert
+              index += run.StartIndex;
               var splitRun = Run.SplitRun( run, index );
 
               // Replace the origional run
@@ -3611,6 +3612,7 @@ namespace Xceed.Document.NET
             {
               if( Paragraph.GetElementTextLength( run.Xml ) > 0 )
               {
+                index += run.StartIndex;
                 var splitRunBefore = Run.SplitRun( run, index, EditType.del );
                 var min = Math.Min( index + ( count - processed ), run.EndIndex );
                 var splitRunAfter = Run.SplitRun( run, min, EditType.del );
