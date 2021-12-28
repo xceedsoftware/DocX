@@ -5,7 +5,7 @@
     
     <AssemblyTitle>Xceed Words for .NET - Examples</AssemblyTitle>
     <Description>This assembly contains the Examples for Xceed Words for .NET.</Description>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <Version>2.0.0.0</Version>
 
     <Company>Xceed Software Inc.</Company>
     <Product>Xceed Words for .NET</Product>
