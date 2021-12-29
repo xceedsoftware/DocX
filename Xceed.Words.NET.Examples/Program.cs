@@ -19,11 +19,9 @@ namespace Xceed.Words.NET.Examples
 {
   public class Program
   {
-#if NETCORE || NET5
-    internal const string SampleDirectory = @"..\..\..\Samples\";
-#else
-    internal const string SampleDirectory = @"..\..\Samples\";
-#endif
+    internal static string SampleDirectory = System.IO.Path.Combine(
+      System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"..\..\..\Samples\"
+    );
 
     private static void Main( string[] args )
     {

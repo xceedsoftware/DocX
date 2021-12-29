@@ -24,8 +24,8 @@ namespace Xceed.Words.NET.Examples
 
     private static Random rand = new Random();
 
-    private const string TableSampleResourcesDirectory = Program.SampleDirectory + @"Table\Resources\";
-    private const string TableSampleOutputDirectory = Program.SampleDirectory + @"Table\Output\";
+    private static string TableSampleResourcesDirectory = Program.SampleDirectory + @"Table\Resources\";
+    private static string TableSampleOutputDirectory = Program.SampleDirectory + @"Table\Output\";
 
     #endregion
 

@@ -1,79 +1,28 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{F3022BB7-0E40-4C80-A495-37FEAF3671AB}</ProjectGuid>
+    <TargetFrameworks>net40;netcoreapp3.1;net5.0-windows;net6.0-windows</TargetFrameworks>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Xceed.Words.NET.Examples</RootNamespace>
-    <AssemblyName>Xceed.Words.NET.Examples</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NETFRAMEWORK</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;NETFRAMEWORK</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    
+    <AssemblyTitle>Xceed Words for .NET - Examples</AssemblyTitle>
+    <Description>This assembly contains the Examples for Xceed Words for .NET.</Description>
+    <Version>2.0.0.0</Version>
+
+    <Company>Xceed Software Inc.</Company>
+    <Product>Xceed Words for .NET</Product>
+    <Copyright>Copyright (C) Xceed Software Inc. 2009-2021</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Compile Include="..\Xceed.Document.NET\AssemblyVersionInfo.cs">
+      <Link>AssemblyVersionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\Xceed.Document.NET\AssemblyVersionInfoCommon.cs">
+      <Link>AssemblyVersionInfoCommon.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Samples\Bookmark\BookmarkSample.cs" />
-    <Compile Include="Samples\Chart\ChartData.cs" />
-    <Compile Include="Samples\Chart\ChartSample.cs" />
-    <Compile Include="Samples\CheckBox\CheckBoxSample.cs" />
-    <Compile Include="Samples\DigitalSignature\DigitalSignatureSample.cs" />
-    <Compile Include="Samples\Document\DocumentSample.cs" />
-    <Compile Include="Samples\Equation\EquationSample.cs" />
-    <Compile Include="Samples\FootnoteEndnote\FootnoteEndnoteSample.cs" />
-    <Compile Include="Samples\HeaderFooter\HeaderFooterSample.cs" />
-    <Compile Include="Samples\Hyperlink\HyperlinkSample.cs" />
-    <Compile Include="Samples\Hyphenation\HyphenationSample.cs" />
-    <Compile Include="Samples\Image\ImageSample.cs" />
-    <Compile Include="Samples\Line\LineSample.cs" />
-    <Compile Include="Samples\List\ListSample.cs" />
-    <Compile Include="Samples\Margin\MarginSample.cs" />
-    <Compile Include="Samples\Miscellaneous\MiscellaneousSample.cs" />
-    <Compile Include="Samples\Paragraph\ParagraphSample.cs" />
-    <Compile Include="Samples\Parallel\ParallelSample.cs" />
-    <Compile Include="Samples\Pdf\PdfSample.cs" />
-    <Compile Include="Samples\Protection\ProtectionSample.cs" />
-    <Compile Include="Samples\Section\SectionSample.cs" />
-    <Compile Include="Samples\Shape\ShapeSample.cs" />
-    <Compile Include="Samples\TableOfContent\TableOfContentSample.cs" />
-    <Compile Include="Samples\Table\TableSample.cs" />
+    <ProjectReference Include="..\Xceed.Document.NET\Xceed.Document.NET.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="Samples\Bookmark\Resources\DocumentWithBookmarks.docx" />
     <None Include="Samples\Chart\Resources\Report.docx" />
     <None Include="Samples\CheckBox\Resources\DocumentWithCheckBoxes.docx" />
@@ -119,19 +68,6 @@
     <Content Include="Samples\Table\Resources\logo_xceed.png" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Xceed.Document.NET.dll">
-      <HintPath>..\Xceed.Document.NET\bin\Debug\Xceed.Document.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="Xceed.Words.NET.dll">
-      <HintPath>..\Xceed.Words.NET\bin\Debug\Xceed.Words.NET.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Xceed.Words.NET\Xceed.Words.NET.csproj" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

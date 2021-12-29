@@ -20,8 +20,8 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
-    private const string DigitalSignatureSampleOutputDirectory = Program.SampleDirectory + @"DigitalSignature\Output\";
-    private const string DigitalSignatureSampleResourcesDirectory = Program.SampleDirectory + @"DigitalSignature\Resources\";
+    private static string DigitalSignatureSampleOutputDirectory = Program.SampleDirectory + @"DigitalSignature\Output\";
+    private static string DigitalSignatureSampleResourcesDirectory = Program.SampleDirectory + @"DigitalSignature\Resources\";
 
     #endregion
 

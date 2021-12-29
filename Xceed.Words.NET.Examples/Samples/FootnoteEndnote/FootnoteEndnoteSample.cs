@@ -22,8 +22,8 @@ namespace Xceed.Words.NET.Example
   {
     #region Private Members
 
-    private const string FootnoteEndnoteSampleResourcesDirectory = Program.SampleDirectory + @"FootnoteEndnote\Resources\";
-    private const string FootnoteEndnoteSampleOutputDirectory = Program.SampleDirectory + @"FootnoteEndnote\Output\";
+    private static string FootnoteEndnoteSampleResourcesDirectory = Program.SampleDirectory + @"FootnoteEndnote\Resources\";
+    private static string FootnoteEndnoteSampleOutputDirectory = Program.SampleDirectory + @"FootnoteEndnote\Output\";
 
     #endregion
 

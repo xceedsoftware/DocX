@@ -19,14 +19,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
-#if NETFRAMEWORK
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Cryptography.Xml;
-using Microsoft.Win32;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Xml;
-#endif
 using System.Xml.Linq;
 using Xceed.Document.NET;
 

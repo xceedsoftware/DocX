@@ -24,9 +24,9 @@ namespace Xceed.Words.NET.Examples
   {
     #region Private Members
 
-    private const string MiscellaneousSampleResourcesDirectory = Program.SampleDirectory + @"Miscellaneous\Resources\";
-    private const string MiscellaneousSampleOutputDirectory = Program.SampleDirectory + @"Miscellaneous\Output\";
-    private const string MiscellaneousSampleOutputMailMergeDirectory = MiscellaneousSample.MiscellaneousSampleOutputDirectory + @"MailMerge\";
+    private static string MiscellaneousSampleResourcesDirectory = Program.SampleDirectory + @"Miscellaneous\Resources\";
+    private static string MiscellaneousSampleOutputDirectory = Program.SampleDirectory + @"Miscellaneous\Output\";
+    private static string MiscellaneousSampleOutputMailMergeDirectory = MiscellaneousSample.MiscellaneousSampleOutputDirectory + @"MailMerge\";
 
     private static List<Candidate> Canditates = new List<Candidate>()
                                           {

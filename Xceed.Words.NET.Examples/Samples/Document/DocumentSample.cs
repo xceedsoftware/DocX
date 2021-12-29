@@ -30,8 +30,8 @@ namespace Xceed.Words.NET.Examples
         { "DATE", "October 18 2016" },
     };
 
-    private const string DocumentSampleResourcesDirectory = Program.SampleDirectory + @"Document\Resources\";
-    private const string DocumentSampleOutputDirectory = Program.SampleDirectory + @"Document\Output\";
+    private static string DocumentSampleResourcesDirectory = Program.SampleDirectory + @"Document\Resources\";
+    private static string DocumentSampleOutputDirectory = Program.SampleDirectory + @"Document\Output\";
 
     #endregion
 
