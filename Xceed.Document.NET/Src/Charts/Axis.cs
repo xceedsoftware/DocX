@@ -16,6 +16,8 @@
 
 using System;
 using System.ComponentModel;
+using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
@@ -28,12 +30,10 @@ namespace Xceed.Document.NET
   /// </summary>
   public abstract class Axis
   {
-
     #region Private properties
 
 
     #endregion
-
 
     #region Public Properties
 
@@ -65,6 +65,33 @@ namespace Xceed.Document.NET
           Xml.Element( XName.Get( "delete", Document.c.NamespaceName ) ).Attribute( XName.Get( "val" ) ).Value = "1";
       }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -116,70 +143,55 @@ namespace Xceed.Document.NET
     #endregion
   }
 
-  /// <summary>
-  /// Represents Category Axes
-  /// </summary>
-  public class CategoryAxis : Axis
-  {
-    internal CategoryAxis( XElement xml )
-        : base( xml )
-    {
-    }
 
-    public CategoryAxis( String id )
-        : base( id )
-    {
-      Xml = XElement.Parse( String.Format(
-        @"<c:catAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""> 
-                <c:axId val=""{0}""/>
-                <c:scaling>
-                  <c:orientation val=""minMax""/>
-                </c:scaling>
-                <c:delete val=""0""/>
-                <c:axPos val=""b""/>
-                <c:majorTickMark val=""out""/>
-                <c:minorTickMark val=""none""/>
-                <c:tickLblPos val=""nextTo""/>
-                <c:crossAx val=""154227840""/>
-                <c:crosses val=""autoZero""/>
-                <c:auto val=""1""/>
-                <c:lblAlgn val=""ctr""/>
-                <c:lblOffset val=""100""/>
-                <c:noMultiLvlLbl val=""0""/>
-              </c:catAx>", id ) );
-    }
-  }
 
-  /// <summary>
-  /// Represents Values Axes
-  /// </summary>
-  public class ValueAxis : Axis
-  {
-    internal ValueAxis( XElement xml )
-        : base( xml )
-    {
-    }
 
-    public ValueAxis( String id )
-        : base( id )
-    {
-      Xml = XElement.Parse( String.Format(
-        @"<c:valAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
-                <c:axId val=""{0}""/>
-                <c:scaling>
-                  <c:orientation val=""minMax""/>
-                </c:scaling>
-                <c:delete val=""0""/>
-                <c:axPos val=""l""/>
-                <c:numFmt sourceLinked=""0"" formatCode=""General""/>
-                <c:majorGridlines/>
-                <c:majorTickMark val=""out""/>
-                <c:minorTickMark val=""none""/>
-                <c:tickLblPos val=""nextTo""/>
-                <c:crossAx val=""148921728""/>
-                <c:crosses val=""autoZero""/>
-                <c:crossBetween val=""between""/>
-              </c:valAx>", id ) );
-    }
-  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

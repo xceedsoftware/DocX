@@ -61,8 +61,10 @@ namespace Xceed.Words.NET.Examples
         var picture = image.CreatePicture( 112.5f, 112.5f );
         var p = document.InsertParagraph( "- Here is a simple picture added from disk:\n" );
         p.AppendPicture( picture );
-        // Insert incremental "Figure 1" under picture.
-        p = p.InsertCaptionAfterSelf( "Figure" );
+
+        // Insert incremental "Figure 1" under picture by Picture public method.
+        picture.InsertCaptionAfterSelf( "Figure" );
+
         p.SpacingAfter( 40 );
 
         // Add a rotated image from disk and set some alpha( 0 to 1 ).
@@ -71,8 +73,10 @@ namespace Xceed.Words.NET.Examples
 
         var p2 = document.InsertParagraph( "- Here is the same picture added from disk, but rotated:\n" );
         p2.AppendPicture( rotatedPicture );
-        // Insert incremental "Figure 2" under picture.
+
+        // Insert incremental "Figure 2" under picture by Paragraph public method.
         p2 = p2.InsertCaptionAfterSelf( "Figure" );
+
         p2.SpacingAfter( 40 );
 
         // Add a simple image from a stream
@@ -80,7 +84,8 @@ namespace Xceed.Words.NET.Examples
         var pictureStream = streamImage.CreatePicture( 112f, 112f );
         var p3 = document.InsertParagraph( "- Here is the same picture added from a stream:\n" );
         p3.AppendPicture( pictureStream );
-        // Insert incremental "Figure 3" under picture.
+
+        // Insert incremental "Figure 3" under picture by Paragraph public method.
         p3.InsertCaptionAfterSelf( "Figure" );
 
         document.Save();

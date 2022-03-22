@@ -79,12 +79,21 @@ namespace Xceed.Document.NET
     {
       get
       {
-        var paragraphs = this.GetParagraphs();
-        this.InitParagraphs( paragraphs );
+        if( _editableParagraphsCollection.Count == 0 )
+        {
+          _editableParagraphsCollection = this.GetParagraphs();
+          this.InitParagraphs( _editableParagraphsCollection );
+        }
 
-        return paragraphs.AsReadOnly();
+        if( _paragraphsCache == null || _paragraphsCache.Count == 0 )
+        {
+          _paragraphsCache = new ReadOnlyCollection<Paragraph>( _editableParagraphsCollection );
+        }
+
+        return _paragraphsCache;
       }
     }
+
 
     public virtual ReadOnlyCollection<Paragraph> ParagraphsDeepSearch
     {
@@ -207,7 +216,7 @@ namespace Xceed.Document.NET
         {
           sectionParagraphs.Add( paragraph );
 
-          var section = new Section( Document, sectionInPara, sections.Count() > 0 ? sections.Select(s => s.Xml) : null );
+          var section = new Section( this.Document, sectionInPara, sections.Count() > 0 ? sections.Select( s => s.Xml ) : null );
           section.SectionParagraphs = sectionParagraphs;
 
           sections.Add( section );
@@ -227,8 +236,8 @@ namespace Xceed.Document.NET
         var baseSectionXml = sectPrList.LastOrDefault();
         if( baseSectionXml != null )
         {
-          var baseSection = ( sections.Count > 0 ) ? new Section( Document, baseSectionXml, sections.Select( s => s.Xml ) )
-                                                   : new Section( Document, baseSectionXml, ( sectPrList.Count() > 1 ) ? sectPrList.Take( sectPrList.Count() - 1 ) : null );
+          var baseSection = ( sections.Count > 0 ) ? new Section( this.Document, baseSectionXml, sections.Select( s => s.Xml ) )
+                                                   : new Section( this.Document, baseSectionXml, ( sectPrList.Count() > 1 ) ? sectPrList.Take( sectPrList.Count() - 1 ) : null );
           baseSection.SectionParagraphs = sectionParagraphs;
           sections.Add( baseSection );
         }
@@ -337,8 +346,8 @@ namespace Xceed.Document.NET
                                      RegexOptions options = RegexOptions.None,
                                      Formatting newFormatting = null,
                                      Formatting matchFormatting = null,
-                                     MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch, 
-                                     bool escapeRegEx = true, 
+                                     MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
+                                     bool escapeRegEx = true,
                                      bool useRegExSubstitutions = false,
                                      bool removeEmptyParagraph = true )
     {
@@ -368,13 +377,13 @@ namespace Xceed.Document.NET
     /// <param name="matchFormatting"></param>
     /// <param name="fo"></param>
     /// <param name="removeEmptyParagraph">Remove empty paragraph</param>
-    public virtual void ReplaceText( string searchValue, 
-                                     Func<string,string> regexMatchHandler, 
+    public virtual void ReplaceText( string searchValue,
+                                     Func<string, string> regexMatchHandler,
                                      bool trackChanges = false,
                                      RegexOptions options = RegexOptions.None,
                                      Formatting newFormatting = null,
                                      Formatting matchFormatting = null,
-                                     MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch, 
+                                     MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
                                      bool removeEmptyParagraph = true )
     {
       if( string.IsNullOrEmpty( searchValue ) )
@@ -532,6 +541,8 @@ namespace Xceed.Document.NET
         );
       }
       this.SetParentContainer( p );
+      this.AddParagraphInCache( p, index );
+
       return p;
     }
 
@@ -609,6 +620,8 @@ namespace Xceed.Document.NET
       var newParagraph = new Paragraph( Document, newXElement, index );
       this.Document._paragraphLookup.Add( index, newParagraph );
       this.SetParentContainer( newParagraph );
+      this.AddParagraphInCache( newParagraph, index );
+
       return newParagraph;
     }
 
@@ -637,6 +650,8 @@ namespace Xceed.Document.NET
       }
 
       this.SetParentContainer( newParagraph );
+      this.AddParagraphInCache( newParagraph, index );
+
       return newParagraph;
     }
 
@@ -700,6 +715,7 @@ namespace Xceed.Document.NET
       }
 
       this.SetParentContainer( newParagraphAdded );
+      this.AddParagraphInCache( newParagraphAdded );
 
       return newParagraphAdded;
     }
@@ -715,6 +731,7 @@ namespace Xceed.Document.NET
       if( index < paragraphs.Count )
       {
         paragraphs[ index ].Remove();
+        this.RemoveParagraphFromCache( index );
         return true;
       }
 
@@ -854,7 +871,7 @@ namespace Xceed.Document.NET
       p.Xml.ReplaceWith( elements.ToArray() );
 
       return list;
-    }    
+    }
 
     public int RemoveTextInGivenFormat( Formatting formattingToMatch, MatchFormattingOptions formattingOptions = MatchFormattingOptions.SubsetMatch )
     {
@@ -863,7 +880,7 @@ namespace Xceed.Document.NET
         count += RecursiveRemoveText( element, formattingToMatch, formattingOptions );
 
       return count;
-    }  
+    }
 
     #endregion
 
@@ -872,6 +889,11 @@ namespace Xceed.Document.NET
     protected internal virtual void AddElementInXml( object element )
     {
       this.Xml.Add( element );
+    }
+
+    internal void ClearParagraphsCache()
+    {
+      _editableParagraphsCollection.Clear();
     }
 
     internal List<Paragraph> GetParagraphs()
@@ -943,9 +965,97 @@ namespace Xceed.Document.NET
       return count;
     }
 
+    internal void RemoveParagraph( Paragraph paragraph, bool trackChanges )
+    {
+      if( trackChanges )
+      {
+        DateTime now = DateTime.Now.ToUniversalTime();
+
+        List<XElement> elements = paragraph.Xml.Elements().ToList();
+        List<XElement> temp = new List<XElement>();
+        for( int i = 0; i < elements.Count(); i++ )
+        {
+          XElement e = elements[ i ];
+
+          if( e.Name.LocalName != "del" )
+          {
+            temp.Add( e );
+            e.Remove();
+          }
+
+          else
+          {
+            if( temp.Count() > 0 )
+            {
+              e.AddBeforeSelf( Paragraph.CreateEdit( EditType.del, now, temp.Elements() ) );
+              temp.Clear();
+            }
+          }
+        }
+
+        if( temp.Count() > 0 )
+          paragraph.Xml.Add( Paragraph.CreateEdit( EditType.del, now, temp ) );
+
+        //Remove paragraph from Cache
+        this.RemoveParagraphFromCache( paragraph );
+      }
+      else
+      {
+        // If this is the only Paragraph in the Cell(nothing else than a paragraph) then we cannot remove it.
+        if( ( paragraph.Xml.Parent != null )
+          && ( paragraph.Xml.Parent.Name.LocalName == "tc" )
+          && ( paragraph.Xml.Parent.Elements( XName.Get( "p", Document.w.NamespaceName ) ).Count() == 1 )
+          && ( paragraph.Xml.Parent.Elements( XName.Get( "altChunk", Document.w.NamespaceName ) ).Count() == 0 ) )
+        {
+          paragraph.Xml.Value = string.Empty;
+        }
+        else
+        {
+          //Remove paragraph from Cache
+          this.RemoveParagraphFromCache( paragraph );
+
+          // Remove this paragraph from the document
+          paragraph.Xml.Remove();
+          paragraph.Xml = null;
+        }
+      }
+    }
+
+    #endregion
+
+    #region Private Properties
+
+    private List<Paragraph> _editableParagraphsCollection = new List<Paragraph>();
+    private ReadOnlyCollection<Paragraph> _paragraphsCache;
+
     #endregion
 
     #region Private Methods
+
+    private void RemoveParagraphFromCache( int index )
+    {
+      if( index != -1 )
+      {
+        _editableParagraphsCollection.RemoveAt( index );
+      }
+    }
+
+    private void RemoveParagraphFromCache( Paragraph paragraph )
+    {
+      var index = _editableParagraphsCollection.IndexOf( paragraph );
+      if( index != -1 )
+      {
+        _editableParagraphsCollection.RemoveAt( index );
+      }
+    }
+
+    private void AddParagraphInCache( Paragraph p, int? index = null )
+    {
+      if( !( index.HasValue ) )
+        _editableParagraphsCollection.Add( p );
+      else
+        _editableParagraphsCollection.Insert( index.Value, p );
+    }
 
     private void GetListItemType( Paragraph p )
     {
@@ -978,6 +1088,55 @@ namespace Xceed.Document.NET
           return ContainerType.Shape;
         default:
           return ContainerType.None;
+      }
+    }
+
+    private ListItemType GetListItemType( string listItemType )
+    {
+      switch( listItemType )
+      {
+        case "bullet":
+          return ListItemType.Bulleted;
+        default:
+          return ListItemType.Numbered;
+      }
+    }
+
+    private void InitParagraphs( List<Paragraph> paragraphs )
+    {
+      foreach( var p in paragraphs )
+      {
+        var nextElement = p.Xml.ElementsAfterSelf().FirstOrDefault();
+        if( ( nextElement == null ) && p.IsInSdt() )
+        {
+          nextElement = p.GetParentSdt().ElementsAfterSelf().FirstOrDefault();
+        }
+        else if( ( nextElement != null ) && nextElement.Name.Equals( Document.w + "sdt" ) )
+        {
+          var sdtContent = nextElement.Element( XName.Get( "sdtContent", Document.w.NamespaceName ) );
+          if( sdtContent != null )
+          {
+            nextElement = sdtContent.Element( XName.Get( "tbl", Document.w.NamespaceName ) );
+          }
+        }
+        var containsSectionBreak = p.GetOrCreate_pPr().Element( XName.Get( "sectPr", Document.w.NamespaceName ) );
+        // Add FollowingTable to paragraph....only when paragraph is not the last one from a section.
+        while( ( nextElement != null ) && ( nextElement.Name.Equals( Document.w + "tbl" ) ) && ( containsSectionBreak == null ) )
+        {
+          if( p.FollowingTables == null )
+          {
+            p.FollowingTables = new List<Table>();
+          }
+          p.FollowingTables.Add( new Table( this.Document, nextElement, this.PackagePart ) );
+          nextElement = nextElement.ElementsAfterSelf().FirstOrDefault();
+        }
+
+        p.ParentContainer = this.GetParentFromXmlName( p.Xml.Ancestors().First().Name.LocalName );
+
+        if( p.IsListItem )
+        {
+          this.GetListItemType( p );
+        }
       }
     }
 
@@ -1014,58 +1173,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    private ListItemType GetListItemType( string listItemType )
-    {
-      switch( listItemType )
-      {
-        case "bullet":
-          return ListItemType.Bulleted;
-        default:
-          return ListItemType.Numbered;
-      }
-    }
-
-    private void InitParagraphs( List<Paragraph> paragraphs )
-    {
-      if( (this.Document.Sections == null) || (this.Document.Sections.Count == 0))
-        return;
-
-      foreach( var p in paragraphs )
-      {
-        var nextElement = p.Xml.ElementsAfterSelf().FirstOrDefault();
-        if ((nextElement == null) && p.IsInSdt())
-        {
-          nextElement = p.GetParentSdt().ElementsAfterSelf().FirstOrDefault();
-        }
-        else if ((nextElement != null) && nextElement.Name.Equals(Document.w + "sdt"))
-        {
-          var sdtContent = nextElement.Element(XName.Get("sdtContent", Document.w.NamespaceName));
-          if (sdtContent != null)
-          {
-            nextElement = sdtContent.Element(XName.Get("tbl", Document.w.NamespaceName));
-          }
-        }
-        var containsSectionBreak = p.GetOrCreate_pPr().Element( XName.Get( "sectPr", Document.w.NamespaceName ) );
-        // Add FollowingTable to paragraph....only when paragraph is not the last one from a section.
-        while( ( nextElement != null ) && ( nextElement.Name.Equals( Document.w + "tbl" ) ) && ( containsSectionBreak == null ) )
-        {
-          if( p.FollowingTables == null )
-          {
-            p.FollowingTables = new List<Table>();
-          }
-          p.FollowingTables.Add( new Table( this.Document, nextElement, this.PackagePart ) );
-          nextElement = nextElement.ElementsAfterSelf().FirstOrDefault();
-        }
-
-        p.ParentContainer = this.GetParentFromXmlName( p.Xml.Ancestors().First().Name.LocalName );
-
-        if( p.IsListItem )
-        {
-          this.GetListItemType( p );
-        }
-      }
-    }
-
     #endregion
 
     #region Constructors
@@ -1073,9 +1180,9 @@ namespace Xceed.Document.NET
     internal Container( Document document, XElement xml )
         : base( document, xml )
     {
-
     }
 
     #endregion
   }
+
 }

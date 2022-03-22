@@ -16,6 +16,7 @@
 
 using System;
 using System.IO.Packaging;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace Xceed.Document.NET
@@ -46,21 +47,31 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Constructors
-
+    [Obsolete("PieChart() is obsolete. Use Document.AddChart<PieChart>() instead.")]
     public PieChart()
     {
     }
 
 
-#endregion
+    #endregion
 
     #region Overrides
 
-    protected override XElement CreateChartXml()
+    protected override XElement CreateExternalChartXml()
     {
       return XElement.Parse(
           @"<c:pieChart xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
                   </c:pieChart>" );
+    }
+
+    protected override XElement GetChartTypeXElement()
+    {
+      if( this.ExternalXml == null )
+        return null;
+
+      return this.ExternalXml.Descendants().Where( chartElement => ( chartElement.Name.LocalName == "pieChart" )
+                                                                     || ( chartElement.Name.LocalName == "pie3DChart" ) ).SingleOrDefault();
+
     }
 
     #endregion

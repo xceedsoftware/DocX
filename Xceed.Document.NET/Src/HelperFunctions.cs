@@ -70,6 +70,21 @@ namespace Xceed.Document.NET
       }
     }
 
+    internal static void CreateRelsPackagePart(Package package, Uri uri)
+    {
+      PackagePart pp = package.CreatePart(uri, Document.ContentTypeApplicationRelationShipXml, CompressionOption.Maximum);
+      using (TextWriter tw = new StreamWriter(new PackagePartStream(pp.GetStream())))
+      {
+        XDocument d = new XDocument
+        (
+            new XDeclaration("1.0", "UTF-8", "yes"),
+            new XElement(XName.Get("Relationships", Document.rel.NamespaceName))
+        );
+        var root = d.Root;
+        d.Save(tw);
+      }
+    }
+
     internal static int GetSize( XElement Xml )
     {
       switch( Xml.Name.LocalName )
@@ -105,32 +120,32 @@ namespace Xceed.Document.NET
       sb.Append( ToText( Xml ) );
 
       // Do not read text from Fallback or drawing(a new paragraph will take care of drawing).
-      var fallbackValue = Xml.Name.Equals( XName.Get( "Fallback", Document.mc.NamespaceName ) );
-      var drawingValue = Xml.Name.Equals( XName.Get( "drawing", Document.w.NamespaceName ) );
 
-      if( Xml.HasElements && !fallbackValue && !drawingValue )
+      if( Xml.HasElements && Paragraph.CanReadXml(Xml))
         foreach( XElement e in Xml.Elements() )
           GetTextRecursive( e, ref sb );
     }
 
-    internal static List<FormattedText> GetFormattedText( XElement e )
+    internal static List<FormattedText> GetFormattedText( Document document, XElement e )
     {
-      List<FormattedText> alist = new List<FormattedText>();
-      GetFormattedTextRecursive( e, ref alist );
+      var alist = new List<FormattedText>();
+      HelperFunctions.GetFormattedTextRecursive( document, e, ref alist );
       return alist;
     }
 
-    internal static void GetFormattedTextRecursive( XElement Xml, ref List<FormattedText> alist )
+    internal static void GetFormattedTextRecursive( Document document, XElement Xml, ref List<FormattedText> alist )
     {
-      FormattedText ft = ToFormattedText( Xml );
+      var ft = HelperFunctions.ToFormattedText( document, Xml );
       FormattedText last = null;
 
       if( ft != null )
       {
         if( alist.Count() > 0 )
+        {
           last = alist.Last();
+        }
 
-        if( last != null && last.CompareTo( ft ) == 0 )
+        if( (last != null) && (last.CompareTo( ft ) == 0) )
         {
           // Update text of last entry.
           last.text += ft.text;
@@ -139,21 +154,27 @@ namespace Xceed.Document.NET
         else
         {
           if( last != null )
+          {
             ft.index = last.index + last.text.Length;
+          }
 
           alist.Add( ft );
         }
       }
 
       if( Xml.HasElements )
+      {
         foreach( XElement e in Xml.Elements() )
-          GetFormattedTextRecursive( e, ref alist );
+        {
+          HelperFunctions.GetFormattedTextRecursive( document, e, ref alist );
+        }
+      }
     }
 
-    internal static FormattedText ToFormattedText( XElement e )
+    internal static FormattedText ToFormattedText( Document document, XElement e )
     {
       // The text representation of e.
-      String text = ToText( e );
+      var text = HelperFunctions.ToText( e );
       if( text == String.Empty )
         return null;
 
@@ -169,9 +190,11 @@ namespace Xceed.Document.NET
 
       // e is a w:t element, it must exist inside a w:r element or a w:tabs, lets climb until we find it.
       while( ( e != null ) && !e.Name.Equals( XName.Get( "r", Document.w.NamespaceName ) ) && !e.Name.Equals( XName.Get( "tabs", Document.w.NamespaceName ) ) )
+      {
         e = e.Parent;
+      }
 
-      FormattedText ft = new FormattedText();
+      var ft = new FormattedText();
       ft.text = text;
       ft.index = 0;
       ft.formatting = null;
@@ -179,16 +202,81 @@ namespace Xceed.Document.NET
       if( e != null )
       {
         // e is a w:r element, lets find the rPr element.
-        XElement rPr = e.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+        var rPr = e.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
 
         // Return text with formatting.
         if( rPr != null )
         {
-          ft.formatting = Formatting.Parse( rPr );
+          // Apply the styleId to current formatting.
+          var rStyle = rPr.Element( XName.Get( "rStyle", Document.w.NamespaceName ) );
+          if( rStyle != null )
+          {
+            var styleId = rStyle.GetAttribute( XName.Get( "val", Document.w.NamespaceName ), null );
+            var formatting = HelperFunctions.GetFormattingFromStyle( document, styleId );
+            HelperFunctions.UpdateFormattingFromFormatting( ref formatting, Formatting.Parse( rPr ) );
+            ft.formatting = formatting;
+          }
+          else
+          {
+            ft.formatting = Formatting.Parse( rPr );
+          }
         }
       }
 
       return ft;
+    }
+
+    internal static void UpdateFormattingFromFormatting( ref Formatting currentFormatting, Formatting newFormatting, Formatting initialFormatting = null )
+    {
+      if( newFormatting == null )
+        return;
+
+      if( currentFormatting == null )
+      {
+        currentFormatting = new Formatting();
+      }
+      var newFormattingProperties = newFormatting.GetType().GetProperties();
+      var defaultFormatting = Activator.CreateInstance( typeof( Formatting ) );
+      foreach( var prop in newFormattingProperties )
+      {
+        var defaultValue = typeof( Formatting ).GetProperty( prop.Name ).GetValue( defaultFormatting, null );
+        var currentPropertyValue = prop.GetValue( currentFormatting, null );
+        var newFormattingPropertyValue = prop.GetValue( newFormatting, null );
+        var initialPropertyValue = ( initialFormatting != null ) ? prop.GetValue( initialFormatting, null ) : null;
+        // newFormatting offers a new value and the initial value was null (not set on run), use it.
+        if( ( ( newFormattingPropertyValue != null )
+          && !newFormattingPropertyValue.Equals( currentPropertyValue ) )
+          && ( ( initialPropertyValue == null ) || initialPropertyValue.Equals( defaultValue ) ) )
+        {
+          currentFormatting.GetType().GetProperty( prop.Name ).SetValue( currentFormatting, newFormattingPropertyValue, null );
+        }
+      }
+    }
+
+    internal static Formatting GetFormattingFromStyle( Document document, string styleId )
+    {
+      var currentStyle = HelperFunctions.GetStyle( document, styleId );
+
+      XElement rPr = null;
+      if( currentStyle != null )
+      {
+        Formatting formatting = null;
+        // Make sure to apply the basedOn styles.
+        var basedOnStyle = currentStyle.Element( XName.Get( "basedOn", Document.w.NamespaceName ) );
+        if( basedOnStyle != null )
+        {
+          formatting = HelperFunctions.GetFormattingFromStyle( document, basedOnStyle.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) );
+        }
+
+        rPr = currentStyle.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+
+        var retValue = Formatting.Parse( rPr, formatting );
+        retValue.StyleId = styleId;
+
+        return retValue;
+      }
+
+      return null;
     }
 
     internal static bool IsLineBreak( XElement xml )
@@ -537,11 +625,11 @@ namespace Xceed.Document.NET
     internal static XElement CreateTableCell( double w = 2310 )
     {
       return new XElement( XName.Get( "tc", Document.w.NamespaceName ),
-                           new XElement( XName.Get( "tcPr", Document.w.NamespaceName ),
-                                         new XElement( XName.Get( "tcW", Document.w.NamespaceName ),
-                                                       new XAttribute( XName.Get( "w", Document.w.NamespaceName ), w ),
-                                                       new XAttribute( XName.Get( "type", Document.w.NamespaceName ), "dxa" ) ) ),
-                           new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ) ) ) );
+                            new XElement( XName.Get( "tcPr", Document.w.NamespaceName ),
+                                          new XElement( XName.Get( "tcW", Document.w.NamespaceName ),
+                                                        new XAttribute( XName.Get( "w", Document.w.NamespaceName ), w ),
+                                                        new XAttribute( XName.Get( "type", Document.w.NamespaceName ), "dxa" ) ) ),
+                            new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ) ) ) );
     }
 
 
@@ -889,6 +977,172 @@ namespace Xceed.Document.NET
       Debug.Assert( stringColor.Length == 6, "stringColor should have a length of 6 characters." );
 
       return Color.FromArgb( Convert.ToInt32( stringColor.Substring( 0, 2 ), 16 ), Convert.ToInt32( stringColor.Substring( 2, 2 ), 16 ), Convert.ToInt32( stringColor.Substring( 4, 2 ), 16 ) );
+    }
+
+    internal static PatternStyle GetTablePatternStyleFromValue( string style )
+    {
+      switch( style )
+      {
+        case "clear":
+          return PatternStyle.Clear;
+        case "solid":
+          return PatternStyle.Solid;
+        case "pct5":
+          return PatternStyle.Percent5;
+        case "pct10":
+          return PatternStyle.Percent10;
+        case "pct12":
+          return PatternStyle.Percent12;
+        case "pct15":
+          return PatternStyle.Percent15;
+        case "pct20":
+          return PatternStyle.Percent20;
+        case "pct25":
+          return PatternStyle.Percent25;
+        case "pct30":
+          return PatternStyle.Percent30;
+        case "pct35":
+          return PatternStyle.Percent35;
+        case "pct37":
+          return PatternStyle.Percent37;
+        case "pct40":
+          return PatternStyle.Percent40;
+        case "pct45":
+          return PatternStyle.Percent45;
+        case "pct50":
+          return PatternStyle.Percent50;
+        case "pct55":
+          return PatternStyle.Percent55;
+        case "pct60":
+          return PatternStyle.Percent60;
+        case "pct62":
+          return PatternStyle.Percent62;
+        case "pct65":
+          return PatternStyle.Percent65;
+        case "pct70":
+          return PatternStyle.Percent70;
+        case "pct75":
+          return PatternStyle.Percent75;
+        case "pct80":
+          return PatternStyle.Percent80;
+        case "pct85":
+          return PatternStyle.Percent85;
+        case "pct87":
+          return PatternStyle.Percent87;
+        case "pct90":
+          return PatternStyle.Percent90;
+        case "pct95":
+          return PatternStyle.Percent95;
+        case "horzStripe":
+          return PatternStyle.DkHorizonal;
+        case "vertStripe":
+          return PatternStyle.DkVertical;
+        case "reverseDiagStripe":
+          return PatternStyle.DkDwnDiagonal;
+        case "diagStripe":
+          return PatternStyle.DkUpDiagonal;
+        case "horzCross":
+          return PatternStyle.DkGrid;
+        case "diagCross":
+          return PatternStyle.DkTrellis;
+        case "thinHorzStripe":
+          return PatternStyle.LtHorizonal;
+        case "thinVertStripe":
+          return PatternStyle.LtVertical;
+        case "thinReverseDiagStripe":
+          return PatternStyle.LtDwnDiagonal;
+        case "thinDiagStripe":
+          return PatternStyle.LtUpDiagonal;
+        case "thinHorzCross":
+          return PatternStyle.LtGrid;
+        case "thinDiagCross":
+          return PatternStyle.LtTrellis;
+        default:
+          return PatternStyle.Clear;
+      }
+    }
+
+    internal static String GetValueFromTablePatternStyle( PatternStyle patternStyle )
+    {
+      switch( patternStyle )
+      {
+        case PatternStyle.Clear:
+          return "clear";
+        case PatternStyle.Solid:
+          return "solid";
+        case PatternStyle.Percent5:
+          return "pct5";
+        case PatternStyle.Percent10:
+          return "pct10";
+        case PatternStyle.Percent12:
+          return "pct12";
+        case PatternStyle.Percent15:
+          return "pct15";
+        case PatternStyle.Percent20:
+          return "pct20";
+        case PatternStyle.Percent25:
+          return "pct25";
+        case PatternStyle.Percent30:
+          return "pct30";
+        case PatternStyle.Percent35:
+          return "pct35";
+        case PatternStyle.Percent37:
+          return "pct37";
+        case PatternStyle.Percent40:
+          return "pct40";
+        case PatternStyle.Percent45:
+          return "pct45";
+        case PatternStyle.Percent50:
+          return "pct50";
+        case PatternStyle.Percent55:
+          return "pct55";
+        case PatternStyle.Percent60:
+          return "pct60";
+        case PatternStyle.Percent62:
+          return "pct62";
+        case PatternStyle.Percent65:
+          return "pct65";
+        case PatternStyle.Percent70:
+          return "pct70";
+        case PatternStyle.Percent75:
+          return "pct75";
+        case PatternStyle.Percent80:
+          return "pct80";
+        case PatternStyle.Percent85:
+          return "pct85";
+        case PatternStyle.Percent87:
+          return "pct87";
+        case PatternStyle.Percent90:
+          return "pct90";
+        case PatternStyle.Percent95:
+          return "pct95";
+        case PatternStyle.DkHorizonal:
+          return "horzStripe";
+        case PatternStyle.DkVertical:
+          return "vertStripe";
+        case PatternStyle.DkDwnDiagonal:
+          return "reverseDiagStripe";
+        case PatternStyle.DkUpDiagonal:
+          return "diagStripe";
+        case PatternStyle.DkGrid:
+          return "horzCross";
+        case PatternStyle.DkTrellis:
+          return "diagCross";
+        case PatternStyle.LtHorizonal:
+          return "thinHorzStripe";
+        case PatternStyle.LtVertical:
+          return "thinVertStripe";
+        case PatternStyle.LtDwnDiagonal:
+          return "thinReverseDiagStripe";
+        case PatternStyle.LtUpDiagonal:
+          return "thinDiagStripe";
+        case PatternStyle.LtGrid:
+          return "thinHorzCross";
+        case PatternStyle.LtTrellis:
+          return "thinDiagCross";
+        default:
+          return "clear";
+      }
     }
 
     internal static string GetListItemType( Paragraph p, Document document )

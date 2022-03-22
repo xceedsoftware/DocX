@@ -11,6 +11,7 @@ is only intended as a supplement to the documentation, and is provided
 *************************************************************************************/
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -57,7 +58,7 @@ namespace Xceed.Words.NET.Examples
       // Create a new document.
       using( var document = DocX.Create( ParagraphSample.ParagraphSampleOutputDirectory + @"SimpleFormattedParagraphs.docx" ) )
       {
-        document.SetDefaultFont( new Document.NET.Font( "Arial" ), 15d, Color.Green );
+        document.SetDefaultFont( new Xceed.Document.NET.Font( "Arial" ), 15d, Color.Green );
         document.PageBackground = Color.LightGray;
         document.PageBorders = new Borders( new Border( BorderStyle.Tcbs_double, BorderSize.five, 20f, Color.Blue ) );
 
@@ -105,6 +106,38 @@ namespace Xceed.Words.NET.Examples
         p4.Append( "This document is using an Arial green default font of size 15. It's also using a double blue page borders and light gray page background." )
           .SpacingAfter( 40 );
 
+        // Append a Paragraph with Shading pattern format.
+        var formatting = new Formatting()
+        {
+          ShadingPattern = new ShadingPattern()
+          {
+            Fill = Color.Blue,
+            Style = PatternStyle.DkUpDiagonal,
+            StyleColor = Color.White
+          }
+        };
+
+        // Insert another Paragraph into this document.
+        var p5 = document.InsertParagraph();
+
+        // Append some text and add formatting to the text with shading pattern.
+        p5.Append( "This is a simple formatted text with shading pattern", formatting);
+
+        var shadingPattern = new ShadingPattern()
+        {
+          Fill = Color.Red,
+          Style = PatternStyle.DkUpDiagonal,
+          StyleColor = Color.White
+        };
+
+        // Insert another Paragraph into this document.
+        var p6 = document.InsertParagraph();
+
+        // Append some text and add formatting to the paragraph with shading pattern.
+        p6.Append( "This is a simple formatted paragraph with shading pattern." )
+          .ShadingPattern( shadingPattern, ShadingType.Paragraph )
+          .SpacingAfter( 40 );
+
         // Save this document to disk.
         document.Save();
         Console.WriteLine( "\tCreated: SimpleFormattedParagraphs.docx\n" );
@@ -116,30 +149,30 @@ namespace Xceed.Words.NET.Examples
     /// </summary>
     public static void StyleParagraphs()
     {
-      Console.WriteLine("\tStyleParagraphs()");
+      Console.WriteLine( "\tStyleParagraphs()" );
 
       // Load a template document.
-      using ( var templateDoc = DocX.Load( ParagraphSample.ParagraphSampleResourcesDirectory + @"TemplateStyledParagraph.docx" ) )
+      using( var templateDoc = DocX.Load( ParagraphSample.ParagraphSampleResourcesDirectory + @"TemplateStyledParagraph.docx" ) )
       {
         // Retrieve the wanted styles from templateDoc.
-        var styleId1 = DocX.GetParagraphStyleIdFromStyleName(templateDoc, "Heading 1");  // styleName must match the style name from templateDoc.
-        var styleId2 = DocX.GetParagraphStyleIdFromStyleName(templateDoc, "CustomStyle");// styleName must match the style name from templateDoc.
+        var styleId1 = DocX.GetParagraphStyleIdFromStyleName( templateDoc, "Heading 1" );  // styleName must match the style name from templateDoc.
+        var styleId2 = DocX.GetParagraphStyleIdFromStyleName( templateDoc, "CustomStyle" );// styleName must match the style name from templateDoc.
 
         // Insert a paragraph with the Heading 1 style.
         var p = templateDoc.InsertParagraph();
-        p.InsertText("This paragraph is using an Heading 1 style.");
+        p.InsertText( "This paragraph is using an Heading 1 style." );
         p.StyleId = styleId1;
         p.AppendLine();
 
         // Insert a paragraph with the CustomStyle style.
         var p2 = templateDoc.InsertParagraph();
-        p2.InsertText("This paragraph is using a custom style.");
+        p2.InsertText( "This paragraph is using a custom style." );
         p2.StyleId = styleId2;
 
         // Save the updated document as StyleParagraphs.docx.
         templateDoc.SaveAs( ParagraphSample.ParagraphSampleOutputDirectory + @"StyleParagraphs.docx" );
 
-        Console.WriteLine("\tStyleParagraphs.docx\n");
+        Console.WriteLine( "\tStyleParagraphs.docx\n" );
       }
     }
 
@@ -158,7 +191,7 @@ namespace Xceed.Words.NET.Examples
 
         // Create a Paragraph that will appear on 1st page.
         var p = document.InsertParagraph( "This is a paragraph on first page.\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10\nLine11\nLine12\nLine13\nLine14\nLine15\nLine16\nLine17\nLine18\nLine19\nLine20\nLine21\nLine22\nLine23\nLine24\nLine25\n" );
-        p.FontSize(15).SpacingAfter( 30 );
+        p.FontSize( 15 ).SpacingAfter( 30 );
 
         // Create a Paragraph where all its lines will appear on a same page.
         var p2 = document.InsertParagraph( "This is a paragraph where all its lines are on the same page. The paragraph does not split on 2 pages.\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10" );
@@ -168,7 +201,7 @@ namespace Xceed.Words.NET.Examples
         p2.KeepLinesTogether();
 
         // Create a Paragraph that will appear on 2nd page.
-        var p3 = document.InsertParagraph( "This is a paragraph on second page.\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10" );       
+        var p3 = document.InsertParagraph( "This is a paragraph on second page.\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10" );
 
         // Save this document to disk.
         document.Save();
@@ -195,7 +228,7 @@ namespace Xceed.Words.NET.Examples
 
         // Create a Paragraph where all its lines will appear on a same page as the next paragraph.
         var p2 = document.InsertParagraph( "This is a paragraph where all its lines are on the same page as the next paragraph.\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10" );
-        p2.SpacingAfter( 30 );        
+        p2.SpacingAfter( 30 );
 
         // Indicate that this paragraph will be on the same page as the next paragraph.
         p2.KeepWithNextParagraph();

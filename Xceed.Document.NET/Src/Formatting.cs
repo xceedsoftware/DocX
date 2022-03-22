@@ -37,6 +37,7 @@ namespace Xceed.Document.NET
     private Script? _script;
     private Highlight? _highlight;
     private Color? _shading;
+    private ShadingPattern _shadingPattern;
     private Border _border;
     private double? _size;
     private Color? _fontColor;
@@ -163,7 +164,7 @@ namespace Xceed.Document.NET
         double? temp = value * 2;
 
         // Accepting only whole number or half number.
-        if( temp - (int)temp != 0 )
+        if( temp - ( int )temp != 0 )
         {
           if( value.HasValue )
           {
@@ -260,7 +261,7 @@ namespace Xceed.Document.NET
       {
         double? temp = value * 20;
 
-        if( temp - (int)temp == 0 )
+        if( temp - ( int )temp == 0 )
         {
           if( value > -1585 && value < 1585 )
             _spacing = value;
@@ -306,6 +307,7 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Shading color.
     /// </summary>
+    [Obsolete( "This property is obsolete and should no longer be used. Use the ShadingPattern property instead." )]
     public Color? Shading
     {
       get
@@ -315,6 +317,18 @@ namespace Xceed.Document.NET
       set
       {
         _shading = value;
+      }
+    }
+
+    public ShadingPattern ShadingPattern
+    {
+      get
+      {
+        return _shadingPattern;
+      }
+      set
+      {
+        _shadingPattern = value;
       }
     }
 
@@ -665,7 +679,7 @@ namespace Xceed.Document.NET
       clone.FontFamily = _fontFamily;
       clone.Hidden = _hidden;
       clone.Highlight = _highlight;
-      clone.Shading = _shading;
+      clone.ShadingPattern = _shadingPattern;
       clone.Border = _border;
       clone.Italic = _italic;
       if( _kerning.HasValue )
@@ -701,7 +715,6 @@ namespace Xceed.Document.NET
 
       return clone;
     }
-
 
     public static Formatting Parse( XElement rPr, Formatting formatting = null )
     {
@@ -874,7 +887,7 @@ namespace Xceed.Document.NET
             var fill = option.GetAttribute( XName.Get( "fill", Document.w.NamespaceName ) );
             if( !string.IsNullOrEmpty( fill ) )
             {
-              formatting.Shading = HelperFunctions.GetColorFromHtml( fill );
+              formatting.ShadingPattern = new ShadingPattern() { Fill = HelperFunctions.GetColorFromHtml( fill ) };
             }
             break;
           case "bdr":
@@ -894,7 +907,7 @@ namespace Xceed.Document.NET
 
     public int CompareTo( object obj )
     {
-      Formatting other = (Formatting)obj;
+      Formatting other = ( Formatting )obj;
 
       if( other._hidden != _hidden )
         return -1;

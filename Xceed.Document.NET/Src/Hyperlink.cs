@@ -184,6 +184,9 @@ namespace Xceed.Document.NET
       }
     }
 
+
+
+
     #endregion
 
     #region Internal Properties
@@ -218,6 +221,7 @@ namespace Xceed.Document.NET
       StringBuilder sb = new StringBuilder();
       HelperFunctions.GetTextRecursive( i, ref sb );
       this.text = sb.ToString();
+      this.PackagePart = mainPart;
     }
 
     internal Hyperlink( Document document, XElement instrText, List<XElement> runs ) : base( document, null )

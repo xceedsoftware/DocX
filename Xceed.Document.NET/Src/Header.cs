@@ -177,8 +177,20 @@ namespace Xceed.Document.NET
 
     public override Paragraph InsertParagraph( string text )
     {
-      var p = base.InsertParagraph( text );
+      Paragraph p = null;
+
+      if( this.Paragraphs.Count == 0 )
+      {
+        p = base.InsertParagraph( text );
+        p.StyleId = "header";
+      }
+      else
+      {
+        p = base.InsertParagraph( text );
+      }
+
       p.PackagePart = this.PackagePart;
+
       return p;
     }
 

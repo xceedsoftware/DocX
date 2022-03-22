@@ -95,9 +95,12 @@
     <Compile Include="Src\Borders.cs" />
     <Compile Include="Src\Charts\Axis.cs" />
     <Compile Include="Src\Charts\BarChart.cs" />
+    <Compile Include="Src\Charts\CategoryAxis.cs" />
     <Compile Include="Src\Charts\Chart.cs" />
     <Compile Include="Src\Charts\LineChart.cs" />
     <Compile Include="Src\Charts\PieChart.cs" />
+    <Compile Include="Src\Charts\Series.cs" />
+    <Compile Include="Src\Charts\ValueAxis.cs" />
     <Compile Include="Src\Charts\XElementHelpers.cs" />
     <Compile Include="Src\Container.cs" />
     <Compile Include="Src\Endnote.cs" />
@@ -119,7 +122,9 @@
     <Compile Include="Src\NoteProperties.cs" />
     <Compile Include="Src\PackagePartStream.cs" />
     <Compile Include="Src\PageLayout.cs" />
+    <Compile Include="Src\PageNumberType.cs" />
     <Compile Include="Src\Section.cs" />
+    <Compile Include="Src\ShadingPattern.cs" />
     <Compile Include="Src\TableOfContents.cs" />
     <Compile Include="Utils\Exceptions\ThrowException.cs" />
     <Compile Include="Src\_BaseClasses.cs" />

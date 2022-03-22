@@ -17,6 +17,7 @@
 using System;
 using System.Globalization;
 using System.IO.Packaging;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace Xceed.Document.NET
@@ -36,13 +37,17 @@ namespace Xceed.Document.NET
     {
       get
       {
+        var chartXml = GetChartTypeXElement();
+
         return XElementHelpers.GetValueToEnum<BarDirection>(
-            ChartXml.Element( XName.Get( "barDir", Document.c.NamespaceName ) ) );
+            chartXml.Element( XName.Get( "barDir", Document.c.NamespaceName ) ) );
       }
       set
       {
+        var chartXml = GetChartTypeXElement();
+
         XElementHelpers.SetValueFromEnum<BarDirection>(
-            ChartXml.Element( XName.Get( "barDir", Document.c.NamespaceName ) ), value );
+            chartXml.Element( XName.Get( "barDir", Document.c.NamespaceName ) ), value );
       }
     }
 
@@ -53,16 +58,20 @@ namespace Xceed.Document.NET
     {
       get
       {
+        var chartXml = GetChartTypeXElement();
+
         return XElementHelpers.GetValueToEnum<BarGrouping>(
-            ChartXml.Element( XName.Get( "grouping", Document.c.NamespaceName ) ) );
+            chartXml.Element( XName.Get( "grouping", Document.c.NamespaceName ) ) );
       }
       set
       {
-        XElementHelpers.SetValueFromEnum<BarGrouping>(
-            ChartXml.Element( XName.Get( "grouping", Document.c.NamespaceName ) ), value );
+        var chartXml = GetChartTypeXElement();
 
-        var overlapVal = ( (value == BarGrouping.Stacked) || ( value == BarGrouping.PercentStacked ) ) ? "100" : "0";
-        var overlap = ChartXml.Element( XName.Get( "overlap", Document.c.NamespaceName ) );
+        XElementHelpers.SetValueFromEnum<BarGrouping>(
+            chartXml.Element( XName.Get( "grouping", Document.c.NamespaceName ) ), value );
+
+        var overlapVal = ( ( value == BarGrouping.Stacked ) || ( value == BarGrouping.PercentStacked ) ) ? "100" : "0";
+        var overlap = chartXml.Element( XName.Get( "overlap", Document.c.NamespaceName ) );
         if( overlap != null )
         {
           overlap.Attribute( XName.Get( "val" ) ).Value = overlapVal;
@@ -77,31 +86,35 @@ namespace Xceed.Document.NET
     {
       get
       {
+        var chartXml = GetChartTypeXElement();
+
         return Convert.ToInt32(
-            ChartXml.Element( XName.Get( "gapWidth", Document.c.NamespaceName ) ).Attribute( XName.Get( "val" ) ).Value );
+            chartXml.Element( XName.Get( "gapWidth", Document.c.NamespaceName ) ).Attribute( XName.Get( "val" ) ).Value );
       }
       set
       {
+        var chartXml = GetChartTypeXElement();
+
         if( ( value < 1 ) || ( value > 500 ) )
           throw new ArgumentException( "GapWidth lay between 0% and 500%!" );
-        ChartXml.Element( XName.Get( "gapWidth", Document.c.NamespaceName ) ).Attribute( XName.Get( "val" ) ).Value = value.ToString( CultureInfo.InvariantCulture );
+        chartXml.Element( XName.Get( "gapWidth", Document.c.NamespaceName ) ).Attribute( XName.Get( "val" ) ).Value = value.ToString( CultureInfo.InvariantCulture );
       }
     }
 
     #endregion
 
     #region Constructors
-
+    [Obsolete("BarChart() is obsolete. Use Document.AddChart<BarChart>() instead.")]
     public BarChart()
     {
     }
 
 
-#endregion
+    #endregion
 
     #region Overrides
 
-    protected override XElement CreateChartXml()
+    protected override XElement CreateExternalChartXml()
     {
       return XElement.Parse(
           @"<c:barChart xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
@@ -110,6 +123,16 @@ namespace Xceed.Document.NET
                     <c:gapWidth val=""150""/>
                     <c:overlap val=""0""/>
                   </c:barChart>" );
+    }
+
+    protected override XElement GetChartTypeXElement()
+    {
+      if( this.ExternalXml == null )
+        return null;
+
+      return this.ExternalXml.Descendants().Where( chartElement => ( chartElement.Name.LocalName == "barChart" )
+                                                                     || ( chartElement.Name.LocalName == "bar3DChart" ) ).SingleOrDefault();
+
     }
 
     #endregion

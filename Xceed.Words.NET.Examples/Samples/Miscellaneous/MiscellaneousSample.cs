@@ -169,7 +169,7 @@ namespace Xceed.Words.NET.Examples
 
         // Define Data in second page : a Bar Chart.
         document.InsertParagraph( "" ).SpacingAfter( 150d );
-        var barChart = new BarChart();
+        var barChart = document.AddChart<BarChart>();
         var sales = CompanyData.CreateSales();
         var salesSeries = new Series( "Sales Per Month" );
         salesSeries.Color = Color.GreenYellow;
@@ -180,7 +180,7 @@ namespace Xceed.Words.NET.Examples
 
         // Define Data in third page : a Line Chart.
         document.InsertParagraph( "" ).SpacingAfter( 150d );
-        var lineChart = new LineChart();
+        var lineChart = document.AddChart<LineChart>();
         var calls = CompanyData.CreateCallNumber();
         var callSeries = new Series( "Call Number Per Month" );
         callSeries.Bind( calls, "Month", "Calls" );

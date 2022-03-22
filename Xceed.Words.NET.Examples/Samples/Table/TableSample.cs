@@ -337,6 +337,97 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
+    /// <summary>
+    /// Get/Set shading pattern to a table or cells.
+    /// </summary>
+    public static void ShadingPattern()
+    {
+      Console.WriteLine( "\tShadingPattern()" );
+
+      // Create a document.
+      using( var document = DocX.Create( TableSample.TableSampleOutputDirectory + @"ShadingPattern.docx" ) )
+      {
+        // Add a title.
+        document.InsertParagraph( "Set shading pattern" ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
+
+        document.InsertParagraph( "Set shading pattern for cells: " ).FontSize( 13d );
+
+        // Insert a table.
+        var t1 = document.InsertTable( 3, 4 );
+
+        // Set shading pattern 1.
+        t1.Rows[ 0 ].Cells[ 0 ].ShadingPattern = new ShadingPattern()
+        {
+          Fill = Color.Red,
+          Style = PatternStyle.Percent30,
+          StyleColor = Color.Yellow
+        };
+
+        // Set shading pattern 2.
+        t1.Rows[ 0 ].Cells[ 1 ].ShadingPattern = new ShadingPattern()
+        {
+          Fill = Color.Blue,
+          Style = PatternStyle.Percent50,
+          StyleColor = Color.White
+        };
+
+        // Set shading pattern 3.
+        t1.Rows[ 2 ].Cells[ 1 ].ShadingPattern = new ShadingPattern()
+        {
+          Fill = Color.Green,
+          Style = PatternStyle.DkHorizonal,
+          StyleColor = Color.Brown
+        };
+
+        // Set shading pattern to table cells by properties.
+        t1.Rows[ 0 ].Cells[ 2 ].ShadingPattern.Fill = Color.Coral;
+        t1.Rows[ 0 ].Cells[ 2 ].ShadingPattern.Style = PatternStyle.LtGrid;
+
+        // Set shading pattern to table cells by properties.
+        t1.Rows[ 2 ].Cells[ 2 ].ShadingPattern.Fill = Color.Brown;
+        t1.Rows[ 2 ].Cells[ 2 ].ShadingPattern.Style = PatternStyle.LtGrid;
+        t1.Rows[ 2 ].Cells[ 2 ].ShadingPattern.StyleColor = Color.DarkRed;
+
+        // Set shading pattern to paragraphs
+        t1.Rows[ 1 ].Cells[ 3 ].Paragraphs[ 0 ].Append( "Mike" );
+        t1.Rows[ 1 ].Cells[ 3 ].Paragraphs[ 0 ].InsertParagraphAfterSelf( "Tom" );
+        t1.Rows[ 1 ].Cells[ 3 ].Paragraphs[ 0 ].InsertParagraphAfterSelf( "John" );
+
+        var shadingPattern_paragraph_1 = new ShadingPattern()
+        {
+          Fill = Color.Green,
+          Style = PatternStyle.DkHorizonal,
+          StyleColor = Color.Brown
+        };
+
+        var shadingPattern_paragraph_2 = new ShadingPattern()
+        {
+          Fill = Color.Blue,
+          Style = PatternStyle.DkUpDiagonal,
+          StyleColor = Color.White
+        };
+
+        t1.Rows[ 1 ].Cells[ 3 ].Paragraphs[ 0 ].ShadingPattern(shadingPattern_paragraph_1, ShadingType.Paragraph);
+        t1.Rows[ 1 ].Cells[ 3 ].Paragraphs[ 2 ].ShadingPattern( shadingPattern_paragraph_2, ShadingType.Paragraph );
+
+        document.InsertParagraph( "Set shading pattern for a table: " ).FontSize( 13d ).SpacingBefore( 40d );
+
+        // Insert a table.
+        var t2 = document.InsertTable( 3, 2 );
+
+        // Set shading pattern to a table.
+        t2.ShadingPattern = new ShadingPattern()
+        {
+          Fill = Color.Red,
+          Style = PatternStyle.Percent30,
+          StyleColor = Color.Yellow
+        };
+
+        document.Save();
+        Console.WriteLine( "\tCreated: ShadingPattern.docx\n" );
+      }
+    }
+
     #endregion
 
     #region Private Methods

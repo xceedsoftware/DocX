@@ -15,27 +15,26 @@
 
 
 using System.IO;
-using System.Threading;
 
-// This classe is used to prevent deadlocks. 
+// This class is used to prevent deadlocks. 
 // It is based on https://stackoverflow.com/questions/21482820/openxml-hanging-while-writing-elements
 
 namespace Xceed.Document.NET
 {
-  public class PackagePartStream : Stream
+  internal class PackagePartStream : Stream
   {
     #region Private Members
 
-    private static readonly object lockObject = new object();
-    private readonly Stream _stream;
+    private static readonly object s_lockObject = new object();
+    private readonly Stream m_stream;
 
     #endregion
 
-    #region constructors
+    #region Constructors
 
     public PackagePartStream( Stream stream )
     {
-      _stream = stream;
+      m_stream = stream;
     }
 
     #endregion
@@ -46,7 +45,7 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return _stream.CanRead;
+        return m_stream.CanRead;
       }
     }
 
@@ -54,7 +53,7 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return _stream.CanSeek;
+        return m_stream.CanSeek;
       }
     }
 
@@ -62,7 +61,7 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return _stream.CanWrite;
+        return m_stream.CanWrite;
       }
     }
 
@@ -70,7 +69,7 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return _stream.Length;
+        return m_stream.Length;
       }
     }
 
@@ -78,12 +77,12 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return _stream.Position;
+        return m_stream.Position;
       }
 
       set
       {
-        _stream.Position = value;
+        m_stream.Position = value;
       }
     }
 
@@ -93,43 +92,43 @@ namespace Xceed.Document.NET
 
     public override long Seek( long offset, SeekOrigin origin )
     {
-      return _stream.Seek( offset, origin );
+      return m_stream.Seek( offset, origin );
     }
 
     public override void SetLength( long value )
     {
-      _stream.SetLength( value );
+      m_stream.SetLength( value );
     }
 
     public override int Read( byte[] buffer, int offset, int count )
     {
-      return _stream.Read( buffer, offset, count );
+      return m_stream.Read( buffer, offset, count );
     }
 
     public override void Write( byte[] buffer, int offset, int count )
     {
-      lock(lockObject)
+      lock( s_lockObject )
       {
-        _stream.Write( buffer, offset, count );
+        m_stream.Write( buffer, offset, count );
       }
     }
 
     public override void Flush()
     {
-      lock(lockObject)
+      lock( s_lockObject )
       {
-        _stream.Flush();
+        m_stream.Flush();
       }
     }
 
     public override void Close()
     {
-      _stream.Close();
+      m_stream.Close();
     }
 
     protected override void Dispose( bool disposing )
     {
-      _stream.Dispose();
+      m_stream.Dispose();
     }
 
     #endregion

@@ -38,6 +38,7 @@ namespace Xceed.Words.NET
   public class DocX : Xceed.Document.NET.Document
   {
     private static bool IsCommercialLicenseRead = false;
+    private bool _isCopyingDocument = false;
 
     #region Constructors
 
@@ -303,7 +304,6 @@ namespace Xceed.Words.NET
 
 
 
-
     #endregion
 
     #region Overrides
@@ -441,8 +441,11 @@ namespace Xceed.Words.NET
         }
       }
 
-      // Close the document so that it can be saved in .NETStandard/NET5.
-      _package.Close();
+      if( !_isCopyingDocument )
+      {
+        // Close the document so that it can be saved in .NETStandard/NET5.
+        _package.Close();
+      }
 
       #region Save this document back to a file or stream, that was specified by the user at save time.
       this.WriteToFileOrStream();
@@ -463,8 +466,10 @@ namespace Xceed.Words.NET
           initialDoc = !string.IsNullOrEmpty( _filename ) ? DocX.Load( _filename ) : DocX.Load( _stream );
         }
 
+        initialDoc._isCopyingDocument = true;
         var memorystream = new MemoryStream();
         initialDoc.SaveAs( memorystream );
+        initialDoc._isCopyingDocument = false;
 
         memorystream.Seek( 0, SeekOrigin.Begin );
         return DocX.Load( memorystream );

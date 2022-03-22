@@ -443,6 +443,8 @@ namespace Xceed.Document.NET
 
 
 
+
+
     }
 
     #endregion
@@ -520,6 +522,18 @@ namespace Xceed.Document.NET
       SetPictureShape( ( object )shape );
     }
 
+    public Paragraph InsertCaptionAfterSelf( string caption )
+    {
+      var parentXElement = this.GetParentP();
+
+      if( parentXElement == null )
+        throw new Exception( "Cannot find the parent XElement" );
+
+      var p = new Paragraph(this.Document, parentXElement, 0);
+
+      return p.InsertCaptionAfterSelf( caption );
+    }
+
     //public void Delete()
     //{
     //    // Remove xml
@@ -538,6 +552,11 @@ namespace Xceed.Document.NET
     {
       return ( !string.IsNullOrEmpty( this.FileName ) && 
         ( this.FileName.EndsWith( "jpg" ) || this.FileName.EndsWith( "jpeg" ) ) );
+    }
+
+    internal XElement GetParentP()
+    {
+      return this.Xml.Ancestors( XName.Get( "p", Document.w.NamespaceName ) ).FirstOrDefault();
     }
 
     #endregion
@@ -588,7 +607,14 @@ namespace Xceed.Document.NET
 
 
 
+
+
   }
+
+
+
+
+
 
 
 

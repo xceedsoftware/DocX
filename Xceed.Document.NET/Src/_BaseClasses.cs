@@ -44,7 +44,10 @@ namespace Xceed.Document.NET
     ///     </r>
     /// </p>
     /// </summary>
-    public XElement Xml { get; set; } 
+    public XElement Xml
+    {
+      get; set;
+    }
 
     public PackagePart PackagePart
     {
@@ -66,7 +69,10 @@ namespace Xceed.Document.NET
     /// This is a reference to the Document object that this element belongs to.
     /// Every Document element is connected to a document.
     /// </summary>
-    internal Document Document { get; set; }
+    internal Document Document
+    {
+      get; set;
+    }
 
     #endregion
 
@@ -103,7 +109,7 @@ namespace Xceed.Document.NET
   {
     #region Constructors
 
-    public InsertBeforeOrAfter( Document document, XElement xml ) 
+    public InsertBeforeOrAfter( Document document, XElement xml )
       : base( document, xml )
     {
     }
@@ -159,9 +165,9 @@ namespace Xceed.Document.NET
       fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" SEQ " + captionText + @" \* ARABIC " ) );
 
       var actualCaptions = this.Document.Xml.Descendants( XName.Get( "fldSimple", Document.w.NamespaceName ) )
-                                            .Where( field => (field != null) 
-                                                && (field.GetAttribute( XName.Get( "instr", Document.w.NamespaceName ) ) != null )
-                                                && field.GetAttribute( XName.Get( "instr", Document.w.NamespaceName ) ).StartsWith(" SEQ " + captionText) );
+                                            .Where( field => ( field != null )
+                                                && ( field.GetAttribute( XName.Get( "instr", Document.w.NamespaceName ) ) != null )
+                                                && field.GetAttribute( XName.Get( "instr", Document.w.NamespaceName ) ).StartsWith( " SEQ " + captionText ) );
       var captionNumber = actualCaptions.Count() + 1;
 
       var content = XElement.Parse( string.Format(
@@ -171,7 +177,7 @@ namespace Xceed.Document.NET
            </w:rPr>
            <w:t>{0}</w:t> 
          </w:r>",
-       captionNumber)
+       captionNumber )
       );
       fldSimple.Add( content );
 

@@ -100,9 +100,11 @@ namespace Xceed.Words.NET.Examples
 
         // Get the formatted bookmark from the document and replace its Text.
         var formattedBookmark = document.Bookmarks[ "formattedBookmark" ];
-        if( formattedBookmark != null )
+        if( (formattedBookmark != null) 
+          && (formattedBookmark.Paragraph != null)
+          && (formattedBookmark.Paragraph.MagicText.Count >= 1) )
         {
-          formattedBookmark.SetText( "Formatted Bookmark has been changed" );
+          formattedBookmark.SetText( "Formatted Bookmark has been changed", formattedBookmark.Paragraph.MagicText[ 1 ].formatting );
         }
 
         document.SaveAs( BookmarkSample.BookmarkSampleOutputDirectory + @"ReplaceBookmarkText.docx" );

@@ -40,6 +40,7 @@ namespace Xceed.Document.NET
     private TableDesign _design;
     private TableLook _tableLook;
     private double _indentFromLeft;
+
     /// <summary>
     /// The custom design\style to apply to this table.
     /// 
@@ -965,6 +966,48 @@ namespace Xceed.Document.NET
       }
     }
 
+    public ShadingPattern ShadingPattern
+    {
+      get
+      {
+        if( Rows.Count < 0 )
+          throw new IndexOutOfRangeException();
+
+        if( Rows[ 0 ].ColumnCount < 0 )
+          throw new IndexOutOfRangeException();
+
+        ShadingPattern shadingPattern = Rows[ 0 ].Cells[ 0 ].ShadingPattern;
+
+        foreach( Row r in Rows )
+        {
+          var cells = r.Cells;
+
+          foreach( Cell c in cells )
+          {
+            if( !shadingPattern.Equals( c.ShadingPattern ) )
+            {
+              return new ShadingPattern();
+            }
+          }
+        }
+
+        return shadingPattern;
+      }
+
+      set
+      {
+        foreach( Row r in Rows )
+        {
+          var cells = r.Cells;
+
+          foreach( Cell c in cells )
+          {
+            c.ShadingPattern = value;
+          }
+        }
+      }
+    }
+
     #endregion
 
     #region Constructors
@@ -981,7 +1024,7 @@ namespace Xceed.Document.NET
       var tblGrid = xml.Element( XName.Get( "tblGrid", Document.w.NamespaceName ) );
       if( tblGrid == null )
       {
-        this.SetColumnWidth(0, -1, false);
+        this.SetColumnWidth( 0, -1, false );
       }
 
       var alignment = properties?.Element( XName.Get( "jc", Document.w.NamespaceName ) );
@@ -990,7 +1033,7 @@ namespace Xceed.Document.NET
         var val = alignment.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
         if( val != null )
         {
-          _alignment = (Alignment)Enum.Parse( typeof( Alignment ), val.Value );
+          _alignment = ( Alignment )Enum.Parse( typeof( Alignment ), val.Value );
         }
       }
 
@@ -1005,7 +1048,7 @@ namespace Xceed.Document.NET
 
           if( Enum.IsDefined( typeof( TableDesign ), cleanValue ) )
           {
-            this.Design = (TableDesign)Enum.Parse( typeof( TableDesign ), cleanValue );
+            this.Design = ( TableDesign )Enum.Parse( typeof( TableDesign ), cleanValue );
           }
 
           else
@@ -1557,7 +1600,7 @@ namespace Xceed.Document.NET
           {
             this.AddCellToRow( row, cell, index, direction );
           }
-        }        
+        }
 
         var newWidths = new List<float>( colCount + 1 );
         this.ColumnWidths.ForEach( pWidth => newWidths.Add( Convert.ToSingle( pWidth ) ) );
@@ -2228,7 +2271,7 @@ namespace Xceed.Document.NET
         try
         {
           var bordertype = "Tcbs_" + val.Value;
-          b.Tcbs = (BorderStyle)Enum.Parse( typeof( BorderStyle ), bordertype );
+          b.Tcbs = ( BorderStyle )Enum.Parse( typeof( BorderStyle ), bordertype );
         }
         catch
         {
@@ -2352,7 +2395,7 @@ namespace Xceed.Document.NET
           throw new Exception( "There is at least one row required to detect the existing columns." );
 
         columnWidths = new List<Double>();
-        var cells = this.Rows[0].Cells;
+        var cells = this.Rows[ 0 ].Cells;
         foreach( var c in cells )
         {
           columnWidths.Add( c.Width );
@@ -2368,7 +2411,7 @@ namespace Xceed.Document.NET
           var unknownWidthColumnCount = columnWidths.Count - knownWidth.Count();
           var wantedColumnWidth = availableSpace / unknownWidthColumnCount;
 
-          for(int i = 0; i < columnWidths.Count; ++i )
+          for( int i = 0; i < columnWidths.Count; ++i )
           {
             if( double.IsNaN( columnWidths[ i ] ) )
             {
@@ -2671,6 +2714,8 @@ namespace Xceed.Document.NET
 
 
 
+
+
   }
 
   /// <summary>
@@ -2937,7 +2982,7 @@ namespace Xceed.Document.NET
       trHeight.SetAttributeValue( XName.Get( "hRule", Document.w.NamespaceName ), isHeightExact ? "exact" : "atLeast" );
 
       // Using 20 to match Document._pageSizeMultiplier.
-      trHeight.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), ( (int)( Math.Round( height * 20, 0 ) ) ).ToString( CultureInfo.InvariantCulture ) );
+      trHeight.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), ( ( int )( Math.Round( height * 20, 0 ) ) ).ToString( CultureInfo.InvariantCulture ) );
     }
 
     #endregion
@@ -2983,7 +3028,7 @@ namespace Xceed.Document.NET
         // Add this cells Pragraph to the merge start Cell.
         this.Cells[ startIndex ].Xml.Add( c.Xml.Elements( XName.Get( "p", Document.w.NamespaceName ) ) );
 
-        this.Cells[startIndex].Width += c.Width;
+        this.Cells[ startIndex ].Width += c.Width;
 
         // Remove this Cell.
         c.Xml.Remove();
@@ -3051,6 +3096,7 @@ namespace Xceed.Document.NET
     #region Internal Members
 
     internal Row _row;
+    internal ShadingPattern _shadingPattern;
 
     #endregion
 
@@ -3136,7 +3182,7 @@ namespace Xceed.Document.NET
         // If val is not a VerticalAlign enum, something is wrong with this attributes value, so remove it and return VerticalAlignment.Center;
         try
         {
-          return (VerticalAlignment)Enum.Parse( typeof( VerticalAlignment ), val.Value, true );
+          return ( VerticalAlignment )Enum.Parse( typeof( VerticalAlignment ), val.Value, true );
         }
 
         catch
@@ -3175,6 +3221,7 @@ namespace Xceed.Document.NET
       }
     }
 
+    [Obsolete( "This property is obsolete and should no longer be used. Use the ShadingPattern property instead." )]
     public Color Shading
     {
       get
@@ -3235,6 +3282,67 @@ namespace Xceed.Document.NET
         shd.SetAttributeValue( XName.Get( "fill", Document.w.NamespaceName ), value.ToHex() );
       }
     }
+
+    #region ShadingPattern
+
+    public ShadingPattern ShadingPattern
+    {
+      get
+      {
+        if( _shadingPattern != null )
+          return _shadingPattern;
+
+        /*
+         * Get the tcPr (table cell properties) element for this Cell,
+         * null will be return if no such element exists.
+         */
+        XElement tcPr = Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
+
+        // If tcPr is null, this cell contains no Pattern information.
+        // Get the shd (table shade) element for this Cell,
+        // null will be return if no such element exists.
+        XElement shd = tcPr?.Element( XName.Get( "shd", Document.w.NamespaceName ) );
+
+
+        _shadingPattern = new ShadingPattern();
+
+        // If shd is not null, this cell contains Pattern information, else return an empty ShadingPattern.
+        if( shd != null )
+        {
+          // Get the w attribute of the tcW element.
+          XAttribute fill = shd.Attribute( XName.Get( "fill", Document.w.NamespaceName ) );
+          XAttribute style = shd.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
+          XAttribute styleColor = shd.Attribute( XName.Get( "color", Document.w.NamespaceName ) );
+
+          _shadingPattern.Fill = HelperFunctions.GetColorFromHtml( fill.Value );
+          _shadingPattern.Style = HelperFunctions.GetTablePatternStyleFromValue( style.Value );
+          _shadingPattern.StyleColor = HelperFunctions.GetColorFromHtml( styleColor.Value );
+        }
+
+        _shadingPattern.PropertyChanged += this.ShadingPattern_PropertyChanged;
+
+        return _shadingPattern;
+      }
+
+      set
+      {
+        if( _shadingPattern != null )
+        {
+          _shadingPattern.PropertyChanged -= this.ShadingPattern_PropertyChanged;
+        }
+
+        _shadingPattern = value;
+
+        if( _shadingPattern != null )
+        {
+          _shadingPattern.PropertyChanged += this.ShadingPattern_PropertyChanged;
+        }
+
+        this.UpdateShadingPatternXml();
+      }
+    }
+
+    #endregion  //ShadingPattern
 
     /// <summary>
     /// Width in pixels.
@@ -3923,7 +4031,7 @@ namespace Xceed.Document.NET
 
               for( var i = rowIndex + 1; i < rows.Count; ++i )
               {
-                if( cellIndex >= rows[i].Cells.Count )
+                if( cellIndex >= rows[ i ].Cells.Count )
                   break;
 
                 var cell = rows[ i ].Cells[ cellIndex ];
@@ -4163,7 +4271,7 @@ namespace Xceed.Document.NET
         try
         {
           string bordertype = "Tcbs_" + val.Value;
-          b.Tcbs = (BorderStyle)Enum.Parse( typeof( BorderStyle ), bordertype );
+          b.Tcbs = ( BorderStyle )Enum.Parse( typeof( BorderStyle ), bordertype );
         }
 
         catch
@@ -4268,23 +4376,110 @@ namespace Xceed.Document.NET
       return b;
     }
 
+    public override Paragraph InsertParagraph( int index, Paragraph p )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertParagraph( index, p );
+    }
+
+    public override Paragraph InsertParagraph( int index, string text, bool trackChanges, Formatting formatting )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertParagraph( index, text, trackChanges, formatting );
+    }
+
+    public override Paragraph InsertParagraph( string text, bool trackChanges, Formatting formatting )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertParagraph( text, trackChanges, formatting );
+    }
+
+    public override Paragraph InsertParagraph( Paragraph p )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertParagraph( p );
+    }
+
+    public override Paragraph InsertEquation( string equation, Alignment align = Alignment.center )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertEquation( equation, align );
+    }
+
     public override Table InsertTable( int rowCount, int columnCount )
     {
-      var table = base.InsertTable( rowCount, columnCount );
-      table.PackagePart = this.PackagePart;
-      this.InsertParagraph(); //It is necessary to put paragraph in the end of the cell, without it MS-Word will say that the document is corrupted
-                              //IMPORTANT: It will be better to check all methods that work with adding anything to cells
-      return table;
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertTable( rowCount, columnCount );
+    }
+
+    public override Table InsertTable( int index, int rowCount, int columnCount )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertTable( index, rowCount, columnCount );
     }
 
     public override Table InsertTable( Table t )
     {
-      var table = base.InsertTable( t );
-      table.PackagePart = this.PackagePart;
-      this.InsertParagraph(); //It is necessary to put paragraph in the end of the cell, without it MS-Word will say that the document is corrupted
-                              //IMPORTANT: It will be better to check all methods that work with adding anything to cells
-      return table;
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertTable( t );
     }
+
+    public override Table InsertTable( int index, Table t )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertTable( index, t );
+    }
+
+    public override List InsertList( List list )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertList( list );
+    }
+
+    public override List InsertList( List list, double fontSize )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertList( list, fontSize );
+    }
+
+    public override List InsertList( List list, Font fontFamily, double fontSize )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertList( list, fontFamily, fontSize );
+    }
+
+    public override List InsertList( int index, List list )
+    {
+      if( IsDefaultParagraph() )
+        this.Paragraphs[ 0 ].Remove( false );
+
+      return base.InsertList( index, list );
+    }
+
 
     #endregion
 
@@ -4311,6 +4506,72 @@ namespace Xceed.Document.NET
     // }
     // </code>
     // </example>
+
+    #region Private Methods
+
+    private bool IsDefaultParagraph()
+    {
+      if( this.Paragraphs.Count < 1 )
+        return false;
+
+      var firstParagraph = this.Paragraphs[ 0 ];
+      return this.Paragraphs.Count == 1
+             && string.IsNullOrEmpty(firstParagraph.Text)
+             && !firstParagraph.IsListItem
+             && firstParagraph.Pictures.Count == 0
+             && firstParagraph.Hyperlinks.Count == 0;
+
+    }
+
+    private void UpdateShadingPatternXml()
+    {
+      if( _shadingPattern == null )
+      {
+        throw new Exception( "Shading pattern value is invalid." );
+      }
+
+      /*
+       * Get the tcPr (table cell properties) element for this Cell,
+       * null will be return if no such element exists.
+       */
+      XElement tcPr = Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
+      if( tcPr == null )
+      {
+        Xml.SetElementValue( XName.Get( "tcPr", Document.w.NamespaceName ), string.Empty );
+        tcPr = Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
+      }
+
+      /*
+       * Get the shd (table shade) element for this Cell,
+       * null will be return if no such element exists.
+       */
+      XElement shd = tcPr.Element( XName.Get( "shd", Document.w.NamespaceName ) );
+      if( shd == null )
+      {
+        tcPr.SetElementValue( XName.Get( "shd", Document.w.NamespaceName ), string.Empty );
+        shd = tcPr.Element( XName.Get( "shd", Document.w.NamespaceName ) );
+      }
+
+      // The fill attribute needs to be set to the hex for this Color.
+      shd.SetAttributeValue( XName.Get( "fill", Document.w.NamespaceName ), _shadingPattern.Fill.ToHex() );
+
+      // Set the value to val attribute.
+      shd.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), HelperFunctions.GetValueFromTablePatternStyle( _shadingPattern.Style ) );
+
+      // The color attribute needs to be set to the hex for this Color.
+      shd.SetAttributeValue( XName.Get( "color", Document.w.NamespaceName ), _shadingPattern.Style == PatternStyle.Clear ? "auto" : _shadingPattern.StyleColor.ToHex() );
+    }
+
+    #endregion
+
+    #region Event Handlers
+
+    private void ShadingPattern_PropertyChanged( object sender, PropertyChangedEventArgs e )
+    {
+      this.UpdateShadingPatternXml();
+    }
+
+    #endregion
   }
 
   public class TableLook : INotifyPropertyChanged

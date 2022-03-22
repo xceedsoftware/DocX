@@ -120,10 +120,10 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Xceed.Document.NET.dll">
-      <HintPath>..\Xceed.Document.NET\bin\Debug\Xceed.Document.NET.dll</HintPath>
+      <HintPath>..\Xceed.Document.NET\bin\$(Configuration)\Xceed.Document.NET.dll</HintPath>
     </Reference>
     <Reference Include="Xceed.Words.NET.dll">
-      <HintPath>..\Xceed.Words.NET\bin\Debug\Xceed.Words.NET.dll</HintPath>
+      <HintPath>..\Xceed.Words.NET\bin\$(Configuration)\Xceed.Words.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

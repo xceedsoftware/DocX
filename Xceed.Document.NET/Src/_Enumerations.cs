@@ -60,6 +60,14 @@ namespace Xceed.Document.NET
     roman
   }
 
+  public enum ChapterSeparator
+  {
+    colon,
+    emDash,
+    enDash,
+    hyphen,
+    period
+  }
   public enum BorderSize
   {
     one,
@@ -765,6 +773,47 @@ namespace Xceed.Document.NET
     top
   }
 
+  public enum PatternStyle
+  {
+    Clear,
+    Solid,
+    Percent5,
+    Percent10,
+    Percent12,
+    Percent15,
+    Percent20,
+    Percent25,
+    Percent30,
+    Percent35,
+    Percent37,
+    Percent40,
+    Percent45,
+    Percent50,
+    Percent55,
+    Percent60,
+    Percent62,
+    Percent65,
+    Percent70,
+    Percent75,
+    Percent80,
+    Percent85,
+    Percent87,
+    Percent90,
+    Percent95,
+    DkHorizonal,
+    DkVertical,
+    DkDwnDiagonal,
+    DkUpDiagonal,
+    DkGrid,
+    DkTrellis,
+    LtHorizonal,
+    LtVertical,
+    LtDwnDiagonal,
+    LtUpDiagonal,
+    LtGrid,
+    LtTrellis,
+  }
+
   public enum HorizontalBorderPosition
   {
     top,
@@ -788,6 +837,78 @@ namespace Xceed.Document.NET
     upperRoman,
     chicago
   }
+
+  /// <summary>
+  /// The numbering format which shall be used for a group of automatically numbered objects.
+  /// Reference : https://c-rex.net/projects/samples/ooxml/e1/Part4/OOXML_P4_DOCX_ST_NumberFormat_topic_ID0EDNB3.html#topic_ID0EDNB3
+  /// </summary>
+  public enum NumberingFormat
+  {
+    aiueo,
+    aiueoFullWidth,
+    arabicAlpha,
+    bullet,
+    cardinalText,
+    chicago,
+    chineseCounting,
+    chineseCountingThousand,
+    chineseLegalSimplified,
+    chosung,
+    decimalNormal,
+    decimalEnclosedCircle,
+    decimalEnclosedCircleChinese,
+    decimalEnclosedFullstop,
+    decimalEnclosedParen,
+    decimalFullWidth,
+    decimalFullWidth2,
+    decimalHalfWidth,
+    decimalZero,
+    ganada,
+    hebrew1,
+    hebrew2,
+    hex,
+    hindiConsonants,
+    hindiCounting,
+    hindiNumbers,
+    hindiVowels,
+    ideographDigital,
+    ideographEnclosedCircle,
+    ideographLegalTraditional,
+    ideographTraditional,
+    ideographZodiac,
+    ideographZodiacTraditional,
+    iroha,
+    irohaFullWidth,
+    japaneseCounting,
+    japaneseDigitalTenThousand,
+    japaneseLegal,
+    koreanCounting,
+    koreanDigital,
+    koreanDigital2,
+    koreanLegal,
+    lowerLetter,
+    lowerRoman,
+    none,
+    numberInDash,
+    ordinal,
+    ordinalText,
+    russianLower,
+    russianUpper,
+    taiwaneseCounting,
+    taiwaneseCountingThousand,
+    taiwaneseDigital,
+    thaiCounting,
+    thaiLetters,
+    thaiNumbers,
+    upperLetter,
+    upperRoman,
+    vietnameseCounting
+  }
+
+
+
+
+
 
 
 

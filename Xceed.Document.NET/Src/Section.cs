@@ -40,6 +40,7 @@ namespace Xceed.Document.NET
     private static float _pageSizeMultiplier = 20.0f;
     private NoteProperties _footnoteProperties;
     private NoteProperties _endnoteProperties;
+    private PageNumberType _pageNumberType;
 
 #endregion
 
@@ -367,34 +368,73 @@ namespace Xceed.Document.NET
       private set;
     }
 
-    public int PageNumberStart
+    public PageNumberType PageNumberType
     {
       get
       {
-        var pgNumType = this.Xml.Element( XName.Get( "pgNumType", w.NamespaceName ) );
-        if( pgNumType != null )
+        var pgNumType = this.Xml.Element(XName.Get("pgNumType", w.NamespaceName));
+        _pageNumberType = new PageNumberType();
+
+        if (pgNumType != null)
         {
-          var start = pgNumType.Attribute( XName.Get( "start", Document.w.NamespaceName ) );
-          if( start != null )
+          var start = pgNumType.Attribute(XName.Get("start", Document.w.NamespaceName));
+          var chapStyle = pgNumType.Attribute(XName.Get("chapStyle", Document.w.NamespaceName));
+          var fmt = pgNumType.Attribute(XName.Get("fmt", Document.w.NamespaceName));
+          var chapSep = pgNumType.Attribute(XName.Get("chapSep", Document.w.NamespaceName));
+
+
+          if (start != null)
           {
             int i;
-            if( HelperFunctions.TryParseInt( start.Value, out i ) )
-              return i;
+            if (HelperFunctions.TryParseInt(start.Value, out i))
+              _pageNumberType.PageNumberStart = i;
+          }
+
+          if (chapStyle != null)
+          {
+            int i;
+            if (HelperFunctions.TryParseInt(chapStyle.Value, out i))
+              _pageNumberType.ChapterStyle = i;
+          }
+
+          if (fmt != null)
+          {
+            if (fmt.Value.Equals("decimal"))
+            {
+              _pageNumberType.PageNumberFormat = NumberingFormat.decimalNormal;
+            }
+            else
+            {
+              _pageNumberType.PageNumberFormat = Enum.GetValues(typeof(NumberingFormat)).Cast<NumberingFormat>().FirstOrDefault(x => x.ToString().Equals(fmt.Value));
+            }
+          }
+
+          if (chapSep != null)
+          {
+            _pageNumberType.ChapterNumberSeparator = Enum.GetValues(typeof(ChapterSeparator)).Cast<ChapterSeparator>().FirstOrDefault(x => x.ToString().Equals(chapSep.Value)) ;
           }
         }
 
-        return -1;
+        _pageNumberType.PropertyChanged += this.PageNumberType_PropertyChanged;
+
+        return _pageNumberType;
       }
 
       set
       {
-        var pgNumType = this.Xml.Element( XName.Get( "pgNumType", w.NamespaceName ) );
-        if( pgNumType == null )
+        if (_pageNumberType != null)
         {
-          this.Xml.Add( new XElement( XName.Get( "pgNumType", w.NamespaceName ) ) );
-          pgNumType = this.Xml.Element( XName.Get( "pgNumType", w.NamespaceName ) );
+          _pageNumberType.PropertyChanged -= this.PageNumberType_PropertyChanged;
         }
-        pgNumType.SetAttributeValue( XName.Get( "start", w.NamespaceName ), value );
+
+        _pageNumberType = value;
+
+        if (_pageNumberType != null)
+        {
+          _pageNumberType.PropertyChanged += this.PageNumberType_PropertyChanged;
+        }
+
+        this.UpdatePageNumberTypeXml();
       }
     }
 
@@ -514,7 +554,10 @@ namespace Xceed.Document.NET
       // Create the Header/Footer container based on the xml copy.
       this.AddHeadersContainer( xmlCopy );
       this.AddFootersContainer( xmlCopy );
+
+      this.PackagePart = document.PackagePart;
     }
+
 
     #endregion
 
@@ -555,6 +598,36 @@ namespace Xceed.Document.NET
     {
       this.AddHeadersOrFootersXml( false );
     }
+
+    public void Remove()
+    {
+      if( this.Document.Sections.Count == 1 )
+        throw new InvalidOperationException( "Can't remove the last section of a document." );
+
+      foreach( var paragraphToFind in this.SectionParagraphs )
+      {
+        var paragraph = this.Document.Paragraphs.FirstOrDefault( p => p.Equals( paragraphToFind ) );
+        if( paragraph.FollowingTables != null )
+        {
+          foreach( var table in paragraph.FollowingTables )
+          {
+            table.Remove();
+          }
+        }
+
+        paragraph.Remove( false );
+      }
+
+      this.DeleteHeadersOrFooters( true );
+      this.DeleteHeadersOrFooters( false );
+
+      this.Xml.Remove();
+
+      this.Document.UpdateCacheSections();
+    }
+
+
+
 
     #endregion
 
@@ -607,12 +680,7 @@ namespace Xceed.Document.NET
           header = XDocument.Parse
           ( string.Format( @"<?xml version=""1.0"" encoding=""utf-16"" standalone=""yes""?>
                        <w:{0} xmlns:ve=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:wne=""http://schemas.microsoft.com/office/word/2006/wordml"">
-                         <w:p w:rsidR=""009D472B"" w:rsidRDefault=""009D472B"">
-                           <w:pPr>
-                             <w:pStyle w:val=""{1}"" />
-                           </w:pPr>
-                         </w:p>
-                       </w:{0}>", element, reference )
+                       </w:{0}>", element )
           );
         }
 
@@ -1048,6 +1116,42 @@ namespace Xceed.Document.NET
         }
       }
     }
+    private void UpdatePageNumberTypeXml()
+    {
+      var pgNumType = this.Xml.Element(XName.Get("pgNumType", w.NamespaceName));
+
+      if (pgNumType == null)
+      {
+        this.Xml.Add(new XElement(XName.Get("pgNumType", w.NamespaceName)));
+        pgNumType = this.Xml.Element(XName.Get("pgNumType", w.NamespaceName));
+      }
+
+      if(_pageNumberType != null)
+      {
+        pgNumType.SetAttributeValue(XName.Get("chapStyle", w.NamespaceName), _pageNumberType.ChapterStyle);
+
+        if (_pageNumberType.PageNumberStart.HasValue && _pageNumberType.PageNumberStart.Value > 0)
+        {
+          pgNumType.SetAttributeValue(XName.Get("start", w.NamespaceName), _pageNumberType.PageNumberStart);
+        }
+        else
+        {
+          pgNumType.SetAttributeValue(XName.Get("start", w.NamespaceName), null);
+        }
+
+        pgNumType.SetAttributeValue(XName.Get("chapSep", w.NamespaceName), _pageNumberType.ChapterNumberSeparator);
+
+        if (_pageNumberType.PageNumberFormat == NumberingFormat.decimalNormal)
+        {
+          pgNumType.SetAttributeValue(XName.Get("fmt", w.NamespaceName), "decimal");
+        }
+        else
+        {
+          pgNumType.SetAttributeValue(XName.Get("fmt", w.NamespaceName), _pageNumberType.PageNumberFormat);
+        }
+      }
+    }
+
 
     #endregion
 
@@ -1063,6 +1167,11 @@ namespace Xceed.Document.NET
       this.SetNoteProperties( "endnotePr", _endnoteProperties );
     }
 
-#endregion
+    private void PageNumberType_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+      this.UpdatePageNumberTypeXml();
+    }
+
+    #endregion
   }
 }

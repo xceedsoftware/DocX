@@ -35,7 +35,9 @@ namespace Xceed.Document.NET
 
     private Paragraph _parentParagraph;
     private PackageRelationship _packageRelationship;
+    private List<Series> _series;
 
+    private XDocument _chartDocument;
 
     #endregion
 
@@ -44,7 +46,16 @@ namespace Xceed.Document.NET
     /// <summary>
     /// The xml representation of this chart
     /// </summary>
-    public XDocument Xml
+
+    public XElement ExternalXml
+    {
+      get; private set;
+    }
+
+    /// <summary>
+    /// The xml representation of this chart contained in the document paragraph with wrappings and relationId
+    /// </summary>
+    public XElement Xml
     {
       get; private set;
     }
@@ -56,13 +67,19 @@ namespace Xceed.Document.NET
     {
       get
       {
-        var series = new List<Series>();
-        var ser = ChartXml.Elements( XName.Get( "ser", Document.c.NamespaceName ) );
-        foreach( var element in ser )
+        if(_series== null)
         {
-          series.Add( new Series( element ) );
+          _series = new List<Series>();
+          var chart = GetChartTypeXElement();
+          var ser = chart.Elements(XName.Get("ser", Document.c.NamespaceName));
+          foreach (var element in ser)
+          {
+            var serie = new Series(element);
+            serie.PackagePart = this.PackagePart;
+            _series.Add(serie);
+          }
         }
-        return series;
+        return _series;
       }
     }
 
@@ -93,7 +110,7 @@ namespace Xceed.Document.NET
     {
       get
       {
-        var catAxXML = ChartRootXml.Descendants( XName.Get( "catAx", Document.c.NamespaceName ) ).SingleOrDefault();
+        var catAxXML = this.ExternalXml.Descendants( XName.Get( "catAx", Document.c.NamespaceName ) ).SingleOrDefault();
 
         return ( catAxXML != null ) ? new CategoryAxis( catAxXML ) : null;
       }
@@ -106,7 +123,7 @@ namespace Xceed.Document.NET
     {
       get
       {
-        var valAxXML = ChartRootXml.Descendants( XName.Get( "valAx", Document.c.NamespaceName ) ).SingleOrDefault();
+        var valAxXML = this.ExternalXml.Descendants( XName.Get( "valAx", Document.c.NamespaceName ) ).SingleOrDefault();
 
         return ( valAxXML != null ) ? new ValueAxis( valAxXML ) : null;
       }
@@ -130,24 +147,29 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return ChartXml.Name.LocalName.Contains( "3D" );
+        var chartXml = GetChartTypeXElement();
+        return chartXml != null && chartXml.Name.LocalName.Contains( "3D" );
       }
       set
       {
-        if( value )
+        var chartXml = GetChartTypeXElement();
+        if( chartXml != null )
         {
-          if( !View3D )
+          if( value )
           {
-            String currentName = ChartXml.Name.LocalName;
-            ChartXml.Name = XName.Get( currentName.Replace( "Chart", "3DChart" ), Document.c.NamespaceName );
+            if( !View3D )
+            {
+              String currentName = chartXml.Name.LocalName;
+              chartXml.Name = XName.Get( currentName.Replace( "Chart", "3DChart" ), Document.c.NamespaceName );
+            }
           }
-        }
-        else
-        {
-          if( View3D )
+          else
           {
-            String currentName = ChartXml.Name.LocalName;
-            ChartXml.Name = XName.Get( currentName.Replace( "3DChart", "Chart" ), Document.c.NamespaceName );
+            if( View3D )
+            {
+              String currentName = chartXml.Name.LocalName;
+              chartXml.Name = XName.Get( currentName.Replace( "3DChart", "Chart" ), Document.c.NamespaceName );
+            }
           }
         }
       }
@@ -160,30 +182,67 @@ namespace Xceed.Document.NET
     {
       get
       {
+        var chart = this.ExternalXml.Element( XName.Get( "chart" ) );
         return XElementHelpers.GetValueToEnum<DisplayBlanksAs>(
-            ChartRootXml.Element( XName.Get( "dispBlanksAs", Document.c.NamespaceName ) ) );
+            chart.Element( XName.Get( "dispBlanksAs", Document.c.NamespaceName ) ) );
       }
       set
       {
+        var chart = this.ExternalXml.Element( XName.Get( "chart" ) );
+
         XElementHelpers.SetValueFromEnum<DisplayBlanksAs>(
-            ChartRootXml.Element( XName.Get( "dispBlanksAs", Document.c.NamespaceName ) ), value );
+            chart.Element( XName.Get( "dispBlanksAs", Document.c.NamespaceName ) ), value );
       }
     }
 
     #endregion
 
-    #region Protected Properties
-
-    protected internal XElement ChartXml
+    #region Internal Properties
+    internal PackagePart PackagePart
     {
-      get; private set;
+      get; set;
     }
-    protected internal XElement ChartRootXml
+
+    internal PackageRelationship RelationPackage
     {
-      get; private set;
+      get; set;
     }
 
     #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     #region Constructors
 
@@ -194,7 +253,7 @@ namespace Xceed.Document.NET
     {
 
       // Create global xml
-      this.Xml = XDocument.Parse
+      this.ExternalXml = XElement.Parse
           ( @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
                    <c:chartSpace xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"" xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"">  
                        <c:roundedCorners val=""0""/>
@@ -206,13 +265,31 @@ namespace Xceed.Document.NET
                        </c:chart>
                    </c:chartSpace>" );
 
+
+      // Create internal chart Xml
+      this.Xml = XElement.Parse
+        ( @"<w:r xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+            <w:drawing xmlns=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+              <wp:inline xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"">
+                <wp:extent cx=""1270000"" cy=""1270000""/>
+                <wp:effectExtent l=""0"" t=""0"" r=""19050"" b=""19050""/>
+                <wp:docPr id=""1"" name=""chart""/>
+                <a:graphic xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"">
+                    <a:graphicData uri=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
+                      <c:chart p6:id=""rIdX"" xmlns:p6=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>
+                    </a:graphicData>
+                </a:graphic>
+            </wp:inline>
+          </w:drawing>
+        </w:r>" );
+
       // Create a real chart xml in an inheritor
-      this.ChartXml = this.CreateChartXml();
+      var chartXml = this.CreateExternalChartXml();
 
       // Create result plotarea element
       var plotAreaXml = new XElement( XName.Get( "plotArea", Document.c.NamespaceName ),
                                       new XElement( XName.Get( "layout", Document.c.NamespaceName ) ),
-                                      this.ChartXml );
+                                      chartXml );
 
       // Set labels 
       var dLblsXml = XElement.Parse(
@@ -225,7 +302,7 @@ namespace Xceed.Document.NET
                     <c:showBubbleSize val=""0""/>
                     <c:showLeaderLines val=""1""/>
                 </c:dLbls>" );
-      this.ChartXml.Add( dLblsXml );
+      chartXml.Add( dLblsXml );
 
       // if axes exists, create their
       if( this.IsAxisExist )
@@ -236,7 +313,7 @@ namespace Xceed.Document.NET
         var axIDcatXml = XElement.Parse( String.Format( @"<c:axId val=""{0}"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>", categoryAxis.Id ) );
         var axIDvalXml = XElement.Parse( String.Format( @"<c:axId val=""{0}"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""/>", valueAxis.Id ) );
 
-        var gapWidth = this.ChartXml.Element( XName.Get( "gapWidth", Document.c.NamespaceName ) );
+        var gapWidth = chartXml.Element( XName.Get( "gapWidth", Document.c.NamespaceName ) );
         if( gapWidth != null )
         {
           gapWidth.AddAfterSelf( axIDvalXml );
@@ -244,16 +321,28 @@ namespace Xceed.Document.NET
         }
         else
         {
-          this.ChartXml.Add( axIDcatXml );
-          this.ChartXml.Add( axIDvalXml );
+          chartXml.Add( axIDcatXml );
+          chartXml.Add( axIDvalXml );
         }
 
         plotAreaXml.Add( categoryAxis.Xml );
         plotAreaXml.Add( valueAxis.Xml );
       }
 
-      this.ChartRootXml = this.Xml.Root.Element( XName.Get( "chart", Document.c.NamespaceName ) );
-      this.ChartRootXml.Element( XName.Get( "autoTitleDeleted", Document.c.NamespaceName ) ).AddAfterSelf( plotAreaXml );
+      var chartRootXml = this.ExternalXml.Element( XName.Get( "chart", Document.c.NamespaceName ) );
+      chartRootXml.Element( XName.Get( "autoTitleDeleted", Document.c.NamespaceName ) ).AddAfterSelf( plotAreaXml );
+
+
+      }
+    internal Chart( Paragraph parentParagraph, PackageRelationship packageRelationship, PackagePart packagePart, XDocument chartDocument )
+      : this()
+    {
+      _parentParagraph = parentParagraph;
+      _packageRelationship = packageRelationship;
+      this.PackagePart = packagePart;
+      _chartDocument = chartDocument;
+
+
     }
 
 
@@ -266,16 +355,23 @@ namespace Xceed.Document.NET
     /// </summary>
     public virtual void AddSeries( Series series )
     {
-      var seriesCount = this.ChartXml.Elements( XName.Get( "ser", Document.c.NamespaceName ) ).Count();
-      if( seriesCount >= this.MaxSeriesCount )
-        throw new InvalidOperationException( "Maximum series for this chart is" + this.MaxSeriesCount.ToString() + "and have exceeded!" );
+      Series.Add(series);
+      series.PackagePart = this.PackagePart;
 
-      //To work in Words, all series need an Index and Order.
-      var value = seriesCount + 1;
-      var content = new XAttribute( XName.Get( "val" ), value.ToString() );
-      series.Xml.AddFirst( new XElement( XName.Get( "order", Document.c.NamespaceName ), content ) );
-      series.Xml.AddFirst( new XElement( XName.Get( "idx", Document.c.NamespaceName ), content ) );
-      this.ChartXml.Add( series.Xml );
+      var chart = GetChartTypeXElement();
+      if( chart != null )
+      {
+        var seriesCount = chart.Elements( XName.Get( "ser", Document.c.NamespaceName ) ).Count();
+        if( seriesCount >= this.MaxSeriesCount )
+          throw new InvalidOperationException( "Maximum series for this chart is" + this.MaxSeriesCount.ToString() + "and have exceeded!" );
+
+        //To work in Words, all series need an Index and Order.
+        var value = seriesCount + 1;
+        var content = new XAttribute( XName.Get( "val" ), value.ToString() );
+        series.Xml.AddFirst( new XElement( XName.Get( "order", Document.c.NamespaceName ), content ) );
+        series.Xml.AddFirst( new XElement( XName.Get( "idx", Document.c.NamespaceName ), content ) );
+        chart.Add( series.Xml );
+      }
     }
 
     /// <summary>
@@ -296,7 +392,11 @@ namespace Xceed.Document.NET
         this.RemoveLegend();
       }
       this.Legend = new ChartLegend( position, overlay );
-      this.ChartRootXml.Element( XName.Get( "plotArea", Document.c.NamespaceName ) ).AddAfterSelf( Legend.Xml );
+      var chart = this.ExternalXml.Element( XName.Get( "chart", Document.c.NamespaceName ) );
+      if( chart != null )
+      {
+        chart.Element( XName.Get( "plotArea", Document.c.NamespaceName ) ).AddAfterSelf( Legend.Xml );
+      }
     }
 
     /// <summary>
@@ -324,11 +424,11 @@ namespace Xceed.Document.NET
       }
 
       // Remove the Xml from document.
-      var parentParagrahChart = _parentParagraph.Xml.Descendants( XName.Get( "chart", Document.c.NamespaceName ) )
+      var parentParagraphChart = _parentParagraph.Xml.Descendants( XName.Get( "chart", Document.c.NamespaceName ) )
                                                    .FirstOrDefault( c => c.GetAttribute( XName.Get( "id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships" ) ) == _packageRelationship.Id );
-      if( parentParagrahChart != null )
+      if( parentParagraphChart != null )
       {
-        var parentDrawing = parentParagrahChart.Ancestors( XName.Get( "drawing", Document.w.NamespaceName ) ).FirstOrDefault();
+        var parentDrawing = parentParagraphChart.Ancestors( XName.Get( "drawing", Document.w.NamespaceName ) ).FirstOrDefault();
         if( parentDrawing != null )
         {
           parentDrawing.Remove();
@@ -338,244 +438,74 @@ namespace Xceed.Document.NET
 
 
 
-
     #endregion
 
     #region Protected Methods
 
     /// <summary>
-    /// An abstract method which creates the current chart xml
+    /// An abstract method which creates the current external chart xml
     /// </summary>
-    protected abstract XElement CreateChartXml();
+    protected abstract XElement CreateExternalChartXml();
+
+    /// <summary>
+    /// An abstract method to get the external chart xml
+    /// </summary>
+    protected abstract XElement GetChartTypeXElement();
 
     #endregion
 
     #region Internal Method
 
+    static internal IEnumerable<XElement> GetChartsXml( XElement xml )
+    {
+      if( xml == null )
+        return null;
+
+      return xml.Elements().Where( chartElement => ( chartElement.Name.LocalName == "barChart" )
+                                                        || ( chartElement.Name.LocalName == "bar3DChart" )
+                                                        || ( chartElement.Name.LocalName == "lineChart" )
+                                                        || ( chartElement.Name.LocalName == "line3DChart" )
+                                                        || ( chartElement.Name.LocalName == "pieChart" )
+                                                        || ( chartElement.Name.LocalName == "pie3DChart" ) );
+
+    }
+
+    internal void SetXml( XElement externalChartXml, XElement internalChartXml )
+    {
+      this.ExternalXml = externalChartXml;
+      this.Xml = internalChartXml;
+    }
+
+    internal void SetInternalChartSettings( string relId, float chartWidth, float chartHeight )
+    {
+      if( string.IsNullOrEmpty( relId ) )
+        throw new ArgumentNullException( "relId" );
+
+      var width = chartWidth * Picture.EmusInPixel;
+      var height = chartHeight * Picture.EmusInPixel;
+
+      var extent = this.Xml.Descendants( XName.Get( "extent", Document.wp.NamespaceName ) ).FirstOrDefault();
+      if( extent != null )
+      {
+        extent.Attribute( "cx" ).Value = width.ToString();
+        extent.Attribute( "cy" ).Value = height.ToString();
+      }
+
+      var chart = this.Xml.Descendants( XName.Get( "chart", Document.c.NamespaceName ) ).SingleOrDefault();
+      if( chart != null )
+      {
+        var idAttribute = chart.Attribute( XName.Get( "id", Document.r.NamespaceName ) );
+        if( idAttribute != null )
+        {
+          idAttribute.Value = relId;
+        }
+      }
+    }
 
 
-
-
-    #endregion
+#endregion
   }
 
-  /// <summary>
-  /// Represents a chart series
-  /// </summary>
-  public class Series
-  {
-    #region Private Members
-
-    private XElement _strCache;
-    private XElement _numCache;
-
-    #endregion
-
-    #region Public Properties
-
-
-
-
-    public Color Color
-    {
-      get
-      {
-        var spPr = this.Xml.Element( XName.Get( "spPr", Document.c.NamespaceName ) );
-        if( spPr == null )
-          return Color.Transparent;
-
-        var srgbClr = spPr.Descendants( XName.Get( "srgbClr", Document.a.NamespaceName ) ).FirstOrDefault();
-        if( srgbClr != null )
-        {
-          var val = srgbClr.Attribute( XName.Get( "val" ) );
-          if( val != null )
-          {
-            var rgb = Color.FromArgb( Int32.Parse( val.Value, NumberStyles.HexNumber ) );
-            return Color.FromArgb( 255, rgb );
-          }
-        }
-
-        return Color.Transparent;
-      }
-      set
-      {
-        var spPrElement = this.Xml.Element( XName.Get( "spPr", Document.c.NamespaceName ) );
-        string widthValue = string.Empty;
-
-        if( spPrElement != null )
-        {
-          var ln = spPrElement.Element( XName.Get( "ln", Document.a.NamespaceName ) );
-          if( ln != null )
-          {
-            var val = ln.Attribute( XName.Get( "w" ) );
-            if( val != null )
-            {
-              widthValue = val.Value;
-            }
-          }
-          spPrElement.Remove();
-        }
-
-        var colorData = new XElement( XName.Get( "solidFill", Document.a.NamespaceName ),
-                                   new XElement( XName.Get( "srgbClr", Document.a.NamespaceName ), new XAttribute( XName.Get( "val" ), value.ToHex() ) ) );
-
-        // When the chart containing this series is a lineChart, the line will be colored, else the shape will be colored.
-        if( string.IsNullOrEmpty( widthValue ) )
-        {
-          spPrElement = ( ( this.Xml.Parent != null ) && ( this.Xml.Parent.Name != null ) && ( this.Xml.Parent.Name.LocalName == "lineChart" ) )
-               ? new XElement( XName.Get( "spPr", Document.c.NamespaceName ),
-                          new XElement( XName.Get( "ln", Document.a.NamespaceName ), colorData ) )
-               : new XElement( XName.Get( "spPr", Document.c.NamespaceName ), colorData );
-        }
-        else
-        {
-          spPrElement = new XElement( XName.Get( "spPr", Document.c.NamespaceName ),
-                          new XElement( XName.Get( "ln", Document.a.NamespaceName ),
-                                       new XAttribute( XName.Get( "w" ), widthValue ), colorData ) );
-        }
-
-        this.Xml.Element( XName.Get( "tx", Document.c.NamespaceName ) ).AddAfterSelf( spPrElement );
-      }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    #endregion
-
-    #region Internal Properties
-
-    /// <summary>
-    /// Series xml element
-    /// </summary>
-    internal XElement Xml
-    {
-      get; private set;
-    }
-
-    #endregion
-
-    #region Constructors
-
-    internal Series( XElement xml )
-    {
-      this.Xml = xml;
-
-      var cat = xml.Element( XName.Get( "cat", Document.c.NamespaceName ) );
-      if( cat != null )
-      {
-        _strCache = cat.Descendants( XName.Get( "strCache", Document.c.NamespaceName ) ).FirstOrDefault();
-        if( _strCache == null )
-        {
-          _strCache = cat.Descendants( XName.Get( "strLit", Document.c.NamespaceName ) ).FirstOrDefault();
-        }
-      }
-
-      var val = xml.Element( XName.Get( "val", Document.c.NamespaceName ) );
-      if( val != null )
-      {
-        _numCache = val.Descendants( XName.Get( "numCache", Document.c.NamespaceName ) ).FirstOrDefault();
-        if( _numCache == null )
-        {
-          _numCache = val.Descendants( XName.Get( "numLit", Document.c.NamespaceName ) ).FirstOrDefault();
-        }
-      }
-    }
-
-    public Series( String name )
-    {
-      _strCache = new XElement( XName.Get( "strCache", Document.c.NamespaceName ) );
-      _numCache = new XElement( XName.Get( "numCache", Document.c.NamespaceName ) );
-
-      this.Xml = new XElement( XName.Get( "ser", Document.c.NamespaceName ),
-                               new XElement( XName.Get( "tx", Document.c.NamespaceName ),
-                                             new XElement( XName.Get( "strRef", Document.c.NamespaceName ),
-                                                           new XElement( XName.Get( "f", Document.c.NamespaceName ), "" ),
-                                                           new XElement( XName.Get( "strCache", Document.c.NamespaceName ),
-                                                                         new XElement( XName.Get( "pt", Document.c.NamespaceName ),
-                                                                                       new XAttribute( XName.Get( "idx" ), "0" ),
-                                                                                       new XElement( XName.Get( "v", Document.c.NamespaceName ), name ) ) ) ) ),
-                               new XElement( XName.Get( "invertIfNegative", Document.c.NamespaceName ), "0" ),
-                               new XElement( XName.Get( "cat", Document.c.NamespaceName ),
-                                             new XElement( XName.Get( "strRef", Document.c.NamespaceName ),
-                                                           new XElement( XName.Get( "f", Document.c.NamespaceName ), "" ),
-                                                           _strCache ) ),
-                               new XElement( XName.Get( "val", Document.c.NamespaceName ),
-                                             new XElement( XName.Get( "numRef", Document.c.NamespaceName ),
-                                                           new XElement( XName.Get( "f", Document.c.NamespaceName ), "" ),
-                                                           _numCache ) )
-          );
-    }
-
-    #endregion
-
-    #region Public Methods
-
-    public void Bind( ICollection list, String categoryPropertyName, String valuePropertyName )
-    {
-      var ptCount = new XElement( XName.Get( "ptCount", Document.c.NamespaceName ), new XAttribute( XName.Get( "val" ), list.Count ) );
-      var formatCode = new XElement( XName.Get( "formatCode", Document.c.NamespaceName ), "General" );
-
-      _strCache.RemoveAll();
-      _numCache.RemoveAll();
-
-      _strCache.Add( ptCount );
-      _numCache.Add( formatCode );
-      _numCache.Add( ptCount );
-
-      Int32 index = 0;
-      XElement pt;
-      foreach( var item in list )
-      {
-        pt = new XElement( XName.Get( "pt", Document.c.NamespaceName ), new XAttribute( XName.Get( "idx" ), index ),
-                           new XElement( XName.Get( "v", Document.c.NamespaceName ), item.GetType().GetProperty( categoryPropertyName ).GetValue( item, null ) ) );
-        _strCache.Add( pt );
-        pt = new XElement( XName.Get( "pt", Document.c.NamespaceName ), new XAttribute( XName.Get( "idx" ), index ),
-                           new XElement( XName.Get( "v", Document.c.NamespaceName ), item.GetType().GetProperty( valuePropertyName ).GetValue( item, null ) ) );
-        _numCache.Add( pt );
-        index++;
-      }
-    }
-
-    public void Bind( IList categories, IList values )
-    {
-      if( categories.Count != values.Count )
-        throw new ArgumentException( "Categories count must equal to Values count" );
-
-      var ptCount = new XElement( XName.Get( "ptCount", Document.c.NamespaceName ), new XAttribute( XName.Get( "val" ), categories.Count ) );
-      var formatCode = new XElement( XName.Get( "formatCode", Document.c.NamespaceName ), "General" );
-
-      _strCache.RemoveAll();
-      _numCache.RemoveAll();
-
-      _strCache.Add( ptCount );
-      _numCache.Add( formatCode );
-      _numCache.Add( ptCount );
-
-      XElement pt;
-      for( int index = 0; index < categories.Count; index++ )
-      {
-        pt = new XElement( XName.Get( "pt", Document.c.NamespaceName ), new XAttribute( XName.Get( "idx" ), index ),
-                           new XElement( XName.Get( "v", Document.c.NamespaceName ), categories[index].ToString() ) );
-        _strCache.Add( pt );
-        pt = new XElement( XName.Get( "pt", Document.c.NamespaceName ), new XAttribute( XName.Get( "idx" ), index ),
-                           new XElement( XName.Get( "v", Document.c.NamespaceName ), values[index].ToString() ) );
-        _numCache.Add( pt );
-      }
-    }
-
-    #endregion
-  }
 
   /// <summary>
   /// Represents a chart legend

@@ -54,6 +54,7 @@ namespace Xceed.Words.NET.Examples
       DocumentSample.LoadDocumentWithStringUrl();
       DocumentSample.AddHtmlFromFile();
       DocumentSample.AddRtfFromFile();
+      DocumentSample.InsertDocument();
 
       //Images
       ImageSample.AddPicture();
@@ -77,6 +78,7 @@ namespace Xceed.Words.NET.Examples
       TableSample.CreateRowsFromTemplate();
       TableSample.ColumnsWidth();
       TableSample.MergeCells();
+      TableSample.ShadingPattern();
 
       //Hyperlink
       HyperlinkSample.Hyperlinks();
@@ -106,6 +108,7 @@ namespace Xceed.Words.NET.Examples
       ChartSample.PieChart();
       ChartSample.Chart3D();
       ChartSample.ModifyChartData();
+      ChartSample.AddChartWithTextWrapping();
 
       //Tale of Content
       TableOfContentSample.InsertTableOfContent();

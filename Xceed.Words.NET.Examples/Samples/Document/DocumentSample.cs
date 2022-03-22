@@ -13,6 +13,7 @@ is only intended as a supplement to the documentation, and is provided
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Xceed.Document.NET;
 
@@ -128,7 +129,7 @@ namespace Xceed.Words.NET.Examples
         document.AddCustomProperty( new CustomProperty( "Date", DateTime.Now ) );
 
         // Add a paragraph displaying the number of custom properties.
-        var p = document.InsertParagraph( "This document contains " ).Append( document.CustomProperties.Count.ToString() ).Append(" Custom Properties :");
+        var p = document.InsertParagraph( "This document contains " ).Append( document.CustomProperties.Count.ToString() ).Append( " Custom Properties :" );
         p.SpacingAfter( 30 );
 
         // Display each propertie's name and value.
@@ -162,7 +163,7 @@ namespace Xceed.Words.NET.Examples
         document.ApplyTemplate( templatePath );
 
         // Add a paragraph at the end of the template.
-        document.InsertParagraph( "This paragraph is not part of the template." ).FontSize( 15d ).UnderlineStyle(UnderlineStyle.singleLine).SpacingBefore(50d);
+        document.InsertParagraph( "This paragraph is not part of the template." ).FontSize( 15d ).UnderlineStyle( UnderlineStyle.singleLine ).SpacingBefore( 50d );
 
         // Save this document to disk.
         document.Save();
@@ -188,7 +189,7 @@ namespace Xceed.Words.NET.Examples
 
           // Insert a document at the end of another document.
           // When true, document is added at the end. When false, document is added at beginning.
-          document1.InsertDocument( document2, true );
+          document1.InsertDocument( document2, true, true );
 
 
           // Save this document to disk.
@@ -198,9 +199,21 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
+    /// <summary>
+    /// Insert a document inside another document.
+    /// </summary>
+    public static void InsertDocument()
+    {
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
     public static void LoadDocumentWithFilename()
     {
-      using ( var doc = DocX.Load( DocumentSample.DocumentSampleResourcesDirectory + @"First.docx" ) )
+      using( var doc = DocX.Load( DocumentSample.DocumentSampleResourcesDirectory + @"First.docx" ) )
       {
         // Add a title
         doc.InsertParagraph( 0, "Load Document with File name", false ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;

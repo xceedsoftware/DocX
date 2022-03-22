@@ -56,8 +56,18 @@ namespace Xceed.Words.NET.Examples
         document.DifferentOddAndEvenPages = true;
 
         // Section 1
-        // Set Page parameters for section 1
+        // Set Page parameters for section 1.
         document.Sections[ 0 ].PageBorders = new Borders( new Border( BorderStyle.Tcbs_double, BorderSize.four, 5f, Color.Blue ) );
+
+        //Set page number format for section 1.
+        document.Sections[ 0 ].PageNumberType = new PageNumberType()
+        {
+          PageNumberFormat = NumberingFormat.chineseCounting,
+          ChapterNumberSeparator = ChapterSeparator.enDash,
+          ChapterStyle = 1,
+          PageNumberStart = 1
+        };
+
         // Set footers for section 1.
         document.Sections[ 0 ].AddFooters();
         document.Sections[ 0 ].DifferentFirstPage = true;
@@ -65,6 +75,11 @@ namespace Xceed.Words.NET.Examples
         footers.First.InsertParagraph( "This is the First page footer." );
         footers.Even.InsertParagraph( "This is the Even page footer." );
         footers.Odd.InsertParagraph( "This is the Odd page footer." );
+
+        //Insert page numbers for each page type in section 1
+        footers.First.InsertParagraph().InsertPageNumber();
+        footers.Even.InsertParagraph().InsertPageNumber();
+        footers.Odd.InsertParagraph().InsertPageNumber();        
 
         // Add paragraphs and page breaks in section 1.
         document.InsertParagraph( "FIRST" ).InsertPageBreakAfterSelf();
@@ -79,7 +94,11 @@ namespace Xceed.Words.NET.Examples
         // Set Page parameters for section 2
         document.Sections[ 1 ].PageBorders = new Borders( new Border( BorderStyle.Tcbs_none, BorderSize.one, 0f, Color.Transparent ) );
         document.Sections[ 1 ].PageWidth = 200f;
-        document.Sections[ 1 ].PageHeight = 300f; 
+        document.Sections[ 1 ].PageHeight = 300f;
+
+        // Reset to default values for page number format for section 2.
+        document.Sections[ 1 ].PageNumberType = new PageNumberType();
+
         // Set footers for section 2.
         document.Sections[ 1 ].AddFooters();
         document.Sections[ 1 ].DifferentFirstPage = true;
@@ -87,6 +106,11 @@ namespace Xceed.Words.NET.Examples
         footers2.First.InsertParagraph( "This is the First page footer of Section 2." );
         footers2.Odd.InsertParagraph( "This is the Odd page footer of Section 2." );
         footers2.Even.InsertParagraph( "This is the Even page footer of Section 2." );
+
+        //Insert page numbers for each page type in section 2
+        footers2.First.InsertParagraph().InsertPageNumber();
+        footers2.Odd.InsertParagraph().InsertPageNumber();
+        footers2.Even.InsertParagraph().InsertPageNumber();
 
         // Add paragraphs and page breaks in section 2.
         document.InsertParagraph( "FOURTH" ).InsertPageBreakAfterSelf();
