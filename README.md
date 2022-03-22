@@ -330,9 +330,9 @@ A commercial license can be purchased at [Xceed](https://xceed.com).
 ## Release history
 
 * **March 22, 2022, released DocX v2.1.0 with [22 bug fixes and improvements](../../wiki/Release-Notes-v2.1.0).**
-* * February 4, 2022, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v2.2.0 with [15 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus220).
+* February 4, 2022, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v2.2.0 with [15 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus220).
 * **December 2, 2021, released DocX v2.0.0 with [10 bug fixes and improvements](../../wiki/Release-Notes-v2.0.0).**
-* * November 15, 2021, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v2.1.0 with [36 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus210).
+* November 15, 2021, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v2.1.0 with [36 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus210).
 * July 19, 2021, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v2.0.0 with [49 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus200).
 * **May 18, 2021, released DocX v1.8.0 with [11 bug fixes and improvements](../../wiki/Release-Notes-v1.8.0).**
 * January 25, 2021, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v1.8.0 with [30 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus180).
