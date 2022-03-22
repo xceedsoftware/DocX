@@ -31,6 +31,10 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * Digital signatures can be added to documents in the .NET Framework environment
 * Add footnotes and endnotes
 * ListOptions for List level configurations
+* Modify Chart's Series Marker and DataPoint styles
+* Insert a document at a specific point in another document
+* Wrap text around Charts
+* Format Charts Axis' title
 
 ## What else do I need?
 
@@ -248,6 +252,26 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 </tr>
 <tr>
 <td>ListOptions for List level configurations</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Modify Chart's Series Marker and DataPoint styles</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Insert a document at a specific point in another document</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Wrap text around Charts</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Format Charts Axis' title</td>
 <td></td>
 <td>YES</td>
 </tr>
