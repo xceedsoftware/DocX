@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2020 Xceed Software Inc.
+   Copyright (C) 2009-2022 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -116,6 +116,7 @@ namespace Xceed.Document.NET
     internal PackagePart _stylesWithEffectsPart;
     internal PackagePart _numberingPart;
     internal PackagePart _fontTablePart;
+    internal bool _isCopyingDocument = false;
 
     #region Internal variables defined foreach Document object
     // Object representation of the .docx
@@ -2273,7 +2274,7 @@ namespace Xceed.Document.NET
     /// </example>
     public virtual void SaveAs( string filename, string password = "" )
     {
-      _filename = filename;
+      this.SetFileName( filename );
       _stream = null;
       Save( password );
     }
@@ -2329,7 +2330,10 @@ namespace Xceed.Document.NET
     /// </example>
     public virtual void SaveAs( Stream stream, string password = "" )
     {
-      _filename = null;
+      if( !_isCopyingDocument )
+      {
+        this.SetFileName( null );
+      }
       _stream = stream;
       Save( password );
     }
@@ -2908,6 +2912,11 @@ namespace Xceed.Document.NET
 
     #region Internal Methods
 
+    protected internal virtual Xceed.Document.NET.Document InternalCopy( bool closePackage = false )
+    {
+      return null;
+    }
+
     protected internal virtual void SaveHeadersFooters()
     {
     }
@@ -3142,10 +3151,17 @@ namespace Xceed.Document.NET
 
       document = PostLoad( ref package, document, documentType );
       document._package = package;
-      document._filename = filename;
+      document.SetFileName( filename );
       document._memoryStream = ms;
 
       return document;
+    }
+
+    internal void SetFileName( string filename )
+    {
+      _filename = ( filename != null )
+                  ? filename.EndsWith( ".docx" ) || filename.EndsWith( ".doc" ) ? filename : filename + ".docx"
+                  : null;
     }
 
     internal void AddHyperlinkStyleIfNotPresent()
@@ -3203,78 +3219,6 @@ namespace Xceed.Document.NET
         {
           word_styles.Save( tw );
         }
-      }
-    }
-
-    /// <summary>
-    /// Adds a Header to a document.
-    /// If the document already contains a Header it will be replaced.
-    /// </summary>
-    /// <returns>The Header that was added to the document.</returns>
-    internal void AddHeadersOrFootersXml( bool b )
-    {
-      var element = b ? "hdr" : "ftr";
-      var reference = b ? "header" : "footer";
-
-      this.DeleteHeadersOrFooters( b );
-
-      var sectPr = _mainDoc.Root.Element( w + "body" ).Elements( w + "sectPr" ).Last();
-
-      for( int i = 1; i < 4; i++ )
-      {
-        var header_uri = string.Format( "/word/{0}{1}.xml", reference, i );
-
-        var headerPart = _package.CreatePart( new Uri( header_uri, UriKind.Relative ), string.Format( "application/vnd.openxmlformats-officedocument.wordprocessingml.{0}+xml", reference ), CompressionOption.Normal );
-        var headerRelationship = this.PackagePart.CreateRelationship( headerPart.Uri, TargetMode.Internal, string.Format( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference ) );
-
-        XDocument header;
-
-        // Load the document part into a XDocument object
-        using( TextReader tr = new StreamReader( headerPart.GetStream( FileMode.Create, FileAccess.ReadWrite ) ) )
-        {
-          header = XDocument.Parse
-          ( string.Format( @"<?xml version=""1.0"" encoding=""utf-16"" standalone=""yes""?>
-                       <w:{0} xmlns:ve=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:wne=""http://schemas.microsoft.com/office/word/2006/wordml"">
-                         <w:p w:rsidR=""009D472B"" w:rsidRDefault=""009D472B"">
-                           <w:pPr>
-                             <w:pStyle w:val=""{1}"" />
-                           </w:pPr>
-                         </w:p>
-                       </w:{0}>", element, reference )
-          );
-        }
-
-        // Save the main document
-        using( TextWriter tw = new StreamWriter( new PackagePartStream( headerPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-        {
-          header.Save( tw, SaveOptions.None );
-        }
-
-        string type;
-        switch( i )
-        {
-          case 1:
-            type = "default";
-            break;
-          case 2:
-            type = "even";
-            break;
-          case 3:
-            type = "first";
-            break;
-          default:
-            throw new ArgumentOutOfRangeException();
-        }
-
-        sectPr.Add
-        (
-            new XElement
-            (
-                w + string.Format( "{0}Reference", reference ),
-                new XAttribute( w + "type", type ),
-                new XAttribute( r + "id", headerRelationship.Id )
-            )
-        );
       }
     }
 
@@ -3844,6 +3788,9 @@ namespace Xceed.Document.NET
 
     internal void UpdateCacheSections()
     {
+      // Save Headers/Footers in case they were modified. GetSectionCaches() will create new Sections based on them.
+      this.SaveHeadersFooters();
+
       ClearParagraphsCache();
       _cachedSections = this.GetSections();
     }
@@ -3876,6 +3823,57 @@ namespace Xceed.Document.NET
         return null;
 
       return paragraphs[ index - 1 ];
+    }
+
+    internal Paragraph CreateChartElement( Chart chart, Paragraph paragraph, float width, float height )
+    {
+
+      if ( chart.PackagePart == null )
+      {
+        chart.PackagePart = this.CreateChartPackagePart();
+        chart.RelationPackage = this.CreateChartRelationShip(chart.PackagePart);
+      }
+      var relID = chart.RelationPackage.Id.ToString();
+
+      // Save a chart info the chartPackagePart
+      var p = ( paragraph == null ) ? InsertParagraph() : paragraph;
+
+      using ( TextWriter tw = new StreamWriter( chart.PackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) )
+      {
+        chart.ExternalXml.Save( tw );
+      }
+
+      // Insert a new chart into a paragraph.
+      chart.SetInternalChartSettings( relID, width, height );
+
+
+
+      return p;
+    }
+
+    internal PackagePart CreateChartPackagePart()
+    {
+      // Create a new chart part uri.
+      var chartPartUriPath = String.Empty;
+      var chartIndex = 1;
+      do
+      {
+        chartPartUriPath = String.Format( "/word/charts/chart{0}.xml", chartIndex );
+        chartIndex++;
+      } while ( _package.PartExists( new Uri( chartPartUriPath, UriKind.Relative ) ) );
+
+      // Create chart part.
+      var chartPackagePart = _package.CreatePart( new Uri( chartPartUriPath, UriKind.Relative ), "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", CompressionOption.Normal );
+
+
+      return chartPackagePart;
+    }
+
+    internal PackageRelationship CreateChartRelationShip( PackagePart chartPackagePart )
+    {
+      // Create a new chart relationship
+      var relID = this.GetNextFreeRelationshipID();
+      return this.PackagePart.CreateRelationship( chartPackagePart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", relID );
     }
 
     #endregion
@@ -5414,57 +5412,6 @@ namespace Xceed.Document.NET
 
 
 
-    #endregion
-
-    #region Internal Methods
-
-    internal Paragraph CreateChartElement( Chart chart, Paragraph paragraph, float width, float height )
-    {
-      if (chart.PackagePart == null)
-      {
-        chart.PackagePart = this.CreateChartPackagePart();
-        chart.RelationPackage = this.CreateChartRelationShip(chart.PackagePart);
-      }
-      var relID = chart.RelationPackage.Id.ToString();
-
-      // Save a chart info the chartPackagePart
-      var p = ( paragraph == null ) ? InsertParagraph() : paragraph;
-
-      using( TextWriter tw = new StreamWriter( chart.PackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) )
-      {
-        chart.ExternalXml.Save( tw );
-      }
-
-      // Insert a new chart into a paragraph.
-      chart.SetInternalChartSettings( relID, width, height );
-
-      return p;
-    }
-
-    internal PackagePart CreateChartPackagePart()
-    {
-      // Create a new chart part uri.
-      var chartPartUriPath = String.Empty;
-      var chartIndex = 1;
-      do
-      {
-        chartPartUriPath = String.Format("/word/charts/chart{0}.xml", chartIndex);
-        chartIndex++;
-      } while (_package.PartExists(new Uri(chartPartUriPath, UriKind.Relative)));
-
-      // Create chart part.
-      var chartPackagePart = _package.CreatePart(new Uri(chartPartUriPath, UriKind.Relative), "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", CompressionOption.Normal);
-
-
-      return chartPackagePart;
-    }
-
-    internal PackageRelationship CreateChartRelationShip(PackagePart chartPackagePart)
-    {
-      // Create a new chart relationship
-      var relID = this.GetNextFreeRelationshipID();
-      return this.PackagePart.CreateRelationship(chartPackagePart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", relID);
-    }
     #endregion
 
     #region Constructors

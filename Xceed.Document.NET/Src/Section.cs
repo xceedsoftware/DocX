@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2020 Xceed Software Inc.
+   Copyright (C) 2009-2022 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -411,7 +411,7 @@ namespace Xceed.Document.NET
 
           if (chapSep != null)
           {
-            _pageNumberType.ChapterNumberSeparator = Enum.GetValues(typeof(ChapterSeparator)).Cast<ChapterSeparator>().FirstOrDefault(x => x.ToString().Equals(chapSep.Value)) ;
+            _pageNumberType.ChapterNumberSeperator = Enum.GetValues(typeof(ChapterSeperator)).Cast<ChapterSeperator>().FirstOrDefault(x => x.ToString().Equals(chapSep.Value)) ;
           }
         }
 
@@ -519,6 +519,43 @@ namespace Xceed.Document.NET
       get; set;
     }
 
+    public override List<Table> Tables
+    {
+      get
+      {
+        var tables = new List<Table>();
+
+        var sectionParagraphs = this.SectionParagraphs;
+        if( sectionParagraphs.Count > 0 )
+        {
+          var parentElement = sectionParagraphs[ 0 ].Xml.Parent;
+          if( parentElement.Name.LocalName == "tc" )
+          {
+            while( ( parentElement != null ) && ( parentElement.Name.LocalName != "tbl" ) )
+            {
+              parentElement = parentElement.Parent;
+            }
+
+            if( parentElement != null )
+            {
+              var table = new Table( this.Document, parentElement, this.PackagePart );
+              tables.Add( this.Document.Tables.FirstOrDefault( t => t.Index == table.Index ) );
+            }
+          }
+        }
+
+        foreach( var paragraph in sectionParagraphs )
+        {
+          if( paragraph.FollowingTables != null )
+          {
+            tables.AddRange( paragraph.FollowingTables );
+          }
+        }
+
+        return tables;
+      }
+    }
+
     #endregion
 
     #region Constructors
@@ -604,18 +641,17 @@ namespace Xceed.Document.NET
       if( this.Document.Sections.Count == 1 )
         throw new InvalidOperationException( "Can't remove the last section of a document." );
 
+      // Remove all possible table (in paragraph or starting the section).
+      this.Tables.ForEach( t => t.RemoveInternal() );
+
+      // Remove all section paragraphs.
       foreach( var paragraphToFind in this.SectionParagraphs )
       {
         var paragraph = this.Document.Paragraphs.FirstOrDefault( p => p.Equals( paragraphToFind ) );
-        if( paragraph.FollowingTables != null )
+        if( paragraph != null )
         {
-          foreach( var table in paragraph.FollowingTables )
-          {
-            table.Remove();
-          }
+          paragraph.Remove( false );
         }
-
-        paragraph.Remove( false );
       }
 
       this.DeleteHeadersOrFooters( true );
@@ -623,11 +659,16 @@ namespace Xceed.Document.NET
 
       this.Xml.Remove();
 
+      // When removing last section of a document, move the preceding section at the end of body.
+      if( this.Document.Sections.Last() == this )
+      {
+        var lastSectionXml = this.Document.Xml.Descendants( XName.Get( "sectPr", w.NamespaceName ) ).Last();
+        this.Document.Xml.Add( lastSectionXml );
+        lastSectionXml.Remove();
+      }
+
       this.Document.UpdateCacheSections();
     }
-
-
-
 
     #endregion
 
@@ -647,80 +688,32 @@ namespace Xceed.Document.NET
       var sectPr = this.Xml;
 
       // Get all header Relationships in this document.
-      var biggestHeader = 0;
-      var header_relationships = this.Document.PackagePart.GetRelationshipsByType( string.Format( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference ) );
-      // Get biggest headerX.xml.
-      foreach( var header_relationship in header_relationships )
-      {
-        var header_uri = header_relationship.TargetUri;
-        if( !header_uri.OriginalString.StartsWith( "/word/" ) )
-        {
-          header_uri = new Uri( "/word/" + header_uri.OriginalString, UriKind.Relative );
-        }
-
-        if( this.Document._package.PartExists( header_uri ) )
-        {
-          var resultString = Regex.Match( header_uri.OriginalString, @"\d+" ).Value;
-          biggestHeader = Math.Max( biggestHeader, Int32.Parse( resultString ));
-        }
-      }
+      var biggestHeader = this.GetBiggestHeaderFooter( reference );
 
       for( var i = biggestHeader + 1; i < biggestHeader + 4; i++ )
       {
-        var header_uri = string.Format( "/word/{0}{1}.xml", reference, i );
-
-        var headerPart = this.Document._package.CreatePart( new Uri( header_uri, UriKind.Relative ), string.Format( "application/vnd.openxmlformats-officedocument.wordprocessingml.{0}+xml", reference ), CompressionOption.Normal );
-        var headerRelationship = this.Document.PackagePart.CreateRelationship( headerPart.Uri, TargetMode.Internal, string.Format( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference ) );
-
-        XDocument header;
-
-        // Load the document part into a XDocument object
-        using( TextReader tr = new StreamReader( headerPart.GetStream( FileMode.Create, FileAccess.ReadWrite ) ) )
-        {
-          header = XDocument.Parse
-          ( string.Format( @"<?xml version=""1.0"" encoding=""utf-16"" standalone=""yes""?>
-                       <w:{0} xmlns:ve=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:wne=""http://schemas.microsoft.com/office/word/2006/wordml"">
-                       </w:{0}>", element )
-          );
-        }
-
-        // Save the main document
-        using( TextWriter tw = new StreamWriter( new PackagePartStream( headerPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-        {
-          header.Save( tw, SaveOptions.None );
-        }
-
-        string type;
-        switch( i % 3 )
-        {
-          case 0:
-            type = "default";
-            break;
-          case 1:
-            type = "even";
-            break;
-          case 2:
-            type = "first";
-            break;
-          default:
-            throw new ArgumentOutOfRangeException();
-        }
-
-        sectPr.Add
-        (
-            new XElement
-            (
-                w + string.Format( "{0}Reference", reference ),
-                new XAttribute( w + "type", type ),
-                new XAttribute( r + "id", headerRelationship.Id )
-            )
-        );
+        this.CreateHeaderFooterPackage( element, reference, i, sectPr, i % 3 );
       }
 
       if( b )
+      {
         this.AddHeadersContainer( sectPr );
+      }
       else
+      {
         this.AddFootersContainer( sectPr );
+      }
+    }
+
+    internal void AddHeader( int headerType )
+    {
+      var sectPr = this.Xml;
+
+      var biggestHeader = this.GetBiggestHeaderFooter( "header" );
+
+      this.CreateHeaderFooterPackage( "hdr", "header", biggestHeader + 1, sectPr, headerType );
+
+      this.AddHeaderContainer( sectPr, headerType );
     }
 
     #endregion
@@ -931,6 +924,136 @@ namespace Xceed.Document.NET
       }
     }
 
+    private void AddHeaderContainer( XElement xml, int headerType )
+    {
+      Debug.Assert( xml != null, "xml shouldn't be null." );
+
+      var headerReferences = xml.Elements( XName.Get( "headerReference", w.NamespaceName ) );
+
+      foreach( var h in headerReferences )
+      {
+        var hId = h.Attribute( r + "id" ).Value;
+        var hType = h.Attribute( w + "type" ).Value;
+
+        if( ( ( hType == "even" ) && ( headerType == 1 ) )
+          || ( ( hType == "first" ) && ( headerType == 2 ) )
+          || ( ( hType != "first" ) && ( hType != "even" ) && ( headerType == 0 ) ) )
+        {
+          // Get the Xml file for this Header.
+          var partUri = this.Document.PackagePart.GetRelationship( hId ).TargetUri;
+
+          // Weird problem with PackaePart API.
+          if( !partUri.OriginalString.StartsWith( "/word/" ) )
+          {
+            partUri = new Uri( "/word/" + partUri.OriginalString, UriKind.Relative );
+          }
+
+          // Get the Part and open a stream to get the Xml file.
+          var part = this.Document._package.GetPart( partUri );
+
+          using( var tr = new StreamReader( part.GetStream() ) )
+          {
+            var doc = XDocument.Load( tr );
+            // Header extend Container.
+            var header = new Header( this.Document, doc.Element( w + "hdr" ), part, hId );
+            switch( hType )
+            {
+              case "even":
+                this.Headers.Even = header;
+                break;
+              case "first":
+                this.Headers.First = header;
+                break;
+              default:
+                this.Headers.Odd = header;
+                break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    private int GetBiggestHeaderFooter( string reference )
+    {
+      var biggestHeader = 0;
+      var header_relationships = this.Document.PackagePart.GetRelationshipsByType( string.Format( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference ) );
+      // Get biggest headerX.xml.
+      foreach( var header_relationship in header_relationships )
+      {
+        var header_uri = header_relationship.TargetUri;
+        if( !header_uri.OriginalString.StartsWith( "/word/" ) )
+        {
+          header_uri = new Uri( "/word/" + header_uri.OriginalString, UriKind.Relative );
+        }
+
+        if( this.Document._package.PartExists( header_uri ) )
+        {
+          var resultString = Regex.Match( header_uri.OriginalString, @"\d+" ).Value;
+          biggestHeader = Math.Max( biggestHeader, Int32.Parse( resultString ) );
+        }
+      }
+
+      return biggestHeader;
+    }
+
+    private void CreateHeaderFooterPackage( string element, string reference, int index, XElement sectPr, int headerType )
+    {
+      var header_uri = string.Format( "/word/{0}{1}.xml", reference, index );
+
+      var headerPart = this.Document._package.CreatePart( new Uri( header_uri, UriKind.Relative ), string.Format( "application/vnd.openxmlformats-officedocument.wordprocessingml.{0}+xml", reference ), CompressionOption.Normal );
+      var headerRelationship = this.Document.PackagePart.CreateRelationship( headerPart.Uri, TargetMode.Internal, string.Format( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference ) );
+
+      XDocument header;
+
+      // Load the document part into a XDocument object
+      using( TextReader tr = new StreamReader( headerPart.GetStream( FileMode.Create, FileAccess.ReadWrite ) ) )
+      {
+        header = XDocument.Parse
+        ( string.Format( @"<?xml version=""1.0"" encoding=""utf-16"" standalone=""yes""?>
+                       <w:{0} xmlns:ve=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:wne=""http://schemas.microsoft.com/office/word/2006/wordml"">
+                         <w:p w:rsidR=""009D472B"" w:rsidRDefault=""009D472B"">
+                           <w:pPr>
+                             <w:pStyle w:val=""{1}"" />
+                           </w:pPr>
+                         </w:p>
+                       </w:{0}>", element, reference )
+        );
+      }
+
+      // Save the main document
+      using( TextWriter tw = new StreamWriter( new PackagePartStream( headerPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+      {
+        header.Save( tw, SaveOptions.None );
+      }
+
+      string type;
+      switch( headerType )
+      {
+        case 0:
+          type = "default";
+          break;
+        case 1:
+          type = "even";
+          break;
+        case 2:
+          type = "first";
+          break;
+        default:
+          throw new ArgumentOutOfRangeException();
+      }
+
+      sectPr.Add
+      (
+          new XElement
+          (
+              w + string.Format( "{0}Reference", reference ),
+              new XAttribute( w + "type", type ),
+              new XAttribute( r + "id", headerRelationship.Id )
+          )
+      );
+    }
+
     private float GetMarginAttribute( XName name )
     {
       var pgMar = this.Xml.Element( XName.Get( "pgMar", w.NamespaceName ) );
@@ -1139,7 +1262,7 @@ namespace Xceed.Document.NET
           pgNumType.SetAttributeValue(XName.Get("start", w.NamespaceName), null);
         }
 
-        pgNumType.SetAttributeValue(XName.Get("chapSep", w.NamespaceName), _pageNumberType.ChapterNumberSeparator);
+        pgNumType.SetAttributeValue(XName.Get("chapSep", w.NamespaceName), _pageNumberType.ChapterNumberSeperator);
 
         if (_pageNumberType.PageNumberFormat == NumberingFormat.decimalNormal)
         {

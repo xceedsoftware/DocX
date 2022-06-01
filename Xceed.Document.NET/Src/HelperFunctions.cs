@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2020 Xceed Software Inc.
+   Copyright (C) 2009-2022 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -348,7 +348,7 @@ namespace Xceed.Document.NET
 
     internal static PackagePart GetMainDocumentPart( Package package )
     {
-      return package.GetParts().Single( p => p.ContentType.Equals( DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) ||
+      return package.GetParts().First( p => p.ContentType.Equals( DOCUMENT_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) ||
                                              p.ContentType.Equals( TEMPLATE_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) ||
                                              p.ContentType.Equals( MACRO_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) );
     }
@@ -1605,6 +1605,30 @@ namespace Xceed.Document.NET
       if( int.TryParse( s, NumberStyles.Any, CultureInfo.InvariantCulture, out result ) )
         return true;
       return false;
+    }
+
+    internal static string GetOrGenerateRel( Uri h, PackagePart packagePart, TargetMode targetMode, string relationshipString )
+    {
+      Debug.Assert( packagePart != null, "packagePart shouldn't be null." );
+
+      string image_uri_string = ( h != null ) ? h.OriginalString : null;
+
+      // Search for a relationship with a TargetUri that points at this Image.
+      var Id =
+      (
+          from r in packagePart.GetRelationshipsByType( relationshipString )
+          where r.TargetUri.OriginalString == image_uri_string
+          select r.Id
+      ).SingleOrDefault();
+
+      // If such a relation dosen't exist, create one.
+      if ( ( Id == null ) && ( h != null ) )
+      {
+        // Check to see if a relationship for this Picture exists and create it if not.
+        var pr = packagePart.CreateRelationship( h, targetMode, relationshipString );
+        Id = pr.Id;
+      }
+      return Id;
     }
 
     private static int GetLinkedStyleNumId( Document document, string numId )

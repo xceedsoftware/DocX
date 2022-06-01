@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2020 Xceed Software Inc.
+   Copyright (C) 2009-2022 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -34,9 +34,8 @@ namespace Xceed.Document.NET
     private const string HeaderStyle = "TOCHeading";
     private const int RightTabPos = 9010;
 
-    private static float DefaultIndentationLeft = 11f * 20f;
 
-    #endregion
+#endregion
 
     #region Internal Methods
 

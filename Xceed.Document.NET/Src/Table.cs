@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2020 Xceed Software Inc.
+   Copyright (C) 2009-2022 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -1037,6 +1037,16 @@ namespace Xceed.Document.NET
         }
       }
 
+      var tblInd = properties?.Element( XName.Get( "tblInd", Document.w.NamespaceName ) );
+      if( tblInd != null )
+      {
+        var val = tblInd.Attribute( XName.Get( "w", Document.w.NamespaceName ) );
+        if( val != null )
+        {
+          _indentFromLeft = double.Parse( val.Value );
+        }
+      }
+
       var style = properties?.Element( XName.Get( "tblStyle", Document.w.NamespaceName ) );
       if( style != null )
       {
@@ -1211,7 +1221,10 @@ namespace Xceed.Document.NET
     /// </example>
     public void Remove()
     {
-      this.Xml.Remove();
+      this.RemoveInternal();
+
+      // Update Sections tables.
+      this.Document.UpdateCacheSections();
     }
 
     /// <summary>
@@ -2678,6 +2691,11 @@ namespace Xceed.Document.NET
       }
     }
 
+    internal void RemoveInternal()
+    {
+      this.Xml.Remove();
+    }
+
     #endregion
 
     #region Event Handlers
@@ -2785,8 +2803,9 @@ namespace Xceed.Document.NET
       {
         List<Cell> cells =
         (
-            from c in Xml.Descendants( XName.Get( "tc", Document.w.NamespaceName ) )
-            select new Cell( this, Document, c )
+            from c in this.Xml.Descendants( XName.Get( "tc", Document.w.NamespaceName ) )
+            where (this.GetParentRow( c ) == this.Xml)
+            select new Cell( this, this.Document, c )
         ).ToList();
 
         return cells;
@@ -2951,41 +2970,7 @@ namespace Xceed.Document.NET
       this.PackagePart = table.PackagePart;
     }
 
-    #endregion
-
-    #region Private Methods
-
-    private void SetHeight( double height, bool isHeightExact )
-    {
-      XElement trPr = Xml.Element( XName.Get( "trPr", Document.w.NamespaceName ) );
-      if( trPr == null )
-      {
-        Xml.SetElementValue( XName.Get( "trPr", Document.w.NamespaceName ), string.Empty );
-        trPr = Xml.Element( XName.Get( "trPr", Document.w.NamespaceName ) );
-      }
-
-      XElement tc = Xml.Element( XName.Get( "tc", Document.w.NamespaceName ) );
-      if( tc != null )
-      {
-        trPr.Remove();
-        tc.AddBeforeSelf( trPr );
-      }
-
-      XElement trHeight = trPr.Element( XName.Get( "trHeight", Document.w.NamespaceName ) );
-      if( trHeight == null )
-      {
-        trPr.SetElementValue( XName.Get( "trHeight", Document.w.NamespaceName ), string.Empty );
-        trHeight = trPr.Element( XName.Get( "trHeight", Document.w.NamespaceName ) );
-      }
-
-      // The hRule attribute needs to be set.
-      trHeight.SetAttributeValue( XName.Get( "hRule", Document.w.NamespaceName ), isHeightExact ? "exact" : "atLeast" );
-
-      // Using 20 to match Document._pageSizeMultiplier.
-      trHeight.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), ( ( int )( Math.Round( height * 20, 0 ) ) ).ToString( CultureInfo.InvariantCulture ) );
-    }
-
-    #endregion
+    #endregion   
 
     #region Public Methods
 
@@ -3086,6 +3071,50 @@ namespace Xceed.Document.NET
 
       // Set the val attribute to the number of merged cells.
       start_gridSpan.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), ( gridSpanSum + ( endIndex - startIndex + 1 ) ).ToString() );
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private void SetHeight( double height, bool isHeightExact )
+    {
+      XElement trPr = Xml.Element( XName.Get( "trPr", Document.w.NamespaceName ) );
+      if( trPr == null )
+      {
+        Xml.SetElementValue( XName.Get( "trPr", Document.w.NamespaceName ), string.Empty );
+        trPr = Xml.Element( XName.Get( "trPr", Document.w.NamespaceName ) );
+      }
+
+      XElement tc = Xml.Element( XName.Get( "tc", Document.w.NamespaceName ) );
+      if( tc != null )
+      {
+        trPr.Remove();
+        tc.AddBeforeSelf( trPr );
+      }
+
+      XElement trHeight = trPr.Element( XName.Get( "trHeight", Document.w.NamespaceName ) );
+      if( trHeight == null )
+      {
+        trPr.SetElementValue( XName.Get( "trHeight", Document.w.NamespaceName ), string.Empty );
+        trHeight = trPr.Element( XName.Get( "trHeight", Document.w.NamespaceName ) );
+      }
+
+      // The hRule attribute needs to be set.
+      trHeight.SetAttributeValue( XName.Get( "hRule", Document.w.NamespaceName ), isHeightExact ? "exact" : "atLeast" );
+
+      // Using 20 to match Document._pageSizeMultiplier.
+      trHeight.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), ( ( int )( Math.Round( height * 20, 0 ) ) ).ToString( CultureInfo.InvariantCulture ) );
+    }
+
+    private XElement GetParentRow( XElement xElement )
+    {
+      while( ( xElement != null ) && ( xElement.Name != XName.Get( "tr", Document.w.NamespaceName ) ) )
+      {
+        xElement = xElement.Parent;
+      }
+
+      return xElement;
     }
 
     #endregion

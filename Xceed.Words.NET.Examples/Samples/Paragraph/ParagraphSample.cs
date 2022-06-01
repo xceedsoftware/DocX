@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Paragraph Sample Application
-Copyright (c) 2009-2021 - Xceed Software Inc.
+Copyright (c) 2009-2022 - Xceed Software Inc.
 
 This application demonstrates how to create, format and position paragraphs
 when using the API from the Xceed Words for .NET.

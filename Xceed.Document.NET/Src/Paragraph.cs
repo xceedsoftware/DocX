@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2020 Xceed Software Inc.
+   Copyright (C) 2009-2022 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -43,14 +43,7 @@ namespace Xceed.Document.NET
 
     internal const float DefaultSingleLineSpacing = 12f;
     internal static float DefaultLineSpacing = Paragraph.DefaultSingleLineSpacing;
-    private static float DefaultLineSpacingAfter = 0f;
-    private static float DefaultLineSpacingBefore = 0f;
-    private static bool DefaultLineRuleAuto = false;
-
-    private static float DefaultIndentationFirstLine = 0f;
-    private static float DefaultIndentationHanging = 0f;
-    private static float DefaultIndentationBefore = 0f;
-    private static float DefaultIndentationAfter = 0f;
+    internal const string HyperlinkRelation = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink";
 
     #endregion
 
@@ -68,7 +61,14 @@ namespace Xceed.Document.NET
     private List<Table> followingTables;
     private List<FormattedText> _magicText;
     private static int bookmarkIdCounter = 0;
+    private static float DefaultLineSpacingAfter = 0f;
+    private static float DefaultLineSpacingBefore = 0f;
+    private static bool DefaultLineRuleAuto = false;
 
+    private static float DefaultIndentationFirstLine = 0f;
+    private static float DefaultIndentationHanging = 0f;
+    private static float DefaultIndentationBefore = 0f;
+    private static float DefaultIndentationAfter = 0f;
     #endregion
 
     #region Private Properties
@@ -1353,7 +1353,7 @@ namespace Xceed.Document.NET
       }
 
       // Check to see if a rel for this Picture exists, create it if not.
-      var Id = Paragraph.GetOrGenerateRel( h, this.PackagePart );
+      var Id = HelperFunctions.GetOrGenerateRel( h.uri, this.PackagePart, TargetMode.External, HyperlinkRelation );
 
       XElement h_xml;
       if( index == 0 )
@@ -2241,7 +2241,7 @@ namespace Xceed.Document.NET
       }
 
       // Check to see if a rel for this Hyperlink exists, create it if not.
-      var Id = Paragraph.GetOrGenerateRel( h, this.PackagePart );
+      var Id = HelperFunctions.GetOrGenerateRel( h.uri, this.PackagePart, TargetMode.External, HyperlinkRelation );
 
       this.Xml.Add( h.Xml );
       this.Xml.Elements().Last().SetAttributeValue( Document.r + "id", Id );
@@ -2295,7 +2295,7 @@ namespace Xceed.Document.NET
       }
 
       // Check to see if a rel for this Picture exists, create it if not.
-      var rel_Id = GetOrGenerateRel( p );
+      var rel_Id = HelperFunctions.GetOrGenerateRel( p._img._pr.TargetUri, this.PackagePart, TargetMode.Internal, Document.RelationshipImage );
 
       // Add the Picture Xml to the end of the Paragragraph Xml.
       this.Xml.Add( p.Xml );
@@ -2577,7 +2577,7 @@ namespace Xceed.Document.NET
           select e.Attribute( XName.Get( "embed", Document.r.NamespaceName ) )
       ).Single();
 
-      var rel_id = this.GetOrGenerateRel( p );
+      var rel_id = HelperFunctions.GetOrGenerateRel( p._img._pr.TargetUri, this.PackagePart, TargetMode.Internal, Document.RelationshipImage );
 
       // Set its value to the Pictures relationships id.
       embed_id.SetValue( rel_id );
@@ -5234,57 +5234,6 @@ namespace Xceed.Document.NET
                     splitRight
           }
       );
-    }
-
-    internal string GetOrGenerateRel( Picture p )
-    {
-      string image_uri_string = p._img._pr.TargetUri.OriginalString;
-
-      // Search for a relationship with a TargetUri that points at this Image.
-      string id = null;
-      var imageRelationships = this.PackagePart.GetRelationshipsByType( Document.RelationshipImage );
-      for( int i = imageRelationships.Count() - 1; i >= 0; --i )
-      {
-        var r = imageRelationships.ElementAt( i );
-        if( string.Equals( r.TargetUri.OriginalString, image_uri_string, StringComparison.Ordinal ) )
-        {
-          id = r.Id;
-          break;
-        }
-      }
-
-      // If such a relation doesn't exist, create one.
-      if( id == null )
-      {
-        // Check to see if a relationship for this Picture exists and create it if not.
-        var pr = this.PackagePart.CreateRelationship( p._img._pr.TargetUri, TargetMode.Internal, Document.RelationshipImage );
-        id = pr.Id;
-      }
-      return id;
-    }
-
-    internal static string GetOrGenerateRel( Hyperlink h, PackagePart packagePart )
-    {
-      Debug.Assert( packagePart != null, "packagePart shouldn't be null." );
-
-      string image_uri_string = ( h.Uri != null ) ? h.Uri.OriginalString : null;
-
-      // Search for a relationship with a TargetUri that points at this Image.
-      var Id =
-      (
-          from r in packagePart.GetRelationshipsByType( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" )
-          where r.TargetUri.OriginalString == image_uri_string
-          select r.Id
-      ).SingleOrDefault();
-
-      // If such a relation dosen't exist, create one.
-      if( ( Id == null ) && ( h.Uri != null ) )
-      {
-        // Check to see if a relationship for this Picture exists and create it if not.
-        var pr = packagePart.CreateRelationship( h.Uri, TargetMode.External, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" );
-        Id = pr.Id;
-      }
-      return Id;
     }
 
     internal void ApplyTextFormattingProperty( XName textFormatPropName, string value, object content )

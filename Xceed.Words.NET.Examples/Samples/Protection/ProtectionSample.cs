@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Protection Sample Application
-Copyright (c) 2009-2021 - Xceed Software Inc.
+Copyright (c) 2009-2022 - Xceed Software Inc.
 
 This application demonstrates how to add protection to a docx file when using the API 
 from the Xceed Words for .NET.

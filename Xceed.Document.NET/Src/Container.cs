@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2020 Xceed Software Inc.
+   Copyright (C) 2009-2022 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -732,6 +732,13 @@ namespace Xceed.Document.NET
       {
         paragraphs[ index ].Remove();
         this.RemoveParagraphFromCache( index );
+
+        // Remove empty tables (when they do not contains parahgraphs anymore).
+        var emptyTables = this.Tables.Where( table => table.Paragraphs.Count == 0 ).ToList();
+        if( emptyTables.Count() > 0 )
+        {
+          emptyTables.ForEach( table => table.Remove() );
+        }
         return true;
       }
 
@@ -1034,7 +1041,7 @@ namespace Xceed.Document.NET
 
     private void RemoveParagraphFromCache( int index )
     {
-      if( index != -1 )
+      if( (index != -1) && ( _editableParagraphsCollection.Count > 0 ) )
       {
         _editableParagraphsCollection.RemoveAt( index );
       }

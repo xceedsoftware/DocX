@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2020 Xceed Software Inc.
+   Copyright (C) 2009-2022 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -38,7 +38,7 @@ namespace Xceed.Words.NET
   public class DocX : Xceed.Document.NET.Document
   {
     private static bool IsCommercialLicenseRead = false;
-    private bool _isCopyingDocument = false;
+    private bool _canClosePackage = true;
 
     #region Constructors
 
@@ -157,7 +157,7 @@ namespace Xceed.Words.NET
     {
       var docX = new DocX( null, null ) as Xceed.Document.NET.Document;
       Xceed.Document.NET.Document.PrepareDocument( ref docX, documentType );
-      docX._filename = filename;
+      docX.SetFileName( filename );
       return docX as DocX;
     }
 
@@ -313,7 +313,7 @@ namespace Xceed.Words.NET
       if( this.IsPackageClosed( _package ) )
       {
         // When package is closed (already saved), reload the package and restart SaveAs();
-        var initialDoc = ( _stream.Length > 0 ) ? DocX.Load( _stream ) : DocX.Load( _filename );
+        var initialDoc = DocX.ReloadDocument( this );
         initialDoc.SaveAs( stream, password );
         return;
       }
@@ -326,7 +326,7 @@ namespace Xceed.Words.NET
       if( this.IsPackageClosed( _package ) )
       {
         // When package is closed (already saved), reload the package and restart SaveAs();
-        var initialDoc = !string.IsNullOrEmpty( _filename ) ? DocX.Load( _filename ) : DocX.Load( _stream );
+        var initialDoc = DocX.ReloadDocumentFromFileName( this );
         initialDoc.SaveAs( filename, password );
         return;
       }
@@ -363,7 +363,7 @@ namespace Xceed.Words.NET
       if( this.IsPackageClosed( _package ) )
       {
         // When package is closed (already saved), reload the package and restart Save();
-        var initialDoc = !string.IsNullOrEmpty( _filename ) ? DocX.Load( _filename ) : DocX.Load( _stream );
+        var initialDoc = DocX.ReloadDocumentFromFileName( this );
         initialDoc.Save();
         return;
       }
@@ -441,9 +441,9 @@ namespace Xceed.Words.NET
         }
       }
 
-      if( !_isCopyingDocument )
+      if( _canClosePackage )
       {
-        // Close the document so that it can be saved in .NETStandard/NET5.
+        // Close the document so that all it's sub-part can be saved and it can be saved in .NETStandard/NET5.
         _package.Close();
       }
 
@@ -458,27 +458,7 @@ namespace Xceed.Words.NET
     /// <returns>Returns a copy of a the Document</returns>
     public override Xceed.Document.NET.Document Copy()
     {
-      try
-      {
-        var initialDoc = this;
-        if( this.IsPackageClosed( _package ) )
-        {
-          initialDoc = !string.IsNullOrEmpty( _filename ) ? DocX.Load( _filename ) : DocX.Load( _stream );
-        }
-
-        initialDoc._isCopyingDocument = true;
-        var memorystream = new MemoryStream();
-        initialDoc.SaveAs( memorystream );
-        initialDoc._isCopyingDocument = false;
-
-        memorystream.Seek( 0, SeekOrigin.Begin );
-        return DocX.Load( memorystream );
-      }
-      catch( Exception )
-      {
-        // If we can't load the filename or stream, just return the current document.
-        return this;
-      }
+      return this.InternalCopy();     
     }
 
 
@@ -496,6 +476,37 @@ namespace Xceed.Words.NET
     #endregion
 
     #region Internal Methods
+
+    protected internal override Xceed.Document.NET.Document InternalCopy( bool closePackage = false )
+    {
+      try
+      {
+        var initialDoc = this;
+        if( this.IsPackageClosed( _package ) )
+        {
+          initialDoc = DocX.ReloadDocumentFromFileName( this ) as DocX;
+        }
+
+        initialDoc._canClosePackage = closePackage;
+
+        initialDoc._isCopyingDocument = true;
+        var memorystream = new MemoryStream();
+        initialDoc.SaveAs( memorystream );
+        initialDoc._isCopyingDocument = false;
+
+        initialDoc._canClosePackage = true;
+
+        memorystream.Seek( 0, SeekOrigin.Begin );
+        var doc = DocX.Load( memorystream );
+        doc.SetFileName( initialDoc._filename );
+
+        return doc;
+      }
+      catch( Exception )
+      {
+        throw new InvalidOperationException( "The copy of the document could not be done." );
+      }
+    }
 
     /// <summary>
     /// Save the headerd and footers
@@ -715,10 +726,9 @@ namespace Xceed.Words.NET
 
     private void WriteToFileOrStream()
     {
-      if( _filename != null )
+      if( _filename != null && !_isCopyingDocument)
       {
-        var saveFileName = _filename.EndsWith( ".docx" ) || _filename.EndsWith( ".doc" ) ? _filename : _filename + ".docx";
-        using( var fs = new FileStream( saveFileName, FileMode.Create ) )
+        using( var fs = new FileStream( _filename, FileMode.Create ) )
         {
           if( _memoryStream.CanSeek )
           {
@@ -758,6 +768,22 @@ namespace Xceed.Words.NET
       }
 
       return false;
+    }
+
+    private static Xceed.Document.NET.Document ReloadDocument( Xceed.Document.NET.Document document )
+    {
+      var doc = ( ( document._stream != null ) && ( document._stream.Length > 0 ) ) ? DocX.Load( document._stream ) : DocX.Load( document._filename );
+      doc.SetFileName( document._filename );
+
+      return doc;
+    }
+
+    private static Xceed.Document.NET.Document ReloadDocumentFromFileName( Xceed.Document.NET.Document document )
+    {
+      var doc = ( !string.IsNullOrEmpty( document._filename ) && File.Exists( document._filename ) ) ? DocX.Load( document._filename ) : DocX.Load( document._stream );
+      doc.SetFileName( document._filename );
+
+      return doc;
     }
 
     #endregion

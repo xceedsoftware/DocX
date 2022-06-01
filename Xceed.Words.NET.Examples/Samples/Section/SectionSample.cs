@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Section Sample Application
-Copyright (c) 2009-2021 - Xceed Software Inc.
+Copyright (c) 2009-2022 - Xceed Software Inc.
 
 This application demonstrates how to insert sections when using the API 
 from the Xceed Words for .NET.
@@ -63,7 +63,7 @@ namespace Xceed.Words.NET.Examples
         document.Sections[ 0 ].PageNumberType = new PageNumberType()
         {
           PageNumberFormat = NumberingFormat.chineseCounting,
-          ChapterNumberSeparator = ChapterSeparator.enDash,
+          ChapterNumberSeperator = ChapterSeperator.enDash,
           ChapterStyle = 1,
           PageNumberStart = 1
         };
