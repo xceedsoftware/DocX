@@ -19,7 +19,7 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * is at least two versions ahead of the DocX version
 * has professional technical support included in the subscription
 * is available on .NET Standard 2.0 for .NET Core 2.0 Applications
-* is available on .NET 5 for .NET 5 Applications
+* is available on .NET 5 for .NET 5/6 Applications
 * can automatically update fields from a document
 * Insert html/rtf text (with tags), or html/rtf document, to a Word document
 * Clone lists or tables
@@ -329,6 +329,8 @@ A commercial license can be purchased at [Xceed](https://xceed.com).
 
 ## Release history
 
+* **June 1, 2022, released DocX v2.2.0 with [5bug fixes and improvements](../../wiki/Release-Notes-v2.2.0).**
+* May 14, 2022, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v2.3.0 with [15 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus230).
 * **March 22, 2022, released DocX v2.1.0 with [22 bug fixes and improvements](../../wiki/Release-Notes-v2.1.0).**
 * February 4, 2022, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v2.2.0 with [17 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus220).
 * **December 2, 2021, released DocX v2.0.0 with [10 bug fixes and improvements](../../wiki/Release-Notes-v2.0.0).**
