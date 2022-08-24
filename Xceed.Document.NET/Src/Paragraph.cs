@@ -4388,6 +4388,32 @@ namespace Xceed.Document.NET
     }
 
 
+    public Paragraph AppendSectionPageCount(PageNumberFormat? pnf = null)
+    {
+        XElement fldSimple = new XElement(XName.Get("fldSimple", Document.w.NamespaceName));
+
+        if (pnf == PageNumberFormat.normal)
+        {
+            fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" SECTIONPAGES   \* MERGEFORMAT "));
+        }
+        else if (pnf == PageNumberFormat.roman)
+        {
+            fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" SECTIONPAGES  \* ROMAN  \* MERGEFORMAT "));
+        }
+        else
+        {
+            fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" SECTIONPAGES "));
+        }
+
+        var content = this.GetNumberContentBasedOnLast_rPr();
+
+        fldSimple.Add(content);
+        Xml.Add(fldSimple);
+
+        return this;
+    }
+
+
     /// <summary>
     /// Set the Line spacing for this paragraph manually.
     /// </summary>

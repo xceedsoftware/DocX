@@ -1,0 +1,12 @@
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.Examples.exe.config
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.Examples.exe
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.Examples.pdb
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\bin\Debug\Xceed.Document.NET.dll
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.dll
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\bin\Debug\Xceed.Document.NET.pdb
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\bin\Debug\Xceed.Words.NET.pdb
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\obj\Debug\Xceed.Words.NET.Examples.csproj.AssemblyReference.cache
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\obj\Debug\Xceed.Words.NET.Examples.csproj.CoreCompileInputs.cache
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\obj\Debug\Xceed.Words.NET.Examples.csproj.CopyComplete
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\obj\Debug\Xceed.Words.NET.Examples.exe
+D:\Visual Studio Projects\XceedDocx\Xceed.Words.NET.Examples\obj\Debug\Xceed.Words.NET.Examples.pdb
