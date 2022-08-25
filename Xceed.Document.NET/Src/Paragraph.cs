@@ -4292,21 +4292,21 @@ namespace Xceed.Document.NET
     /// <seealso cref="AppendPageCount"/>
     /// <seealso cref="AppendPageNumber"/>
     /// <seealso cref="InsertPageNumber"/>
-    public void InsertPageCount( PageNumberFormat? pnf = null, int index = 0 )
+    public void InsertPageCount( PageNumberFormat? pnf = null, int index = 0, bool fromSection = false )
     {
       XElement fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
 
       if( pnf == PageNumberFormat.normal )
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES   \* MERGEFORMAT "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" {(fromSection ? "SECTIONPAGES" : "NUMPAGES")}   \* MERGEFORMAT "));
       }
       else if (pnf == PageNumberFormat.roman)
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES  \* ROMAN  \* MERGEFORMAT "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" {(fromSection ? "SECTIONPAGES" : "NUMPAGES")}  \* ROMAN  \* MERGEFORMAT "));
       }
       else
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" {(fromSection ? "SECTIONPAGES" : "NUMPAGES")} "));
       }
 
       var content = this.GetNumberContentBasedOnLast_rPr();
@@ -4362,21 +4362,21 @@ namespace Xceed.Document.NET
     /// <seealso cref="AppendPageNumber"/>
     /// <seealso cref="InsertPageNumber"/>
     /// <seealso cref="InsertPageCount"/>
-    public Paragraph AppendPageCount( PageNumberFormat? pnf = null )
+    public Paragraph AppendPageCount( PageNumberFormat? pnf = null, bool fromSection = false )
     {
       XElement fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
 
       if (pnf == PageNumberFormat.normal)
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES   \* MERGEFORMAT "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" { (fromSection ? "SECTIONPAGES" : "NUMPAGES") }  \* MERGEFORMAT "));
       }
       else if (pnf == PageNumberFormat.roman)
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES  \* ROMAN  \* MERGEFORMAT "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" {(fromSection ? "SECTIONPAGES" : "NUMPAGES")}  \* ROMAN  \* MERGEFORMAT "));
       }
       else
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" {(fromSection ? "SECTIONPAGES" : "NUMPAGES")} "));
       }
 
       var content = this.GetNumberContentBasedOnLast_rPr();
@@ -4385,32 +4385,6 @@ namespace Xceed.Document.NET
       Xml.Add( fldSimple );
 
       return this;
-    }
-
-
-    public Paragraph AppendSectionPageCount(PageNumberFormat? pnf = null)
-    {
-        XElement fldSimple = new XElement(XName.Get("fldSimple", Document.w.NamespaceName));
-
-        if (pnf == PageNumberFormat.normal)
-        {
-            fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" SECTIONPAGES   \* MERGEFORMAT "));
-        }
-        else if (pnf == PageNumberFormat.roman)
-        {
-            fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" SECTIONPAGES  \* ROMAN  \* MERGEFORMAT "));
-        }
-        else
-        {
-            fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" SECTIONPAGES "));
-        }
-
-        var content = this.GetNumberContentBasedOnLast_rPr();
-
-        fldSimple.Add(content);
-        Xml.Add(fldSimple);
-
-        return this;
     }
 
 
