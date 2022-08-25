@@ -4256,8 +4256,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-
-
     /// <summary>
     /// Insert a PageCount place holder into a Paragraph.
     /// This place holder should only be inserted into a Header or Footer Paragraph.
@@ -4265,6 +4263,7 @@ namespace Xceed.Document.NET
     /// </summary>
     /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
     /// <param name="index">The text index to insert this PageCount place holder at.</param>
+    /// <param name="fromSection">This parameter counts number of pages for each section or for all document</param>
     /// <example>
     /// <code>
     /// // Create a new document.
@@ -4292,21 +4291,21 @@ namespace Xceed.Document.NET
     /// <seealso cref="AppendPageCount"/>
     /// <seealso cref="AppendPageNumber"/>
     /// <seealso cref="InsertPageNumber"/>
-    public void InsertPageCount( PageNumberFormat? pnf = null, int index = 0 )
+    public void InsertPageCount( PageNumberFormat? pnf = null, int index = 0, bool fromSection = false )
     {
       XElement fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
 
       if( pnf == PageNumberFormat.normal )
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES   \* MERGEFORMAT "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" {(fromSection ? "SECTIONPAGES" : "NUMPAGES")}   \* MERGEFORMAT "));
       }
       else if (pnf == PageNumberFormat.roman)
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES  \* ROMAN  \* MERGEFORMAT "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" {(fromSection ? "SECTIONPAGES" : "NUMPAGES")}  \* ROMAN  \* MERGEFORMAT "));
       }
       else
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" {(fromSection ? "SECTIONPAGES" : "NUMPAGES")} "));
       }
 
       var content = this.GetNumberContentBasedOnLast_rPr();
@@ -4332,6 +4331,7 @@ namespace Xceed.Document.NET
     /// Append a PageCount place holder onto the end of a Paragraph.
     /// </summary>
     /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
+    /// <param name="fromSection">This parameter counts number of pages for each section or for all document</param>
     /// <example>
     /// <code>
     /// // Create a new document.
@@ -4362,21 +4362,21 @@ namespace Xceed.Document.NET
     /// <seealso cref="AppendPageNumber"/>
     /// <seealso cref="InsertPageNumber"/>
     /// <seealso cref="InsertPageCount"/>
-    public Paragraph AppendPageCount( PageNumberFormat? pnf = null )
+    public Paragraph AppendPageCount( PageNumberFormat? pnf = null, bool fromSection = false )
     {
       XElement fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
 
       if (pnf == PageNumberFormat.normal)
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES   \* MERGEFORMAT "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" { (fromSection ? "SECTIONPAGES" : "NUMPAGES") }  \* MERGEFORMAT "));
       }
       else if (pnf == PageNumberFormat.roman)
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES  \* ROMAN  \* MERGEFORMAT "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" {(fromSection ? "SECTIONPAGES" : "NUMPAGES")}  \* ROMAN  \* MERGEFORMAT "));
       }
       else
       {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES "));
+        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), $@" {(fromSection ? "SECTIONPAGES" : "NUMPAGES")} "));
       }
 
       var content = this.GetNumberContentBasedOnLast_rPr();
