@@ -4256,8 +4256,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-
-
     /// <summary>
     /// Insert a PageCount place holder into a Paragraph.
     /// This place holder should only be inserted into a Header or Footer Paragraph.
@@ -4265,6 +4263,7 @@ namespace Xceed.Document.NET
     /// </summary>
     /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
     /// <param name="index">The text index to insert this PageCount place holder at.</param>
+    /// <param name="fromSection">This parameter counts number of pages for each section or for all document</param>
     /// <example>
     /// <code>
     /// // Create a new document.
@@ -4332,6 +4331,7 @@ namespace Xceed.Document.NET
     /// Append a PageCount place holder onto the end of a Paragraph.
     /// </summary>
     /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
+    /// <param name="fromSection">This parameter counts number of pages for each section or for all document</param>
     /// <example>
     /// <code>
     /// // Create a new document.
