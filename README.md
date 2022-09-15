@@ -234,10 +234,6 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td></td>
 <td>YES</td>
 </tr>
-<td>Available on .net standard 2.0+ for .net core 2.0+ applications</td>
-<td></td>
-<td>YES</td>
-</tr>
 <tr>
 <td>Digital signatures in .NET Framework</td>
 <td></td>
