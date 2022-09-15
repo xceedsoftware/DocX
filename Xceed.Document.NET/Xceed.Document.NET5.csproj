@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>obj\net5.0\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Xceed.Document.NET</RootNamespace>
+    <AssemblyName>Xceed.Document.NET5</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;NET5</DefineConstants>
+    <DocumentationFile>
+    </DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>
+    </DocumentationFile>
+    <DefineConstants>TRACE;NET5</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="obj\**" />
+    <EmbeddedResource Remove="obj\**" />
+    <None Remove="obj\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Utils\Exceptions\AggregateException.cs" />
+    <Compile Remove="Utils\Exceptions\ExceptionFilter.cs" />
+    <Compile Remove="Utils\Exceptions\ZCryptException.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\default_styles.xml.gz" />
+    <None Remove="Resources\numbering.default_bullet_abstract.xml.gz" />
+    <None Remove="Resources\numbering.default_decimal_abstract.xml.gz" />
+    <None Remove="Resources\numbering.xml.gz" />
+    <None Remove="Resources\SignatureLine.emf" />
+    <None Remove="Resources\styles.xml.gz" />
+    <None Remove="Resources\theme.xml.gz" />
+    <None Remove="Resources\xceed.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\default_styles.xml.gz" />
+    <EmbeddedResource Include="Resources\numbering.default_bullet_abstract.xml.gz" />
+    <EmbeddedResource Include="Resources\numbering.default_decimal_abstract.xml.gz" />
+    <EmbeddedResource Include="Resources\numbering.xml.gz" />
+    <EmbeddedResource Include="Resources\SignatureLine.emf" />
+    <EmbeddedResource Include="Resources\styles.xml.gz" />
+    <EmbeddedResource Include="Resources\theme.xml.gz" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="System.IO.Packaging" Version="4.5.0" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

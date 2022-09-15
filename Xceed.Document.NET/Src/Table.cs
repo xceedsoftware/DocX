@@ -1121,7 +1121,8 @@ namespace Xceed.Document.NET
       if( startRow < 0 || endRow <= startRow || endRow >= Rows.Count )
         throw new IndexOutOfRangeException();
       // Foreach each Cell between startIndex and endIndex inclusive.
-      foreach( Row row in Rows.Where( ( z, i ) => i > startRow && i <= endRow ) )
+      var validRows = this.Rows.GetRange( startRow, endRow - startRow + 1);
+      foreach( var row in validRows )
       {
         var c = row.Cells[ columnIndex ];
         var tcPr = c.Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
@@ -1487,7 +1488,7 @@ namespace Xceed.Document.NET
         throw new IndexOutOfRangeException();
 
       var content = new List<XElement>();
-      for( int i = 0; i < ColumnCount; i++ )
+      for( int i = 0; i < this.ColumnCount; i++ )
       {
         var cell = ( this.GetColumnWidth( i ) != double.NaN )
                    ? HelperFunctions.CreateTableCell( this.GetColumnWidth( i ) * 20 )
@@ -2606,18 +2607,33 @@ namespace Xceed.Document.NET
 
     private Row InsertRow( List<XElement> content, Int32 index )
     {
-      Row newRow = new Row( this, Document, new XElement( XName.Get( "tr", Document.w.NamespaceName ), content ) );
+      var precedingRowGridAfter = 0;
+
+      if( index > 0 )
+      {
+        precedingRowGridAfter = this.Rows[ index - 1 ].GridAfter;
+        if( precedingRowGridAfter > 0 )
+        {
+          content.RemoveRange( content.Count - precedingRowGridAfter, precedingRowGridAfter );
+        }
+      }
+
+      var newRow = new Row( this, Document, new XElement( XName.Get( "tr", Document.w.NamespaceName ), content ) );
+      if( precedingRowGridAfter > 0 )
+      {
+        newRow.GridAfter = precedingRowGridAfter;
+      }
 
       XElement rowXml;
-      if( index == Rows.Count )
+      if( index == this.Rows.Count )
       {
-        rowXml = Rows.Last().Xml;
+        rowXml = this.Rows.Last().Xml;
         rowXml.AddAfterSelf( newRow.Xml );
       }
 
       else
       {
-        rowXml = Rows[ index ].Xml;
+        rowXml = this.Rows[ index ].Xml;
         rowXml.AddBeforeSelf( newRow.Xml );
       }
 
@@ -2791,6 +2807,31 @@ namespace Xceed.Document.NET
         }
 
         return 0;
+      }
+
+      internal set
+      {
+        if( value < 0 )
+          throw new InvalidDataException("GridAfter value must be greater than 0");
+
+        var trPr = this.Xml.Element( XName.Get( "trPr", Document.w.NamespaceName ) );
+        if( trPr == null )
+        {
+          this.Xml.AddFirst( new XElement( XName.Get( "trPr", Document.w.NamespaceName ), string.Empty ) );
+          trPr = this.Xml.Element( XName.Get( "trPr", Document.w.NamespaceName ) );
+        }
+
+        var gridAfter = trPr.Element( XName.Get( "gridAfter", Document.w.NamespaceName ) );
+
+        if( (gridAfter == null) && (value > 0) )
+        {
+          trPr.Add( new XElement( XName.Get( "gridAfter", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), value ) ) );
+        }
+
+        if( (gridAfter != null) && (value == 0) )
+        {
+          gridAfter.Remove();
+        }
       }
     }
 

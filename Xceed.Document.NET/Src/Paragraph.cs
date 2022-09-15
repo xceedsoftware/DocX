@@ -3681,7 +3681,10 @@ namespace Xceed.Document.NET
         if( parentElement.Parent != null )
         {
           // Need to make sure there is another paragraph in the parent cell
-          canRemove &= parentElement.Parent.Name.LocalName == "tc" && parentElement.Parent.Elements( XName.Get( "p", Document.w.NamespaceName ) ).Count() > 1;
+          if( parentElement.Parent.Name.LocalName == "tc" )
+          {
+            canRemove &= parentElement.Parent.Elements( XName.Get( "p", Document.w.NamespaceName ) ).Count() > 1;
+          }
 
           // Need to make sure there is no drawing element within the parent element.
           // Picture elements contain no text length but they are still content.

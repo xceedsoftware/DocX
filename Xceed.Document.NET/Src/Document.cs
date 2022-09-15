@@ -102,6 +102,7 @@ namespace Xceed.Document.NET
     #region Internal Constants
 
     internal const string RelationshipImage = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
+    internal const string RelationshipChart = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart";
     internal const string ContentTypeApplicationRelationShipXml = "application/vnd.openxmlformats-package.relationships+xml";
 
     #endregion
@@ -1110,6 +1111,40 @@ namespace Xceed.Document.NET
     public override Section InsertSectionPageBreak( bool trackChanges = false )
     {
       return this.InsertSection( trackChanges, true );
+    }
+
+    public override List<string> FindUniqueByPattern( string pattern, RegexOptions options )
+    {
+      // FindUniqueByPattern in the main body of document.
+      var items = base.FindUniqueByPattern( pattern, options );
+
+      // FindUniqueByPattern in Headers of the document.
+      foreach( var section in this.Sections )
+      {
+        var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
+        foreach( var h in headerList )
+        {
+          if( h != null )
+          {
+            items.AddRange( h.FindUniqueByPattern( pattern, options ) );
+          }
+        }
+      }
+
+      // FindUniqueByPattern in Footers of the document.
+      foreach( var section in this.Sections )
+      {
+        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
+        foreach( var f in footerList )
+        {
+          if( f != null )
+          {
+            items.AddRange( f.FindUniqueByPattern( pattern, options ) );
+          }
+        }
+      }
+
+      return items;
     }
 
     public override void ReplaceText( string searchValue,
@@ -2525,13 +2560,17 @@ namespace Xceed.Document.NET
       var p = base.InsertParagraph( index, text, trackChanges );
       p.PackagePart = this.PackagePart;
 
+      // Inserting a paragraph at a specific index needs an update of Paragraph cache.
+      this.ClearParagraphsCache();
+
       return p;
     }
 
     public override Paragraph InsertParagraph( Paragraph p )
     {
-      // copy paragraph's pictures.
+      // copy paragraph's pictures and styles.
       this.InsertParagraphPictures( p );
+      this.InsertParagraphStyles( p );
 
       p.PackagePart = this.PackagePart;
 
@@ -2540,18 +2579,27 @@ namespace Xceed.Document.NET
 
     public override Paragraph InsertParagraph( int index, Paragraph p )
     {
-      // copy paragraph's pictures.
+      // copy paragraph's pictures and styles.
       this.InsertParagraphPictures( p );
+      this.InsertParagraphStyles( p );
 
       p.PackagePart = this.PackagePart;
 
-      return base.InsertParagraph( index, p );
+      var returnParagraph = base.InsertParagraph( index, p );
+
+      // Inserting a paragraph at a specific index needs an update of Paragraph cache.
+      this.ClearParagraphsCache();
+
+      return returnParagraph;
     }
 
     public override Paragraph InsertParagraph( int index, string text, bool trackChanges, Formatting formatting )
     {
       var p = base.InsertParagraph( index, text, trackChanges, formatting );
       p.PackagePart = this.PackagePart;
+
+      // Inserting a paragraph at a specific index needs an update of Paragraph cache.
+      this.ClearParagraphsCache();
 
       return p;
     }
@@ -2893,19 +2941,11 @@ namespace Xceed.Document.NET
 
 
 
-
-
-
-
-
-
-
-
     public T AddChart<T>() where T : Chart, new()
     {
-      var chart = new T(); 
-      chart.PackagePart = CreateChartPackagePart();
-      chart.RelationPackage = CreateChartRelationShip(chart.PackagePart);
+      var chart = new T();
+      chart.PackagePart = this.CreateChartPackagePart();
+      chart.RelationPackage = this.CreateChartRelationShip( chart.PackagePart );
       return chart;
     }
     #endregion
@@ -3791,7 +3831,7 @@ namespace Xceed.Document.NET
       // Save Headers/Footers in case they were modified. GetSectionCaches() will create new Sections based on them.
       this.SaveHeadersFooters();
 
-      ClearParagraphsCache();
+      this.ClearParagraphsCache();
       _cachedSections = this.GetSections();
     }
 
@@ -3828,17 +3868,17 @@ namespace Xceed.Document.NET
     internal Paragraph CreateChartElement( Chart chart, Paragraph paragraph, float width, float height )
     {
 
-      if ( chart.PackagePart == null )
+      if( chart.PackagePart == null )
       {
         chart.PackagePart = this.CreateChartPackagePart();
-        chart.RelationPackage = this.CreateChartRelationShip(chart.PackagePart);
+        chart.RelationPackage = this.CreateChartRelationShip( chart.PackagePart );
       }
       var relID = chart.RelationPackage.Id.ToString();
 
       // Save a chart info the chartPackagePart
       var p = ( paragraph == null ) ? InsertParagraph() : paragraph;
 
-      using ( TextWriter tw = new StreamWriter( chart.PackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) )
+      using( TextWriter tw = new StreamWriter( chart.PackagePart.GetStream( FileMode.Create, FileAccess.Write ) ) )
       {
         chart.ExternalXml.Save( tw );
       }
@@ -3860,7 +3900,7 @@ namespace Xceed.Document.NET
       {
         chartPartUriPath = String.Format( "/word/charts/chart{0}.xml", chartIndex );
         chartIndex++;
-      } while ( _package.PartExists( new Uri( chartPartUriPath, UriKind.Relative ) ) );
+      } while( _package.PartExists( new Uri( chartPartUriPath, UriKind.Relative ) ) );
 
       // Create chart part.
       var chartPackagePart = _package.CreatePart( new Uri( chartPartUriPath, UriKind.Relative ), "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", CompressionOption.Normal );
@@ -3873,7 +3913,7 @@ namespace Xceed.Document.NET
     {
       // Create a new chart relationship
       var relID = this.GetNextFreeRelationshipID();
-      return this.PackagePart.CreateRelationship( chartPackagePart.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart", relID );
+      return this.PackagePart.CreateRelationship( chartPackagePart.Uri, TargetMode.Internal, Document.RelationshipChart, relID );
     }
 
     #endregion
@@ -4099,7 +4139,12 @@ namespace Xceed.Document.NET
       {
         if( _imageContentTypes.Contains( remote_pp.ContentType ) )
         {
-          merge_images( remote_pp, remote_document, remote_mainDoc, remote_pp.ContentType );
+          this.MergeImages( remote_pp, remote_document, remote_mainDoc, remote_pp.ContentType );
+        }
+
+        if( remote_pp.Uri.OriginalString.StartsWith( "/word/charts/" ) )
+        {
+          this.MergeCharts( remote_pp, remote_document, remote_mainDoc );
         }
       }
 
@@ -4209,13 +4254,39 @@ namespace Xceed.Document.NET
         {
           if( _imageContentTypes.Contains( remote_pp.ContentType ) )
           {
-            merge_images( remote_pp, p.Document, p.Document._mainDoc, remote_pp.ContentType );
+            this.MergeImages( remote_pp, p.Document, p.Document._mainDoc, remote_pp.ContentType );
           }
         }
       }
     }
 
-    private void merge_images( PackagePart remote_pp, Document remote_document, XDocument remote_mainDoc, String contentType )
+    private void InsertParagraphStyles( Paragraph p )
+    {
+      // Check if style is already present in document.
+      if( ( p != null ) && ( p.StyleId != this.GetNormalStyleId() ) )
+      {
+        var styleToFind = HelperFunctions.GetStyle( this, p.StyleId );
+
+        // style is not there, we need to add it.
+        if( styleToFind == null )
+        {
+          var styleIdToFind = p.StyleId;
+          while( ( styleIdToFind != null ) && ( styleIdToFind != this.GetNormalStyleId() ) )
+          {
+            var styleToAdd = HelperFunctions.GetStyle( p.Document, styleIdToFind );
+            if( styleToAdd != null )
+            {
+              _styles.Root.Add( styleToAdd );
+
+              var basedOn = styleToAdd.Element( XName.Get( "basedOn", Document.w.NamespaceName ) );
+              styleIdToFind = ( basedOn != null ) ? basedOn.Attribute( XName.Get( "val", Document.w.NamespaceName ) ).Value : null;
+            }
+          }
+        }
+      }
+    }
+
+    private void MergeImages( PackagePart remote_pp, Document remote_document, XDocument remote_mainDoc, String contentType )
     {
       // Before doing any other work, check to see if this image is actually referenced in the document.
       // In my testing I have found cases of Images inside documents that are not referenced
@@ -4328,7 +4399,7 @@ namespace Xceed.Document.NET
 
     private void CreateRelationshipForImage( Uri newUri, string remote_Id, XDocument remote_mainDoc, PackagePart packagePartToSaveTo )
     {
-      var pr = packagePartToSaveTo.CreateRelationship( newUri, TargetMode.Internal, RelationshipImage );
+      var pr = packagePartToSaveTo.CreateRelationship( newUri, TargetMode.Internal, Document.RelationshipImage );
       var new_Id = pr.Id;
 
       //Check if the remote relationship id is a default rId from Word 
@@ -4349,6 +4420,46 @@ namespace Xceed.Document.NET
       // Replace all instances of remote_Id in the local document with local_Id (for shapes)
       this.ReplaceAllRemoteID( remote_mainDoc, "imagedata", "id", v.NamespaceName, remote_Id, new_Id );
     }
+
+    private void CreateRelationshipForChart( Uri newUri, string remote_Id, XDocument remote_mainDoc )
+    {
+      var relID = this.GetNextFreeRelationshipID();
+      var pr = this.PackagePart.CreateRelationship( newUri, TargetMode.Internal, Document.RelationshipChart, relID );
+
+      // Replace all instances of remote_Id in the local document with local_Id
+      this.ReplaceAllRemoteID( remote_mainDoc, "chart", "id", c.NamespaceName, remote_Id, pr.Id );
+    }
+
+    private void MergeCharts( PackagePart remote_pp, Document remote_document, XDocument remote_mainDoc )
+    {
+      var remote_rel = remote_document.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( remote_pp.Uri.OriginalString ) ).FirstOrDefault();
+
+      if( remote_rel != null )
+      {
+        var remote_Id = remote_rel.Id;
+
+        var new_uri = remote_pp.Uri.OriginalString;
+        new_uri = new_uri.Remove( new_uri.LastIndexOf( "/" ) );
+        new_uri += "/" + Guid.NewGuid();
+        if( !new_uri.StartsWith( "/" ) )
+        {
+          new_uri = "/" + new_uri;
+        }
+
+        var new_pp = _package.CreatePart( new Uri( new_uri, UriKind.Relative ), remote_pp.ContentType, CompressionOption.Normal );
+
+        using( Stream s_read = remote_pp.GetStream() )
+        {
+          using( Stream s_write = new PackagePartStream( new_pp.GetStream( FileMode.Create ) ) )
+          {
+            HelperFunctions.CopyStream( s_read, s_write );
+          }
+        }
+
+        this.CreateRelationshipForChart( new Uri( new_uri, UriKind.Relative ), remote_Id, remote_mainDoc );
+      }
+    }
+
 
     private void ReplaceAllRemoteID( XDocument remote_mainDoc, string localName, string localNameAttribute, string namespaceName, string remote_Id, string new_Id )
     {

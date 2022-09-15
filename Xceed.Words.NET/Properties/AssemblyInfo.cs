@@ -38,7 +38,11 @@ using System.Runtime.InteropServices;
 
 #pragma warning disable 1699
 [assembly: AssemblyDelaySign( false )]
+#if NETCORE || NET5
+[assembly: AssemblyKeyFile( @"..\..\..\..\sn.snk" )]
+#else
 [assembly: AssemblyKeyFile( @"..\..\sn.snk" )]
+#endif
 [assembly: AssemblyKeyName( "" )]
 #pragma warning restore 1699
 

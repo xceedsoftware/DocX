@@ -541,7 +541,7 @@ namespace Xceed.Document.NET
         );
       }
       this.SetParentContainer( p );
-      this.AddParagraphInCache( p, index );
+      this.AddParagraphInCache( p );
 
       return p;
     }
@@ -620,7 +620,7 @@ namespace Xceed.Document.NET
       var newParagraph = new Paragraph( Document, newXElement, index );
       this.Document._paragraphLookup.Add( index, newParagraph );
       this.SetParentContainer( newParagraph );
-      this.AddParagraphInCache( newParagraph, index );
+      this.AddParagraphInCache( newParagraph );
 
       return newParagraph;
     }
@@ -650,7 +650,7 @@ namespace Xceed.Document.NET
       }
 
       this.SetParentContainer( newParagraph );
-      this.AddParagraphInCache( newParagraph, index );
+      this.AddParagraphInCache( newParagraph );
 
       return newParagraph;
     }
@@ -719,6 +719,14 @@ namespace Xceed.Document.NET
 
       return newParagraphAdded;
     }
+
+
+
+
+
+
+
+
 
     /// <summary>
     /// Removes paragraph at specified position
@@ -1056,12 +1064,9 @@ namespace Xceed.Document.NET
       }
     }
 
-    private void AddParagraphInCache( Paragraph p, int? index = null )
+    private void AddParagraphInCache( Paragraph p )
     {
-      if( !( index.HasValue ) )
-        _editableParagraphsCollection.Add( p );
-      else
-        _editableParagraphsCollection.Insert( index.Value, p );
+       _editableParagraphsCollection.Add( p );
     }
 
     private void GetListItemType( Paragraph p )
