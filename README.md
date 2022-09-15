@@ -119,6 +119,11 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td>YES</td>
 </tr>
 <tr>
+<td>Available on .net 5 for .net 5/6 applications</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
 <td>Wrap text around pictures</td>
 <td></td>
 <td>YES</td>
@@ -230,11 +235,6 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td>YES</td>
 </tr>
 <td>Available on .net standard 2.0+ for .net core 2.0+ applications</td>
-<td></td>
-<td>YES</td>
-</tr>
-<tr>
-<td>Available on .net 5 for .net 5/6 applications</td>
 <td></td>
 <td>YES</td>
 </tr>
