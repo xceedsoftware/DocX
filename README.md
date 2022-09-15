@@ -323,6 +323,7 @@ A commercial license can be purchased at [Xceed](https://xceed.com).
 
 ## Release history
 
+* **September 15, 2022, released DocX v2.3.0 with [7 bug fixes and improvements](../../wiki/Release-Notes-v2.3.0).**
 * **June 1, 2022, released DocX v2.2.0 with [5 bug fixes and improvements](../../wiki/Release-Notes-v2.2.0).**
 * May 14, 2022, released [Xceed Words for .NET](https://xceed.com/xceed-words-for-net) v2.3.0 with [15 bug fixes and improvements](../../wiki/Release-Notes-v1.2.0#Plus230).
 * **March 22, 2022, released DocX v2.1.0 with [22 bug fixes and improvements](../../wiki/Release-Notes-v2.1.0).**
