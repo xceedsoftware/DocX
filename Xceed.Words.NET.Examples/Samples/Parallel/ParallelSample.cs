@@ -13,6 +13,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
+using Xceed.Document.NET;
 
 namespace Xceed.Words.NET.Examples
 {
@@ -62,8 +63,8 @@ namespace Xceed.Words.NET.Examples
       using( var document = DocX.Load( file.FullName ) )
       {
         // Replace texts in this document.
-        document.ReplaceText( "Apples", "Potatoes" );
-        document.ReplaceText( "An Apple", "A Potato" );
+        document.ReplaceText( new StringReplaceTextOptions() { SearchValue = "Apples", NewValue = "Potatoes" } );
+        document.ReplaceText( new StringReplaceTextOptions() { SearchValue = "An Apple", NewValue = "A Potato" } );
 
         // create the new image
         var newImage = document.AddImage( ParallelSample.ParallelSampleResourcesDirectory + @"potato.jpg" );

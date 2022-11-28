@@ -1147,6 +1147,7 @@ namespace Xceed.Document.NET
       return items;
     }
 
+    [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with a StringReplaceTextOptions parameter instead." )]
     public override void ReplaceText( string searchValue,
                                       string newValue,
                                       bool trackChanges = false,
@@ -1158,8 +1159,22 @@ namespace Xceed.Document.NET
                                       bool useRegExSubstitutions = false,
                                       bool removeEmptyParagraph = true )
     {
+      var replaceTextOptions = new StringReplaceTextOptions()
+      {
+        SearchValue = searchValue,
+        NewValue = newValue,
+        TrackChanges = trackChanges,
+        RegExOptions = options,
+        NewFormatting = newFormatting,
+        FormattingToMatch = matchFormatting,
+        FormattingToMatchOptions = fo,
+        EscapeRegEx = escapeRegEx,
+        UseRegExSubstitutions = useRegExSubstitutions,
+        RemoveEmptyParagraph = removeEmptyParagraph
+      };
+
       // ReplaceText in the main body of document.
-      base.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+      base.ReplaceText( replaceTextOptions );
 
       // ReplaceText in Headers of the document.
       foreach( var section in this.Sections )
@@ -1171,7 +1186,7 @@ namespace Xceed.Document.NET
           {
             foreach( var p in h.Paragraphs )
             {
-              p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+              p.ReplaceText( replaceTextOptions );
             }
           }
         }
@@ -1187,13 +1202,14 @@ namespace Xceed.Document.NET
           {
             foreach( var p in f.Paragraphs )
             {
-              p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+              p.ReplaceText( replaceTextOptions );
             }
           }
         }
       }
     }
 
+    [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with a FunctionReplaceTextOptions parameter instead." )]
     public override void ReplaceText( string searchValue,
                                       Func<string, string> regexMatchHandler,
                                       bool trackChanges = false,
@@ -1203,8 +1219,20 @@ namespace Xceed.Document.NET
                                       MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
                                       bool removeEmptyParagraph = true )
     {
+      var replaceTextOptions = new FunctionReplaceTextOptions()
+      {
+        FindPattern = searchValue,
+        RegexMatchHandler = regexMatchHandler,
+        TrackChanges = trackChanges,
+        RegExOptions = options,
+        NewFormatting = newFormatting,
+        FormattingToMatch = matchFormatting,
+        FormattingToMatchOptions = fo,
+        RemoveEmptyParagraph = removeEmptyParagraph
+      };
+
       // Replace text in body of the Document.
-      base.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
+      base.ReplaceText( replaceTextOptions );
 
       // Replace text in headers and footers of the Document.
       foreach( var section in this.Sections )
@@ -1225,13 +1253,14 @@ namespace Xceed.Document.NET
           {
             foreach( var p in hf.Paragraphs )
             {
-              p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
+              p.ReplaceText( replaceTextOptions );
             }
           }
         }
       }
     }
 
+    [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with an ObjectReplaceTextOptions parameter instead." )]
     public override void ReplaceTextWithObject( string searchValue,
                                                 DocumentElement objectToAdd,
                                                 bool trackChanges = false,
@@ -1241,7 +1270,19 @@ namespace Xceed.Document.NET
                                                 bool escapeRegEx = true,
                                                 bool removeEmptyParagraph = true )
     {
-      base.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
+      var replaceTextOptions = new ObjectReplaceTextOptions()
+      {
+        SearchValue = searchValue,
+        NewObject = objectToAdd,
+        TrackChanges = trackChanges,
+        RegExOptions = options,
+        FormattingToMatch = matchFormatting,
+        FormattingToMatchOptions = fo,
+        EscapeRegEx = escapeRegEx,
+        RemoveEmptyParagraph = removeEmptyParagraph
+      };
+
+      base.ReplaceTextWithObject( replaceTextOptions );
 
       // ReplaceText in Headers of the document.
       foreach( var section in this.Sections )
@@ -1253,7 +1294,7 @@ namespace Xceed.Document.NET
           {
             foreach( var p in h.Paragraphs )
             {
-              p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
+              p.ReplaceTextWithObject( replaceTextOptions );
             }
           }
         }
@@ -1269,11 +1310,147 @@ namespace Xceed.Document.NET
           {
             foreach( var p in f.Paragraphs )
             {
-              p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
+              p.ReplaceTextWithObject( replaceTextOptions );
             }
           }
         }
       }
+    }
+
+    public override bool ReplaceText( StringReplaceTextOptions replaceTextOptions )
+    {
+      // ReplaceText in the main body of document.
+      var replaceSuccess = base.ReplaceText( replaceTextOptions );
+
+      // ReplaceText in Headers of the document.
+      foreach( var section in this.Sections )
+      {
+        var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
+        foreach( var h in headerList )
+        {
+          if( h != null )
+          {
+            foreach( var p in h.Paragraphs )
+            {
+              var result = p.ReplaceText( replaceTextOptions );
+
+              if( !replaceSuccess )
+              {
+                replaceSuccess = result;
+              }
+            }
+          }
+        }
+      }
+
+      // ReplaceText in Footers of the document.
+      foreach( var section in this.Sections )
+      {
+        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
+        foreach( var f in footerList )
+        {
+          if( f != null )
+          {
+            foreach( var p in f.Paragraphs )
+            {
+              var result = p.ReplaceText( replaceTextOptions );
+
+              if( !replaceSuccess )
+              {
+                replaceSuccess = result;
+              }
+            }
+          }
+        }
+      }
+
+      return replaceSuccess;
+    }
+
+    public override bool ReplaceText( FunctionReplaceTextOptions replaceTextOptions )
+    {
+      // Replace text in body of the Document.
+      var replaceSuccess = base.ReplaceText( replaceTextOptions );
+
+      // Replace text in headers and footers of the Document.
+      foreach( var section in this.Sections )
+      {
+        var headersFootersList = new List<IParagraphContainer>()
+        {
+          section.Headers.First,
+          section.Headers.Even,
+          section.Headers.Odd,
+          section.Footers.First,
+          section.Footers.Even,
+          section.Footers.Odd,
+        };
+
+        foreach( var hf in headersFootersList )
+        {
+          if( hf != null )
+          {
+            foreach( var p in hf.Paragraphs )
+            {
+              var result = p.ReplaceText( replaceTextOptions );
+              if( !replaceSuccess )
+              {
+                replaceSuccess = result;
+              }
+            }
+          }
+        }
+      }
+
+      return replaceSuccess;
+    }
+
+    public override bool ReplaceTextWithObject( ObjectReplaceTextOptions replaceTextOptions )
+    {
+      var replaceSuccess = base.ReplaceTextWithObject( replaceTextOptions );
+
+      // ReplaceText in Headers of the document.
+      foreach( var section in this.Sections )
+      {
+        var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
+        foreach( var h in headerList )
+        {
+          if( h != null )
+          {
+            foreach( var p in h.Paragraphs )
+            {
+              var result = p.ReplaceTextWithObject( replaceTextOptions );
+
+              if( !replaceSuccess )
+              {
+                replaceSuccess = result;
+              }
+            }
+          }
+        }
+      }
+
+      // ReplaceText in Footers of the document.
+      foreach( var section in this.Sections )
+      {
+        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
+        foreach( var f in footerList )
+        {
+          if( f != null )
+          {
+            foreach( var p in f.Paragraphs )
+            {
+              var result = p.ReplaceTextWithObject( replaceTextOptions );
+
+              if( !replaceSuccess )
+              {
+                replaceSuccess = result;
+              }
+            }
+          }
+        }
+      }
+
+      return replaceSuccess;
     }
 
     public override void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
@@ -2111,7 +2288,7 @@ namespace Xceed.Document.NET
           break;
       }
 
-      return AddImage( filename as object, contentType );
+      return this.AddImage( filename as object, contentType );
     }
 
     /// <summary>
@@ -3200,7 +3377,7 @@ namespace Xceed.Document.NET
     internal void SetFileName( string filename )
     {
       _filename = ( filename != null )
-                  ? filename.EndsWith( ".docx" ) || filename.EndsWith( ".doc" ) ? filename : filename + ".docx"
+                  ? filename.EndsWith( ".docx" ) || filename.EndsWith( ".doc" ) || filename.EndsWith( ".docm" ) ? filename : filename + ".docx"
                   : null;
     }
 
@@ -3835,36 +4012,6 @@ namespace Xceed.Document.NET
       _cachedSections = this.GetSections();
     }
 
-    internal Paragraph GetNextParagraph( Paragraph refParagraph )
-    {
-      if( refParagraph == null )
-        return null;
-
-      var paragraphs = this.GetParagraphs();
-
-      var index = paragraphs.FindIndex( p => p._endIndex == refParagraph._endIndex );
-
-      if( ( index < 0 ) || ( index >= paragraphs.Count - 1 ) )
-        return null;
-
-      return paragraphs[ index + 1 ];
-    }
-
-    internal Paragraph GetPreviousParagraph( Paragraph refParagraph )
-    {
-      if( refParagraph == null )
-        return null;
-
-      var paragraphs = this.GetParagraphs();
-
-      var index = paragraphs.FindIndex( p => p._endIndex == refParagraph._endIndex );
-
-      if( index < 1 )
-        return null;
-
-      return paragraphs[ index - 1 ];
-    }
-
     internal Paragraph CreateChartElement( Chart chart, Paragraph paragraph, float width, float height )
     {
 
@@ -3885,8 +4032,6 @@ namespace Xceed.Document.NET
 
       // Insert a new chart into a paragraph.
       chart.SetInternalChartSettings( relID, width, height );
-
-
 
       return p;
     }
@@ -3919,6 +4064,7 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Private Methods
+
 
 
 

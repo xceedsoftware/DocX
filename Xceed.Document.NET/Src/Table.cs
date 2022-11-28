@@ -1362,6 +1362,8 @@ namespace Xceed.Document.NET
       if( index < 0 || index > RowCount - 1 )
         throw new IndexOutOfRangeException();
 
+      this.Document.ClearParagraphsCache();
+
       this.Rows[ index ].Xml.Remove();
       if( this.Rows.Count == 0 )
       {
@@ -1452,6 +1454,8 @@ namespace Xceed.Document.NET
         }
       }
       _cachedColumnCount = -1;
+
+      this.Document.ClearParagraphsCache();
     }
 
     /// <summary>
@@ -1602,7 +1606,7 @@ namespace Xceed.Document.NET
                 && ( ( index - gridAfterValue ) <= ( currentPosition + gridSpanValue ) ) )
               {
                 var dir = ( direction && ( index == ( currentPosition + gridSpanValue ) ) );
-                this.AddCellToRow( row, cell, posIndex, dir );
+                this.AddCellToRow( row, cell, posIndex, dir );                
                 break;
               }
 
@@ -1621,6 +1625,8 @@ namespace Xceed.Document.NET
         newWidths.Insert( index, Convert.ToSingle( newColumnWidth ) );
 
         this.SetWidths( newWidths.ToArray(), false );
+
+        this.Document.ClearParagraphsCache();
       }
     }
 
@@ -2601,6 +2607,17 @@ namespace Xceed.Document.NET
       return tblPr;
     }
 
+    internal void RemoveFirstRows( int rowCount )
+    {
+      Debug.Assert( rowCount >= 0 );
+
+      var rowsXml = this.Xml.Elements( XName.Get( "tr", Document.w.NamespaceName ) );
+      if( rowsXml != null )
+      {
+        rowsXml.Take( rowCount ).Remove();
+      }
+    }
+
     #endregion
 
     #region Private Methods
@@ -2636,6 +2653,8 @@ namespace Xceed.Document.NET
         rowXml = this.Rows[ index ].Xml;
         rowXml.AddBeforeSelf( newRow.Xml );
       }
+
+      this.Document.ClearParagraphsCache();
 
       return newRow;
     }
@@ -3115,6 +3134,14 @@ namespace Xceed.Document.NET
     }
 
     #endregion
+
+    #region Internal Methods
+
+
+
+
+
+#endregion
 
     #region Private Methods
 
@@ -4553,29 +4580,59 @@ namespace Xceed.Document.NET
 
     #endregion
 
-    // <summary>
-    // Gets or Sets the fill color of this Cell.
-    // </summary>
-    // <example>
-    // <code>
-    // // Create a new document.
-    // using (var document = DocX.Create("Test.docx"))
-    // {
-    //    // Insert a table into this document.
-    //    Table t = document.InsertTable(3, 3);
-    //
-    //    // Fill the first cell as Blue.
-    //    t.Rows[0].Cells[0].FillColor = Color.Blue;
-    //    // Fill the middle cell as Red.
-    //    t.Rows[1].Cells[1].FillColor = Color.Red;
-    //    // Fill the last cell as Green.
-    //    t.Rows[2].Cells[2].FillColor = Color.Green;
-    //
-    //    // Save the document.
-    //    document.Save();
-    // }
-    // </code>
-    // </example>
+    #region Internal Methods
+
+    internal void RemoveContentExcept( List<string> keepTexts )
+    {
+      var paragraphs = this.Paragraphs;
+      var lastParagraphIdToKeep = paragraphs.Count;
+      string lastParagraphTextToKeep = null;
+
+      if( keepTexts != null )
+      {
+        for( int i = paragraphs.Count - 1; i >= 0; --i )
+        {
+          var paragraphText = paragraphs[ i ].Text;
+          while( paragraphText.Contains( keepTexts.Last() ) )
+          {
+            paragraphText = paragraphText.Remove( paragraphText.LastIndexOf( keepTexts.Last() ) );
+            keepTexts.RemoveAt( keepTexts.Count - 1 );
+
+            // All this paragraph needs to be kept.
+            if( string.IsNullOrEmpty( paragraphText ) || ( keepTexts.Count == 0 ) )
+            {
+              lastParagraphIdToKeep = i;
+              break;
+            }
+          }
+
+          if( keepTexts.Count == 0 )
+          {
+            // Some of this paragraph need to be kept.
+            if( !string.IsNullOrEmpty( paragraphText ) )
+            {
+              lastParagraphTextToKeep = paragraphText;
+            }
+
+            break;
+          }
+        }
+      }
+
+      // Remove unkept text from last paragraph to keep.
+      if( lastParagraphTextToKeep != null )
+      {
+        this.Paragraphs[ lastParagraphIdToKeep ].RemoveText( 0, lastParagraphTextToKeep.Length );
+      }
+
+      // Remove unkept first paragraphs.
+      for( int i = lastParagraphIdToKeep - 1; i >= 0; i-- )
+      {
+        this.Paragraphs[ i ].Remove( false );
+      }
+    }
+
+    #endregion
 
     #region Private Methods
 

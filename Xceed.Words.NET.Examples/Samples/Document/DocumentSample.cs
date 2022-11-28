@@ -64,7 +64,14 @@ namespace Xceed.Words.NET.Examples
         if( document.FindUniqueByPattern( @"<[\w \=]{4,}>", RegexOptions.IgnoreCase ).Count > 0 )
         {
           // Do the replacement of all the found tags and with green bold strings.
-          document.ReplaceText( "<(.*?)>", DocumentSample.ReplaceFunc, false, RegexOptions.IgnoreCase, new Formatting() { Bold = true, FontColor = System.Drawing.Color.Green } );
+          var replaceTextOptions = new FunctionReplaceTextOptions()
+          {
+            FindPattern = "<(.*?)>",
+            RegexMatchHandler = DocumentSample.ReplaceFunc,
+            RegExOptions = RegexOptions.IgnoreCase,
+            NewFormatting = new Formatting() { Bold = true, FontColor = System.Drawing.Color.Green }
+          };
+          document.ReplaceText( replaceTextOptions );
 
           // Save this document to disk.
           document.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"ReplacedText.docx" );
@@ -88,12 +95,12 @@ namespace Xceed.Words.NET.Examples
         var picture = image.CreatePicture( 175f, 325f );
 
         // Do the replacement of all the found tags with the specified image and ignore the case when searching for the tags.
-        document.ReplaceTextWithObject( "<yEaR_IMAGE>", picture, false, RegexOptions.IgnoreCase );
+        document.ReplaceTextWithObject( new ObjectReplaceTextOptions() { SearchValue = "<yEaR_IMAGE>", NewObject = picture, RegExOptions = RegexOptions.IgnoreCase } );
 
         // Create the hyperlink.
         var hyperlink = document.AddHyperlink( "(ref)", new Uri( "https://en.wikipedia.org/wiki/New_Year" ) );
         // Do the replacement of all the found tags with the specified hyperlink.
-        document.ReplaceTextWithObject( "<year_link>", hyperlink );
+        document.ReplaceTextWithObject( new ObjectReplaceTextOptions() { SearchValue = "<year_link>", NewObject = hyperlink } );
 
         // Add a Table into the document and sets its values.
         var t = document.AddTable( 1, 2 );
@@ -101,7 +108,7 @@ namespace Xceed.Words.NET.Examples
         t.AutoFit = AutoFit.Window;
         t.Rows[ 0 ].Cells[ 0 ].Paragraphs[ 0 ].Append( "xceed.com" );
         t.Rows[ 0 ].Cells[ 1 ].Paragraphs[ 0 ].Append( "@copyright 2022" );
-        document.ReplaceTextWithObject( "<year_table>", t );
+        document.ReplaceTextWithObject( new ObjectReplaceTextOptions() { SearchValue = "<year_table>", NewObject = t } );
 
         // Save this document to disk.
         document.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"ReplacedTextWithObjects.docx" );

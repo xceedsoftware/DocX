@@ -228,8 +228,8 @@ namespace Xceed.Words.NET.Examples
         var templateDoc = DocX.Load( MiscellaneousSample.MiscellaneousSampleResourcesDirectory + @"TemplateMailMerge.docx" ) as DocX;
         if( templateDoc != null )
         {
-          templateDoc.ReplaceText( "<Address>", candidate.Address );
-          templateDoc.ReplaceText( "<Greeting>", candidate.Name );
+          templateDoc.ReplaceText( new StringReplaceTextOptions() { SearchValue = "<Address>", NewValue = candidate.Address } );
+          templateDoc.ReplaceText( new StringReplaceTextOptions() { SearchValue = "<Greeting>", NewValue = candidate.Name } );
 
           templateDoc.SaveAs( MiscellaneousSample.MiscellaneousSampleOutputMailMergeDirectory + @"Acceptance_" + candidate.ID + ".docx" );
         }

@@ -123,7 +123,7 @@ namespace Xceed.Words.NET.Examples
         }
 
         // Replace displayed text in document.
-        document.ReplaceText( "xceed", "words" );
+        document.ReplaceText( new StringReplaceTextOptions() { SearchValue = "xceed", NewValue = "words" } );
 
         // Save this document to disk.
         document.SaveAs( ProtectionSample.ProtectionSampleOutputDirectory + @"UpdatedPasswordProtected.docx", "words" );

@@ -281,16 +281,24 @@ namespace Xceed.Words.NET.Examples
         // Create a paragraph and insert text.
         var p3 = document.InsertParagraph( "In this paragraph, we replace an complex word with an easier one and spaces with hyphens." );
         // Replace the "complex" word with "easy" word.
-        p3.ReplaceText( "complex", "easy" );
-        // Replace the spaces with tabs
-        p3.ReplaceText( " ", "--" );
+        var stringReplaceTextOptions = new StringReplaceTextOptions() { SearchValue = "complex", NewValue = "easy" };
+        p3.ReplaceText( stringReplaceTextOptions );
+        // Replace the spaces with hyphens.
+        stringReplaceTextOptions = new StringReplaceTextOptions() { SearchValue = " ", NewValue = "--" };
+        p3.ReplaceText( stringReplaceTextOptions );
 
         p3.SpacingAfter( 30 );
 
         // Create a paragraph and insert text.
         var p4 = document.InsertParagraph( "In this paragraph, we replace a word by using a handler: <COST>." );
         // Replace "<COST>" with "$13.95" using an handler
-        p4.ReplaceText( "<(.*?)>", ReplaceTextHandler, false, RegexOptions.IgnoreCase, null );
+        var functionReplaceTextOptions = new FunctionReplaceTextOptions()
+        {
+          FindPattern = "<(.*?)>",
+          RegexMatchHandler = ParagraphSample.ReplaceTextHandler,
+          RegExOptions = RegexOptions.IgnoreCase
+        };
+        p4.ReplaceText( functionReplaceTextOptions );
 
         p4.SpacingAfter( 30 );
 
@@ -299,7 +307,8 @@ namespace Xceed.Words.NET.Examples
 
         // Append some text with track changes
         p5.Append( "This is a paragraph where tracking of modifications is used." );
-        p5.ReplaceText( "modifications", "changes", true );
+        stringReplaceTextOptions = new StringReplaceTextOptions() { SearchValue = "modifications", NewValue = "changes", TrackChanges = true };
+        p5.ReplaceText( stringReplaceTextOptions );
 
         // Save this document to disk.
         document.Save();

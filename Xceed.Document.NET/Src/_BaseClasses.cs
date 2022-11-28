@@ -195,6 +195,10 @@ namespace Xceed.Document.NET
         return new Paragraph( this.Document, newlyInserted, ( this as Paragraph )._endIndex );
 
       p.Xml = newlyInserted;
+
+      this.Document.UpdateParagraphIndexes();
+      this.Document.AddParagraphInCache( p );
+
       return p;
     }
 
@@ -207,6 +211,10 @@ namespace Xceed.Document.NET
         return new Paragraph( this.Document, newlyInserted, ( this as Paragraph )._endIndex );
 
       p.Xml = newlyInserted; //IMPORTANT: I think we have return new paragraph in any case, but I dont know what to put as startIndex parameter into Paragraph constructor
+
+      this.Document.UpdateParagraphIndexes();
+      this.Document.AddParagraphInCache( p );
+
       return p;
     }
 
@@ -243,7 +251,12 @@ namespace Xceed.Document.NET
       Xml.AddBeforeSelf( newParagraph );
       XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
-      return new Paragraph( Document, newlyInserted, -1 );
+      var p = new Paragraph( this.Document, newlyInserted, this is Paragraph ? ( this as Paragraph )._startIndex : -1 );
+
+      this.Document.UpdateParagraphIndexes();
+      this.Document.AddParagraphInCache( p );
+
+      return p;
     }
 
     public virtual Paragraph InsertParagraphAfterSelf( string text, bool trackChanges, Formatting formatting )
@@ -259,7 +272,10 @@ namespace Xceed.Document.NET
       Xml.AddAfterSelf( newParagraph );
       XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
-      Paragraph p = new Paragraph( Document, newlyInserted, -1 );
+      var p = new Paragraph( this.Document, newlyInserted, this is Paragraph ? ( this as Paragraph )._endIndex : -1 );
+
+      this.Document.AddParagraphInCache( p );
+      this.Document.UpdateParagraphIndexes();
 
       return p;
     }
@@ -272,6 +288,11 @@ namespace Xceed.Document.NET
 
       var table = new Table( this.Document, newlyInserted, this.Document.PackagePart );
       table.PackagePart = this.PackagePart;
+
+      foreach( var p in table.Paragraphs )
+      {
+        this.Document.AddParagraphInCache( p );
+      }
       return table;
     }
 
@@ -279,12 +300,23 @@ namespace Xceed.Document.NET
     {
       this.AddMissingPicturesInDocument( t );
 
-      this.Xml.AddAfterSelf( t.Xml );
-      var newlyInserted = this.Xml.ElementsAfterSelf().First();
+      // Use a copy to be able to insert the table in header/footer/document.
+      var tableCopyXml = new XElement( t.Xml );
 
-      var table = new Table( this.Document, newlyInserted, this.Document.PackagePart );
-      table.PackagePart = this.PackagePart;
-      return table;
+      this.Xml.AddAfterSelf( tableCopyXml );
+
+      var newlyInserted = this.Xml.ElementsAfterSelf().First();
+      var newTable = new Table( this.Document, newlyInserted, this.Document.PackagePart );
+      newTable.PackagePart = this.PackagePart;
+
+      this.AddPicturesInPackage( newTable );
+
+      foreach( var p in newTable.Paragraphs )
+      {
+        this.Document.AddParagraphInCache( p );
+      }
+
+      return newTable;
     }
 
     public virtual Table InsertTableBeforeSelf( int rowCount, int columnCount )
@@ -295,6 +327,11 @@ namespace Xceed.Document.NET
 
       var table = new Table( this.Document, newlyInserted, this.Document.PackagePart );
       table.PackagePart = this.PackagePart;
+
+      foreach( var p in table.Paragraphs )
+      {
+        this.Document.AddParagraphInCache( p );
+      }
       return table;
     }
 
@@ -302,12 +339,23 @@ namespace Xceed.Document.NET
     {
       this.AddMissingPicturesInDocument( t );
 
-      this.Xml.AddBeforeSelf( t.Xml );
-      var newlyInserted = this.Xml.ElementsBeforeSelf().Last();
+      // Use a copy to be able to insert the table in header/footer/document.
+      var tableCopyXml = new XElement( t.Xml );
 
-      var table = new Table( this.Document, newlyInserted, this.Document.PackagePart );
-      table.PackagePart = this.PackagePart;
-      return table;
+      this.Xml.AddBeforeSelf( tableCopyXml );
+
+      var newlyInserted = this.Xml.ElementsBeforeSelf().Last();
+      var newTable = new Table( this.Document, newlyInserted, this.Document.PackagePart );
+      newTable.PackagePart = this.PackagePart;
+
+      this.AddPicturesInPackage( newTable );
+
+      foreach( var p in newTable.Paragraphs )
+      {
+        this.Document.AddParagraphInCache( p );
+      }
+
+      return newTable;
     }
 
     public virtual List InsertListAfterSelf( List list )
@@ -315,6 +363,7 @@ namespace Xceed.Document.NET
       for( var i = list.Items.Count - 1; i >= 0; --i )
       {
         this.Xml.AddAfterSelf( list.Items[ i ].Xml );
+        this.Document.AddParagraphInCache( list.Items[ i ] );
       }
       return list;
     }
@@ -324,6 +373,7 @@ namespace Xceed.Document.NET
       foreach( var item in list.Items )
       {
         this.Xml.AddBeforeSelf( item.Xml );
+        this.Document.AddParagraphInCache( item );
       }
       return list;
     }
@@ -365,6 +415,50 @@ namespace Xceed.Document.NET
             }
           }
         }
+      }
+    }
+
+    private void AddPicturesInPackage( Table t )
+    {
+      if( t == null )
+        return;
+
+      // Convert the path of this mainPart to its equilivant rels file path.
+      var path = this.PackagePart.Uri.OriginalString.Replace( "/word/", "" );
+      var rels_path = new Uri( "/word/_rels/" + path + ".rels", UriKind.Relative );
+
+      // Check to see if the rels file exists and create it if not.
+      if( !Document._package.PartExists( rels_path ) )
+      {
+        HelperFunctions.CreateRelsPackagePart( this.Document, rels_path );
+      }
+
+      foreach( var p in t.Pictures )
+      {
+        // Check to see if a rel for this Picture exists, create it if not.
+        var rel_Id = HelperFunctions.GetOrGenerateRel( p._img._pr.TargetUri, this.PackagePart, TargetMode.Internal, Document.RelationshipImage );
+
+        // Extract the attribute id from the Pictures Xml.
+        var embed_id =
+        (
+            from e in p.Xml.Elements().Last().Descendants()
+            where e.Name.LocalName.Equals( "blip" )
+            select e.Attribute( XName.Get( "embed", Document.r.NamespaceName ) )
+        ).Single();
+
+        // Set its value to the Pictures relationships id.
+        embed_id.SetValue( rel_Id );
+
+        // Extract the attribute id from the Pictures Xml.
+        var docPr =
+        (
+            from e in p.Xml.Elements().Last().Descendants()
+            where e.Name.LocalName.Equals( "docPr" )
+            select e
+        ).Single();
+
+        // Set its value to a unique id.
+        docPr.SetAttributeValue( "id", this.Document.GetNextFreeDocPrId().ToString() );
       }
     }
 

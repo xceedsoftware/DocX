@@ -81,8 +81,8 @@ namespace Xceed.Words.NET.Examples
 
         // Add a row at the end of the table which is a copy of another row, and sets its values.
         var newPlayer = t.InsertRow( t.Rows[ 2 ] );
-        newPlayer.ReplaceText( "Carl", "Max" );
-        newPlayer.ReplaceText( "60", "50" );
+        newPlayer.ReplaceText( new StringReplaceTextOptions() { SearchValue = "Carl", NewValue = "Max" } );
+        newPlayer.ReplaceText( new StringReplaceTextOptions() { SearchValue = "60", NewValue = "50" } );
 
         // Add an image into the document.    
         var image = document.AddImage( TableSample.TableSampleResourcesDirectory + @"logo_xceed.png" );
@@ -442,10 +442,10 @@ namespace Xceed.Words.NET.Examples
       var newItem = table.InsertRow( rowPattern, table.RowCount - 1 );
 
       // Replace the default values of the newly inserted row.
-      newItem.ReplaceText( "%PRODUCT_NAME%", productName );
-      newItem.ReplaceText( "%PRODUCT_UNITPRICE%", "$ " + unitPrice.ToString( "N2" ) );
-      newItem.ReplaceText( "%PRODUCT_QUANTITY%", unitQuantity.ToString() );
-      newItem.ReplaceText( "%PRODUCT_TOTALPRICE%", "$ " + ( unitPrice * unitQuantity ).ToString( "N2" ) );
+      newItem.ReplaceText( new StringReplaceTextOptions() { SearchValue = "%PRODUCT_NAME%", NewValue = productName } );
+      newItem.ReplaceText( new StringReplaceTextOptions() { SearchValue = "%PRODUCT_UNITPRICE%", NewValue = "$ " + unitPrice.ToString( "N2" ) } );
+      newItem.ReplaceText( new StringReplaceTextOptions() { SearchValue = "%PRODUCT_QUANTITY%", NewValue = unitQuantity.ToString() } );
+      newItem.ReplaceText( new StringReplaceTextOptions() { SearchValue = "%PRODUCT_TOTALPRICE%", NewValue = "$ " + ( unitPrice * unitQuantity ).ToString( "N2" ) } );
     }
 
     #endregion

@@ -123,6 +123,7 @@
     <Compile Include="Src\PackagePartStream.cs" />
     <Compile Include="Src\PageLayout.cs" />
     <Compile Include="Src\PageNumberType.cs" />
+    <Compile Include="Src\ReplaceTextOptions.cs" />
     <Compile Include="Src\Section.cs" />
     <Compile Include="Src\ShadingPattern.cs" />
     <Compile Include="Src\TableOfContents.cs" />

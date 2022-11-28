@@ -25,6 +25,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace Xceed.Document.NET
 {
@@ -64,6 +65,7 @@ namespace Xceed.Document.NET
     private static float DefaultLineSpacingAfter = 0f;
     private static float DefaultLineSpacingBefore = 0f;
     private static bool DefaultLineRuleAuto = false;
+    private static double DefaultFontSize = 11d;
 
     private static float DefaultIndentationFirstLine = 0f;
     private static float DefaultIndentationHanging = 0f;
@@ -110,8 +112,6 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Public Properties
-
-
 
 
 
@@ -911,6 +911,22 @@ namespace Xceed.Document.NET
       }
     }
 
+    public int StartIndex
+    {
+      get
+      {
+        return _startIndex;
+      }
+    }
+
+    public int EndIndex
+    {
+      get
+      {
+        return _endIndex;
+      }
+    }
+
 
     #endregion
 
@@ -919,7 +935,22 @@ namespace Xceed.Document.NET
     internal Paragraph( Document document, XElement xml, int startIndex, ContainerType parentContainerType = ContainerType.None ) : base( document, xml )
     {
       _startIndex = startIndex;
-      _endIndex = startIndex + GetElementTextLength( xml );
+
+      // Do not count text from inner AlternateContent
+      var alternateContentValue = xml.DescendantsAndSelf().FirstOrDefault( x => x.Name.Equals( XName.Get( "AlternateContent", Document.mc.NamespaceName ) ) );
+      if( alternateContentValue != null )
+      {
+        StringBuilder sb = new StringBuilder();
+        HelperFunctions.GetTextRecursive( xml, ref sb );
+        var text = sb.ToString();
+
+        _endIndex = _startIndex + Math.Max( 1, text.Length );
+      }
+      else
+      {
+        _endIndex = startIndex + GetElementTextLength( xml );
+      }
+
 
       ParentContainer = parentContainerType;
 
@@ -1128,12 +1159,16 @@ namespace Xceed.Document.NET
       var xml = XElement.Parse( toBeReplaced.Xml.ToString() );
 
       foreach( var element in xml.Descendants( XName.Get( "docPr", Document.wp.NamespaceName ) ) )
+      {
         element.SetAttributeValue( XName.Get( "id" ), newDocPrId );
+      }
 
       foreach( var element in xml.Descendants( XName.Get( "blip", Document.a.NamespaceName ) ) )
+      {
         element.SetAttributeValue( XName.Get( "embed", Document.r.NamespaceName ), replaceWith.Id );
+      }
 
-      var replacePicture = new Picture( Document, xml, new Image( document, this.PackagePart.GetRelationship( replaceWith.Id ) ) );
+      var replacePicture = new Picture( this.Document, xml, new Image( document, this.PackagePart.GetRelationship( replaceWith.Id ) ) );
       this.AppendPicture( replacePicture );
       toBeReplaced.Remove();
 
@@ -1174,8 +1209,12 @@ namespace Xceed.Document.NET
     /// </example>
     public override Paragraph InsertParagraphBeforeSelf( Paragraph p )
     {
+      this.ClearContainerParagraphsCache();
+
       var p2 = base.InsertParagraphBeforeSelf( p );
       p2.PackagePart = this.PackagePart;
+
+      this.UpdateParagraphIndexes( p2 );
 
       return p2;
     }
@@ -1203,8 +1242,12 @@ namespace Xceed.Document.NET
     /// </example>
     public override Paragraph InsertParagraphBeforeSelf( string text )
     {
+      // Inserting a paragraph at a specific index needs an update of Paragraph cache.
+      this.ClearContainerParagraphsCache();
       var p = base.InsertParagraphBeforeSelf( text );
       p.PackagePart = this.PackagePart;
+
+      this.UpdateParagraphIndexes( p );
 
       return p;
     }
@@ -1233,8 +1276,12 @@ namespace Xceed.Document.NET
     /// </example>
     public override Paragraph InsertParagraphBeforeSelf( string text, bool trackChanges )
     {
+      this.ClearContainerParagraphsCache();
+
       var p = base.InsertParagraphBeforeSelf( text, trackChanges );
       p.PackagePart = this.PackagePart;
+
+      this.UpdateParagraphIndexes( p );
 
       return p;
     }
@@ -1267,8 +1314,12 @@ namespace Xceed.Document.NET
     /// </example>
     public override Paragraph InsertParagraphBeforeSelf( string text, bool trackChanges, Formatting formatting )
     {
+      this.ClearContainerParagraphsCache();
+
       var p = base.InsertParagraphBeforeSelf( text, trackChanges, formatting );
       p.PackagePart = this.PackagePart;
+
+      this.UpdateParagraphIndexes( p );
 
       return p;
     }
@@ -1402,8 +1453,11 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements().Last().Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
+      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+
       return this;
     }
+
 
     /// <summary>
     /// Remove the Hyperlink at the provided index. The first hyperlink is at index 0.
@@ -1481,6 +1535,8 @@ namespace Xceed.Document.NET
     /// </example>
     public override Paragraph InsertParagraphAfterSelf( Paragraph p )
     {
+      this.ClearContainerParagraphsCache();
+
       var p2 = base.InsertParagraphAfterSelf( p );
       p2.PackagePart = this.PackagePart;
 
@@ -1515,6 +1571,8 @@ namespace Xceed.Document.NET
     /// </example>
     public override Paragraph InsertParagraphAfterSelf( string text, bool trackChanges, Formatting formatting )
     {
+      this.ClearContainerParagraphsCache();
+
       var p = base.InsertParagraphAfterSelf( text, trackChanges, formatting );
       p.PackagePart = this.PackagePart;
 
@@ -1545,6 +1603,8 @@ namespace Xceed.Document.NET
     /// </example>
     public override Paragraph InsertParagraphAfterSelf( string text, bool trackChanges )
     {
+      this.ClearContainerParagraphsCache();
+
       var p = base.InsertParagraphAfterSelf( text, trackChanges );
       p.PackagePart = this.PackagePart;
 
@@ -1574,11 +1634,14 @@ namespace Xceed.Document.NET
     /// </example>
     public override Paragraph InsertParagraphAfterSelf( string text )
     {
+      this.ClearContainerParagraphsCache();
+
       var p = base.InsertParagraphAfterSelf( text );
       p.PackagePart = this.PackagePart;
 
       return p;
     }
+
 
     /// <summary>
     /// Remove this Paragraph from the document.
@@ -1606,6 +1669,7 @@ namespace Xceed.Document.NET
       if( this.Document != null )
       {
         this.Document.RemoveParagraph( this, trackChanges );
+        this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
       }
     }
 
@@ -2026,6 +2090,8 @@ namespace Xceed.Document.NET
       {
         HelperFunctions.RenumberIDs( Document );
       }
+
+      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
     }
 
     /// <summary>
@@ -2082,6 +2148,7 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).Reverse().Take( newRuns.Count() ).ToList();
 
+      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
       return this;
     }
 
@@ -2248,6 +2315,7 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements().Last().Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
+      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
       return this;
     }
 
@@ -2353,6 +2421,7 @@ namespace Xceed.Document.NET
 
 
 
+
     public Paragraph AppendNote( Note note, Formatting noteNumberFormatting = null )
     {
       if( note != null )
@@ -2368,7 +2437,20 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return this.Document.GetNextParagraph( this );
+        if( this.Xml == null )
+          return null;
+
+        var paragraphs = this.GetContainerParagraphs();
+
+        if( paragraphs == null )
+          return null;
+
+        var index = paragraphs.FindIndex( p => p._endIndex == _endIndex );
+
+        if( ( index < 0 ) || ( index >= paragraphs.Count - 1 ) )
+          return null;
+
+        return paragraphs[ index + 1 ];
       }
     }
 
@@ -2376,7 +2458,20 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return this.Document.GetPreviousParagraph( this );
+        if( this.Xml == null )
+          return null;
+
+        var paragraphs = this.GetContainerParagraphs();
+
+        if( paragraphs == null )
+          return null;
+
+        var index = paragraphs.FindIndex( p => p._endIndex == _endIndex );
+
+        if( index < 1 )
+          return null;
+
+        return paragraphs[ index - 1 ];
       }
     }
 
@@ -2448,6 +2543,8 @@ namespace Xceed.Document.NET
       // Add equation element into paragraph xml and update runs collection
       this.Xml.Add( oMathPara );
       _runs = this.Xml.Elements( XName.Get( "oMathPara", Document.m.NamespaceName ) ).ToList();
+
+      this.Document.UpdateParagraphIndexes();
 
       // Return paragraph with equation
       return this;
@@ -2883,11 +2980,11 @@ namespace Xceed.Document.NET
     /// </example>
     public Paragraph FontSize( double fontSize )
     {
-      double tempSize = ( int )fontSize * 2;
+      double tempSize = fontSize * 2;
       if( tempSize - ( int )tempSize == 0 )
       {
         if( !( fontSize > 0 && fontSize < 1639 ) )
-          throw new ArgumentException( "Size", "Value must be in the range 0 - 1638" );
+          throw new ArgumentException( "Size", "Value must be in the range 1 - 1638" );
       }
 
       else
@@ -3316,18 +3413,16 @@ namespace Xceed.Document.NET
 
     public Paragraph Spacing( double spacing )
     {
-      spacing *= 20;
-
-      if( spacing - ( int )spacing == 0 )
+      double tempSize = spacing * 20;
+      if( tempSize - ( int )tempSize == 0 )
       {
         if( !( spacing > -1585 && spacing < 1585 ) )
-          throw new ArgumentException( "Spacing", "Value must be in the range: -1584 - 1584" );
+          throw new ArgumentException( "Spacing", "Value must be in the range: (-1584, 1584)" );
       }
-
       else
         throw new ArgumentException( "Spacing", "Value must be either a whole or acurate to one decimal, examples: 32, 32.1, 32.2, 32.9" );
 
-      ApplyTextFormattingProperty( XName.Get( "spacing", Document.w.NamespaceName ), string.Empty, new XAttribute( XName.Get( "val", Document.w.NamespaceName ), spacing ) );
+      ApplyTextFormattingProperty( XName.Get( "spacing", Document.w.NamespaceName ), string.Empty, new XAttribute( XName.Get( "val", Document.w.NamespaceName ), spacing * 20 ) );
 
       return this;
     }
@@ -3358,10 +3453,15 @@ namespace Xceed.Document.NET
       if( Math.Abs( spacingBefore ) < 0.1f && spacing != null )
       {
         var beforeAttribute = spacing.Attribute( XName.Get( "before", Document.w.NamespaceName ) );
-        beforeAttribute.Remove();
+        if( beforeAttribute != null )
+        {
+          beforeAttribute.Remove();
+        }
 
         if( !spacing.HasAttributes )
+        {
           spacing.Remove();
+        }
       }
 
       return this;
@@ -3393,10 +3493,15 @@ namespace Xceed.Document.NET
       if( Math.Abs( spacingAfter ) < 0.1f && spacing != null )
       {
         var afterAttribute = spacing.Attribute( XName.Get( "after", Document.w.NamespaceName ) );
-        afterAttribute.Remove();
+        if( afterAttribute != null )
+        {
+          afterAttribute.Remove();
+        }
 
         if( !spacing.HasAttributes )
+        {
           spacing.Remove();
+        }
       }
 
       return this;
@@ -3596,6 +3701,9 @@ namespace Xceed.Document.NET
     /// <param name="removeEmptyParagraph">Remove empty paragraph</param>
     public void RemoveText( int index, int count, bool trackChanges = false, bool removeEmptyParagraph = true )
     {
+      if( count == 0 )
+        return;
+
       // Timestamp to mark the start of insert
       var now = DateTime.Now;
       var remove_datetime = new DateTime( now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc );
@@ -3622,9 +3730,12 @@ namespace Xceed.Document.NET
               var temp = this.SplitEdit( splitEditBefore[ 1 ], index + min, EditType.del )[ 1 ];
               var middle = Paragraph.CreateEdit( EditType.del, remove_datetime, temp.Elements() );
               processed += Paragraph.GetElementTextLength( middle as XElement );
-              reCalculateIds = true;
 
-              if( !trackChanges )
+              if( trackChanges )
+              {
+                reCalculateIds = true;
+              }
+              else
               {
                 middle = null;
               }
@@ -3659,9 +3770,12 @@ namespace Xceed.Document.NET
 
                 var middle = Paragraph.CreateEdit( EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun( new Run( Document, splitRunBefore[ 1 ], run.StartIndex + GetElementTextLength( splitRunBefore[ 0 ] ) ), min, EditType.del )[ 0 ] } );
                 processed = processed + Paragraph.GetElementTextLength( middle as XElement );
-                reCalculateIds = true;
 
-                if( !trackChanges )
+                if( trackChanges )
+                {
+                  reCalculateIds = true;
+                }
+                else
                 {
                   middle = null;
                 }
@@ -3703,6 +3817,7 @@ namespace Xceed.Document.NET
         HelperFunctions.RenumberIDs( Document );
       }
 
+      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
     }
 
 
@@ -3788,6 +3903,8 @@ namespace Xceed.Document.NET
     /// <param name="escapeRegEx">True if the oldValue needs to be escaped, otherwise false. If it represents a valid RegEx pattern this should be false.</param>
     /// <param name="useRegExSubstitutions">True if RegEx-like replace should be performed, i.e. if newValue contains RegEx substitutions. Does not perform named-group substitutions (only numbered groups).</param>
     /// <param name="removeEmptyParagraph">Remove empty paragraph</param>
+    ///   [Obsolete("BarChart() is obsolete. Use Document.AddChart<BarChart>() instead.")]
+    [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with a StringReplaceTextOptions parameter instead." )]
     public void ReplaceText( string searchValue,
                              string newValue,
                              bool trackChanges = false,
@@ -3886,6 +4003,7 @@ namespace Xceed.Document.NET
       }
     }
 
+    [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with a FunctionReplaceTextOptions parameter instead." )]
     public void ReplaceText( string findPattern, Func<string, string> regexMatchHandler, bool trackChanges = false, RegexOptions options = RegexOptions.None, Formatting newFormatting = null, Formatting matchFormatting = null, MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch, bool removeEmptyParagraph = true )
     {
       var matchCol = Regex.Matches( this.Text, findPattern, options );
@@ -3939,14 +4057,15 @@ namespace Xceed.Document.NET
       }
     }
 
+    [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with an ObjectReplaceTextOptions parameter instead." )]
     public void ReplaceTextWithObject( string searchValue,
-                            DocumentElement objectToAdd,
-                            bool trackChanges = false,
-                            RegexOptions options = RegexOptions.None,
-                            Formatting matchFormatting = null,
-                            MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
-                            bool escapeRegEx = true,
-                            bool removeEmptyParagraph = true )
+                                       DocumentElement objectToAdd,
+                                       bool trackChanges = false,
+                                       RegexOptions options = RegexOptions.None,
+                                       Formatting matchFormatting = null,
+                                       MatchFormattingOptions fo = MatchFormattingOptions.SubsetMatch,
+                                       bool escapeRegEx = true,
+                                       bool removeEmptyParagraph = true )
     {
       var mc = Regex.Matches( this.Text, escapeRegEx ? Regex.Escape( searchValue ) : searchValue, options );
 
@@ -4019,6 +4138,121 @@ namespace Xceed.Document.NET
           }
         }
       }
+    }
+
+    public bool ReplaceText( StringReplaceTextOptions replaceTextOptions )
+    {
+      if( string.IsNullOrEmpty( replaceTextOptions.SearchValue ) )
+        throw new ArgumentException( "searchValue cannot be null or empty.", "searchValue" );
+      if( replaceTextOptions.NewValue == null )
+        throw new ArgumentException( "newValue cannot be null.", "newValue" );
+
+      var replaceSuccess = false;
+      var textToAnalyse = this.Text;
+
+      if( !this.UpdateTextToReplace( replaceTextOptions, ref textToAnalyse ) )
+        return replaceSuccess;
+
+      if( replaceTextOptions.StopAfterOneReplacement )
+      {
+        var singleMatch = Regex.Match( textToAnalyse, replaceTextOptions.EscapeRegEx ? Regex.Escape( replaceTextOptions.SearchValue ) : replaceTextOptions.SearchValue, replaceTextOptions.RegExOptions );
+        if( singleMatch.Length > 0 )
+        {
+          replaceSuccess = this.ReplaceTextCore( singleMatch, replaceTextOptions );
+        }
+      }
+      else
+      {
+        var mc = Regex.Matches( textToAnalyse, replaceTextOptions.EscapeRegEx ? Regex.Escape( replaceTextOptions.SearchValue ) : replaceTextOptions.SearchValue, replaceTextOptions.RegExOptions );
+
+        // Loop through the matches in reverse order
+        foreach( Match match in mc.Cast<Match>().Reverse() )
+        {
+          var result = this.ReplaceTextCore( match, replaceTextOptions );
+          if( !replaceSuccess )
+          {
+            replaceSuccess = result;
+          }
+        }
+      }
+      return replaceSuccess;
+    }
+
+    public bool ReplaceText( FunctionReplaceTextOptions replaceTextOptions )
+    {
+      if( string.IsNullOrEmpty( replaceTextOptions.FindPattern ) )
+        throw new ArgumentException( "FindPattern cannot be null or empty.", "FindPattern" );
+      if( replaceTextOptions.RegexMatchHandler == null )
+        throw new ArgumentException( "RegexMatchHandler cannot be null.", "RegexMatchHandler" );
+
+      var replaceSuccess = false;
+      var textToAnalyse = this.Text;
+
+      if( !this.UpdateTextToReplace( replaceTextOptions, ref textToAnalyse ) )
+        return replaceSuccess;
+
+      if( replaceTextOptions.StopAfterOneReplacement )
+      {
+        var singleMatch = Regex.Match( textToAnalyse, replaceTextOptions.FindPattern, replaceTextOptions.RegExOptions );
+        if( singleMatch.Length > 0 )
+        {
+          replaceSuccess = this.ReplaceTextCore( singleMatch, replaceTextOptions );
+        }
+      }
+      else
+      {
+        var matchCol = Regex.Matches( textToAnalyse, replaceTextOptions.FindPattern, replaceTextOptions.RegExOptions );
+        var reversedMatchCol = matchCol.Cast<Match>().Reverse();
+
+        foreach( var match in reversedMatchCol )
+        {
+          var result = this.ReplaceTextCore( match, replaceTextOptions );
+          if( !replaceSuccess )
+          {
+            replaceSuccess = result;
+          }
+        }
+      }
+      return replaceSuccess;
+    }
+
+    public bool ReplaceTextWithObject( ObjectReplaceTextOptions replaceTextOptions )
+    {
+      if( string.IsNullOrEmpty( replaceTextOptions.SearchValue ) )
+        throw new ArgumentException( "searchValue cannot be null or empty.", "searchValue" );
+      if( replaceTextOptions.NewObject == null )
+        throw new ArgumentException( "NewObject cannot be null.", "newValue" );
+
+      var replaceSuccess = false;
+      var textToAnalyse = this.Text;
+
+      if( !this.UpdateTextToReplace( replaceTextOptions, ref textToAnalyse ) )
+        return replaceSuccess;
+
+      if( replaceTextOptions.StopAfterOneReplacement )
+      {
+        var singleMatch = Regex.Match( textToAnalyse, replaceTextOptions.EscapeRegEx ? Regex.Escape( replaceTextOptions.SearchValue ) : replaceTextOptions.SearchValue, replaceTextOptions.RegExOptions );
+        if( singleMatch.Length > 0 )
+        {
+          replaceSuccess = this.ReplaceTextCore( singleMatch, replaceTextOptions );
+        }
+      }
+      else
+      {
+        var mc = Regex.Matches( textToAnalyse, replaceTextOptions.EscapeRegEx ? Regex.Escape( replaceTextOptions.SearchValue ) : replaceTextOptions.SearchValue, replaceTextOptions.RegExOptions );
+
+        // Loop through the matches in reverse order
+        foreach( Match m in mc.Cast<Match>().Reverse() )
+        {
+          var result = this.ReplaceTextCore( m, replaceTextOptions );
+          if( !replaceSuccess )
+          {
+            replaceSuccess = result;
+          }
+        }
+      }
+
+      return replaceSuccess;
     }
 
     /// <summary>
@@ -4163,21 +4397,7 @@ namespace Xceed.Document.NET
     /// <seealso cref="InsertPageCount"/>
     public void InsertPageNumber( PageNumberFormat? pnf = null, int index = 0 )
     {
-      var fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
-
-      if( pnf == PageNumberFormat.normal )
-      {
-        fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" PAGE \* MERGEFORMAT ") );
-      }
-      else if(pnf == PageNumberFormat.roman )
-      {
-        fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" PAGE  \* ROMAN  \* MERGEFORMAT " ) );
-      }
-      else
-      {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" PAGE "));
-      }
-
+      var fldSimple = this.SetPageNumberFields( pnf );
       var content = this.GetNumberContentBasedOnLast_rPr();
 
       fldSimple.Add( content );
@@ -4197,8 +4417,9 @@ namespace Xceed.Document.NET
             splitEdit[ 1 ]
         );
       }
-    }
 
+      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+    }
 
     /// <summary>
     /// Append a PageNumber place holder onto the end of a Paragraph.
@@ -4236,30 +4457,15 @@ namespace Xceed.Document.NET
     /// <seealso cref="InsertPageCount"/>
     public Paragraph AppendPageNumber( PageNumberFormat? pnf = null )
     {
-      XElement fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
-
-      if( pnf == PageNumberFormat.normal )
-      {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" PAGE   \* MERGEFORMAT "));
-      }
-      else if (pnf == PageNumberFormat.roman)
-      {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" PAGE  \* ROMAN  \* MERGEFORMAT "));
-      }
-      else
-      {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" PAGE "));
-      }
-
+      var fldSimple = this.SetPageNumberFields( pnf );
       var content = this.GetNumberContentBasedOnLast_rPr();
 
       fldSimple.Add( content );
       Xml.Add( fldSimple );
 
+      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
       return this;
     }
-
-
 
     /// <summary>
     /// Insert a PageCount place holder into a Paragraph.
@@ -4295,23 +4501,9 @@ namespace Xceed.Document.NET
     /// <seealso cref="AppendPageCount"/>
     /// <seealso cref="AppendPageNumber"/>
     /// <seealso cref="InsertPageNumber"/>
-    public void InsertPageCount( PageNumberFormat? pnf = null, int index = 0 )
+    public void InsertPageCount( PageNumberFormat? pnf = null, int index = 0, bool useSectionPageCount = true )
     {
-      XElement fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
-
-      if( pnf == PageNumberFormat.normal )
-      {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES   \* MERGEFORMAT "));
-      }
-      else if (pnf == PageNumberFormat.roman)
-      {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES  \* ROMAN  \* MERGEFORMAT "));
-      }
-      else
-      {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES "));
-      }
-
+      var fldSimple = this.SetPageCountFields( pnf, useSectionPageCount );
       var content = this.GetNumberContentBasedOnLast_rPr();
 
       fldSimple.Add( content );
@@ -4329,6 +4521,8 @@ namespace Xceed.Document.NET
             splitEdit[ 1 ]
         );
       }
+
+      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
     }
 
     /// <summary>
@@ -4365,28 +4559,15 @@ namespace Xceed.Document.NET
     /// <seealso cref="AppendPageNumber"/>
     /// <seealso cref="InsertPageNumber"/>
     /// <seealso cref="InsertPageCount"/>
-    public Paragraph AppendPageCount( PageNumberFormat? pnf = null )
+    public Paragraph AppendPageCount( PageNumberFormat? pnf = null, bool useSectionPageCount = false )
     {
-      XElement fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
-
-      if (pnf == PageNumberFormat.normal)
-      {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES   \* MERGEFORMAT "));
-      }
-      else if (pnf == PageNumberFormat.roman)
-      {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES  \* ROMAN  \* MERGEFORMAT "));
-      }
-      else
-      {
-        fldSimple.Add(new XAttribute(XName.Get("instr", Document.w.NamespaceName), @" NUMPAGES "));
-      }
-
+      var fldSimple = this.SetPageCountFields( pnf, useSectionPageCount );
       var content = this.GetNumberContentBasedOnLast_rPr();
 
       fldSimple.Add( content );
       Xml.Add( fldSimple );
 
+      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
       return this;
     }
 
@@ -5127,16 +5308,17 @@ namespace Xceed.Document.NET
 
       return theOne;
     }
-    internal static bool CanReadXml(XElement xml)
+
+    internal static bool CanReadXml( XElement xml )
     {
-      return (!xml.Name.Equals(XName.Get("drawing", Document.w.NamespaceName)) && !xml.Name.Equals(XName.Get("Fallback", Document.mc.NamespaceName)));
+      return ( !xml.Name.Equals( XName.Get( "drawing", Document.w.NamespaceName ) ) && !xml.Name.Equals( XName.Get( "Fallback", Document.mc.NamespaceName ) ) );
     }
 
     internal void GetFirstRunEffectedByEditRecursive( XElement Xml, int index, ref int count, ref Run theOne, EditType type )
     {
-      if (CanReadXml(Xml))
+      if( CanReadXml( Xml ) )
       {
-        count += HelperFunctions.GetSize(Xml);
+        count += HelperFunctions.GetSize( Xml );
       }
       else
       {
@@ -5144,7 +5326,7 @@ namespace Xceed.Document.NET
       }
 
       // If the EditType is deletion then we must return the next blah
-      if ( count > 0 && ( ( type == EditType.del && count > index ) || ( type == EditType.ins && count >= index ) ) )
+      if( count > 0 && ( ( type == EditType.del && count > index ) || ( type == EditType.ins && count >= index ) ) )
       {
         // Correct the index
         foreach( XElement e in Xml.ElementsBeforeSelf() )
@@ -5183,35 +5365,44 @@ namespace Xceed.Document.NET
     /// Bug found and fixed by krugs525 on August 12 2009.
     /// Use TFS compare to see exact code change.
     /// -->
-    static internal int GetElementTextLength( XElement run )
+    static internal int GetElementTextLength( XElement xml )
     {
       int count = 0;
 
-      if( run == null )
+      if( xml == null )
         return count;
 
-      foreach( var d in run.Descendants() )
+      // Increment count for empty paragraphs as well
+      if( xml.Name.LocalName == "p" && xml.Descendants( XName.Get( "t", Document.w.NamespaceName ) ).Count() == 0 )
       {
-        switch( d.Name.LocalName )
+        count++;
+      }
+      else
+      {
+        foreach( var d in xml.Descendants() )
         {
-          case "tab":
-            if( d.Parent.Name.LocalName != "tabs" )
-              count++;
-            break;
-          case "br":
-            // Manage only line Breaks.
-            if( HelperFunctions.IsLineBreak( d ) )
-              count++;
-            break;
-          case "t":
-            goto case "delText";
-          case "delText":
-            count += d.Value.Length;
-            break;
-          default:
-            break;
+          switch( d.Name.LocalName )
+          {
+            case "tab":
+              if( d.Parent.Name.LocalName != "tabs" )
+                count++;
+              break;
+            case "br":
+              // Manage only line Breaks.
+              if( HelperFunctions.IsLineBreak( d ) )
+                count++;
+              break;
+            case "t":
+              goto case "delText";
+            case "delText":
+              count += d.Value.Length;
+              break;
+            default:
+              break;
+          }
         }
       }
+
       return count;
     }
 
@@ -5687,6 +5878,165 @@ namespace Xceed.Document.NET
       return pictures;
     }
 
+    private List<Paragraph> GetHeaderParagraphs( Paragraph paragraph )
+    {
+      var header = this.Document.Headers.First;
+
+      if( header != null )
+      {
+        if( header.PackagePart.Uri == paragraph.PackagePart.Uri )
+        {
+          return header.GetParagraphs();
+        }
+      }
+
+      header = this.Document.Headers.Odd;
+      if( header != null )
+      {
+        if( header.PackagePart.Uri == paragraph.PackagePart.Uri )
+        {
+          return header.GetParagraphs();
+        }
+      }
+
+      header = this.Document.Headers.Even;
+      return header.GetParagraphs();
+    }
+
+    private List<Paragraph> GetFooterParagraphs( Paragraph paragraph )
+    {
+      var footer = this.Document.Footers.First;
+
+      if( footer != null )
+      {
+        if( footer.PackagePart.Uri == paragraph.PackagePart.Uri )
+        {
+          return footer.GetParagraphs();
+        }
+      }
+
+      footer = this.Document.Footers.Odd;
+      if( footer != null )
+      {
+        if( footer.PackagePart.Uri == paragraph.PackagePart.Uri )
+        {
+          return footer.GetParagraphs();
+        }
+      }
+
+      footer = this.Document.Footers.Even;
+      return footer.GetParagraphs();
+    }
+
+    private void ClearContainerParagraphsCache()
+    {
+      switch( this.ParentContainer )
+      {
+        case ContainerType.Header:
+          {
+            this.ClearHeaderParagraphsCache();
+            break;
+          };
+
+        case ContainerType.Footer:
+          {
+            this.ClearFooterParagraphsCache();
+            break;
+          }
+
+        case ContainerType.Body:
+          {
+            this.Document.ClearParagraphsCache();
+            break;
+          }
+
+        default:
+          {
+            // A paragraph can be located inside a shape/table, ...
+            // A shape/table can be located inside a header/footer/body
+            var parentContainers = this.Xml.Ancestors();
+
+            if( parentContainers.FirstOrDefault( parent => parent.Name.LocalName == "hdr" ) != null )
+            {
+              this.ClearHeaderParagraphsCache();
+            }
+            else if( parentContainers.FirstOrDefault( parent => parent.Name.LocalName == "ftr" ) != null )
+            {
+              this.ClearFooterParagraphsCache();
+            }
+            else
+            {
+              this.Document.ClearParagraphsCache();
+            }
+
+            break;
+          }
+      }
+
+    }
+
+    private void ClearHeaderParagraphsCache()
+    {
+      var header = this.Document.Headers.First;
+
+      if( header != null )
+      {
+        if( header.PackagePart.Uri == this.PackagePart.Uri )
+        {
+          header.ClearParagraphsCache();
+          return;
+        }
+      }
+
+      header = this.Document.Headers.Odd;
+      if( header != null )
+      {
+        if( header.PackagePart.Uri == this.PackagePart.Uri )
+        {
+          header.ClearParagraphsCache();
+          return;
+        }
+      }
+
+      header = this.Document.Headers.Even;
+      header.ClearParagraphsCache();
+    }
+
+    private void ClearFooterParagraphsCache()
+    {
+      var footer = this.Document.Footers.First;
+
+      if( footer != null )
+      {
+        if( footer.PackagePart.Uri == this.PackagePart.Uri )
+        {
+          footer.ClearParagraphsCache();
+          return;
+        }
+      }
+
+      footer = this.Document.Footers.Odd;
+      if( footer != null )
+      {
+        if( footer.PackagePart.Uri == this.PackagePart.Uri )
+        {
+          footer.ClearParagraphsCache();
+          return;
+        }
+      }
+
+      footer = this.Document.Footers.Even;
+      footer.ClearParagraphsCache();
+    }
+
+    private void UpdateParagraphIndexes( Paragraph p )
+    {
+      _startIndex = p._endIndex;
+      _endIndex = _startIndex + Paragraph.GetElementTextLength( this.Xml );
+    }
+
+
+
 
 
 
@@ -5780,8 +6130,366 @@ namespace Xceed.Document.NET
       return content;
     }
 
-    #endregion
+    private bool UpdateTextToReplace( ReplaceTextOptionsBase replaceTextOptions, ref string textToAnalyse )
+    {
+      if( ( replaceTextOptions.StartIndex >= 0 ) && ( replaceTextOptions.EndIndex >= 0 ) && ( replaceTextOptions.StartIndex >= replaceTextOptions.EndIndex ) )
+        throw new InvalidDataException( "replaceTextOptions.EndIndex must be greater than replaceTextOptions.StartIndex." );
 
+      if( replaceTextOptions.StartIndex >= 0 )
+      {
+        if( _endIndex < replaceTextOptions.StartIndex )
+          return false;
+
+        if( _startIndex < replaceTextOptions.StartIndex )
+        {
+          var start = Math.Max( _startIndex, replaceTextOptions.StartIndex );
+          var end = ( replaceTextOptions.EndIndex > 0 ) ? Math.Min( _endIndex, replaceTextOptions.EndIndex ) : _endIndex;
+
+          textToAnalyse = textToAnalyse.Substring( start, end - start );
+
+          if( replaceTextOptions.EndIndex > 0 )
+            return true;
+        }
+      }
+
+      if( replaceTextOptions.EndIndex >= 0 )
+      {
+        if( _startIndex > replaceTextOptions.EndIndex )
+          return false;
+
+        if( _endIndex > replaceTextOptions.EndIndex )
+        {
+          var start = ( replaceTextOptions.StartIndex > 0 ) ? Math.Max( _startIndex, replaceTextOptions.StartIndex ) : _startIndex;
+          var end = Math.Min( _endIndex, replaceTextOptions.EndIndex );
+
+          textToAnalyse = textToAnalyse.Substring( start, end - start );
+        }
+      }
+
+      return true;
+    }
+
+    private bool ReplaceTextCore( Match singleMatch, StringReplaceTextOptions replaceTextOptions )
+    {
+      // Assume the formatting matches until proven otherwise.
+      bool formattingMatch = true;
+      var singleMatchIndexInFullText = ( replaceTextOptions.StartIndex < 0 )
+                                      ? singleMatch.Index
+                                      : ( _startIndex < replaceTextOptions.StartIndex ) ? singleMatch.Index + Math.Abs( _startIndex - replaceTextOptions.StartIndex ) : singleMatch.Index;
+
+      // Does the user want to match formatting?
+      if( replaceTextOptions.FormattingToMatch != null )
+      {
+        // The number of characters processed so far
+        int processed = 0;
+
+        do
+        {
+          // Get the next run effected
+          var run = GetFirstRunEffectedByEdit( singleMatchIndexInFullText + processed );
+
+          // Get this runs properties
+          var rPr = run.Xml.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+
+          if( rPr == null )
+          {
+            rPr = new Formatting().Xml;
+          }
+
+          /* 
+           * Make sure that every formatting element in f.xml is also in this run,
+           * if this is not true, then their formatting does not match.
+           */
+          if( !HelperFunctions.ContainsEveryChildOf( replaceTextOptions.FormattingToMatch.Xml, rPr, replaceTextOptions.FormattingToMatchOptions ) )
+          {
+            formattingMatch = false;
+            break;
+          }
+
+          // We have processed some characters, so update the counter.
+          processed += run.Value.Length;
+
+        } while( processed < singleMatch.Length );
+      }
+
+      // If the formatting matches, do the replace.
+      if( formattingMatch )
+      {
+        //perform RegEx substitutions. Only named groups are not supported. Everything else is supported. However character escapes are not covered.
+        if( replaceTextOptions.UseRegExSubstitutions && !string.IsNullOrEmpty( replaceTextOptions.NewValue ) )
+        {
+          replaceTextOptions.NewValue = replaceTextOptions.NewValue.Replace( "$&", singleMatch.Value );
+          if( singleMatch.Groups.Count > 0 )
+          {
+            int lastcap = 0;
+            for( int k = 0; k < singleMatch.Groups.Count; k++ )
+            {
+              var g = singleMatch.Groups[ k ];
+              if( ( g == null ) || ( g.Value == "" ) )
+                continue;
+              replaceTextOptions.NewValue = replaceTextOptions.NewValue.Replace( "$" + k.ToString(), g.Value );
+              lastcap = k;
+            }
+            replaceTextOptions.NewValue = replaceTextOptions.NewValue.Replace( "$+", singleMatch.Groups[ lastcap ].Value );
+          }
+          if( singleMatchIndexInFullText > 0 )
+          {
+            replaceTextOptions.NewValue = replaceTextOptions.NewValue.Replace( "$`", this.Text.Substring( 0, singleMatchIndexInFullText ) );
+          }
+          if( ( singleMatchIndexInFullText + singleMatch.Length ) < this.Text.Length )
+          {
+            replaceTextOptions.NewValue = replaceTextOptions.NewValue.Replace( "$'", this.Text.Substring( singleMatchIndexInFullText + singleMatch.Length ) );
+          }
+          replaceTextOptions.NewValue = replaceTextOptions.NewValue.Replace( "$_", this.Text );
+          replaceTextOptions.NewValue = replaceTextOptions.NewValue.Replace( "$$", "$" );
+        }
+
+        var replacedSuccess = false;
+        if( !string.IsNullOrEmpty( replaceTextOptions.NewValue ) )
+        {
+          this.InsertText( singleMatchIndexInFullText + singleMatch.Length, replaceTextOptions.NewValue, replaceTextOptions.TrackChanges, replaceTextOptions.NewFormatting );
+          replacedSuccess = true;
+        }
+        if( singleMatch.Length > 0 )
+        {
+          this.RemoveText( singleMatchIndexInFullText, singleMatch.Length, replaceTextOptions.TrackChanges, replaceTextOptions.RemoveEmptyParagraph );
+          replacedSuccess = true;
+        }
+
+        return replacedSuccess;
+      }
+
+      return false;
+    }
+
+    private bool ReplaceTextCore( Match singleMatch, FunctionReplaceTextOptions replaceTextOptions )
+    {
+      var formattingMatch = true;
+      var singleMatchIndexInFullText = ( replaceTextOptions.StartIndex < 0 )
+                                     ? singleMatch.Index
+                                     : ( _startIndex < replaceTextOptions.StartIndex ) ? singleMatch.Index + Math.Abs( _startIndex - replaceTextOptions.StartIndex ) : singleMatch.Index;
+
+      if( replaceTextOptions.FormattingToMatch != null )
+      {
+        int processed = 0;
+
+        while( processed < singleMatch.Length )
+        {
+          var run = this.GetFirstRunEffectedByEdit( singleMatchIndexInFullText + processed );
+          var rPr = run.Xml.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+          if( rPr == null )
+          {
+            rPr = new Formatting().Xml;
+          }
+
+          // Make sure that every formatting element in matchFormatting.Xml is also in this run,
+          // if false => formatting does not match.
+          if( !HelperFunctions.ContainsEveryChildOf( replaceTextOptions.FormattingToMatch.Xml, rPr, replaceTextOptions.FormattingToMatchOptions ) )
+          {
+            formattingMatch = false;
+            break;
+          }
+
+          processed += run.Value.Length;
+        }
+      }
+
+      // Replace text when formatting matches.
+      if( formattingMatch )
+      {
+        int lastcap = 0;
+        for( int k = 0; k < singleMatch.Groups.Count; k++ )
+        {
+          var g = singleMatch.Groups[ k ];
+          if( ( g == null ) || ( g.Value == "" ) )
+            continue;
+          lastcap = k;
+        }
+
+        var replacedSuccess = false;
+        var newValue = replaceTextOptions.RegexMatchHandler.Invoke( singleMatch.Groups[ lastcap ].Value );
+        if( !string.IsNullOrEmpty( newValue ) )
+        {
+          this.InsertText( singleMatchIndexInFullText + singleMatch.Value.Length, newValue, replaceTextOptions.TrackChanges, replaceTextOptions.NewFormatting );
+          replacedSuccess = true;
+        }
+        if( singleMatch.Length > 0 )
+        {
+          this.RemoveText( singleMatchIndexInFullText, singleMatch.Value.Length, replaceTextOptions.TrackChanges, replaceTextOptions.RemoveEmptyParagraph );
+          replacedSuccess = true;
+        }
+
+        return replacedSuccess;
+      }
+
+      return false;
+    }
+
+    private bool ReplaceTextCore( Match singleMatch, ObjectReplaceTextOptions replaceTextOptions )
+    {
+      // Assume the formatting matches until proven otherwise.
+      bool formattingMatch = true;
+      var singleMatchIndexInFullText = ( replaceTextOptions.StartIndex < 0 )
+                                     ? singleMatch.Index
+                                     : ( _startIndex < replaceTextOptions.StartIndex ) ? singleMatch.Index + Math.Abs( _startIndex - replaceTextOptions.StartIndex ) : singleMatch.Index;
+
+      // Does the user want to match formatting?
+      if( replaceTextOptions.FormattingToMatch != null )
+      {
+        // The number of characters processed so far
+        int processed = 0;
+
+        do
+        {
+          // Get the next run effected
+          var run = GetFirstRunEffectedByEdit( singleMatchIndexInFullText + processed );
+
+          // Get this runs properties
+          var rPr = run.Xml.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+
+          if( rPr == null )
+          {
+            rPr = new Formatting().Xml;
+          }
+
+          /* 
+           * Make sure that every formatting element in f.xml is also in this run,
+           * if this is not true, then their formatting does not match.
+           */
+          if( !HelperFunctions.ContainsEveryChildOf( replaceTextOptions.FormattingToMatch.Xml, rPr, replaceTextOptions.FormattingToMatchOptions ) )
+          {
+            formattingMatch = false;
+            break;
+          }
+
+          // We have processed some characters, so update the counter.
+          processed += run.Value.Length;
+
+        } while( processed < singleMatch.Length );
+      }
+
+      // If the formatting matches, do the replace.
+      if( formattingMatch )
+      {
+        var replacedSuccess = false;
+
+        if( replaceTextOptions.NewObject != null )
+        {
+          if( replaceTextOptions.NewObject is Picture )
+          {
+            this.InsertPicture( ( Picture )replaceTextOptions.NewObject, singleMatchIndexInFullText + singleMatch.Length );
+            replacedSuccess = true;
+          }
+          else if( replaceTextOptions.NewObject is Hyperlink )
+          {
+            this.InsertHyperlink( ( Hyperlink )replaceTextOptions.NewObject, singleMatchIndexInFullText + singleMatch.Length );
+            replacedSuccess = true;
+          }
+          else if( replaceTextOptions.NewObject is Table )
+          {
+            this.InsertTableAfterSelf( ( Table )replaceTextOptions.NewObject );
+            replacedSuccess = true;
+          }
+          else
+          {
+            throw new ArgumentException( "Unknown object received. Valid objects are Picture, Hyperlink or Table." );
+          }
+        }
+        if( singleMatch.Length > 0 )
+        {
+          this.RemoveText( singleMatchIndexInFullText, singleMatch.Length, replaceTextOptions.TrackChanges, replaceTextOptions.RemoveEmptyParagraph );
+          replacedSuccess = true;
+        }
+
+        return replacedSuccess;
+      }
+
+      return false;
+    }
+
+    private XElement SetPageCountFields( PageNumberFormat? pnf = null, bool useSectionPageCount = false )
+    {
+      var fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
+      var fields = useSectionPageCount ? @" SECTIONPAGES " : @" NUMPAGES ";
+
+      if( pnf == PageNumberFormat.normal )
+      {
+        fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), fields + @"  \* MERGEFORMAT " ) );
+      }
+      else if( pnf == PageNumberFormat.roman )
+      {
+        fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), fields + @" \* ROMAN  \* MERGEFORMAT " ) );
+      }
+      else
+      {
+        fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), fields ) );
+      }
+
+      return fldSimple;
+    }
+
+    private XElement SetPageNumberFields( PageNumberFormat? pnf = null )
+    {
+      var fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
+
+      if( pnf == PageNumberFormat.normal )
+      {
+        fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" PAGE \* MERGEFORMAT " ) );
+      }
+      else if( pnf == PageNumberFormat.roman )
+      {
+        fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" PAGE  \* ROMAN  \* MERGEFORMAT " ) );
+      }
+      else
+      {
+        fldSimple.Add( new XAttribute( XName.Get( "instr", Document.w.NamespaceName ), @" PAGE " ) );
+      }
+
+      return fldSimple;
+    }
+
+    private List<Paragraph> GetContainerParagraphs()
+    {
+      if( this.ParentContainer == ContainerType.Header )
+      {
+        return this.GetHeaderParagraphs( this );
+      }
+      else if( this.ParentContainer == ContainerType.Footer )
+      {
+        return this.GetFooterParagraphs( this );
+      }
+      else if( this.ParentContainer == ContainerType.Body )
+      {
+        return this.Document.GetParagraphs();
+      }
+      else
+      {
+        // A paragraph can be located inside a shape/table, ...
+        // A shape/table can be located inside a header/footer/body
+        var parentContainers = this.Xml.Ancestors();
+
+        if( parentContainers.FirstOrDefault( parent => parent.Name.LocalName == "hdr" ) != null )
+        {
+          return this.GetHeaderParagraphs( this );
+        }
+        else if( parentContainers.FirstOrDefault( parent => parent.Name.LocalName == "ftr" ) != null )
+        {
+          return this.GetFooterParagraphs( this );
+        }
+        else
+        {
+          return this.Document.GetParagraphs();
+        }
+      }
+    }
+
+    private void UpdateParagraphIndexesAndCurrentParagraphEndIndex()
+    {
+      this.Document.UpdateParagraphIndexes();
+      _endIndex = _startIndex + Paragraph.GetElementTextLength( this.Xml );
+    }
+
+    #endregion
   }
 
   public class Run : DocumentElement

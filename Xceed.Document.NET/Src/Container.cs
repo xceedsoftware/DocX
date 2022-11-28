@@ -27,6 +27,12 @@ namespace Xceed.Document.NET
 {
   public abstract class Container : DocumentElement
   {
+    #region Internal Members
+
+    internal bool _preventUpdateParagraphIndexes;
+
+    #endregion
+
     #region Public Properties
 
     /// <summary>
@@ -75,6 +81,7 @@ namespace Xceed.Document.NET
     /// }// Release this document from memory.
     /// </code>
     /// </example>
+    ///
     public virtual ReadOnlyCollection<Paragraph> Paragraphs
     {
       get
@@ -241,6 +248,21 @@ namespace Xceed.Document.NET
           baseSection.SectionParagraphs = sectionParagraphs;
           sections.Add( baseSection );
         }
+        else 
+        {
+          var newSectionXml = XElement.Parse
+         ( string.Format( @" <w:sectPr xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+                               <w:pgSz w:w=""11906"" w:h=""16838""/>
+                               <w:pgMar w:top=""1440"" w:right=""1440"" w:bottom=""1440"" w:left=""1440"" w:header=""708"" w:footer=""708"" w:gutter=""0""/>
+                               <w:cols w:space=""708""/>
+                               <w:docGrid w:linePitch=""360""/>
+                             </w:sectPr>" )
+         );
+
+          var baseSection = new Section( this.Document, newSectionXml, null );
+          baseSection.SectionParagraphs = sectionParagraphs;
+          sections.Add( baseSection );
+        }
       }
 
 
@@ -340,6 +362,7 @@ namespace Xceed.Document.NET
       return uniqueResults.Keys.ToList();  // return the unique list of results
     }
 
+    [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with a StringReplaceTextOptions parameter instead." )]
     public virtual void ReplaceText( string searchValue,
                                      string newValue,
                                      bool trackChanges = false,
@@ -360,11 +383,32 @@ namespace Xceed.Document.NET
         throw new ArgumentException( "newValue cannot be null.", "newValue" );
       }
 
+      var replaceTextOptions = new StringReplaceTextOptions()
+      {
+        SearchValue = searchValue,
+        NewValue = newValue,
+        TrackChanges = trackChanges,
+        RegExOptions = options,
+        NewFormatting = newFormatting,
+        FormattingToMatch = matchFormatting,
+        FormattingToMatchOptions = fo,
+        EscapeRegEx = escapeRegEx,
+        UseRegExSubstitutions = useRegExSubstitutions,
+        RemoveEmptyParagraph = removeEmptyParagraph
+      };
+
+      this.Document._preventUpdateParagraphIndexes = true;
+
       foreach( var p in this.Paragraphs )
       {
-        p.ReplaceText( searchValue, newValue, trackChanges, options, newFormatting, matchFormatting, fo, escapeRegEx, useRegExSubstitutions, removeEmptyParagraph );
+        p.ReplaceText( replaceTextOptions );
       }
+      this.Document._preventUpdateParagraphIndexes = false;
+
+      // Update Paragraph indexes only at the end to improve performance..
+      this.Document.UpdateParagraphIndexes();
     }
+
 
     /// <summary>
     /// 
@@ -377,6 +421,7 @@ namespace Xceed.Document.NET
     /// <param name="matchFormatting"></param>
     /// <param name="fo"></param>
     /// <param name="removeEmptyParagraph">Remove empty paragraph</param>
+    [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with a FunctionReplaceTextOptions parameter instead." )]
     public virtual void ReplaceText( string searchValue,
                                      Func<string, string> regexMatchHandler,
                                      bool trackChanges = false,
@@ -395,12 +440,31 @@ namespace Xceed.Document.NET
         throw new ArgumentException( "regexMatchHandler cannot be null", "regexMatchHandler" );
       }
 
+      var replaceTextOptions = new FunctionReplaceTextOptions()
+      {
+        FindPattern = searchValue,
+        RegexMatchHandler = regexMatchHandler,
+        TrackChanges = trackChanges,
+        RegExOptions = options,
+        NewFormatting = newFormatting,
+        FormattingToMatch = matchFormatting,
+        FormattingToMatchOptions = fo,
+        RemoveEmptyParagraph = removeEmptyParagraph
+      };
+
+      this.Document._preventUpdateParagraphIndexes = true;
+
       foreach( var p in this.Paragraphs )
       {
-        p.ReplaceText( searchValue, regexMatchHandler, trackChanges, options, newFormatting, matchFormatting, fo, removeEmptyParagraph );
+        p.ReplaceText( replaceTextOptions );
       }
+      this.Document._preventUpdateParagraphIndexes = false;
+
+      // Update Paragraph indexes only at the end to improve performance..
+      this.Document.UpdateParagraphIndexes();
     }
 
+    [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with an ObjectReplaceTextOptions parameter instead." )]
     public virtual void ReplaceTextWithObject( string searchValue,
                                     DocumentElement objectToAdd,
                                     bool trackChanges = false,
@@ -419,11 +483,58 @@ namespace Xceed.Document.NET
         throw new ArgumentException( "objectToAdd cannot be null.", "objectToAdd" );
       }
 
+      var replaceTextOptions = new ObjectReplaceTextOptions()
+      {
+        SearchValue = searchValue,
+        NewObject = objectToAdd,
+        TrackChanges = trackChanges,
+        RegExOptions = options,
+        FormattingToMatch = matchFormatting,
+        FormattingToMatchOptions = fo,
+        EscapeRegEx = escapeRegEx,
+        RemoveEmptyParagraph = removeEmptyParagraph
+      };
+
+      this.Document._preventUpdateParagraphIndexes = true;
       // ReplaceText in the container
       foreach( Paragraph p in this.Paragraphs )
       {
-        p.ReplaceTextWithObject( searchValue, objectToAdd, trackChanges, options, matchFormatting, fo, escapeRegEx, removeEmptyParagraph );
+        p.ReplaceTextWithObject( replaceTextOptions );
       }
+      this.Document._preventUpdateParagraphIndexes = false;
+
+      // Update Paragraph indexes only at the end to improve performance.
+      this.Document.UpdateParagraphIndexes();
+    }
+
+    public virtual bool ReplaceText( StringReplaceTextOptions replaceTextOptions )
+    {
+      if( string.IsNullOrEmpty( replaceTextOptions.SearchValue ) )
+        throw new ArgumentException( "searchValue cannot be null or empty.", "searchValue" );
+      if( replaceTextOptions.NewValue == null )
+        throw new ArgumentException( "newValue cannot be null.", "newValue" );
+
+      return this.ReplaceTextCore( replaceTextOptions );
+    }
+
+    public virtual bool ReplaceText( FunctionReplaceTextOptions replaceTextOptions )
+    {
+      if( string.IsNullOrEmpty( replaceTextOptions.FindPattern ) )
+        throw new ArgumentException( "FindPattern cannot be null or empty.", "FindPattern" );
+      if( replaceTextOptions.RegexMatchHandler == null )
+        throw new ArgumentException( "RegexMatchHandler cannot be null", "RegexMatchHandler" );
+
+      return this.ReplaceTextCore( replaceTextOptions );
+    }
+
+    public virtual bool ReplaceTextWithObject( ObjectReplaceTextOptions replaceTextOptions )
+    {
+      if( string.IsNullOrEmpty( replaceTextOptions.SearchValue ) )
+        throw new ArgumentException( "searchValue cannot be null or empty.", "searchValue" );
+      if( replaceTextOptions.NewObject == null )
+        throw new ArgumentException( "NewObject cannot be null.", "NewObject" );
+
+      return this.ReplaceTextCore( replaceTextOptions );
     }
 
     /// Inserts the provided text at a bookmark location in this Container, using the specified formatting.
@@ -728,6 +839,7 @@ namespace Xceed.Document.NET
 
 
 
+
     /// <summary>
     /// Removes paragraph at specified position
     /// </summary>
@@ -782,6 +894,12 @@ namespace Xceed.Document.NET
 
       var table = new Table( this.Document, newTable, this.PackagePart );
       table.PackagePart = this.PackagePart;
+
+      foreach( var p in table.Paragraphs )
+      {
+        this.AddParagraphInCache( p );
+      }
+
       return table;
     }
 
@@ -802,6 +920,11 @@ namespace Xceed.Document.NET
 
       var table = new Table( this.Document, newTable, this.PackagePart );
       table.PackagePart = this.PackagePart;
+
+      foreach( var paragraph in table.Paragraphs )
+      {
+        this.AddParagraphInCache( paragraph );
+      }
       return table;
     }
 
@@ -813,6 +936,11 @@ namespace Xceed.Document.NET
       var newTable = new Table( this.Document, newXElement, this.PackagePart );
       newTable.Design = t.Design;
       newTable.PackagePart = this.PackagePart;
+
+      foreach( var p in newTable.Paragraphs )
+      {
+        this.AddParagraphInCache( p );
+      }
       return newTable;
     }
 
@@ -827,6 +955,11 @@ namespace Xceed.Document.NET
       var newTable = new Table( this.Document, newXElement, this.PackagePart );
       newTable.Design = t.Design;
       newTable.PackagePart = this.PackagePart;
+
+      foreach( var paragraph in newTable.Paragraphs )
+      {
+        this.AddParagraphInCache( paragraph );
+      }
       return newTable;
     }
 
@@ -850,6 +983,7 @@ namespace Xceed.Document.NET
       foreach( var item in list.Items )
       {
         this.AddElementInXml( item.Xml );
+        this.Document.AddParagraphInCache( item );
       }
       return list;
     }
@@ -860,6 +994,7 @@ namespace Xceed.Document.NET
       {
         item.FontSize( fontSize );
         this.AddElementInXml( item.Xml );
+        this.Document.AddParagraphInCache( item );
       }
       return list;
     }
@@ -871,6 +1006,7 @@ namespace Xceed.Document.NET
         item.Font( fontFamily );
         item.FontSize( fontSize );
         this.AddElementInXml( item.Xml );
+        this.Document.AddParagraphInCache( item );
       }
       return list;
     }
@@ -911,6 +1047,85 @@ namespace Xceed.Document.NET
       _editableParagraphsCollection.Clear();
     }
 
+    internal void UpdateParagraphIndexes()
+    {
+      if( this.Document._preventUpdateParagraphIndexes )
+        return;
+
+      var updatedParagraphs = this.Document.GetParagraphs();  //updates all indexes.
+      var currentParagraphs = this.Document.Paragraphs;  // current paragraph from cache.
+
+      this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
+
+      // Update headers paragraphs indexes 
+      var firstHeaders = this.Document.Headers.First;
+      if( firstHeaders != null )
+      {
+        updatedParagraphs = firstHeaders.GetParagraphs();
+        currentParagraphs = firstHeaders.Paragraphs;
+
+        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
+      }
+
+      var oddHeaders = this.Document.Headers.Odd;
+      if( oddHeaders != null )
+      {
+        updatedParagraphs = oddHeaders.GetParagraphs();
+        currentParagraphs = oddHeaders.Paragraphs;
+
+        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
+      }
+
+      var evenHeaders = this.Document.Headers.Even;
+      if( evenHeaders != null )
+      {
+        updatedParagraphs = evenHeaders.GetParagraphs();
+        currentParagraphs = evenHeaders.Paragraphs;
+
+        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
+      }
+
+      // Update footers paragraphs indexes 
+      var firstFooters = this.Document.Footers.First;
+      if( firstFooters != null )
+      {
+        updatedParagraphs = firstFooters.GetParagraphs();
+        currentParagraphs = firstFooters.Paragraphs;
+
+        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
+      }
+
+      var oddFooters = this.Document.Footers.Odd;
+      if( oddFooters != null )
+      {
+        updatedParagraphs = oddFooters.GetParagraphs();
+        currentParagraphs = oddFooters.Paragraphs;
+
+        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
+      }
+
+      var evenFooters = this.Document.Footers.Even;
+      if( evenFooters != null )
+      {
+        updatedParagraphs = evenFooters.GetParagraphs();
+        currentParagraphs = evenFooters.Paragraphs;
+
+        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
+      }
+    }
+
+    internal void UpdateParagraphes( List<Paragraph> updatedParagraphs, ReadOnlyCollection<Paragraph> currentParagraphs )
+    {
+      for( int i = 0; i < updatedParagraphs.Count; ++i )
+      {
+        if( i < currentParagraphs.Count )
+        {
+          currentParagraphs[ i ]._startIndex = updatedParagraphs[ i ]._startIndex;
+          currentParagraphs[ i ]._endIndex = updatedParagraphs[ i ]._endIndex;
+        }
+      }
+    }
+
     internal List<Paragraph> GetParagraphs()
     {
       // Need some memory that can be updated by the recursive search.
@@ -927,10 +1142,12 @@ namespace Xceed.Document.NET
           {
             continue;
           }
+
           var paragraph = new Paragraph( this.Document, xElement, index );
+          paragraph.ParentContainer = this.GetParentFromXmlName( paragraph.Xml.Ancestors().First().Name.LocalName );
           paragraph.PackagePart = this.PackagePart;
           paragraphs.Add( paragraph );
-          index += HelperFunctions.GetText( xElement ).Length;
+          index += Math.Max( 1, HelperFunctions.GetText( xElement ).Length );
         }
       }
 
@@ -1045,11 +1262,22 @@ namespace Xceed.Document.NET
 
     #endregion
 
+    #region Internal Methods
+
+    internal void AddParagraphInCache( Paragraph p )
+    {
+      _editableParagraphsCollection.Add( p );
+    }
+
+    #endregion
+
     #region Private Methods
 
     private void RemoveParagraphFromCache( int index )
     {
-      if( (index != -1) && ( _editableParagraphsCollection.Count > 0 ) )
+      if( ( index != -1 )
+        && ( _editableParagraphsCollection.Count > 0 )
+        && ( index < _editableParagraphsCollection.Count ) )
       {
         _editableParagraphsCollection.RemoveAt( index );
       }
@@ -1062,11 +1290,6 @@ namespace Xceed.Document.NET
       {
         _editableParagraphsCollection.RemoveAt( index );
       }
-    }
-
-    private void AddParagraphInCache( Paragraph p )
-    {
-       _editableParagraphsCollection.Add( p );
     }
 
     private void GetListItemType( Paragraph p )
@@ -1183,6 +1406,45 @@ namespace Xceed.Document.NET
           newParagraph.ParentContainer = ContainerType.Paragraph;
           break;
       }
+    }
+
+    private bool ReplaceTextCore( ReplaceTextOptionsBase replaceTextOptions )
+    {
+      if( ( replaceTextOptions.StartIndex >= 0 ) && ( replaceTextOptions.EndIndex >= 0 ) && ( replaceTextOptions.StartIndex >= replaceTextOptions.EndIndex ) )
+        throw new InvalidDataException( "replaceTextOptions.EndIndex must be greater than replaceTextOptions.StartIndex." );
+
+      var replaceSuccess = false;
+
+      this.Document._preventUpdateParagraphIndexes = true;
+
+      foreach( var p in this.Paragraphs )
+      {
+        if( ( replaceTextOptions.StartIndex >= 0 ) && ( p._endIndex < replaceTextOptions.StartIndex ) )
+          break;
+        if( ( replaceTextOptions.EndIndex >= 0 ) && ( p._startIndex > replaceTextOptions.EndIndex ) )
+          break;
+
+        var result = replaceTextOptions is StringReplaceTextOptions
+                      ? p.ReplaceText( replaceTextOptions as StringReplaceTextOptions )
+                      : replaceTextOptions is FunctionReplaceTextOptions
+                            ? p.ReplaceText( replaceTextOptions as FunctionReplaceTextOptions )
+                            : p.ReplaceTextWithObject( replaceTextOptions as ObjectReplaceTextOptions );
+
+        if( !replaceSuccess )
+        {
+          replaceSuccess = result;
+        }
+
+        if( replaceTextOptions.StopAfterOneReplacement && result )
+          break;
+
+      }
+      this.Document._preventUpdateParagraphIndexes = false;
+
+      // Update Paragraph indexes only at the end to improve performance..
+      this.Document.UpdateParagraphIndexes();
+
+      return replaceSuccess;
     }
 
     #endregion

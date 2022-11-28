@@ -120,7 +120,6 @@ namespace Xceed.Document.NET
       sb.Append( ToText( Xml ) );
 
       // Do not read text from Fallback or drawing(a new paragraph will take care of drawing).
-
       if( Xml.HasElements && Paragraph.CanReadXml(Xml))
         foreach( XElement e in Xml.Elements() )
           GetTextRecursive( e, ref sb );
