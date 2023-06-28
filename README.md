@@ -50,7 +50,7 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <tr>
 <td>Price</td>
 <td>Free</td>
-<td>$539.95</td>
+<td>$599.95</td>
 </tr>
 <tr>
 <td>License</td>
