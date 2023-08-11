@@ -1,6 +1,6 @@
 ﻿/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – AssemblyInfo
-Copyright (c) 2009-2022 - Xceed Software Inc.
+Copyright (c) 2009-2023 - Xceed Software Inc.
 
 This application demonstrates how to create docx files when using the API 
 from the Xceed Words for .NET.
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyCompany( "Xceed Software Inc." )]
 [assembly: AssemblyProduct( "Xceed Words for .NET" )]
-[assembly: AssemblyCopyright( "Copyright (C) Xceed Software Inc. 2009-2022" )]
+[assembly: AssemblyCopyright( "Copyright (C) Xceed Software Inc. 2009-2023" )]
 [assembly: AssemblyCulture( "" )]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -47,5 +47,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion( "2.4.0.0" )]
-[assembly: AssemblyFileVersion( "2.4.0.0" )]
+[assembly: AssemblyVersion( "2.5.0.0" )]
+[assembly: AssemblyFileVersion( "2.5.0.0" )]

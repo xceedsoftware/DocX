@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2022 Xceed Software Inc.
+   Copyright (C) 2009-2023 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -24,12 +24,15 @@ namespace Xceed.Document.NET
   {
     internal ReplaceTextOptionsBase()
     {
+      this.ContainerLocation = ReplaceTextContainer.All;
       this.EndIndex = -1;
       this.FormattingToMatchOptions = MatchFormattingOptions.SubsetMatch;
       this.RegExOptions = RegexOptions.None;
       this.RemoveEmptyParagraph = true;
       this.StartIndex = -1;
     }
+
+    public ReplaceTextContainer ContainerLocation { get; set; }
 
     public int EndIndex { get; set; }
 

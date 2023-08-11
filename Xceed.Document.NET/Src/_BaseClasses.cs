@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2022 Xceed Software Inc.
+   Copyright (C) 2009-2023 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -95,6 +95,12 @@ namespace Xceed.Document.NET
 
     internal double GetAvailableWidth()
     {
+      var currentSection = ( (this.Document.Sections != null) && (this.Document.Sections.Count > 0) )
+                          ? this.Document.Sections[ this.Document.Sections.Count - 1 ]
+                          : null;
+      if( currentSection != null )
+        return Convert.ToDouble( currentSection.PageWidth - currentSection.MarginLeft - currentSection.MarginRight );
+
       return Convert.ToDouble( this.Document.PageWidth - this.Document.MarginLeft - this.Document.MarginRight );
     }
 
@@ -189,33 +195,29 @@ namespace Xceed.Document.NET
     public virtual Paragraph InsertParagraphBeforeSelf( Paragraph p )
     {
       this.Xml.AddBeforeSelf( p.Xml );
+
       var newlyInserted = this.Xml.ElementsBeforeSelf().Last();
 
-      if( this as Paragraph != null )
-        return new Paragraph( this.Document, newlyInserted, ( this as Paragraph )._endIndex );
+      var newParagraph = new Paragraph( this.Document, newlyInserted, -1 );
+      newParagraph.PackagePart = this.PackagePart;
 
-      p.Xml = newlyInserted;
+      p.GetMainParentContainer().ClearParagraphsCache();
 
-      this.Document.UpdateParagraphIndexes();
-      this.Document.AddParagraphInCache( p );
-
-      return p;
+      return newParagraph;
     }
 
     public virtual Paragraph InsertParagraphAfterSelf( Paragraph p )
     {
       this.Xml.AddAfterSelf( p.Xml );
+
       var newlyInserted = this.Xml.ElementsAfterSelf().First();
 
-      if( this as Paragraph != null )
-        return new Paragraph( this.Document, newlyInserted, ( this as Paragraph )._endIndex );
+      var newParagraph = new Paragraph( this.Document, newlyInserted, -1 );
+      newParagraph.PackagePart = this.PackagePart;
 
-      p.Xml = newlyInserted; //IMPORTANT: I think we have return new paragraph in any case, but I dont know what to put as startIndex parameter into Paragraph constructor
+      p.GetMainParentContainer().ClearParagraphsCache();
 
-      this.Document.UpdateParagraphIndexes();
-      this.Document.AddParagraphInCache( p );
-
-      return p;
+      return newParagraph;
     }
 
     public virtual Paragraph InsertParagraphBeforeSelf( string text )
@@ -246,15 +248,17 @@ namespace Xceed.Document.NET
       );
 
       if( trackChanges )
+      {
         newParagraph = Paragraph.CreateEdit( EditType.ins, DateTime.Now, newParagraph );
+      }
 
-      Xml.AddBeforeSelf( newParagraph );
+      this.Xml.AddBeforeSelf( newParagraph );
       XElement newlyInserted = Xml.ElementsBeforeSelf().Last();
 
-      var p = new Paragraph( this.Document, newlyInserted, this is Paragraph ? ( this as Paragraph )._startIndex : -1 );
+      var p = new Paragraph( this.Document, newlyInserted, -1 );
+      p.PackagePart = this.PackagePart;
 
-      this.Document.UpdateParagraphIndexes();
-      this.Document.AddParagraphInCache( p );
+      p.GetMainParentContainer().ClearParagraphsCache();
 
       return p;
     }
@@ -272,27 +276,30 @@ namespace Xceed.Document.NET
       Xml.AddAfterSelf( newParagraph );
       XElement newlyInserted = Xml.ElementsAfterSelf().First();
 
-      var p = new Paragraph( this.Document, newlyInserted, this is Paragraph ? ( this as Paragraph )._endIndex : -1 );
+      var p = new Paragraph( this.Document, newlyInserted, -1 );
+      p.PackagePart = this.PackagePart;
 
-      this.Document.AddParagraphInCache( p );
-      this.Document.UpdateParagraphIndexes();
+      p.GetMainParentContainer().ClearParagraphsCache();
 
       return p;
     }
 
     public virtual Table InsertTableAfterSelf( int rowCount, int columnCount )
     {
-      var newTable = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
-      Xml.AddAfterSelf( newTable );
-      var newlyInserted = this.Xml.ElementsAfterSelf().First();
+      var newTableXElement = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
+      this.Xml.AddAfterSelf( newTableXElement );
+      var newlyInsertedXElement = this.Xml.ElementsAfterSelf().First();
 
-      var table = new Table( this.Document, newlyInserted, this.Document.PackagePart );
+      var table = new Table( this.Document, newlyInsertedXElement, this.Document.PackagePart );
       table.PackagePart = this.PackagePart;
 
       foreach( var p in table.Paragraphs )
       {
-        this.Document.AddParagraphInCache( p );
+        var mainContainer = p.GetMainParentContainer();
+        mainContainer.AddParagraphInCache( p );
+        mainContainer.NeedRefreshParagraphIndexes = true;
       }
+
       return table;
     }
 
@@ -313,7 +320,9 @@ namespace Xceed.Document.NET
 
       foreach( var p in newTable.Paragraphs )
       {
-        this.Document.AddParagraphInCache( p );
+        var mainContainer = p.GetMainParentContainer();
+        mainContainer.AddParagraphInCache( p );
+        mainContainer.NeedRefreshParagraphIndexes = true;
       }
 
       return newTable;
@@ -321,16 +330,18 @@ namespace Xceed.Document.NET
 
     public virtual Table InsertTableBeforeSelf( int rowCount, int columnCount )
     {
-      var newTable = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
-      this.Xml.AddBeforeSelf( newTable );
-      var newlyInserted = this.Xml.ElementsBeforeSelf().Last();
+      var newTableXElement = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
+      this.Xml.AddBeforeSelf( newTableXElement );
+      var newlyInsertedXElement = this.Xml.ElementsBeforeSelf().Last();
 
-      var table = new Table( this.Document, newlyInserted, this.Document.PackagePart );
+      var table = new Table( this.Document, newlyInsertedXElement, this.Document.PackagePart );
       table.PackagePart = this.PackagePart;
 
       foreach( var p in table.Paragraphs )
       {
-        this.Document.AddParagraphInCache( p );
+        var mainContainer = p.GetMainParentContainer();
+        mainContainer.AddParagraphInCache( p );
+        mainContainer.NeedRefreshParagraphIndexes = true;
       }
       return table;
     }
@@ -352,7 +363,9 @@ namespace Xceed.Document.NET
 
       foreach( var p in newTable.Paragraphs )
       {
-        this.Document.AddParagraphInCache( p );
+        var mainContainer = p.GetMainParentContainer();
+        mainContainer.AddParagraphInCache( p );
+        mainContainer.NeedRefreshParagraphIndexes = true;
       }
 
       return newTable;
@@ -362,8 +375,9 @@ namespace Xceed.Document.NET
     {
       for( var i = list.Items.Count - 1; i >= 0; --i )
       {
-        this.Xml.AddAfterSelf( list.Items[ i ].Xml );
-        this.Document.AddParagraphInCache( list.Items[ i ] );
+        var listItem = list.Items[ i ];
+        this.Xml.AddAfterSelf( listItem.Xml );
+        listItem.GetMainParentContainer().AddParagraphInCache( listItem );
       }
       return list;
     }
@@ -374,6 +388,7 @@ namespace Xceed.Document.NET
       {
         this.Xml.AddBeforeSelf( item.Xml );
         this.Document.AddParagraphInCache( item );
+        item.GetMainParentContainer().AddParagraphInCache( item );
       }
       return list;
     }

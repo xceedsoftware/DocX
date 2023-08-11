@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2022 Xceed Software Inc.
+   Copyright (C) 2009-2023 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -40,6 +40,7 @@ namespace Xceed.Document.NET
     private TableDesign _design;
     private TableLook _tableLook;
     private double _indentFromLeft;
+    internal static Graphics Graphics;
 
     /// <summary>
     /// The custom design\style to apply to this table.
@@ -312,12 +313,122 @@ namespace Xceed.Document.NET
           case AutoFit.Contents:
             {
               tableAttributeValue = columnAttributeValue = "auto";
+
+              // Set table tblW to 0.
+              var tblW = from d in this.Xml.Descendants()
+                          let type = d.Attribute( XName.Get( "w", Document.w.NamespaceName ) )
+                          where ( d.Name.LocalName == "tblW" ) && (type != null)
+                          select type;
+
+              foreach( var w in tblW )
+              {
+                w.Value = "0";
+              }
+
+              // Set table cells tcW to 0.
+              var tcW = from d in this.Xml.Descendants()
+                        let type = d.Attribute( XName.Get( "w", Document.w.NamespaceName ) )
+                        where ( d.Name.LocalName == "tcW" ) && ( type != null )
+                        select type;
+
+              foreach( var w in tcW )
+              {
+                w.Value = "0";
+              }
+
+              // Set gridCol to full length of content.
+              var updatedColumnWidths = new float[ this.ColumnCount ];
+              for( int columnId = 0; columnId < this.ColumnCount; ++columnId )
+              {
+                var maxWidth = 0f;
+                foreach( var row in this.Rows )
+                {
+                  foreach( var paragraph in row.Cells[ columnId ].Paragraphs )
+                  {
+                    var magicTextsWidth = 0f;
+                    foreach( var magicText in paragraph.MagicText )
+                    {
+                      if( Table.Graphics == null )
+                      {
+                        Table.SetGraphicObject();
+                      }
+
+                      var bold = ( magicText.formatting != null && magicText.formatting.Bold != null );
+                      var italic = ( magicText.formatting != null && magicText.formatting.Italic != null );
+                      var underline = ( magicText.formatting != null && magicText.formatting.UnderlineStyle != null );
+                      var strikeout = ( magicText.formatting != null && magicText.formatting.StrikeThrough != null );
+
+                      var fontStyle = FontStyle.Regular;
+                      if( bold )
+                      {
+                        fontStyle |= FontStyle.Bold;
+                      }
+                      if( italic )
+                      {
+                        fontStyle |= FontStyle.Italic;
+                      }
+                      if( underline )
+                      {
+                        fontStyle |= FontStyle.Underline;
+                      }
+                      if( strikeout )
+                      {
+                        fontStyle |= FontStyle.Strikeout;
+                      }
+                      var fontName = ( magicText.formatting != null && magicText.formatting.FontFamily != null ) ? magicText.formatting.FontFamily.Name : this.Document.GetDocDefaultFontFamily();
+                      var fontSize = ( magicText.formatting != null && magicText.formatting.Size != null ) ? magicText.formatting.Size : this.Document.GetDocDefaultFontSize();
+                      var font = new System.Drawing.Font( fontName, Convert.ToSingle( fontSize ), fontStyle, GraphicsUnit.Point );
+                      magicTextsWidth += Table.Graphics.MeasureString( magicText.text, font, int.MaxValue, StringFormat.GenericDefault ).Width;
+                    }
+
+                    maxWidth = Math.Max( maxWidth, magicTextsWidth );
+                  }
+                }
+
+                updatedColumnWidths[ columnId ] = Convert.ToSingle( Math.Round( maxWidth ) );
+              }
+              this.SetWidths( updatedColumnWidths, false );
+
               break;
             }
 
           case AutoFit.Window:
             {
               tableAttributeValue = columnAttributeValue = "pct";
+
+              // Set table tblW to 5000.
+              var tblW = from d in this.Xml.Descendants()
+                         let type = d.Attribute( XName.Get( "w", Document.w.NamespaceName ) )
+                         where ( d.Name.LocalName == "tblW" ) && ( type != null )
+                         select type;
+
+              foreach( var w in tblW )
+              {
+                w.Value = "5000";
+              }
+
+              var columnWidths = this.ColumnWidths;
+              var columnWidthTotal = columnWidths.Sum();
+
+              // Set table cells tcW to valid pct value of 5000.
+              var tcW = from d in this.Xml.Descendants()
+                        let type = d.Attribute( XName.Get( "w", Document.w.NamespaceName ) )
+                        where ( d.Name.LocalName == "tcW" ) && ( type != null )
+                        select type;
+
+              if( tcW.Count() > 0 )
+              {
+                for( int i = 0; i < tcW.Count(); ++i )
+                {
+                  var currentColumn = (i % columnWidths.Count);
+                  if( currentColumn < columnWidths.Count )
+                  {
+                    var currentColumnWidth = columnWidths[ currentColumn ] * 20;
+                    tcW.ElementAt( i ).Value = Math.Round( currentColumnWidth / ( columnWidthTotal * 20 ) * 5000 ).ToString( CultureInfo.InvariantCulture );
+                  }
+                }
+              }
+
               break;
             }
 
@@ -2622,6 +2733,14 @@ namespace Xceed.Document.NET
 
     #region Private Methods
 
+    private static void SetGraphicObject()
+    {
+      var fakeImage = new Bitmap( 1, 1 );
+      Table.Graphics = Graphics.FromImage( fakeImage );
+      Table.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+      Table.Graphics.PageUnit = GraphicsUnit.Pixel;
+    }
+
     private Row InsertRow( List<XElement> content, Int32 index )
     {
       var precedingRowGridAfter = 0;
@@ -4475,104 +4594,91 @@ namespace Xceed.Document.NET
 
     public override Paragraph InsertParagraph( int index, Paragraph p )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertParagraph( index, p );
     }
 
     public override Paragraph InsertParagraph( int index, string text, bool trackChanges, Formatting formatting )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertParagraph( index, text, trackChanges, formatting );
     }
 
     public override Paragraph InsertParagraph( string text, bool trackChanges, Formatting formatting )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertParagraph( text, trackChanges, formatting );
     }
 
     public override Paragraph InsertParagraph( Paragraph p )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertParagraph( p );
     }
 
     public override Paragraph InsertEquation( string equation, Alignment align = Alignment.center )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertEquation( equation, align );
     }
 
     public override Table InsertTable( int rowCount, int columnCount )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertTable( rowCount, columnCount );
     }
 
     public override Table InsertTable( int index, int rowCount, int columnCount )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertTable( index, rowCount, columnCount );
     }
 
     public override Table InsertTable( Table t )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertTable( t );
     }
 
     public override Table InsertTable( int index, Table t )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertTable( index, t );
     }
 
     public override List InsertList( List list )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertList( list );
     }
 
     public override List InsertList( List list, double fontSize )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertList( list, fontSize );
     }
 
     public override List InsertList( List list, Font fontFamily, double fontSize )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertList( list, fontFamily, fontSize );
     }
 
     public override List InsertList( int index, List list )
     {
-      if( IsDefaultParagraph() )
-        this.Paragraphs[ 0 ].Remove( false );
+      this.RemoveDefaultParagraph();
 
       return base.InsertList( index, list );
     }
@@ -4635,6 +4741,14 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Private Methods
+
+    private void RemoveDefaultParagraph()
+    {
+      if( this.IsDefaultParagraph() )
+      {
+        this.Paragraphs[ 0 ].Remove( false );
+      }
+    }
 
     private bool IsDefaultParagraph()
     {

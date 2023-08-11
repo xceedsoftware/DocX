@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2022 Xceed Software Inc.
+   Copyright (C) 2009-2023 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -79,6 +79,9 @@ namespace Xceed.Document.NET
     private readonly object nextFreeDocPrIdLock = new object();
     private long? nextFreeDocPrId;
     private string _defaultParagraphStyleId;
+
+    private static double DefaultFontSize = 11d;
+    private static string DefaultFontFamily = "Calibri";
 
     private IList<Section> _cachedSections;
 
@@ -1319,20 +1322,25 @@ namespace Xceed.Document.NET
 
     public override bool ReplaceText( StringReplaceTextOptions replaceTextOptions )
     {
-      // ReplaceText in the main body of document.
-      var replaceSuccess = base.ReplaceText( replaceTextOptions );
+      bool replaceSuccess = false;
 
-      // ReplaceText in Headers of the document.
+      // ReplaceText in the main body of document.
+      if( ( replaceTextOptions.ContainerLocation & ReplaceTextContainer.Body ) == ReplaceTextContainer.Body )
+      {
+        replaceSuccess = base.ReplaceText( replaceTextOptions );
+      }
+
       foreach( var section in this.Sections )
       {
-        var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
-        foreach( var h in headerList )
+        // ReplaceText in Headers of the document.
+        if( ( replaceTextOptions.ContainerLocation & ReplaceTextContainer.Header ) == ReplaceTextContainer.Header )
         {
-          if( h != null )
+          var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
+          foreach( var h in headerList )
           {
-            foreach( var p in h.Paragraphs )
+            if( h != null )
             {
-              var result = p.ReplaceText( replaceTextOptions );
+              var result = h.ReplaceText( replaceTextOptions );
 
               if( !replaceSuccess )
               {
@@ -1341,19 +1349,16 @@ namespace Xceed.Document.NET
             }
           }
         }
-      }
 
-      // ReplaceText in Footers of the document.
-      foreach( var section in this.Sections )
-      {
-        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
-        foreach( var f in footerList )
+        // ReplaceText in Footers of the document.
+        if( ( replaceTextOptions.ContainerLocation & ReplaceTextContainer.Footer ) == ReplaceTextContainer.Footer )
         {
-          if( f != null )
+          var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
+          foreach( var f in footerList )
           {
-            foreach( var p in f.Paragraphs )
+            if( f != null )
             {
-              var result = p.ReplaceText( replaceTextOptions );
+              var result = f.ReplaceText( replaceTextOptions );
 
               if( !replaceSuccess )
               {
@@ -1369,29 +1374,44 @@ namespace Xceed.Document.NET
 
     public override bool ReplaceText( FunctionReplaceTextOptions replaceTextOptions )
     {
-      // Replace text in body of the Document.
-      var replaceSuccess = base.ReplaceText( replaceTextOptions );
+      bool replaceSuccess = false;
 
-      // Replace text in headers and footers of the Document.
+      // Replace text in body of the Document.
+      if( ( replaceTextOptions.ContainerLocation & ReplaceTextContainer.Body ) == ReplaceTextContainer.Body )
+      {
+        replaceSuccess = base.ReplaceText( replaceTextOptions );
+      }
+
       foreach( var section in this.Sections )
       {
-        var headersFootersList = new List<IParagraphContainer>()
+        // ReplaceText in Headers of the document.
+        if( ( replaceTextOptions.ContainerLocation & ReplaceTextContainer.Header ) == ReplaceTextContainer.Header )
         {
-          section.Headers.First,
-          section.Headers.Even,
-          section.Headers.Odd,
-          section.Footers.First,
-          section.Footers.Even,
-          section.Footers.Odd,
-        };
-
-        foreach( var hf in headersFootersList )
-        {
-          if( hf != null )
+          var headerList = new List<Header>() { section.Headers.First, section.Headers.Even, section.Headers.Odd };
+          foreach( var h in headerList )
           {
-            foreach( var p in hf.Paragraphs )
+            if( h != null )
             {
-              var result = p.ReplaceText( replaceTextOptions );
+              var result = h.ReplaceText( replaceTextOptions );
+
+              if( !replaceSuccess )
+              {
+                replaceSuccess = result;
+              }
+            }
+          }
+        }
+
+        // ReplaceText in Footers of the document.
+        if( ( replaceTextOptions.ContainerLocation & ReplaceTextContainer.Footer ) == ReplaceTextContainer.Footer )
+        {
+          var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
+          foreach( var f in footerList )
+          {
+            if( f != null )
+            {
+              var result = f.ReplaceText( replaceTextOptions );
+
               if( !replaceSuccess )
               {
                 replaceSuccess = result;
@@ -1406,7 +1426,13 @@ namespace Xceed.Document.NET
 
     public override bool ReplaceTextWithObject( ObjectReplaceTextOptions replaceTextOptions )
     {
-      var replaceSuccess = base.ReplaceTextWithObject( replaceTextOptions );
+      bool replaceSuccess = false;
+
+      // Replace text in body of the Document.
+      if( ( replaceTextOptions.ContainerLocation & ReplaceTextContainer.Body ) == ReplaceTextContainer.Body )
+      {
+        replaceSuccess = base.ReplaceTextWithObject( replaceTextOptions );
+      }
 
       // ReplaceText in Headers of the document.
       foreach( var section in this.Sections )
@@ -1416,30 +1442,24 @@ namespace Xceed.Document.NET
         {
           if( h != null )
           {
-            foreach( var p in h.Paragraphs )
-            {
-              var result = p.ReplaceTextWithObject( replaceTextOptions );
+            var result = h.ReplaceTextWithObject( replaceTextOptions );
 
-              if( !replaceSuccess )
-              {
-                replaceSuccess = result;
-              }
+            if( !replaceSuccess )
+            {
+              replaceSuccess = result;
             }
           }
         }
-      }
 
-      // ReplaceText in Footers of the document.
-      foreach( var section in this.Sections )
-      {
-        var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
-        foreach( var f in footerList )
+        // ReplaceText in Footers of the document.
+        if( ( replaceTextOptions.ContainerLocation & ReplaceTextContainer.Footer ) == ReplaceTextContainer.Footer )
         {
-          if( f != null )
+          var footerList = new List<Footer> { section.Footers.First, section.Footers.Even, section.Footers.Odd };
+          foreach( var f in footerList )
           {
-            foreach( var p in f.Paragraphs )
+            if( f != null )
             {
-              var result = p.ReplaceTextWithObject( replaceTextOptions );
+              var result = f.ReplaceTextWithObject( replaceTextOptions );
 
               if( !replaceSuccess )
               {
@@ -2221,7 +2241,7 @@ namespace Xceed.Document.NET
         }
         if( !includeContent )
         {
-          foreach( Paragraph paragraph in this.Paragraphs )
+          foreach( Paragraph paragraph in this.Paragraphs.ToList() )
           {
             paragraph.Remove( false );
           }
@@ -3280,9 +3300,9 @@ namespace Xceed.Document.NET
       var paragraphs = document.Paragraphs;
       foreach( var p in paragraphs )
       {
-        if( !document._paragraphLookup.ContainsKey( p._endIndex ) )
+        if( !document._paragraphLookup.ContainsKey( p.EndIndex ) )
         {
-          document._paragraphLookup.Add( p._endIndex, p );
+          document._paragraphLookup.Add( p.EndIndex, p );
         }
       }
 
@@ -4061,6 +4081,50 @@ namespace Xceed.Document.NET
       return this.PackagePart.CreateRelationship( chartPackagePart.Uri, TargetMode.Internal, Document.RelationshipChart, relID );
     }
 
+    internal double GetDocDefaultFontSize()
+    {
+      var docDefault = this.Document.GetDocDefaults();
+      if( docDefault != null )
+      {
+        var rPrDefault = docDefault.Element( XName.Get( "rPrDefault", Document.w.NamespaceName ) );
+        if( rPrDefault != null )
+        {
+          var rPr = rPrDefault.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+          if( rPr != null )
+          {
+            var size = rPr.Element( XName.Get( "sz", Document.w.NamespaceName ) );
+            if( size != null )
+              return Convert.ToDouble( size.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2;
+          }
+        }
+      }
+
+      return Document.DefaultFontSize;
+    }
+
+    internal string GetDocDefaultFontFamily()
+    {
+      var docDefault = this.Document.GetDocDefaults();
+      if( docDefault != null )
+      {
+        var rPrDefault = docDefault.Element( XName.Get( "rPrDefault", Document.w.NamespaceName ) );
+        if( rPrDefault != null )
+        {
+          var rPr = rPrDefault.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+          if( rPr != null )
+          {
+            var rFonts = rPr.Element( XName.Get( "rFonts", Document.w.NamespaceName ) );
+            if( rFonts != null )
+            {
+              return rFonts.GetAttribute( XName.Get( "ascii", Document.w.NamespaceName ) );
+            }
+          }
+        }
+      }
+
+      return Document.DefaultFontFamily;
+    }
+
     #endregion
 
     #region Private Methods
@@ -4223,7 +4287,9 @@ namespace Xceed.Document.NET
         var old_rel_Id = hyperlink_rel.Id;
         var new_rel_Id = this.PackagePart.CreateRelationship( hyperlink_rel.TargetUri, hyperlink_rel.TargetMode, hyperlink_rel.RelationshipType ).Id;
         var hyperlink_refs = remote_mainDoc.Descendants( XName.Get( "hyperlink", w.NamespaceName ) );
-        foreach( var hyperlink_ref in hyperlink_refs )
+        var hyperlink_refs2 = remote_mainDoc.Descendants( XName.Get( "hlinkClick", a.NamespaceName ) );
+        var links = hyperlink_refs.Concat( hyperlink_refs2 );
+        foreach( var hyperlink_ref in links )
         {
           var a0 = hyperlink_ref.Attribute( XName.Get( "id", r.NamespaceName ) );
           if( a0 != null && a0.Value == old_rel_Id )

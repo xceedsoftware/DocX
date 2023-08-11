@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2022 Xceed Software Inc.
+   Copyright (C) 2009-2023 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -25,7 +25,6 @@ using System.Drawing;
 using System.Globalization;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 
 namespace Xceed.Document.NET
 {
@@ -65,12 +64,14 @@ namespace Xceed.Document.NET
     private static float DefaultLineSpacingAfter = 0f;
     private static float DefaultLineSpacingBefore = 0f;
     private static bool DefaultLineRuleAuto = false;
-    private static double DefaultFontSize = 11d;
 
     private static float DefaultIndentationFirstLine = 0f;
     private static float DefaultIndentationHanging = 0f;
     private static float DefaultIndentationBefore = 0f;
     private static float DefaultIndentationAfter = 0f;
+
+    private static float DefaultImageHorizontalResolution = 96f;
+    private static float DefaultImageVerticalResolution = 96f;
     #endregion
 
     #region Private Properties
@@ -762,6 +763,14 @@ namespace Xceed.Document.NET
           }
         }
 
+        var rPr = pPr.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+        if( rPr != null )
+        {
+          var size = rPr.Element( XName.Get( "sz", Document.w.NamespaceName ) );
+          if( size != null )
+            return Convert.ToSingle( size.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2;
+        }
+
         return Paragraph.DefaultLineSpacing;
       }
 
@@ -915,7 +924,35 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return _startIndex;
+        var mainContainer = this.GetMainParentContainer();
+        if( mainContainer.NeedRefreshParagraphIndexes && !mainContainer.PreventUpdateParagraphIndexes )
+        {
+          mainContainer.RefreshParagraphIndexes();
+        }
+
+        if( this.IsInMainContainer() )
+          return _startIndex;
+
+        var documentParagraph = this.GetContainerParagraphs().FirstOrDefault( p => p.Xml == this.Xml );
+        if( documentParagraph != null )
+          return documentParagraph._startIndex;
+
+        return 0;
+      }
+
+      internal set
+      {
+        if( this.IsInMainContainer() )
+        {
+          _startIndex = value;
+          return;
+        }
+
+        var documentParagraph = this.GetContainerParagraphs().FirstOrDefault( p => p.Xml == this.Xml );
+        if( documentParagraph != null )
+        {
+          documentParagraph._startIndex = value;
+        }
       }
     }
 
@@ -923,7 +960,35 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return _endIndex;
+        var mainContainer = this.GetMainParentContainer();
+        if( mainContainer.NeedRefreshParagraphIndexes && !mainContainer.PreventUpdateParagraphIndexes )
+        {
+          mainContainer.RefreshParagraphIndexes();
+        }
+
+        if( this.IsInMainContainer() )
+          return _endIndex;
+
+        var documentParagraph = this.GetContainerParagraphs().FirstOrDefault( p => p.Xml == this.Xml );
+        if( documentParagraph != null )
+          return documentParagraph._endIndex;
+
+        return 1;
+      }
+
+      internal set
+      {
+        if( this.IsInMainContainer() )
+        {
+          _endIndex = value;
+          return;
+        }
+
+        var documentParagraph = this.GetContainerParagraphs().FirstOrDefault( p => p.Xml == this.Xml );
+        if( documentParagraph != null )
+        {
+          documentParagraph._endIndex = value;
+        }
       }
     }
 
@@ -932,24 +997,24 @@ namespace Xceed.Document.NET
 
     #region Constructors
 
-    internal Paragraph( Document document, XElement xml, int startIndex, ContainerType parentContainerType = ContainerType.None ) : base( document, xml )
+    internal Paragraph( Document document, XElement xml, int startIndex = -1, ContainerType parentContainerType = ContainerType.None ) : base( document, xml )
     {
-      _startIndex = startIndex;
+      //_startIndex = startIndex;
 
-      // Do not count text from inner AlternateContent
-      var alternateContentValue = xml.DescendantsAndSelf().FirstOrDefault( x => x.Name.Equals( XName.Get( "AlternateContent", Document.mc.NamespaceName ) ) );
-      if( alternateContentValue != null )
-      {
-        StringBuilder sb = new StringBuilder();
-        HelperFunctions.GetTextRecursive( xml, ref sb );
-        var text = sb.ToString();
+      //// Do not count text from inner AlternateContent
+      //var alternateContentValue = xml.DescendantsAndSelf().FirstOrDefault( x => x.Name.Equals( XName.Get( "AlternateContent", Document.mc.NamespaceName ) ) );
+      //if( alternateContentValue != null )
+      //{
+      //  StringBuilder sb = new StringBuilder();
+      //  HelperFunctions.GetTextRecursive( xml, ref sb );
+      //  var text = sb.ToString();
 
-        _endIndex = _startIndex + Math.Max( 1, text.Length );
-      }
-      else
-      {
-        _endIndex = startIndex + GetElementTextLength( xml );
-      }
+      //  _endIndex = startIndex + Math.Max( 1, text.Length );
+      //}
+      //else
+      //{
+      //  _endIndex = startIndex + GetElementTextLength( xml );
+      //}
 
 
       ParentContainer = parentContainerType;
@@ -1214,7 +1279,7 @@ namespace Xceed.Document.NET
       var p2 = base.InsertParagraphBeforeSelf( p );
       p2.PackagePart = this.PackagePart;
 
-      this.UpdateParagraphIndexes( p2 );
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
 
       return p2;
     }
@@ -1247,7 +1312,7 @@ namespace Xceed.Document.NET
       var p = base.InsertParagraphBeforeSelf( text );
       p.PackagePart = this.PackagePart;
 
-      this.UpdateParagraphIndexes( p );
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
 
       return p;
     }
@@ -1281,7 +1346,7 @@ namespace Xceed.Document.NET
       var p = base.InsertParagraphBeforeSelf( text, trackChanges );
       p.PackagePart = this.PackagePart;
 
-      this.UpdateParagraphIndexes( p );
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
 
       return p;
     }
@@ -1319,7 +1384,7 @@ namespace Xceed.Document.NET
       var p = base.InsertParagraphBeforeSelf( text, trackChanges, formatting );
       p.PackagePart = this.PackagePart;
 
-      this.UpdateParagraphIndexes( p );
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
 
       return p;
     }
@@ -1453,7 +1518,7 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements().Last().Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
-      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
 
       return this;
     }
@@ -1666,11 +1731,9 @@ namespace Xceed.Document.NET
     /// </example>
     public void Remove( bool trackChanges )
     {
-      if( this.Document != null )
-      {
-        this.Document.RemoveParagraph( this, trackChanges );
-        this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
-      }
+      var mainContainer = this.GetMainParentContainer();
+      mainContainer.RemoveParagraph( this, trackChanges );
+      mainContainer.NeedRefreshParagraphIndexes = true;
     }
 
     //public Picture InsertPicture(Picture picture)
@@ -2091,7 +2154,7 @@ namespace Xceed.Document.NET
         HelperFunctions.RenumberIDs( Document );
       }
 
-      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
     }
 
     /// <summary>
@@ -2148,7 +2211,8 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).Reverse().Take( newRuns.Count() ).ToList();
 
-      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+
       return this;
     }
 
@@ -2181,7 +2245,7 @@ namespace Xceed.Document.NET
     public Paragraph Append( string text, Formatting format )
     {
       // Text
-      Append( text );
+      this.Append( text );
 
       // Bold
       if( format.Bold.HasValue && format.Bold.Value )
@@ -2315,7 +2379,7 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements().Last().Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
-      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
       return this;
     }
 
@@ -2445,8 +2509,7 @@ namespace Xceed.Document.NET
         if( paragraphs == null )
           return null;
 
-        var index = paragraphs.FindIndex( p => p._endIndex == _endIndex );
-
+        var index = paragraphs.IndexOf( paragraphs.FirstOrDefault( p => p.Xml == this.Xml ) );
         if( ( index < 0 ) || ( index >= paragraphs.Count - 1 ) )
           return null;
 
@@ -2466,8 +2529,7 @@ namespace Xceed.Document.NET
         if( paragraphs == null )
           return null;
 
-        var index = paragraphs.FindIndex( p => p._endIndex == _endIndex );
-
+        var index = paragraphs.IndexOf( paragraphs.FirstOrDefault( p => p.Xml == this.Xml ) );
         if( index < 1 )
           return null;
 
@@ -2544,7 +2606,7 @@ namespace Xceed.Document.NET
       this.Xml.Add( oMathPara );
       _runs = this.Xml.Elements( XName.Get( "oMathPara", Document.m.NamespaceName ) ).ToList();
 
-      this.Document.UpdateParagraphIndexes();
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
 
       // Return paragraph with equation
       return this;
@@ -3817,7 +3879,7 @@ namespace Xceed.Document.NET
         HelperFunctions.RenumberIDs( Document );
       }
 
-      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
     }
 
 
@@ -4418,7 +4480,7 @@ namespace Xceed.Document.NET
         );
       }
 
-      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
     }
 
     /// <summary>
@@ -4463,7 +4525,7 @@ namespace Xceed.Document.NET
       fldSimple.Add( content );
       Xml.Add( fldSimple );
 
-      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
       return this;
     }
 
@@ -4522,7 +4584,7 @@ namespace Xceed.Document.NET
         );
       }
 
-      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
     }
 
     /// <summary>
@@ -4567,7 +4629,7 @@ namespace Xceed.Document.NET
       fldSimple.Add( content );
       Xml.Add( fldSimple );
 
-      this.UpdateParagraphIndexesAndCurrentParagraphEndIndex();
+      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
       return this;
     }
 
@@ -5174,8 +5236,11 @@ namespace Xceed.Document.NET
           // ooxml uses image size in EMU : 
           // image in inches(in) is : pt / 72
           // image in EMU is : in * 914400
-          cx = Convert.ToInt64( img.Width * ( 72f / img.HorizontalResolution ) * Picture.EmusInPixel );
-          cy = Convert.ToInt64( img.Height * ( 72f / img.VerticalResolution ) * Picture.EmusInPixel );
+          var imgHorizontalResolution = ( img.HorizontalResolution > 0 ) ? img.HorizontalResolution : DefaultImageHorizontalResolution;
+          var imgVerticalResolution = ( img.VerticalResolution > 0 ) ? img.VerticalResolution : DefaultImageVerticalResolution;
+
+          cx = Convert.ToInt64( img.Width * ( 72f / imgHorizontalResolution ) * Picture.EmusInPixel );
+          cy = Convert.ToInt64( img.Height * ( 72f / imgVerticalResolution ) * Picture.EmusInPixel );
         }
       }
 
@@ -5871,6 +5936,7 @@ namespace Xceed.Document.NET
            )
            where ( ids != null ) && ( ids.Count() > 0 )
            from id in ids
+           where ( this.PackagePart.RelationshipExists( id ) )
            select new Picture( this.Document, p, new Image( this.Document, this.PackagePart.GetRelationship( id ) ) ) { PackagePart = this.PackagePart }
 
        ).ToList();
@@ -5878,7 +5944,7 @@ namespace Xceed.Document.NET
       return pictures;
     }
 
-    private List<Paragraph> GetHeaderParagraphs( Paragraph paragraph )
+    private IList<Paragraph> GetHeaderParagraphs( Paragraph paragraph )
     {
       var header = this.Document.Headers.First;
 
@@ -5886,7 +5952,7 @@ namespace Xceed.Document.NET
       {
         if( header.PackagePart.Uri == paragraph.PackagePart.Uri )
         {
-          return header.GetParagraphs();
+          return header.Paragraphs;
         }
       }
 
@@ -5895,15 +5961,15 @@ namespace Xceed.Document.NET
       {
         if( header.PackagePart.Uri == paragraph.PackagePart.Uri )
         {
-          return header.GetParagraphs();
+          return header.Paragraphs;
         }
       }
 
       header = this.Document.Headers.Even;
-      return header.GetParagraphs();
+      return header.Paragraphs;
     }
 
-    private List<Paragraph> GetFooterParagraphs( Paragraph paragraph )
+    private IList<Paragraph> GetFooterParagraphs( Paragraph paragraph )
     {
       var footer = this.Document.Footers.First;
 
@@ -5911,7 +5977,7 @@ namespace Xceed.Document.NET
       {
         if( footer.PackagePart.Uri == paragraph.PackagePart.Uri )
         {
-          return footer.GetParagraphs();
+          return footer.Paragraphs;
         }
       }
 
@@ -5920,12 +5986,12 @@ namespace Xceed.Document.NET
       {
         if( footer.PackagePart.Uri == paragraph.PackagePart.Uri )
         {
-          return footer.GetParagraphs();
+          return footer.Paragraphs;
         }
       }
 
       footer = this.Document.Footers.Even;
-      return footer.GetParagraphs();
+      return footer.Paragraphs;
     }
 
     private void ClearContainerParagraphsCache()
@@ -5972,7 +6038,6 @@ namespace Xceed.Document.NET
             break;
           }
       }
-
     }
 
     private void ClearHeaderParagraphsCache()
@@ -6028,14 +6093,6 @@ namespace Xceed.Document.NET
       footer = this.Document.Footers.Even;
       footer.ClearParagraphsCache();
     }
-
-    private void UpdateParagraphIndexes( Paragraph p )
-    {
-      _startIndex = p._endIndex;
-      _endIndex = _startIndex + Paragraph.GetElementTextLength( this.Xml );
-    }
-
-
 
 
 
@@ -6137,15 +6194,15 @@ namespace Xceed.Document.NET
 
       if( replaceTextOptions.StartIndex >= 0 )
       {
-        if( _endIndex < replaceTextOptions.StartIndex )
+        if( this.EndIndex < replaceTextOptions.StartIndex )
           return false;
 
-        if( _startIndex < replaceTextOptions.StartIndex )
+        if( this.StartIndex < replaceTextOptions.StartIndex )
         {
-          var start = Math.Max( _startIndex, replaceTextOptions.StartIndex );
-          var end = ( replaceTextOptions.EndIndex > 0 ) ? Math.Min( _endIndex, replaceTextOptions.EndIndex ) : _endIndex;
+          var start = Math.Max( this.StartIndex, replaceTextOptions.StartIndex );
+          var end = ( replaceTextOptions.EndIndex > 0 ) ? Math.Min( this.EndIndex, replaceTextOptions.EndIndex ) : this.EndIndex;
 
-          textToAnalyse = textToAnalyse.Substring( start, end - start );
+          textToAnalyse = textToAnalyse.Substring( start - this.StartIndex, end - this.StartIndex - ( start - this.StartIndex ) );
 
           if( replaceTextOptions.EndIndex > 0 )
             return true;
@@ -6154,15 +6211,15 @@ namespace Xceed.Document.NET
 
       if( replaceTextOptions.EndIndex >= 0 )
       {
-        if( _startIndex > replaceTextOptions.EndIndex )
+        if( this.StartIndex > replaceTextOptions.EndIndex )
           return false;
 
-        if( _endIndex > replaceTextOptions.EndIndex )
+        if( this.EndIndex > replaceTextOptions.EndIndex )
         {
-          var start = ( replaceTextOptions.StartIndex > 0 ) ? Math.Max( _startIndex, replaceTextOptions.StartIndex ) : _startIndex;
-          var end = Math.Min( _endIndex, replaceTextOptions.EndIndex );
+          var start = ( replaceTextOptions.StartIndex > 0 ) ? Math.Max( this.StartIndex, replaceTextOptions.StartIndex ) : this.StartIndex;
+          var end = Math.Min( this.EndIndex, replaceTextOptions.EndIndex );
 
-          textToAnalyse = textToAnalyse.Substring( start, end - start );
+          textToAnalyse = textToAnalyse.Substring( start - this.StartIndex, end - this.StartIndex - ( start - this.StartIndex ) );
         }
       }
 
@@ -6175,7 +6232,7 @@ namespace Xceed.Document.NET
       bool formattingMatch = true;
       var singleMatchIndexInFullText = ( replaceTextOptions.StartIndex < 0 )
                                       ? singleMatch.Index
-                                      : ( _startIndex < replaceTextOptions.StartIndex ) ? singleMatch.Index + Math.Abs( _startIndex - replaceTextOptions.StartIndex ) : singleMatch.Index;
+                                      : ( this.StartIndex < replaceTextOptions.StartIndex ) ? singleMatch.Index + Math.Abs( this.StartIndex - replaceTextOptions.StartIndex ) : singleMatch.Index;
 
       // Does the user want to match formatting?
       if( replaceTextOptions.FormattingToMatch != null )
@@ -6267,7 +6324,7 @@ namespace Xceed.Document.NET
       var formattingMatch = true;
       var singleMatchIndexInFullText = ( replaceTextOptions.StartIndex < 0 )
                                      ? singleMatch.Index
-                                     : ( _startIndex < replaceTextOptions.StartIndex ) ? singleMatch.Index + Math.Abs( _startIndex - replaceTextOptions.StartIndex ) : singleMatch.Index;
+                                     : ( this.StartIndex < replaceTextOptions.StartIndex ) ? singleMatch.Index + Math.Abs( this.StartIndex - replaceTextOptions.StartIndex ) : singleMatch.Index;
 
       if( replaceTextOptions.FormattingToMatch != null )
       {
@@ -6331,7 +6388,7 @@ namespace Xceed.Document.NET
       bool formattingMatch = true;
       var singleMatchIndexInFullText = ( replaceTextOptions.StartIndex < 0 )
                                      ? singleMatch.Index
-                                     : ( _startIndex < replaceTextOptions.StartIndex ) ? singleMatch.Index + Math.Abs( _startIndex - replaceTextOptions.StartIndex ) : singleMatch.Index;
+                                     : ( this.StartIndex < replaceTextOptions.StartIndex ) ? singleMatch.Index + Math.Abs( this.StartIndex - replaceTextOptions.StartIndex ) : singleMatch.Index;
 
       // Does the user want to match formatting?
       if( replaceTextOptions.FormattingToMatch != null )
@@ -6407,6 +6464,13 @@ namespace Xceed.Document.NET
       return false;
     }
 
+    private bool IsInMainContainer()
+    {
+      return ( ( this.ParentContainer == ContainerType.Body )
+            || ( this.ParentContainer == ContainerType.Header )
+            || ( this.ParentContainer == ContainerType.Footer ) );
+    }
+
     private XElement SetPageCountFields( PageNumberFormat? pnf = null, bool useSectionPageCount = false )
     {
       var fldSimple = new XElement( XName.Get( "fldSimple", Document.w.NamespaceName ) );
@@ -6448,7 +6512,72 @@ namespace Xceed.Document.NET
       return fldSimple;
     }
 
-    private List<Paragraph> GetContainerParagraphs()
+    internal Container GetMainParentContainer()
+    {
+      if( this.ParentContainer == ContainerType.Header )
+        return this.GetHeaderContainer();
+      else if( this.ParentContainer == ContainerType.Footer )
+        return this.GetFooterContainer();
+      else if( this.ParentContainer == ContainerType.Body )
+        return this.Document;
+
+      // A paragraph can be located inside a shape/table, ...
+      // A shape/table can be located inside a header/footer/body
+      var parentContainers = this.Xml.Ancestors();
+
+      if( parentContainers.FirstOrDefault( parent => parent.Name.LocalName == "hdr" ) != null )
+        return this.GetHeaderContainer();
+      else if( parentContainers.FirstOrDefault( parent => parent.Name.LocalName == "ftr" ) != null )
+        return this.GetFooterContainer();
+
+      return this.Document;
+    }
+
+    private Container GetHeaderContainer()
+    {
+      var header = this.Document.Headers.First;
+      if( header != null )
+      {
+        if( header.PackagePart.Uri == this.PackagePart.Uri )
+          return header;
+      }
+
+      header = this.Document.Headers.Odd;
+      if( header != null )
+      {
+        if( header.PackagePart.Uri == this.PackagePart.Uri )
+        {
+          return header;
+        }
+      }
+
+      header = this.Document.Headers.Even;
+      return header;
+    }
+
+    private Container GetFooterContainer()
+    {
+      var footer = this.Document.Footers.First;
+      if( footer != null )
+      {
+        if( footer.PackagePart.Uri == this.PackagePart.Uri )
+          return footer;
+      }
+
+      footer = this.Document.Footers.Odd;
+      if( footer != null )
+      {
+        if( footer.PackagePart.Uri == this.PackagePart.Uri )
+        {
+          return footer;
+        }
+      }
+
+      footer = this.Document.Footers.Even;
+      return footer;
+    }
+
+    private IList<Paragraph> GetContainerParagraphs()
     {
       if( this.ParentContainer == ContainerType.Header )
       {
@@ -6460,7 +6589,7 @@ namespace Xceed.Document.NET
       }
       else if( this.ParentContainer == ContainerType.Body )
       {
-        return this.Document.GetParagraphs();
+        return this.Document.Paragraphs;
       }
       else
       {
@@ -6478,15 +6607,9 @@ namespace Xceed.Document.NET
         }
         else
         {
-          return this.Document.GetParagraphs();
+          return this.Document.Paragraphs;
         }
       }
-    }
-
-    private void UpdateParagraphIndexesAndCurrentParagraphEndIndex()
-    {
-      this.Document.UpdateParagraphIndexes();
-      _endIndex = _startIndex + Paragraph.GetElementTextLength( this.Xml );
     }
 
     #endregion

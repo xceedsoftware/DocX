@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2022 Xceed Software Inc.
+   Copyright (C) 2009-2023 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -27,12 +27,6 @@ namespace Xceed.Document.NET
 {
   public abstract class Container : DocumentElement
   {
-    #region Internal Members
-
-    internal bool _preventUpdateParagraphIndexes;
-
-    #endregion
-
     #region Public Properties
 
     /// <summary>
@@ -207,6 +201,22 @@ namespace Xceed.Document.NET
 
     #endregion
 
+    #region Internal Properties
+
+    internal bool NeedRefreshParagraphIndexes
+    {
+      get;
+      set;
+    }
+
+    internal bool PreventUpdateParagraphIndexes
+    {
+      get;
+      set;
+    }
+
+    #endregion
+
     #region Public Methods
 
     public IList<Section> GetSections()
@@ -248,7 +258,7 @@ namespace Xceed.Document.NET
           baseSection.SectionParagraphs = sectionParagraphs;
           sections.Add( baseSection );
         }
-        else 
+        else
         {
           var newSectionXml = XElement.Parse
          ( string.Format( @" <w:sectPr xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
@@ -316,14 +326,16 @@ namespace Xceed.Document.NET
 
     public virtual List<int> FindAll( string str, RegexOptions options )
     {
-      List<int> list = new List<int>();
+      var list = new List<int>();
 
-      foreach( Paragraph p in Paragraphs )
+      foreach( var p in Paragraphs )
       {
-        List<int> indexes = p.FindAll( str, options );
+        var indexes = p.FindAll( str, options );
 
         for( int i = 0; i < indexes.Count(); i++ )
-          indexes[ i ] += p._startIndex;
+        {
+          indexes[ i ] += p.StartIndex;
+        }
 
         list.AddRange( indexes );
       }
@@ -397,16 +409,21 @@ namespace Xceed.Document.NET
         RemoveEmptyParagraph = removeEmptyParagraph
       };
 
-      this.Document._preventUpdateParagraphIndexes = true;
+      // Update paragraph Indexes once to have valid values.
+      this.RefreshParagraphIndexes();
+      // Paragraph indexes won't be update during replacement, only after.
+      this.PreventUpdateParagraphIndexes = true;
 
       foreach( var p in this.Paragraphs )
       {
         p.ReplaceText( replaceTextOptions );
       }
-      this.Document._preventUpdateParagraphIndexes = false;
+      this.PreventUpdateParagraphIndexes = false;
 
-      // Update Paragraph indexes only at the end to improve performance..
-      this.Document.UpdateParagraphIndexes();
+      if( this.Paragraphs.Count > 0 )
+      {
+        this.Paragraphs[ 0 ].GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      }
     }
 
 
@@ -452,16 +469,21 @@ namespace Xceed.Document.NET
         RemoveEmptyParagraph = removeEmptyParagraph
       };
 
-      this.Document._preventUpdateParagraphIndexes = true;
+      // Update paragraph Indexes once to have valid values.
+      this.RefreshParagraphIndexes();
+      // Paragraph indexes won't be update during replacement, only after.
+      this.PreventUpdateParagraphIndexes = true;
 
       foreach( var p in this.Paragraphs )
       {
         p.ReplaceText( replaceTextOptions );
       }
-      this.Document._preventUpdateParagraphIndexes = false;
+      this.PreventUpdateParagraphIndexes = false;
 
-      // Update Paragraph indexes only at the end to improve performance..
-      this.Document.UpdateParagraphIndexes();
+      if( this.Paragraphs.Count > 0 )
+      {
+        this.Paragraphs[ 0 ].GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      }
     }
 
     [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with an ObjectReplaceTextOptions parameter instead." )]
@@ -495,16 +517,21 @@ namespace Xceed.Document.NET
         RemoveEmptyParagraph = removeEmptyParagraph
       };
 
-      this.Document._preventUpdateParagraphIndexes = true;
+      // Update paragraph Indexes once to have valid values.
+      this.RefreshParagraphIndexes();
+      // Paragraph indexes won't be update during replacement, only after.
+      this.PreventUpdateParagraphIndexes = true;
       // ReplaceText in the container
       foreach( Paragraph p in this.Paragraphs )
       {
         p.ReplaceTextWithObject( replaceTextOptions );
       }
-      this.Document._preventUpdateParagraphIndexes = false;
+      this.PreventUpdateParagraphIndexes = false;
 
-      // Update Paragraph indexes only at the end to improve performance.
-      this.Document.UpdateParagraphIndexes();
+      if( this.Paragraphs.Count > 0 )
+      {
+        this.Paragraphs[ 0 ].GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      }
     }
 
     public virtual bool ReplaceText( StringReplaceTextOptions replaceTextOptions )
@@ -642,7 +669,7 @@ namespace Xceed.Document.NET
       }
       else
       {
-        var split = HelperFunctions.SplitParagraph( paragraph, index - paragraph._startIndex );
+        var split = HelperFunctions.SplitParagraph( paragraph, index - paragraph.StartIndex );
 
         paragraph.Xml.ReplaceWith
         (
@@ -652,7 +679,8 @@ namespace Xceed.Document.NET
         );
       }
       this.SetParentContainer( p );
-      this.AddParagraphInCache( p );
+      // Clear Paragraph cache because the split modified the paragraphs.
+      this.ClearParagraphsCache();      
 
       return p;
     }
@@ -741,10 +769,10 @@ namespace Xceed.Document.NET
       var newParagraph = new Paragraph( this.Document, new XElement( Document.w + "p" ), index );
       newParagraph.InsertText( 0, text, trackChanges, formatting );
 
-      var firstPar = HelperFunctions.GetFirstParagraphEffectedByInsert( Document, index );
+      var firstPar = HelperFunctions.GetFirstParagraphEffectedByInsert( this, index );
       if( firstPar != null )
       {
-        var splitIndex = index - firstPar._startIndex;
+        var splitIndex = index - firstPar.StartIndex;
         if( splitIndex > 0 )
         {
           var splitParagraph = HelperFunctions.SplitParagraph( firstPar, splitIndex );
@@ -761,7 +789,8 @@ namespace Xceed.Document.NET
       }
 
       this.SetParentContainer( newParagraph );
-      this.AddParagraphInCache( newParagraph );
+      // Clear Paragraph cache because the split modified the paragraphs.
+      this.ClearParagraphsCache();
 
       return newParagraph;
     }
@@ -826,7 +855,7 @@ namespace Xceed.Document.NET
       }
 
       this.SetParentContainer( newParagraphAdded );
-      this.AddParagraphInCache( newParagraphAdded );
+      this.AddParagraphInCache( newParagraphAdded );      
 
       return newParagraphAdded;
     }
@@ -889,10 +918,10 @@ namespace Xceed.Document.NET
 
     public virtual Table InsertTable( int rowCount, int columnCount )
     {
-      var newTable = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
-      this.AddElementInXml( newTable );
+      var newTableXElement = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
+      this.AddElementInXml( newTableXElement );
 
-      var table = new Table( this.Document, newTable, this.PackagePart );
+      var table = new Table( this.Document, newTableXElement, this.PackagePart );
       table.PackagePart = this.PackagePart;
 
       foreach( var p in table.Paragraphs )
@@ -905,26 +934,25 @@ namespace Xceed.Document.NET
 
     public virtual Table InsertTable( int index, int rowCount, int columnCount )
     {
-      var newTable = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
+      var newTableXElement = HelperFunctions.CreateTable( rowCount, columnCount, this.GetAvailableWidth() );
 
-      var p = HelperFunctions.GetFirstParagraphEffectedByInsert( Document, index );
+      var p = HelperFunctions.GetFirstParagraphEffectedByInsert( this, index );
       if( p == null )
       {
-        Xml.Elements().First().AddFirst( newTable );
+        this.Xml.Elements().First().AddFirst( newTableXElement );
       }
       else
       {
-        var split = HelperFunctions.SplitParagraph( p, index - p._startIndex );
-        p.Xml.ReplaceWith( split[ 0 ], newTable, split[ 1 ] );
+        var split = HelperFunctions.SplitParagraph( p, index - p.StartIndex );
+        p.Xml.ReplaceWith( split[ 0 ], newTableXElement, split[ 1 ] );
       }
 
-      var table = new Table( this.Document, newTable, this.PackagePart );
+      var table = new Table( this.Document, newTableXElement, this.PackagePart );
       table.PackagePart = this.PackagePart;
 
-      foreach( var paragraph in table.Paragraphs )
-      {
-        this.AddParagraphInCache( paragraph );
-      }
+      // Clear Paragraph cache because the split modified the paragraphs.
+      this.ClearParagraphsCache();
+
       return table;
     }
 
@@ -948,7 +976,7 @@ namespace Xceed.Document.NET
     {
       var p = HelperFunctions.GetFirstParagraphEffectedByInsert( this.Document, index );
 
-      var split = HelperFunctions.SplitParagraph( p, index - p._startIndex );
+      var split = HelperFunctions.SplitParagraph( p, index - p.StartIndex );
       var newXElement = new XElement( t.Xml );
       p.Xml.ReplaceWith( split[ 0 ], newXElement, split[ 1 ] );
 
@@ -956,10 +984,8 @@ namespace Xceed.Document.NET
       newTable.Design = t.Design;
       newTable.PackagePart = this.PackagePart;
 
-      foreach( var paragraph in newTable.Paragraphs )
-      {
-        this.AddParagraphInCache( paragraph );
-      }
+      // Clear Paragraph cache because the split modified the paragraphs.
+      this.ClearParagraphsCache();
       return newTable;
     }
 
@@ -1015,7 +1041,7 @@ namespace Xceed.Document.NET
     {
       var p = HelperFunctions.GetFirstParagraphEffectedByInsert( Document, index );
 
-      var split = HelperFunctions.SplitParagraph( p, index - p._startIndex );
+      var split = HelperFunctions.SplitParagraph( p, index - p.StartIndex );
       var elements = new List<XElement> { split[ 0 ] };
       elements.AddRange( list.Items.Select( i => new XElement( i.Xml ) ) );
       elements.Add( split[ 1 ] );
@@ -1045,85 +1071,26 @@ namespace Xceed.Document.NET
     internal void ClearParagraphsCache()
     {
       _editableParagraphsCollection.Clear();
+      this.NeedRefreshParagraphIndexes = true;
     }
 
-    internal void UpdateParagraphIndexes()
+    internal void RefreshParagraphIndexes()
     {
-      if( this.Document._preventUpdateParagraphIndexes )
-        return;
+      var updatedParagraphs = this.GetParagraphs();  // updates all indexes.
+      var cacheParagraphs = this.Paragraphs;  // current paragraph from cache.
 
-      var updatedParagraphs = this.Document.GetParagraphs();  //updates all indexes.
-      var currentParagraphs = this.Document.Paragraphs;  // current paragraph from cache.
-
-      this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
-
-      // Update headers paragraphs indexes 
-      var firstHeaders = this.Document.Headers.First;
-      if( firstHeaders != null )
-      {
-        updatedParagraphs = firstHeaders.GetParagraphs();
-        currentParagraphs = firstHeaders.Paragraphs;
-
-        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
-      }
-
-      var oddHeaders = this.Document.Headers.Odd;
-      if( oddHeaders != null )
-      {
-        updatedParagraphs = oddHeaders.GetParagraphs();
-        currentParagraphs = oddHeaders.Paragraphs;
-
-        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
-      }
-
-      var evenHeaders = this.Document.Headers.Even;
-      if( evenHeaders != null )
-      {
-        updatedParagraphs = evenHeaders.GetParagraphs();
-        currentParagraphs = evenHeaders.Paragraphs;
-
-        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
-      }
-
-      // Update footers paragraphs indexes 
-      var firstFooters = this.Document.Footers.First;
-      if( firstFooters != null )
-      {
-        updatedParagraphs = firstFooters.GetParagraphs();
-        currentParagraphs = firstFooters.Paragraphs;
-
-        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
-      }
-
-      var oddFooters = this.Document.Footers.Odd;
-      if( oddFooters != null )
-      {
-        updatedParagraphs = oddFooters.GetParagraphs();
-        currentParagraphs = oddFooters.Paragraphs;
-
-        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
-      }
-
-      var evenFooters = this.Document.Footers.Even;
-      if( evenFooters != null )
-      {
-        updatedParagraphs = evenFooters.GetParagraphs();
-        currentParagraphs = evenFooters.Paragraphs;
-
-        this.UpdateParagraphes( updatedParagraphs, currentParagraphs );
-      }
-    }
-
-    internal void UpdateParagraphes( List<Paragraph> updatedParagraphs, ReadOnlyCollection<Paragraph> currentParagraphs )
-    {
       for( int i = 0; i < updatedParagraphs.Count; ++i )
       {
-        if( i < currentParagraphs.Count )
+        if( i < cacheParagraphs.Count )
         {
-          currentParagraphs[ i ]._startIndex = updatedParagraphs[ i ]._startIndex;
-          currentParagraphs[ i ]._endIndex = updatedParagraphs[ i ]._endIndex;
+          cacheParagraphs[ i ]._startIndex = updatedParagraphs[ i ]._startIndex;
+          cacheParagraphs[ i ]._endIndex = updatedParagraphs[ i ]._endIndex;
         }
+        else
+          break;
       }
+
+      this.NeedRefreshParagraphIndexes = false;
     }
 
     internal List<Paragraph> GetParagraphs()
@@ -1228,6 +1195,16 @@ namespace Xceed.Document.NET
         if( temp.Count() > 0 )
           paragraph.Xml.Add( Paragraph.CreateEdit( EditType.del, now, temp ) );
 
+        if( paragraph.FollowingTables != null )
+        {
+          foreach( var table in paragraph.FollowingTables.ToList() )
+          {
+            paragraph.FollowingTables.Remove( table );
+
+            table.Remove();
+          }
+        }
+
         //Remove paragraph from Cache
         this.RemoveParagraphFromCache( paragraph );
       }
@@ -1243,10 +1220,26 @@ namespace Xceed.Document.NET
         }
         else
         {
+          if( paragraph.FollowingTables != null )
+          {
+            foreach( var table in paragraph.FollowingTables.ToList() )
+            {
+              paragraph.FollowingTables.Remove( table );
+
+              table.Remove();
+            }
+          }
+
+          foreach( var picture in paragraph.Pictures )
+          {
+            picture.Remove();
+          }
+
+
           //Remove paragraph from Cache
           this.RemoveParagraphFromCache( paragraph );
 
-          // Remove this paragraph from the document
+          // Remove this paragraph(and all it's content : text, images...) from the document.
           paragraph.Xml.Remove();
           paragraph.Xml = null;
         }
@@ -1267,6 +1260,12 @@ namespace Xceed.Document.NET
     internal void AddParagraphInCache( Paragraph p )
     {
       _editableParagraphsCollection.Add( p );
+
+      if( this is Section )
+      {
+        this.Document.ClearParagraphsCache();
+      }
+      p.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
     }
 
     #endregion
@@ -1279,16 +1278,27 @@ namespace Xceed.Document.NET
         && ( _editableParagraphsCollection.Count > 0 )
         && ( index < _editableParagraphsCollection.Count ) )
       {
+        var mainContainer = _editableParagraphsCollection[ index ].GetMainParentContainer();
         _editableParagraphsCollection.RemoveAt( index );
+        if( this is Section )
+        {
+          this.Document.ClearParagraphsCache();
+        }
+        mainContainer.NeedRefreshParagraphIndexes = true;
       }
     }
 
     private void RemoveParagraphFromCache( Paragraph paragraph )
     {
-      var index = _editableParagraphsCollection.IndexOf( paragraph );
+      var index = _editableParagraphsCollection.FindIndex( p => p.Xml == paragraph.Xml );
       if( index != -1 )
       {
         _editableParagraphsCollection.RemoveAt( index );
+        if( this is Section )
+        {
+          this.Document.ClearParagraphsCache();
+        }
+        paragraph.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
       }
     }
 
@@ -1415,13 +1425,16 @@ namespace Xceed.Document.NET
 
       var replaceSuccess = false;
 
-      this.Document._preventUpdateParagraphIndexes = true;
+      // Update paragraph Indexes once to have valid values.
+      this.RefreshParagraphIndexes();
+      // Paragraph indexes won't be update during replacement, only after.
+      this.PreventUpdateParagraphIndexes = true;
 
-      foreach( var p in this.Paragraphs )
+      foreach( var p in this.Paragraphs.ToList() )
       {
-        if( ( replaceTextOptions.StartIndex >= 0 ) && ( p._endIndex < replaceTextOptions.StartIndex ) )
-          break;
-        if( ( replaceTextOptions.EndIndex >= 0 ) && ( p._startIndex > replaceTextOptions.EndIndex ) )
+        if( ( replaceTextOptions.StartIndex >= 0 ) && ( p.EndIndex < replaceTextOptions.StartIndex ) )
+          continue;
+        if( ( replaceTextOptions.EndIndex >= 0 ) && ( p.StartIndex > replaceTextOptions.EndIndex ) )
           break;
 
         var result = replaceTextOptions is StringReplaceTextOptions
@@ -1439,10 +1452,9 @@ namespace Xceed.Document.NET
           break;
 
       }
-      this.Document._preventUpdateParagraphIndexes = false;
 
-      // Update Paragraph indexes only at the end to improve performance..
-      this.Document.UpdateParagraphIndexes();
+      this.PreventUpdateParagraphIndexes = false;
+      this.NeedRefreshParagraphIndexes = true;
 
       return replaceSuccess;
     }

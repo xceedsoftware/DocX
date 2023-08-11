@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2022 Xceed Software Inc.
+   Copyright (C) 2009-2023 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -1159,7 +1159,7 @@ namespace Xceed.Document.NET
       // Update the _cachedSection by reading the Xml to build new Sections.
       this.Document.UpdateCacheSections();
 
-      return this.Document.Sections.FirstOrDefault( section => section.Xml == sctPr );
+      return this.Document.Sections.LastOrDefault();
     }
 
     private NoteProperties GetNoteProperties( string propertiesType )

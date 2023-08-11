@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2022 Xceed Software Inc.
+   Copyright (C) 2009-2023 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -312,9 +312,11 @@ namespace Xceed.Document.NET
           goto case "delText";
         case "delText":
           {
+            if( (e.Name.LocalName == "t") && e.HasElements && (e.Element( XName.Get( "r", Document.w.NamespaceName ) ) != null) )
+              return "";
 
 
-            return e.Value;
+              return e.Value;
           }
         case "tr":
           //goto case "br";
@@ -354,11 +356,10 @@ namespace Xceed.Document.NET
 
     internal static PackagePart CreateOrGetSettingsPart( Package package )
     {
-      PackagePart settingsPart;
-
-      var settingsUri = new Uri( "/word/settings.xml", UriKind.Relative );
-      if( !package.PartExists( settingsUri ) )
+      var settingsPart = package.GetParts().FirstOrDefault( p => p.ContentType.Equals( SETTING_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) );
+      if( settingsPart == null )
       {
+        var settingsUri = new Uri( "/word/settings.xml", UriKind.Relative );
         settingsPart = package.CreatePart( settingsUri, HelperFunctions.SETTING_DOCUMENTTYPE, CompressionOption.Maximum );
 
         var mainDocPart = GetMainDocumentPart( package );
@@ -416,10 +417,7 @@ namespace Xceed.Document.NET
           settings.Save( tw );
         }
       }
-      else
-      {
-        settingsPart = package.GetPart( settingsUri );
-      }
+
       return settingsPart;
     }
 
@@ -663,16 +661,16 @@ namespace Xceed.Document.NET
         trackerIDs.ElementAt( i ).Value = i.ToString();
     }
 
-    internal static Paragraph GetFirstParagraphEffectedByInsert( Document document, int index )
+    internal static Paragraph GetFirstParagraphEffectedByInsert( Container container, int index )
     {
       // This document contains no Paragraphs and insertion is at index 0
-      var docParagraphs = document.Paragraphs;
+      var docParagraphs = container.Paragraphs;
       if( docParagraphs.Count() == 0 && index == 0 )
         return null;
 
       foreach( Paragraph p in docParagraphs )
       {
-        if( p._endIndex >= index )
+        if( p.EndIndex >= index )
           return p;
       }
 

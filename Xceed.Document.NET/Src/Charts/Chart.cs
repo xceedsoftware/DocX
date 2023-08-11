@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2022 Xceed Software Inc.
+   Copyright (C) 2009-2023 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -415,7 +415,19 @@ namespace Xceed.Document.NET
     {
       if( _packageRelationship.Package != null )
       {
-        _packageRelationship.Package.DeletePart( _packageRelationship.TargetUri );
+        var uriString = _packageRelationship.TargetUri.OriginalString;
+        if( !uriString.StartsWith( "/" ) )
+        {
+          uriString = "/" + uriString;
+        }
+        if( !uriString.StartsWith( "/word/" ) )
+        {
+          uriString = "/word" + uriString;
+        }
+
+        var uri = new Uri( uriString, UriKind.Relative );
+
+        _packageRelationship.Package.DeletePart( uri );
       }
 
       if( _parentParagraph.Document.PackagePart != null )
