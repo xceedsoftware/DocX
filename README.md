@@ -36,7 +36,7 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 
 ## What else do I need?
 
-All that you need to install in order to use DocX is the [.NET framework 4.0](http://www.microsoft.com/downloads/en/details.aspx?FamilyID=9cfb2d51-5ff4-4491-b0e5-b386f32c0992&displaylang=en) or .NET5/6 and [Visual Studio 2010](http://www.microsoft.com/express/Downloads/) or later, both of which are free.
+All that you need to install in order to use DocX is the [.NET framework 4.0](http://www.microsoft.com/downloads/en/details.aspx?FamilyID=9cfb2d51-5ff4-4491-b0e5-b386f32c0992&displaylang=en) or .NET5+ and [Visual Studio 2010](http://www.microsoft.com/express/Downloads/) or later, both of which are free.
 
 ## What are the main features of DocX?
 
