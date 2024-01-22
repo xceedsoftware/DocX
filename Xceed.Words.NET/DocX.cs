@@ -519,7 +519,7 @@ namespace Xceed.Words.NET
         var footers = section.Footers;
 
         // Header Even
-        if( headers.Even != null )
+        if( headers.Even != null && headers.Even.Xml != null )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -537,7 +537,7 @@ namespace Xceed.Words.NET
         }
 
         // Header Odd
-        if( headers.Odd != null )
+        if( headers.Odd != null && headers.Odd.Xml != null )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -556,7 +556,7 @@ namespace Xceed.Words.NET
         }
 
         // Header First
-        if( headers.First != null )
+        if( headers.First != null && headers.First.Xml != null )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -575,7 +575,7 @@ namespace Xceed.Words.NET
         }
 
         // Footer Odd
-        if( footers.Odd != null )
+        if( footers.Odd != null && footers.Odd.Xml != null )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -594,7 +594,7 @@ namespace Xceed.Words.NET
         }
 
         // Footer Even
-        if( footers.Even != null )
+        if( footers.Even != null && footers.Even.Xml != null )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -613,7 +613,7 @@ namespace Xceed.Words.NET
         }
 
         // Footer First
-        if( footers.First != null )
+        if( footers.First != null && footers.First.Xml != null )
         {
           var target = PackUriHelper.ResolvePartUri
           (

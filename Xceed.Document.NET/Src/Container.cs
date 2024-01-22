@@ -411,7 +411,7 @@ namespace Xceed.Document.NET
 
       // Update paragraph Indexes once to have valid values.
       this.RefreshParagraphIndexes();
-      // Paragraph indexes won't be update during replacement, only after.
+      // Paragraph indexes won't be updated during replacement, only after.
       this.PreventUpdateParagraphIndexes = true;
 
       foreach( var p in this.Paragraphs )
@@ -422,7 +422,7 @@ namespace Xceed.Document.NET
 
       if( this.Paragraphs.Count > 0 )
       {
-        this.Paragraphs[ 0 ].GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+        this.Paragraphs[ 0 ].NeedRefreshIndexes();
       }
     }
 
@@ -482,7 +482,7 @@ namespace Xceed.Document.NET
 
       if( this.Paragraphs.Count > 0 )
       {
-        this.Paragraphs[ 0 ].GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+        this.Paragraphs[ 0 ].NeedRefreshIndexes();
       }
     }
 
@@ -530,7 +530,7 @@ namespace Xceed.Document.NET
 
       if( this.Paragraphs.Count > 0 )
       {
-        this.Paragraphs[ 0 ].GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+        this.Paragraphs[ 0 ].NeedRefreshIndexes();
       }
     }
 
@@ -563,6 +563,8 @@ namespace Xceed.Document.NET
 
       return this.ReplaceTextCore( replaceTextOptions );
     }
+
+
 
     /// Inserts the provided text at a bookmark location in this Container, using the specified formatting.
     public virtual void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
@@ -680,7 +682,7 @@ namespace Xceed.Document.NET
       }
       this.SetParentContainer( p );
       // Clear Paragraph cache because the split modified the paragraphs.
-      this.ClearParagraphsCache();      
+      this.ClearParagraphsCache();
 
       return p;
     }
@@ -855,10 +857,12 @@ namespace Xceed.Document.NET
       }
 
       this.SetParentContainer( newParagraphAdded );
-      this.AddParagraphInCache( newParagraphAdded );      
+      this.AddParagraphInCache( newParagraphAdded );
 
       return newParagraphAdded;
     }
+
+
 
 
 
@@ -1047,6 +1051,8 @@ namespace Xceed.Document.NET
       elements.Add( split[ 1 ] );
       p.Xml.ReplaceWith( elements.ToArray() );
 
+      this.ClearParagraphsCache();
+
       return list;
     }
 
@@ -1111,10 +1117,13 @@ namespace Xceed.Document.NET
           }
 
           var paragraph = new Paragraph( this.Document, xElement, index );
+          paragraph._startIndex = index;
+          var length = HelperFunctions.GetText( xElement ).Length;
+          index += Math.Max( 1, length );
+          paragraph._endIndex = Math.Max( 1, index - 1 );
           paragraph.ParentContainer = this.GetParentFromXmlName( paragraph.Xml.Ancestors().First().Name.LocalName );
           paragraph.PackagePart = this.PackagePart;
           paragraphs.Add( paragraph );
-          index += Math.Max( 1, HelperFunctions.GetText( xElement ).Length );
         }
       }
 
@@ -1265,7 +1274,7 @@ namespace Xceed.Document.NET
       {
         this.Document.ClearParagraphsCache();
       }
-      p.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      p.NeedRefreshIndexes();
     }
 
     #endregion
@@ -1274,31 +1283,29 @@ namespace Xceed.Document.NET
 
     private void RemoveParagraphFromCache( int index )
     {
-      if( ( index != -1 )
+      if( ( index >= 0 )
         && ( _editableParagraphsCollection.Count > 0 )
         && ( index < _editableParagraphsCollection.Count ) )
       {
-        var mainContainer = _editableParagraphsCollection[ index ].GetMainParentContainer();
         _editableParagraphsCollection.RemoveAt( index );
         if( this is Section )
         {
           this.Document.ClearParagraphsCache();
         }
-        mainContainer.NeedRefreshParagraphIndexes = true;
       }
     }
 
     private void RemoveParagraphFromCache( Paragraph paragraph )
     {
       var index = _editableParagraphsCollection.FindIndex( p => p.Xml == paragraph.Xml );
-      if( index != -1 )
+      if( index >= 0 )
       {
         _editableParagraphsCollection.RemoveAt( index );
         if( this is Section )
         {
           this.Document.ClearParagraphsCache();
         }
-        paragraph.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+        paragraph.NeedRefreshIndexes();
       }
     }
 
@@ -1427,34 +1434,48 @@ namespace Xceed.Document.NET
 
       // Update paragraph Indexes once to have valid values.
       this.RefreshParagraphIndexes();
-      // Paragraph indexes won't be update during replacement, only after.
+      // Paragraph indexes won't be updated during replacement, only after.
       this.PreventUpdateParagraphIndexes = true;
 
-      foreach( var p in this.Paragraphs.ToList() )
-      {
-        if( ( replaceTextOptions.StartIndex >= 0 ) && ( p.EndIndex < replaceTextOptions.StartIndex ) )
-          continue;
-        if( ( replaceTextOptions.EndIndex >= 0 ) && ( p.StartIndex > replaceTextOptions.EndIndex ) )
-          break;
 
-        var result = replaceTextOptions is StringReplaceTextOptions
-                      ? p.ReplaceText( replaceTextOptions as StringReplaceTextOptions )
-                      : replaceTextOptions is FunctionReplaceTextOptions
-                            ? p.ReplaceText( replaceTextOptions as FunctionReplaceTextOptions )
-                            : p.ReplaceTextWithObject( replaceTextOptions as ObjectReplaceTextOptions );
 
-        if( !replaceSuccess )
+
+
+
+        foreach( var p in this.Paragraphs.ToList() )
         {
-          replaceSuccess = result;
-        }
+          if( ( replaceTextOptions.StartIndex >= 0 ) && ( p.EndIndex < replaceTextOptions.StartIndex ) )
+            continue;
+          if( ( replaceTextOptions.EndIndex >= 0 ) && ( p.StartIndex > replaceTextOptions.EndIndex ) )
+            break;
 
-        if( replaceTextOptions.StopAfterOneReplacement && result )
-          break;
+          bool result = false;
+          if( replaceTextOptions is StringReplaceTextOptions )
+          {
+            result = p.ReplaceText( replaceTextOptions as StringReplaceTextOptions );
+          }
+          else if( replaceTextOptions is FunctionReplaceTextOptions )
+          {
+            result = p.ReplaceText( replaceTextOptions as FunctionReplaceTextOptions );
+          }
+          else
+          {
+            result = p.ReplaceTextWithObject( replaceTextOptions as ObjectReplaceTextOptions );
+          }
+
+          if( !replaceSuccess )
+          {
+            replaceSuccess = result;
+          }
+
+          if( replaceTextOptions.StopAfterOneReplacement && result )
+            break;
 
       }
 
       this.PreventUpdateParagraphIndexes = false;
       this.NeedRefreshParagraphIndexes = true;
+
 
       return replaceSuccess;
     }

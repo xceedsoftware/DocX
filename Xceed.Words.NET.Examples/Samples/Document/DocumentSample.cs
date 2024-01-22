@@ -273,6 +273,37 @@ namespace Xceed.Words.NET.Examples
     }
 
     /// <summary>
+    /// Create a document and add html text to it.
+    /// </summary>
+    public static void AddHtml()
+    {
+
+
+
+
+
+
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    /// <summary>
+    /// Create a document and add rtf text to it.
+    /// </summary>
+    public static void AddRtf()
+    {
+
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    /// <summary>
     /// Create a document and add html text from an html file.
     /// </summary>
     public static void AddHtmlFromFile()
@@ -292,6 +323,19 @@ namespace Xceed.Words.NET.Examples
 
 
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    /// <summary>
+    /// Load a document and replace texts with html content.
+    /// </summary>
+    public static void ReplaceTextWithHtml()
+    {
+
+
+
+
+
+ 	      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     #endregion

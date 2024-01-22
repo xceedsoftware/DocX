@@ -1473,6 +1473,13 @@ namespace Xceed.Document.NET
       return replaceSuccess;
     }
 
+
+
+
+
+
+
+
     public override void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
     {
       // Insert in body of document.
@@ -1691,6 +1698,10 @@ namespace Xceed.Document.NET
       XDocument remote_mainDoc;
       XElement remote_body, local_body;
       PackagePartCollection ppc;
+      if( remote_document != null )
+      {
+        remote_document.SaveHeadersFooters();
+      }
       MergeDocumentsPackages( remote_document, mergingMode, out remote_mainDoc, out remote_body, out local_body, out ppc );
 
       ManageSectionBreak( append, useSectionBreak, remote_body, local_body );
@@ -3701,7 +3712,8 @@ namespace Xceed.Document.NET
 
       document.SaveHeadersFooters();
 
-      Document.PopulateDocument( document, document._package );
+      // The following line was commnented in the regard to case 2744 
+      // Document.PopulateDocument( document, document._package );
     }
 
     /// <summary>
@@ -4456,7 +4468,7 @@ namespace Xceed.Document.NET
       }
     }
 
-    private void InsertParagraphPictures( Paragraph p )
+    internal void InsertParagraphPictures( Paragraph p )
     {
       if( ( p != null ) && ( p.Pictures != null ) && ( p.Pictures.Count > 0 ) )
       {
@@ -4472,7 +4484,7 @@ namespace Xceed.Document.NET
       }
     }
 
-    private void InsertParagraphStyles( Paragraph p )
+    internal void InsertParagraphStyles( Paragraph p )
     {
       // Check if style is already present in document.
       if( ( p != null ) && ( p.StyleId != this.GetNormalStyleId() ) )
@@ -4575,7 +4587,7 @@ namespace Xceed.Document.NET
               else
               {
                 // Using same image in header/footers for document1 and document2.
-                this.CreateRelationshipForImage( remote_pp.Uri, remote_Id, remote_mainDoc, packagePartToSaveTo );
+                this.CreateRelationshipForImage( part.Uri, remote_Id, remote_mainDoc, packagePartToSaveTo );
               }
 
               break;
@@ -4644,7 +4656,7 @@ namespace Xceed.Document.NET
 
     private void MergeCharts( PackagePart remote_pp, Document remote_document, XDocument remote_mainDoc )
     {
-      var remote_rel = remote_document.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( remote_pp.Uri.OriginalString ) ).FirstOrDefault();
+      var remote_rel = remote_document.PackagePart.GetRelationships().Where( r => r.TargetUri.OriginalString.Equals( remote_pp.Uri.OriginalString.Replace( "/word/", "" ) ) ).FirstOrDefault();
 
       if( remote_rel != null )
       {
@@ -4669,6 +4681,30 @@ namespace Xceed.Document.NET
         }
 
         this.CreateRelationshipForChart( new Uri( new_uri, UriKind.Relative ), remote_Id, remote_mainDoc );
+
+        XDocument chartDoc = null;
+        using( var stream = new_pp.GetStream( FileMode.Open, FileAccess.Read ) )
+        {
+          using( var xr = XmlReader.Create( stream ) )
+          {
+            chartDoc = XDocument.Load( xr );
+          }
+        }
+        var chartRelationships = remote_pp.GetRelationships();
+        foreach( var rel in chartRelationships )
+        {
+          var relationshipCreated = new_pp.CreateRelationship( rel.TargetUri, rel.TargetMode, rel.RelationshipType );
+
+          this.ReplaceAllRemoteID( chartDoc, "externalData", "id", c.NamespaceName, rel.Id, relationshipCreated.Id );
+        }
+
+        using( var stream = new PackagePartStream( new_pp.GetStream( FileMode.Open, FileAccess.Write ) ) )
+        {
+          using( XmlWriter xw = XmlWriter.Create( stream ) )
+          {
+            chartDoc.WriteTo( xw );
+          }
+        }
       }
     }
 
@@ -4834,7 +4870,7 @@ namespace Xceed.Document.NET
       var abstractNumElement = _numbering.Root.Elements( XName.Get( "abstractNum", w.NamespaceName ) );
       var remote_abstractNums = remote._numbering.Root.Elements( XName.Get( "abstractNum", w.NamespaceName ) );
 
-      int guidd = -1;
+      int abstractNumGuid = -1;
       foreach( var an in abstractNumElement )
       {
         var a = an.Attribute( XName.Get( "abstractNumId", w.NamespaceName ) );
@@ -4843,19 +4879,19 @@ namespace Xceed.Document.NET
           int i;
           if( HelperFunctions.TryParseInt( a.Value, out i ) )
           {
-            if( i > guidd )
+            if( i > abstractNumGuid )
             {
-              guidd = i;
+              abstractNumGuid = i;
             }
           }
         }
       }
-      guidd++;
+      abstractNumGuid++;
 
       var remote_nums = remote._numbering.Root.Elements( XName.Get( "num", w.NamespaceName ) );
       var numElement = _numbering.Root.Elements( XName.Get( "num", w.NamespaceName ) );
 
-      int guidd2 = 0;
+      int numGuid = 0;
       foreach( var an in numElement )
       {
         var a = an.Attribute( XName.Get( "numId", w.NamespaceName ) );
@@ -4864,47 +4900,63 @@ namespace Xceed.Document.NET
           int i;
           if( HelperFunctions.TryParseInt( a.Value, out i ) )
           {
-            if( i > guidd2 )
+            if( i > numGuid )
             {
-              guidd2 = i;
+              numGuid = i;
             }
           }
         }
       }
-      guidd2++;
+      numGuid++;
 
       foreach( XElement remote_abstractNum in remote_abstractNums )
       {
-        var currentGuidd2 = guidd2;
         var abstractNumId = remote_abstractNum.Attribute( XName.Get( "abstractNumId", w.NamespaceName ) );
         if( abstractNumId != null )
         {
           var abstractNumIdValue = abstractNumId.Value;
-          abstractNumId.SetValue( guidd );
+          abstractNumId.SetValue( abstractNumGuid );
 
           foreach( XElement remote_num in remote_nums )
           {
-            // in document
-            var numIds = remote_mainDoc.Descendants( XName.Get( "numId", w.NamespaceName ) );
-            foreach( var numId in numIds )
-            {
-              var attr = numId.Attribute( XName.Get( "val", w.NamespaceName ) );
-              if( attr != null && attr.Value.Equals( remote_num.Attribute( XName.Get( "numId", w.NamespaceName ) ).Value ) )
-              {
-                attr.SetValue( currentGuidd2 );
-              }
-            }
-            remote_num.SetAttributeValue( XName.Get( "numId", w.NamespaceName ), currentGuidd2 );
             //abstractNumId of this remote_num
             var e = remote_num.Element( XName.Get( "abstractNumId", w.NamespaceName ) );
             var a2 = e.Attribute( XName.Get( "val", w.NamespaceName ) );
             if( a2 != null && a2.Value.Equals( abstractNumIdValue ) )
-              a2.SetValue( guidd );
-            currentGuidd2++;
+            {
+              a2.SetValue( abstractNumGuid );
+
+              var currentNumId = remote_num.Attribute( XName.Get( "numId", w.NamespaceName ) ).Value;
+
+              // in document
+              var numIds = remote_mainDoc.Descendants( XName.Get( "numId", w.NamespaceName ) );
+              foreach( var numId in numIds )
+              {
+                var attr = numId.Attribute( XName.Get( "val", w.NamespaceName ) );
+                if( attr != null && attr.Value.Equals( currentNumId ) )
+                {
+                  attr.SetValue( numGuid );
+                }
+              }
+              // in styles
+              numIds = remote._styles.Descendants( XName.Get( "numId", w.NamespaceName ) );
+              foreach( var numId in numIds )
+              {
+                var attr = numId.Attribute( XName.Get( "val", w.NamespaceName ) );
+                if( attr != null && attr.Value.Equals( currentNumId ) )
+                {
+                  attr.SetValue( numGuid );
+                }
+              }
+
+              remote_num.SetAttributeValue( XName.Get( "numId", w.NamespaceName ), numGuid );
+              numGuid++;
+              break;
+            }
           }
         }
 
-        guidd++;
+        abstractNumGuid++;
       }
 
       if( abstractNumElement != null )
@@ -5046,8 +5098,7 @@ namespace Xceed.Document.NET
 
       foreach( var local_style in _styles.Root.Elements( XName.Get( "style", w.NamespaceName ) ) )
       {
-        var temp = new XElement( local_style );
-        var styleId = temp.Attribute( XName.Get( "styleId", w.NamespaceName ) );
+        var styleId = local_style.Attribute( XName.Get( "styleId", w.NamespaceName ) );
         var styleIdValue = styleId.Value;
 
         local_styles.Add( styleIdValue, local_style );
@@ -5059,8 +5110,7 @@ namespace Xceed.Document.NET
       foreach( var remote_style in remote_styles )
       {
         String guuid;
-        var temp = new XElement( remote_style );
-        var styleId = temp.Attribute( XName.Get( "styleId", w.NamespaceName ) );
+        var styleId = remote_style.Attribute( XName.Get( "styleId", w.NamespaceName ) );
         var styleIdValue = styleId.Value;
 
         // Check to see if the local document already contains the remote styleId.
@@ -5105,38 +5155,36 @@ namespace Xceed.Document.NET
 
         // Create a new style from the remote style and add it to the local document style.
         guuid = Guid.NewGuid().ToString();
-        // Set the styleId and name in the remote_style to this new Guid
-        remote_style.SetAttributeValue( XName.Get( "styleId", w.NamespaceName ), guuid );
-        var name = remote_style.Element( XName.Get( "name", w.NamespaceName ) );
-        if( name != null )
-        {
-          name.SetAttributeValue( XName.Get( "val", w.NamespaceName ), guuid );
-        }
+
+        var found = false;
 
         foreach( XElement e in remote_mainDoc.Root.Descendants( XName.Get( "pStyle", w.NamespaceName ) ) )
         {
           var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
           {
             e_styleId.SetValue( guuid );
+            found = true;
           }
         }
 
         foreach( XElement e in remote_mainDoc.Root.Descendants( XName.Get( "rStyle", w.NamespaceName ) ) )
         {
           var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
           {
             e_styleId.SetValue( guuid );
+            found = true;
           }
         }
 
         foreach( XElement e in remote_mainDoc.Root.Descendants( XName.Get( "tblStyle", w.NamespaceName ) ) )
         {
           var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
           {
             e_styleId.SetValue( guuid );
+            found = true;
           }
 
           var tablePrs = (
@@ -5203,18 +5251,20 @@ namespace Xceed.Document.NET
           foreach( XElement e in remote_endnotes.Root.Descendants( XName.Get( "rStyle", w.NamespaceName ) ) )
           {
             var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
             {
               e_styleId.SetValue( guuid );
+              found = true;
             }
           }
 
           foreach( XElement e in remote_endnotes.Root.Descendants( XName.Get( "pStyle", w.NamespaceName ) ) )
           {
             var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
             {
               e_styleId.SetValue( guuid );
+              found = true;
             }
           }
         }
@@ -5224,18 +5274,20 @@ namespace Xceed.Document.NET
           foreach( XElement e in remote_footnotes.Root.Descendants( XName.Get( "rStyle", w.NamespaceName ) ) )
           {
             var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
             {
               e_styleId.SetValue( guuid );
+              found = true;
             }
           }
 
           foreach( XElement e in remote_footnotes.Root.Descendants( XName.Get( "pStyle", w.NamespaceName ) ) )
           {
             var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
             {
               e_styleId.SetValue( guuid );
+              found = true;
             }
           }
         }
@@ -5246,9 +5298,10 @@ namespace Xceed.Document.NET
           foreach( XElement e in remote._numbering.Root.Descendants( XName.Get( "pStyle", w.NamespaceName ) ) )
           {
             var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
             {
               e_styleId.SetValue( guuid );
+              found = true;
             }
           }
         }
@@ -5257,9 +5310,10 @@ namespace Xceed.Document.NET
           foreach( XElement e in _numbering.Root.Descendants( XName.Get( "pStyle", w.NamespaceName ) ) )
           {
             var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+            if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
             {
               e_styleId.SetValue( guuid );
+              found = true;
             }
           }
         }
@@ -5267,23 +5321,45 @@ namespace Xceed.Document.NET
         foreach( var e in remote._styles.Descendants( XName.Get( "basedOn", w.NamespaceName ) ) )
         {
           var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
           {
             e_styleId.SetValue( guuid );
+            found = true;
           }
         }
 
         foreach( var e in remote._styles.Descendants( XName.Get( "next", w.NamespaceName ) ) )
         {
           var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
-          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleId.Value ) )
+          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
           {
             e_styleId.SetValue( guuid );
+            found = true;
           }
         }
 
-        // Make sure they don't clash by using a uuid.
-        styleId.SetValue( guuid );
+        foreach( var e in remote._styles.Descendants( XName.Get( "link", w.NamespaceName ) ) )
+        {
+          var e_styleId = e.Attribute( XName.Get( "val", w.NamespaceName ) );
+          if( ( e_styleId != null ) && e_styleId.Value.Equals( styleIdValue ) )
+          {
+            e_styleId.SetValue( guuid );
+            found = true;
+          }
+        }
+
+        // unsused style. do not add it. Too many style may cause a corrupted resulting document.
+        if( !found )
+          continue;
+
+        // Set the styleId and name in the remote_style to this new Guid
+        remote_style.SetAttributeValue( XName.Get( "styleId", w.NamespaceName ), guuid );
+        var name = remote_style.Element( XName.Get( "name", w.NamespaceName ) );
+        if( name != null )
+        {
+          name.SetAttributeValue( XName.Get( "val", w.NamespaceName ), guuid );
+        }
+
         _styles.Root.Add( remote_style );
       }
     }

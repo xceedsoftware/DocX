@@ -17,6 +17,7 @@
     <OutputPath>bin\Debug\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;NET5</DefineConstants>
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>

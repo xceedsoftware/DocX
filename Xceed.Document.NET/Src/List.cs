@@ -19,7 +19,6 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 
 namespace Xceed.Document.NET
 {
@@ -252,6 +251,11 @@ namespace Xceed.Document.NET
         return result;
       return result + _random.Next( 16 ).ToString( "X" );
     }
+
+
+
+
+
 
 
 

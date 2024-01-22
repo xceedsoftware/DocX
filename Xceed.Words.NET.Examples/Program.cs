@@ -40,8 +40,6 @@ namespace Xceed.Words.NET.Examples
       ParagraphSample.TextActions();
       ParagraphSample.Heading();
       ParagraphSample.AddObjectsFromOtherDocument();
-      ParagraphSample.AddHtml();
-      ParagraphSample.AddRtf();
 
       //Document
       DocumentSample.AddCustomProperties();
@@ -52,9 +50,12 @@ namespace Xceed.Words.NET.Examples
       DocumentSample.LoadDocumentWithFilename();
       DocumentSample.LoadDocumentWithStream();
       DocumentSample.LoadDocumentWithStringUrl();
+      DocumentSample.AddHtml();
+      DocumentSample.AddRtf();
       DocumentSample.AddHtmlFromFile();
       DocumentSample.AddRtfFromFile();
       DocumentSample.InsertDocument();
+      DocumentSample.ReplaceTextWithHtml();
 
       //Images
       ImageSample.AddPicture();

@@ -33,7 +33,6 @@ namespace Xceed.Document.NET
   /// </summary>
   public class Paragraph : InsertBeforeOrAfter
   {
-
     #region Internal Members
 
     // The Append family of functions use this List to apply style.
@@ -925,7 +924,7 @@ namespace Xceed.Document.NET
       get
       {
         var mainContainer = this.GetMainParentContainer();
-        if( mainContainer.NeedRefreshParagraphIndexes && !mainContainer.PreventUpdateParagraphIndexes )
+        if( ( mainContainer != null ) && mainContainer.NeedRefreshParagraphIndexes && !mainContainer.PreventUpdateParagraphIndexes )
         {
           mainContainer.RefreshParagraphIndexes();
         }
@@ -939,21 +938,6 @@ namespace Xceed.Document.NET
 
         return 0;
       }
-
-      internal set
-      {
-        if( this.IsInMainContainer() )
-        {
-          _startIndex = value;
-          return;
-        }
-
-        var documentParagraph = this.GetContainerParagraphs().FirstOrDefault( p => p.Xml == this.Xml );
-        if( documentParagraph != null )
-        {
-          documentParagraph._startIndex = value;
-        }
-      }
     }
 
     public int EndIndex
@@ -961,7 +945,7 @@ namespace Xceed.Document.NET
       get
       {
         var mainContainer = this.GetMainParentContainer();
-        if( mainContainer.NeedRefreshParagraphIndexes && !mainContainer.PreventUpdateParagraphIndexes )
+        if( ( mainContainer != null ) && mainContainer.NeedRefreshParagraphIndexes && !mainContainer.PreventUpdateParagraphIndexes )
         {
           mainContainer.RefreshParagraphIndexes();
         }
@@ -974,21 +958,6 @@ namespace Xceed.Document.NET
           return documentParagraph._endIndex;
 
         return 1;
-      }
-
-      internal set
-      {
-        if( this.IsInMainContainer() )
-        {
-          _endIndex = value;
-          return;
-        }
-
-        var documentParagraph = this.GetContainerParagraphs().FirstOrDefault( p => p.Xml == this.Xml );
-        if( documentParagraph != null )
-        {
-          documentParagraph._endIndex = value;
-        }
       }
     }
 
@@ -1054,6 +1023,10 @@ namespace Xceed.Document.NET
       //}
 
       _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
+    }
+
+    internal Paragraph( XElement newParagraph ) : base( null, newParagraph )
+    {
     }
 
     #endregion
@@ -1279,7 +1252,7 @@ namespace Xceed.Document.NET
       var p2 = base.InsertParagraphBeforeSelf( p );
       p2.PackagePart = this.PackagePart;
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
 
       return p2;
     }
@@ -1312,7 +1285,7 @@ namespace Xceed.Document.NET
       var p = base.InsertParagraphBeforeSelf( text );
       p.PackagePart = this.PackagePart;
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
 
       return p;
     }
@@ -1346,7 +1319,7 @@ namespace Xceed.Document.NET
       var p = base.InsertParagraphBeforeSelf( text, trackChanges );
       p.PackagePart = this.PackagePart;
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
 
       return p;
     }
@@ -1384,7 +1357,7 @@ namespace Xceed.Document.NET
       var p = base.InsertParagraphBeforeSelf( text, trackChanges, formatting );
       p.PackagePart = this.PackagePart;
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
 
       return p;
     }
@@ -1518,11 +1491,10 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements().Last().Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
 
       return this;
     }
-
 
     /// <summary>
     /// Remove the Hyperlink at the provided index. The first hyperlink is at index 0.
@@ -1732,8 +1704,11 @@ namespace Xceed.Document.NET
     public void Remove( bool trackChanges )
     {
       var mainContainer = this.GetMainParentContainer();
-      mainContainer.RemoveParagraph( this, trackChanges );
-      mainContainer.NeedRefreshParagraphIndexes = true;
+      if( mainContainer != null )
+      {
+        mainContainer.RemoveParagraph( this, trackChanges );
+        mainContainer.NeedRefreshParagraphIndexes = true;
+      }
     }
 
     //public Picture InsertPicture(Picture picture)
@@ -2154,7 +2129,7 @@ namespace Xceed.Document.NET
         HelperFunctions.RenumberIDs( Document );
       }
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
     }
 
     /// <summary>
@@ -2211,7 +2186,7 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).Reverse().Take( newRuns.Count() ).ToList();
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
 
       return this;
     }
@@ -2379,7 +2354,7 @@ namespace Xceed.Document.NET
 
       _runs = this.Xml.Elements().Last().Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
       return this;
     }
 
@@ -2606,7 +2581,7 @@ namespace Xceed.Document.NET
       this.Xml.Add( oMathPara );
       _runs = this.Xml.Elements( XName.Get( "oMathPara", Document.m.NamespaceName ) ).ToList();
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
 
       // Return paragraph with equation
       return this;
@@ -3853,7 +3828,7 @@ namespace Xceed.Document.NET
         }
 
         // In some cases, removing an empty paragraph is allowed
-        var canRemove = removeEmptyParagraph && GetElementTextLength( parentElement ) == 0;
+        var canRemove = removeEmptyParagraph && GetElementTextLength( parentElement ) == 1 && string.IsNullOrEmpty( Text );
         if( parentElement.Parent != null )
         {
           // Need to make sure there is another paragraph in the parent cell
@@ -3879,7 +3854,7 @@ namespace Xceed.Document.NET
         HelperFunctions.RenumberIDs( Document );
       }
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
     }
 
 
@@ -4240,6 +4215,12 @@ namespace Xceed.Document.NET
       return replaceSuccess;
     }
 
+
+
+
+
+
+
     public bool ReplaceText( FunctionReplaceTextOptions replaceTextOptions )
     {
       if( string.IsNullOrEmpty( replaceTextOptions.FindPattern ) )
@@ -4480,7 +4461,7 @@ namespace Xceed.Document.NET
         );
       }
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
     }
 
     /// <summary>
@@ -4525,7 +4506,7 @@ namespace Xceed.Document.NET
       fldSimple.Add( content );
       Xml.Add( fldSimple );
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
       return this;
     }
 
@@ -4584,7 +4565,7 @@ namespace Xceed.Document.NET
         );
       }
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
     }
 
     /// <summary>
@@ -4629,7 +4610,7 @@ namespace Xceed.Document.NET
       fldSimple.Add( content );
       Xml.Add( fldSimple );
 
-      this.GetMainParentContainer().NeedRefreshParagraphIndexes = true;
+      this.NeedRefreshIndexes();
       return this;
     }
 
@@ -4762,7 +4743,7 @@ namespace Xceed.Document.NET
                                   .Where( x => x.Attribute( XName.Get( "id", Document.w.NamespaceName ) )?.Value == id )
                                   .LastOrDefault();
 
-          if( bookmarks != null )
+          if( ( bookmarks != null ) && ( bookmarkStart != null ) )
           {
             bookmarks.Add( new Bookmark()
             {
@@ -6464,6 +6445,31 @@ namespace Xceed.Document.NET
       return false;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     private bool IsInMainContainer()
     {
       return ( ( this.ParentContainer == ContainerType.Body )
@@ -6510,6 +6516,15 @@ namespace Xceed.Document.NET
       }
 
       return fldSimple;
+    }
+
+    internal void NeedRefreshIndexes()
+    {
+      var mainParentContainer = this.GetMainParentContainer();
+      if( mainParentContainer != null )
+      {
+        mainParentContainer.NeedRefreshParagraphIndexes = true;
+      }
     }
 
     internal Container GetMainParentContainer()
@@ -6732,7 +6747,7 @@ namespace Xceed.Document.NET
 
     #endregion
 
-    #region Iternal Methods
+    #region Internal Methods
 
     static internal XElement[] SplitRun( Run r, int index, EditType type = EditType.ins )
     {
@@ -6977,6 +6992,6 @@ namespace Xceed.Document.NET
       );
     }
 
-    #endregion 
+    #endregion
   }
 }

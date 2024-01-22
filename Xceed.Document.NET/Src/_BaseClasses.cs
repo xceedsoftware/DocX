@@ -95,7 +95,7 @@ namespace Xceed.Document.NET
 
     internal double GetAvailableWidth()
     {
-      var currentSection = ( (this.Document.Sections != null) && (this.Document.Sections.Count > 0) )
+      var currentSection = ( ( this.Document.Sections != null ) && ( this.Document.Sections.Count > 0 ) )
                           ? this.Document.Sections[ this.Document.Sections.Count - 1 ]
                           : null;
       if( currentSection != null )
@@ -201,7 +201,7 @@ namespace Xceed.Document.NET
       var newParagraph = new Paragraph( this.Document, newlyInserted, -1 );
       newParagraph.PackagePart = this.PackagePart;
 
-      p.GetMainParentContainer().ClearParagraphsCache();
+      this.ClearMainParentContainerCache( p );
 
       return newParagraph;
     }
@@ -215,7 +215,7 @@ namespace Xceed.Document.NET
       var newParagraph = new Paragraph( this.Document, newlyInserted, -1 );
       newParagraph.PackagePart = this.PackagePart;
 
-      p.GetMainParentContainer().ClearParagraphsCache();
+      this.ClearMainParentContainerCache( p );
 
       return newParagraph;
     }
@@ -258,7 +258,7 @@ namespace Xceed.Document.NET
       var p = new Paragraph( this.Document, newlyInserted, -1 );
       p.PackagePart = this.PackagePart;
 
-      p.GetMainParentContainer().ClearParagraphsCache();
+      this.ClearMainParentContainerCache( p );
 
       return p;
     }
@@ -279,7 +279,7 @@ namespace Xceed.Document.NET
       var p = new Paragraph( this.Document, newlyInserted, -1 );
       p.PackagePart = this.PackagePart;
 
-      p.GetMainParentContainer().ClearParagraphsCache();
+      this.ClearMainParentContainerCache( p );
 
       return p;
     }
@@ -295,9 +295,7 @@ namespace Xceed.Document.NET
 
       foreach( var p in table.Paragraphs )
       {
-        var mainContainer = p.GetMainParentContainer();
-        mainContainer.AddParagraphInCache( p );
-        mainContainer.NeedRefreshParagraphIndexes = true;
+        this.AddParagraphInCache( p );
       }
 
       return table;
@@ -320,9 +318,7 @@ namespace Xceed.Document.NET
 
       foreach( var p in newTable.Paragraphs )
       {
-        var mainContainer = p.GetMainParentContainer();
-        mainContainer.AddParagraphInCache( p );
-        mainContainer.NeedRefreshParagraphIndexes = true;
+        this.AddParagraphInCache( p );
       }
 
       return newTable;
@@ -339,9 +335,7 @@ namespace Xceed.Document.NET
 
       foreach( var p in table.Paragraphs )
       {
-        var mainContainer = p.GetMainParentContainer();
-        mainContainer.AddParagraphInCache( p );
-        mainContainer.NeedRefreshParagraphIndexes = true;
+        this.AddParagraphInCache( p );
       }
       return table;
     }
@@ -363,9 +357,7 @@ namespace Xceed.Document.NET
 
       foreach( var p in newTable.Paragraphs )
       {
-        var mainContainer = p.GetMainParentContainer();
-        mainContainer.AddParagraphInCache( p );
-        mainContainer.NeedRefreshParagraphIndexes = true;
+        this.AddParagraphInCache( p );
       }
 
       return newTable;
@@ -377,25 +369,70 @@ namespace Xceed.Document.NET
       {
         var listItem = list.Items[ i ];
         this.Xml.AddAfterSelf( listItem.Xml );
-        listItem.GetMainParentContainer().AddParagraphInCache( listItem );
       }
+
+      if( list.Items.Count > 0 )
+      {
+        var mainParentContainer = list.Items.LastOrDefault().GetMainParentContainer();
+        if( mainParentContainer != null )
+        {
+          mainParentContainer.ClearParagraphsCache();
+        }
+      }
+
+      this.Document.ClearParagraphsCache();
       return list;
     }
 
     public virtual List InsertListBeforeSelf( List list )
     {
-      foreach( var item in list.Items )
+      for( int i = 0; i < list.Items.Count; i++ )
       {
+        var item = list.Items[ i ];
         this.Xml.AddBeforeSelf( item.Xml );
-        this.Document.AddParagraphInCache( item );
-        item.GetMainParentContainer().AddParagraphInCache( item );
       }
+
+      if( list.Items.Count > 0 )
+      {
+        var mainParentContainer = list.Items.LastOrDefault().GetMainParentContainer();
+        if( mainParentContainer != null )
+        {
+          mainParentContainer.ClearParagraphsCache();
+        }
+      }
+
+      this.Document.ClearParagraphsCache();
       return list;
     }
 
     #endregion
 
     #region Private Methods
+
+    private void ClearMainParentContainerCache( Paragraph p )
+    {
+      if( p == null )
+        return;
+
+      var mainParentContainer = p.GetMainParentContainer();
+      if( mainParentContainer != null )
+      {
+        mainParentContainer.ClearParagraphsCache();
+      }
+    }
+
+    private void AddParagraphInCache( Paragraph p )
+    {
+      if( p == null )
+        return;
+
+      var mainParentContainer = p.GetMainParentContainer();
+      if( mainParentContainer != null )
+      {
+        mainParentContainer.AddParagraphInCache( p );
+        mainParentContainer.NeedRefreshParagraphIndexes = true;
+      }
+    }
 
     private void AddMissingPicturesInDocument( Table t )
     {

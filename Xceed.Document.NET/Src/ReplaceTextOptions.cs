@@ -32,43 +32,94 @@ namespace Xceed.Document.NET
       this.StartIndex = -1;
     }
 
-    public ReplaceTextContainer ContainerLocation { get; set; }
+    public ReplaceTextContainer ContainerLocation
+    {
+      get; set;
+    }
 
-    public int EndIndex { get; set; }
+    public int EndIndex
+    {
+      get; set;
+    }
 
-    public Formatting FormattingToMatch { get; set; }
+    public Formatting FormattingToMatch
+    {
+      get; set;
+    }
 
-    public MatchFormattingOptions FormattingToMatchOptions { get; set; }
+    public MatchFormattingOptions FormattingToMatchOptions
+    {
+      get; set;
+    }
 
-    public RegexOptions RegExOptions { get; set; }
+    public RegexOptions RegExOptions
+    {
+      get; set;
+    }
 
-    public bool RemoveEmptyParagraph { get; set; }
+    public bool RemoveEmptyParagraph
+    {
+      get; set;
+    }
 
-    public int StartIndex { get; set; }
+    public int StartIndex
+    {
+      get; set;
+    }
 
-    public bool StopAfterOneReplacement { get; set; }
+    public bool StopAfterOneReplacement
+    {
+      get; set;
+    }
 
-    public bool TrackChanges { get; set; }
+    public bool TrackChanges
+    {
+      get; set;
+    }
   }
 
-  public class StringReplaceTextOptions : ReplaceTextOptionsBase
+  public class StringReplaceTextOptionsBase : ReplaceTextOptionsBase
   {
-    public StringReplaceTextOptions()
-      : base()
+    public StringReplaceTextOptionsBase() : base()
     {
       this.EscapeRegEx = true;
     }
 
-    public bool EscapeRegEx { get; set; }
+    public bool EscapeRegEx
+    {
+      get; set;
+    }
 
-    public Formatting NewFormatting { get; set; }
+    public string NewValue
+    {
+      get; set;
+    }
 
-    public string NewValue { get; set; }
+    public string SearchValue
+    {
+      get; set;
+    }
 
-    public string SearchValue { get; set; }
-
-    public bool UseRegExSubstitutions { get; set; }
+    public bool UseRegExSubstitutions
+    {
+      get; set;
+    }
   }
+
+  public class StringReplaceTextOptions : StringReplaceTextOptionsBase
+  {
+    public StringReplaceTextOptions()
+      : base()
+    {
+    }
+
+    public Formatting NewFormatting
+    {
+      get; set;
+    }
+  }
+
+
 
   public class FunctionReplaceTextOptions : ReplaceTextOptionsBase
   {
@@ -77,11 +128,20 @@ namespace Xceed.Document.NET
     {
     }
 
-    public string FindPattern { get; set; }
+    public string FindPattern
+    {
+      get; set;
+    }
 
-    public Formatting NewFormatting { get; set; }
+    public Formatting NewFormatting
+    {
+      get; set;
+    }
 
-    public Func<string, string> RegexMatchHandler { get; set; }
+    public Func<string, string> RegexMatchHandler
+    {
+      get; set;
+    }
   }
 
   public class ObjectReplaceTextOptions : ReplaceTextOptionsBase
@@ -92,10 +152,19 @@ namespace Xceed.Document.NET
       this.EscapeRegEx = true;
     }
 
-    public DocumentElement NewObject { get; set; }
+    public DocumentElement NewObject
+    {
+      get; set;
+    }
 
-    public bool EscapeRegEx { get; set; }
+    public bool EscapeRegEx
+    {
+      get; set;
+    }
 
-    public string SearchValue { get; set; }
+    public string SearchValue
+    {
+      get; set;
+    }
   }
 }

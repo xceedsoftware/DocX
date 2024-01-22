@@ -209,7 +209,7 @@ namespace Xceed.Document.NET
 
     public override Table InsertTable( int rowCount, int columnCount )
     {
-      var table =  base.InsertTable( rowCount, columnCount );
+      var table = base.InsertTable( rowCount, columnCount );
       return this.SetMainPart( table );
     }
 

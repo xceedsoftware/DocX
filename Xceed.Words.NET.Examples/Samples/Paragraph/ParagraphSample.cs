@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Xceed.Document.NET;
+using Xceed.Words.NET.Examples;
 
 namespace Xceed.Words.NET.Examples
 {
@@ -121,7 +122,7 @@ namespace Xceed.Words.NET.Examples
         var p5 = document.InsertParagraph();
 
         // Append some text and add formatting to the text with shading pattern.
-        p5.Append( "This is a simple formatted text with shading pattern", formatting);
+        p5.Append( "This is a simple formatted text with shading pattern", formatting );
 
         var shadingPattern = new ShadingPattern()
         {
@@ -408,38 +409,6 @@ namespace Xceed.Words.NET.Examples
         }
       }
     }
-
-    /// <summary>
-    /// Create a document and add html text to it.
-    /// </summary>
-    public static void AddHtml()
-    {
-
-
-
-
-
-
-
-
-
-
-      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
-    }
-
-    /// <summary>
-    /// Create a document and add rtf text to it.
-    /// </summary>
-    public static void AddRtf()
-    {
-
-
-
-
-
-      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
-    }
-
 
     #endregion
 

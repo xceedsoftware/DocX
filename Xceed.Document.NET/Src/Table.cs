@@ -40,7 +40,6 @@ namespace Xceed.Document.NET
     private TableDesign _design;
     private TableLook _tableLook;
     private double _indentFromLeft;
-    internal static Graphics Graphics;
 
     /// <summary>
     /// The custom design\style to apply to this table.
@@ -219,7 +218,6 @@ namespace Xceed.Document.NET
               break;
             }
 
-
           case Alignment.right:
             {
               alignmentString = "right";
@@ -268,6 +266,7 @@ namespace Xceed.Document.NET
     /// <summary>
     /// Auto size this table according to some rule.
     /// </summary>
+    /// 
     public AutoFit AutoFit
     {
       get
@@ -315,16 +314,41 @@ namespace Xceed.Document.NET
               tableAttributeValue = columnAttributeValue = "auto";
 
               // Set table tblW to 0.
-              var tblW = from d in this.Xml.Descendants()
-                          let type = d.Attribute( XName.Get( "w", Document.w.NamespaceName ) )
-                          where ( d.Name.LocalName == "tblW" ) && (type != null)
-                          select type;
+              this.UpdateTableWidth( AutoFit.Contents, "0" );
 
-              foreach( var w in tblW )
+              // Set table width type to auto.
+              var tblPr = this.Xml.Element( XName.Get( "tblPr", Document.w.NamespaceName ) );
+
+              if( tblPr != null )
               {
-                w.Value = "0";
-              }
+                var tblLayout = tblPr.Element( XName.Get( "tblLayout", Document.w.NamespaceName ) );
 
+                if( tblLayout == null )
+                {
+                  var tmp = tblPr.Element( XName.Get( "tblW", Document.w.NamespaceName ) );
+
+                  tmp.AddAfterSelf( new XElement( XName.Get( "tblLayout", Document.w.NamespaceName ) ) );
+                  tmp = tblPr.Element( XName.Get( "tblLayout", Document.w.NamespaceName ) );
+                  tmp.SetAttributeValue( XName.Get( "type", Document.w.NamespaceName ), "autofit" );
+                  tmp = tblPr.Element( XName.Get( "tblW", Document.w.NamespaceName ) );
+                  tmp.SetAttributeValue( XName.Get( "type", Document.w.NamespaceName ), tableAttributeValue );
+                }
+                else
+                {
+                  var types = from d in Xml.Descendants()
+                              let type = d.Attribute( XName.Get( "type", Document.w.NamespaceName ) )
+                              where ( d.Name.LocalName == "tblLayout" ) && type != null
+                              select type;
+
+                  foreach( XAttribute type in types )
+                  {
+                    type.Value = "autofit";
+                  }
+
+                  var tmp = tblPr.Element( XName.Get( "tblW", Document.w.NamespaceName ) );
+                  tmp.SetAttributeValue( XName.Get( "type", Document.w.NamespaceName ), "auto" );
+                }
+              }
               // Set table cells tcW to 0.
               var tcW = from d in this.Xml.Descendants()
                         let type = d.Attribute( XName.Get( "w", Document.w.NamespaceName ) )
@@ -336,59 +360,6 @@ namespace Xceed.Document.NET
                 w.Value = "0";
               }
 
-              // Set gridCol to full length of content.
-              var updatedColumnWidths = new float[ this.ColumnCount ];
-              for( int columnId = 0; columnId < this.ColumnCount; ++columnId )
-              {
-                var maxWidth = 0f;
-                foreach( var row in this.Rows )
-                {
-                  foreach( var paragraph in row.Cells[ columnId ].Paragraphs )
-                  {
-                    var magicTextsWidth = 0f;
-                    foreach( var magicText in paragraph.MagicText )
-                    {
-                      if( Table.Graphics == null )
-                      {
-                        Table.SetGraphicObject();
-                      }
-
-                      var bold = ( magicText.formatting != null && magicText.formatting.Bold != null );
-                      var italic = ( magicText.formatting != null && magicText.formatting.Italic != null );
-                      var underline = ( magicText.formatting != null && magicText.formatting.UnderlineStyle != null );
-                      var strikeout = ( magicText.formatting != null && magicText.formatting.StrikeThrough != null );
-
-                      var fontStyle = FontStyle.Regular;
-                      if( bold )
-                      {
-                        fontStyle |= FontStyle.Bold;
-                      }
-                      if( italic )
-                      {
-                        fontStyle |= FontStyle.Italic;
-                      }
-                      if( underline )
-                      {
-                        fontStyle |= FontStyle.Underline;
-                      }
-                      if( strikeout )
-                      {
-                        fontStyle |= FontStyle.Strikeout;
-                      }
-                      var fontName = ( magicText.formatting != null && magicText.formatting.FontFamily != null ) ? magicText.formatting.FontFamily.Name : this.Document.GetDocDefaultFontFamily();
-                      var fontSize = ( magicText.formatting != null && magicText.formatting.Size != null ) ? magicText.formatting.Size : this.Document.GetDocDefaultFontSize();
-                      var font = new System.Drawing.Font( fontName, Convert.ToSingle( fontSize ), fontStyle, GraphicsUnit.Point );
-                      magicTextsWidth += Table.Graphics.MeasureString( magicText.text, font, int.MaxValue, StringFormat.GenericDefault ).Width;
-                    }
-
-                    maxWidth = Math.Max( maxWidth, magicTextsWidth );
-                  }
-                }
-
-                updatedColumnWidths[ columnId ] = Convert.ToSingle( Math.Round( maxWidth ) );
-              }
-              this.SetWidths( updatedColumnWidths, false );
-
               break;
             }
 
@@ -396,36 +367,24 @@ namespace Xceed.Document.NET
             {
               tableAttributeValue = columnAttributeValue = "pct";
 
-              // Set table tblW to 5000.
-              var tblW = from d in this.Xml.Descendants()
-                         let type = d.Attribute( XName.Get( "w", Document.w.NamespaceName ) )
-                         where ( d.Name.LocalName == "tblW" ) && ( type != null )
-                         select type;
+              // Set table width to 5000 and width type to percentage.
+              this.UpdateTableWidth( AutoFit.Window, "5000" );
 
-              foreach( var w in tblW )
+              // Remove table indentation and layout properties
+              var tblPr = this.Xml.Element( XName.Get( "tblPr", Document.w.NamespaceName ) );
+
+              if( tblPr != null )
               {
-                w.Value = "5000";
-              }
-
-              var columnWidths = this.ColumnWidths;
-              var columnWidthTotal = columnWidths.Sum();
-
-              // Set table cells tcW to valid pct value of 5000.
-              var tcW = from d in this.Xml.Descendants()
-                        let type = d.Attribute( XName.Get( "w", Document.w.NamespaceName ) )
-                        where ( d.Name.LocalName == "tcW" ) && ( type != null )
-                        select type;
-
-              if( tcW.Count() > 0 )
-              {
-                for( int i = 0; i < tcW.Count(); ++i )
+                var tblInd = tblPr.Element( XName.Get( "tblInd", Document.w.NamespaceName ) );
+                if( tblInd != null )
                 {
-                  var currentColumn = (i % columnWidths.Count);
-                  if( currentColumn < columnWidths.Count )
-                  {
-                    var currentColumnWidth = columnWidths[ currentColumn ] * 20;
-                    tcW.ElementAt( i ).Value = Math.Round( currentColumnWidth / ( columnWidthTotal * 20 ) * 5000 ).ToString( CultureInfo.InvariantCulture );
-                  }
+                  tblInd.Remove();
+                }
+
+                var tblLayout = tblPr.Element( XName.Get( "tblLayout", Document.w.NamespaceName ) );
+                if( tblLayout != null )
+                {
+                  tblLayout.Remove();
                 }
               }
 
@@ -488,31 +447,35 @@ namespace Xceed.Document.NET
             }
         }
 
-        // Set table attributes
-        var query = from d in Xml.Descendants()
-                    let type = d.Attribute( XName.Get( "type", Document.w.NamespaceName ) )
-                    where ( d.Name.LocalName == "tblW" ) && type != null
-                    select type;
-
-        foreach( XAttribute type in query )
+        if( value != AutoFit.Window )
         {
-          type.Value = tableAttributeValue;
-        }
+          // Set table attributes
+          var query = from d in Xml.Descendants()
+                      let type = d.Attribute( XName.Get( "type", Document.w.NamespaceName ) )
+                      where ( d.Name.LocalName == "tblW" ) && type != null
+                      select type;
 
-        // Set column attributes
-        query = from d in Xml.Descendants()
-                let type = d.Attribute( XName.Get( "type", Document.w.NamespaceName ) )
-                where ( d.Name.LocalName == "tcW" ) && type != null
-                select type;
+          foreach( XAttribute type in query )
+          {
+            type.Value = tableAttributeValue;
+          }
 
-        foreach( XAttribute type in query )
-        {
-          type.Value = columnAttributeValue;
+          // Set column attributes
+          query = from d in Xml.Descendants()
+                  let type = d.Attribute( XName.Get( "type", Document.w.NamespaceName ) )
+                  where ( d.Name.LocalName == "tcW" ) && type != null
+                  select type;
+
+          foreach( XAttribute type in query )
+          {
+            type.Value = columnAttributeValue;
+          }
         }
 
         _autofit = value;
       }
     }
+
     /// <summary>
     /// The design\style to apply to this table.
     /// </summary>
@@ -1154,7 +1117,7 @@ namespace Xceed.Document.NET
         var val = tblInd.Attribute( XName.Get( "w", Document.w.NamespaceName ) );
         if( val != null )
         {
-          _indentFromLeft = double.Parse( val.Value );
+          _indentFromLeft = double.Parse( val.Value, CultureInfo.InvariantCulture );
         }
       }
 
@@ -1232,7 +1195,7 @@ namespace Xceed.Document.NET
       if( startRow < 0 || endRow <= startRow || endRow >= Rows.Count )
         throw new IndexOutOfRangeException();
       // Foreach each Cell between startIndex and endIndex inclusive.
-      var validRows = this.Rows.GetRange( startRow, endRow - startRow + 1);
+      var validRows = this.Rows.GetRange( startRow, endRow - startRow + 1 );
       foreach( var row in validRows )
       {
         var c = row.Cells[ columnIndex ];
@@ -1717,7 +1680,7 @@ namespace Xceed.Document.NET
                 && ( ( index - gridAfterValue ) <= ( currentPosition + gridSpanValue ) ) )
               {
                 var dir = ( direction && ( index == ( currentPosition + gridSpanValue ) ) );
-                this.AddCellToRow( row, cell, posIndex, dir );                
+                this.AddCellToRow( row, cell, posIndex, dir );
                 break;
               }
 
@@ -1778,6 +1741,7 @@ namespace Xceed.Document.NET
       var totalTableWidth = widths.Sum();
       var availableWidth = this.Document.GetAvailableWidth();
       // Using autoFit and total columns size exceed page size => use a percentage of the page.
+
       if( ( this.AutoFit != AutoFit.Fixed ) && ( totalTableWidth > availableWidth ) )
       {
         var newWidths = new List<float>( widths.Length );
@@ -2733,14 +2697,6 @@ namespace Xceed.Document.NET
 
     #region Private Methods
 
-    private static void SetGraphicObject()
-    {
-      var fakeImage = new Bitmap( 1, 1 );
-      Table.Graphics = Graphics.FromImage( fakeImage );
-      Table.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-      Table.Graphics.PageUnit = GraphicsUnit.Pixel;
-    }
-
     private Row InsertRow( List<XElement> content, Int32 index )
     {
       var precedingRowGridAfter = 0;
@@ -2842,6 +2798,55 @@ namespace Xceed.Document.NET
         tableLook.SetAttributeValue( XName.Get( "lastColumn", Document.w.NamespaceName ), _tableLook.LastColumn ? "1" : "0" );
         tableLook.SetAttributeValue( XName.Get( "noHBand", Document.w.NamespaceName ), _tableLook.NoHorizontalBanding ? "1" : "0" );
         tableLook.SetAttributeValue( XName.Get( "noVBand", Document.w.NamespaceName ), _tableLook.NoVerticalBanding ? "1" : "0" );
+      }
+    }
+
+    private void UpdateTableWidth( AutoFit autoFit, string widthValue )
+    {
+      switch( autoFit )
+      {
+        case AutoFit.Contents:
+          if( this.Xml != null )
+          {
+            var tblW = from d in this.Xml.Descendants()
+                       let type = d.Attribute( XName.Get( "w", Document.w.NamespaceName ) )
+                       where ( d.Name.LocalName == "tblW" ) && ( type != null )
+                       select type;
+
+            foreach( var w in tblW )
+            {
+              w.Value = widthValue;
+            }
+          }
+          break;
+
+        case AutoFit.Window:
+          if( this.Xml != null )
+          {
+            var tblPr = this.Xml.Descendants().FirstOrDefault( el => el.Name.LocalName == "tblPr" );
+            if( tblPr == null )
+            {
+              this.Xml.AddFirst( new XElement( XName.Get( "tblPr", Document.w.NamespaceName ) ) );
+              tblPr = this.Xml.Element( XName.Get( "tblPr", Document.w.NamespaceName ) );
+            }
+
+            // Set the table width to a percentage value.
+            var tableWidths = tblPr.Descendants().Where( el => el.Name.LocalName == "tblW" );
+            if( tableWidths != null )
+            {
+              tableWidths.Remove();
+            }
+
+            var tableWidth = new XElement( XName.Get( "tblW", Document.w.NamespaceName ),
+                                           new XAttribute( XName.Get( "type", Document.w.NamespaceName ), "pct" ),
+                                           new XAttribute( XName.Get( "w", Document.w.NamespaceName ), widthValue ) );
+
+            tblPr.Add( tableWidth );
+          }
+          break;
+
+        default:
+          break;
       }
     }
 
@@ -2950,7 +2955,7 @@ namespace Xceed.Document.NET
       internal set
       {
         if( value < 0 )
-          throw new InvalidDataException("GridAfter value must be greater than 0");
+          throw new InvalidDataException( "GridAfter value must be greater than 0" );
 
         var trPr = this.Xml.Element( XName.Get( "trPr", Document.w.NamespaceName ) );
         if( trPr == null )
@@ -2961,12 +2966,12 @@ namespace Xceed.Document.NET
 
         var gridAfter = trPr.Element( XName.Get( "gridAfter", Document.w.NamespaceName ) );
 
-        if( (gridAfter == null) && (value > 0) )
+        if( ( gridAfter == null ) && ( value > 0 ) )
         {
           trPr.Add( new XElement( XName.Get( "gridAfter", Document.w.NamespaceName ), new XAttribute( XName.Get( "val", Document.w.NamespaceName ), value ) ) );
         }
 
-        if( (gridAfter != null) && (value == 0) )
+        if( ( gridAfter != null ) && ( value == 0 ) )
         {
           gridAfter.Remove();
         }
@@ -2983,7 +2988,7 @@ namespace Xceed.Document.NET
         List<Cell> cells =
         (
             from c in this.Xml.Descendants( XName.Get( "tc", Document.w.NamespaceName ) )
-            where (this.GetParentRow( c ) == this.Xml)
+            where ( this.GetParentRow( c ) == this.Xml )
             select new Cell( this, this.Document, c )
         ).ToList();
 
@@ -3149,7 +3154,7 @@ namespace Xceed.Document.NET
       this.PackagePart = table.PackagePart;
     }
 
-    #endregion   
+    #endregion
 
     #region Public Methods
 
@@ -3260,7 +3265,7 @@ namespace Xceed.Document.NET
 
 
 
-#endregion
+    #endregion
 
     #region Private Methods
 
@@ -4757,7 +4762,7 @@ namespace Xceed.Document.NET
 
       var firstParagraph = this.Paragraphs[ 0 ];
       return this.Paragraphs.Count == 1
-             && string.IsNullOrEmpty(firstParagraph.Text)
+             && string.IsNullOrEmpty( firstParagraph.Text )
              && !firstParagraph.IsListItem
              && firstParagraph.Pictures.Count == 0
              && firstParagraph.Hyperlinks.Count == 0;
