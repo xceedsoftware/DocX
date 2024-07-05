@@ -33,6 +33,7 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * Insert a document at a specific point in another document
 * Wrap text around Charts
 * Format Charts Axis' title
+* Replace text with html
 
 ## What else do I need?
 
