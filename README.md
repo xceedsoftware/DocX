@@ -150,7 +150,7 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 </tr>
 <tr>
 <tr>
-<td>Available on .net 5 for .net 5/6 applications</td>
+<td>Available on .net for .net 5+ applications</td>
 <td>YES</td>
 <td>YES</td>
 </tr>
