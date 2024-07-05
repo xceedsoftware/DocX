@@ -1,6 +1,22 @@
 ﻿/***************************************************************************************
+ 
+   DocX – DocX is the community edition of Xceed Words for .NET
+ 
+   Copyright (C) 2009-2024 Xceed Software Inc.
+ 
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
+ 
+   For more features and fast professional support,
+   pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
+ 
+  *************************************************************************************/
+
+
+/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Protection Sample Application
-Copyright (c) 2009-2023 - Xceed Software Inc.
+Copyright (c) 2009-2024 - Xceed Software Inc.
 
 This application demonstrates how to add protection to a docx file when using the API 
 from the Xceed Words for .NET.
@@ -39,9 +55,6 @@ namespace Xceed.Words.NET.Examples
 
     #region Public Methods
 
-    /// <summary>
-    /// Create a read only document that can be edited by entering a valid password.
-    /// </summary>
     public static void AddPasswordProtection()
     {
       Console.WriteLine( "\tAddPasswordProtection()" );
@@ -71,9 +84,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Create a read only document that can be edited by stopping the protection.
-    /// </summary>
     public static void AddProtection()
     {
       Console.WriteLine( "\tAddProtection()" );
@@ -102,9 +112,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Load and change a document password protection.
-    /// </summary>
     public static void ChangePasswordProtection()
     {
       Console.WriteLine( "\tChangePasswordProtection()" );

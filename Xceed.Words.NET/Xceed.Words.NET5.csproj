@@ -7,7 +7,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Xceed.Words.NET</RootNamespace>
-    <AssemblyName>Xceed.Words.NET5</AssemblyName>
+    <AssemblyName>Xceed.Words.NET</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
@@ -31,8 +31,11 @@
     <Compile Include="..\Xceed.Document.NET\AssemblyVersionInfoCommon.cs" Link="AssemblyVersionInfoCommon.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Xceed.Document.NET\Xceed.Document.NET5.csproj">
-      <Name>Xceed.Document.NET5</Name>
+      <Name>Xceed.Document.NET</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

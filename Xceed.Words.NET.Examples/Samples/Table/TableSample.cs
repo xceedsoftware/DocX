@@ -1,6 +1,22 @@
 ﻿/***************************************************************************************
+ 
+   DocX – DocX is the community edition of Xceed Words for .NET
+ 
+   Copyright (C) 2009-2024 Xceed Software Inc.
+ 
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
+ 
+   For more features and fast professional support,
+   pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
+ 
+  *************************************************************************************/
+
+
+/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Table Sample Application
-Copyright (c) 2009-2023 - Xceed Software Inc.
+Copyright (c) 2009-2024 - Xceed Software Inc.
 
 This application demonstrates how to create and format a table when using the API 
 from the Xceed Words for .NET.
@@ -43,9 +59,6 @@ namespace Xceed.Words.NET.Examples
 
     #region Public Methods
 
-    /// <summary>
-    /// Create a table, insert rows, image and replace text.
-    /// </summary>
     public static void InsertRowAndImageTable()
     {
       Console.WriteLine( "\tInsertRowAndImageTable()" );
@@ -114,9 +127,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Create a table, insert rows and make the table wraps around text.
-    /// </summary>
     public static void AddTableWithTextWrapping()
     {
 
@@ -129,9 +139,6 @@ namespace Xceed.Words.NET.Examples
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
-    /// <summary>
-    /// Clone a table and modify data in it.
-    /// </summary>
     public static void CloneTable()
     {
 
@@ -140,9 +147,6 @@ namespace Xceed.Words.NET.Examples
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
-    /// <summary>
-    /// Create a table and set the text direction of each cell.
-    /// </summary>
     public static void TextDirectionTable()
     {
       Console.WriteLine( "\tTextDirectionTable()" );
@@ -187,9 +191,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Load a document, gets its table and replace the default row with updated copies of it.
-    /// </summary>
     public static void CreateRowsFromTemplate()
     {
       Console.WriteLine( "\tCreateRowsFromTemplate()" );
@@ -228,11 +229,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Add a Table in a document where its columns will have a specific width. In addition,
-    /// the left margin of the row cells will be removed for all rows except the first.
-    /// Finally, a blank border will be set for the table's top and bottom borders.
-    /// </summary>
     public static void ColumnsWidth()
     {
       Console.WriteLine( "\tColumnsWidth()" );
@@ -289,9 +285,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Add a table and merged some cells. Individual cells can also be removed by shifting their right neighbors to the left.
-    /// </summary>
     public static void MergeCells()
     {
       Console.WriteLine( "\tMergeCells()" );
@@ -337,9 +330,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Get/Set shading pattern to a table or cells.
-    /// </summary>
     public static void ShadingPattern()
     {
       Console.WriteLine( "\tShadingPattern()" );

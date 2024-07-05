@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -22,9 +22,6 @@ using System.Collections.ObjectModel;
 
 namespace Xceed.Document.NET
 {
-  /// <summary>
-  /// Represents a List in a document.
-  /// </summary>
   public class List : InsertBeforeOrAfter
   {
 
@@ -43,27 +40,16 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// This is a list of paragraphs that will be added to the document
-    /// when the list is inserted into the document.
-    /// The paragraph needs a numPr defined to be in this items collection.
-    /// </summary>
     public List<Paragraph> Items
     {
       get; private set;
     }
 
-    /// <summary>
-    /// The numId used to reference the list settings in the numbering.xml
-    /// </summary>
     public int NumId
     {
       get; private set;
     }
 
-    /// <summary>
-    /// The ListItemType (bullet or numbered) of the list.
-    /// </summary>
     public ListItemType? ListType
     {
       get
@@ -105,13 +91,6 @@ namespace Xceed.Document.NET
 
     #region Public Methods
 
-    /// <summary>
-    /// Adds an item to the list.
-    /// </summary>
-    /// <param name="paragraph"></param>
-    /// <exception cref="InvalidOperationException">
-    /// Throws an InvalidOperationException if the item cannot be added to the list.
-    /// </exception>
     public void AddItem( Paragraph paragraph )
     {
       if( paragraph.IsListItem )
@@ -147,13 +126,6 @@ namespace Xceed.Document.NET
       AddItem( paragraph );
     }
 
-    /// <summary>
-    /// Determine if it is able to add the item to the list
-    /// </summary>
-    /// <param name="paragraph"></param>
-    /// <returns>
-    /// Return true if AddItem(...) will succeed with the given paragraph.
-    /// </returns>
     public bool CanAddListItem( Paragraph paragraph )
     {
       if( paragraph.IsListItem )
@@ -197,6 +169,46 @@ namespace Xceed.Document.NET
 
       // Remove listItems from document.
       this.Items.ForEach( paragraph => paragraph.Remove( false ) );
+    }
+
+    public override Paragraph InsertParagraphBeforeSelf( string text )
+    {
+      return this.Items.First().InsertParagraphBeforeSelf( text, false, new Formatting() );
+    }
+
+    public override Paragraph InsertParagraphAfterSelf( string text )
+    {
+      return this.Items.Last().InsertParagraphAfterSelf( text, false, new Formatting() );
+    }
+
+    public override Paragraph InsertParagraphBeforeSelf( Paragraph p )
+    {
+      return this.Items.First().InsertParagraphBeforeSelf( p );
+    }
+
+    public override Paragraph InsertParagraphAfterSelf( Paragraph p )
+    {
+      return this.Items.Last().InsertParagraphBeforeSelf( p );
+    }
+
+    public override Paragraph InsertParagraphBeforeSelf( string text, bool trackChanges )
+    {
+      return this.Items.First().InsertParagraphBeforeSelf( text, trackChanges, new Formatting() );
+    }
+
+    public override Paragraph InsertParagraphAfterSelf( string text, bool trackChanges )
+    {
+      return this.Items.Last().InsertParagraphAfterSelf( text, trackChanges, new Formatting() );
+    }
+
+    public override Paragraph InsertParagraphBeforeSelf( string text, bool trackChanges, Formatting formatting )
+    {
+      return this.Items.First().InsertParagraphBeforeSelf( text, trackChanges, formatting );
+    }
+
+    public override Paragraph InsertParagraphAfterSelf( string text, bool trackChanges, Formatting formatting )
+    {
+      return this.Items.Last().InsertParagraphBeforeSelf( text, trackChanges, formatting );
     }
 
     #endregion
@@ -269,11 +281,6 @@ namespace Xceed.Document.NET
 
 
 
-    /// <summary>
-    /// Get the abstractNum definition for the given numId
-    /// </summary>
-    /// <param name="numId">The numId on the pPr element</param>
-    /// <returns>XElement representing the requested abstractNum</returns>
     internal XElement GetAbstractNum( int numId )
     {
       return HelperFunctions.GetAbstractNum( this.Document, numId.ToString() );
@@ -426,14 +433,6 @@ namespace Xceed.Document.NET
     }
 
 
-    /// <summary>
-    /// Method to determine the last numId for a list element. 
-    /// Also useful for determining the next numId to use for inserting a new list element into the document.
-    /// </summary>
-    /// <returns>
-    /// 0 if there are no elements in the list already.
-    /// Increment the return for the next valid value of a new list element.
-    /// </returns>
     private int GetMaxNumId()
     {
       const int defaultValue = 0;
@@ -446,14 +445,6 @@ namespace Xceed.Document.NET
       return defaultValue;
     }
 
-    /// <summary>
-    /// Method to determine the last abstractNumId for a list element.
-    /// Also useful for determining the next abstractNumId to use for inserting a new list element into the document.
-    /// </summary>
-    /// <returns>
-    /// -1 if there are no elements in the list already.
-    /// Increment the return for the next valid value of a new list element.
-    /// </returns>
     private int GetMaxAbstractNumId()
     {
       const int defaultValue = -1;

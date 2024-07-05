@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -69,27 +69,11 @@ namespace Xceed.Document.NET
       return defaultValue;
     }
 
-    /// <summary>
-    /// Sets margin for all the pages in a Document's first section, in inches.
-    /// </summary>
-    /// <param name="document"></param>
-    /// <param name="top">Margin from the top. -1 for no change.</param>
-    /// <param name="bottom">Margin from the bottom. -1 for no change.</param>
-    /// <param name="right">Margin from the right. -1 for no change.</param>
-    /// <param name="left">Margin from the left. -1 for no change.</param>
     public static void SetMargin( this Document document, float top, float bottom, float right, float left )
     {
       Extensions.SetMargin( document.Sections[ 0 ], top, bottom, right, left );
     }
 
-    /// <summary>
-    /// Sets margin for all the pages in a Section in inches.
-    /// </summary>
-    /// <param name="section"></param>
-    /// <param name="top">Margin from the top. -1 for no change.</param>
-    /// <param name="bottom">Margin from the bottom. -1 for no change.</param>
-    /// <param name="right">Margin from the right. -1 for no change.</param>
-    /// <param name="left">Margin from the left. -1 for no change.</param>
     public static void SetMargin( Section section, float top, float bottom, float right, float left )
     {
       if( section == null )

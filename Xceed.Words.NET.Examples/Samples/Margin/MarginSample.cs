@@ -1,6 +1,22 @@
 ﻿/***************************************************************************************
+ 
+   DocX – DocX is the community edition of Xceed Words for .NET
+ 
+   Copyright (C) 2009-2024 Xceed Software Inc.
+ 
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
+ 
+   For more features and fast professional support,
+   pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
+ 
+  *************************************************************************************/
+
+
+/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Margin Sample Application
-Copyright (c) 2009-2023 - Xceed Software Inc.
+Copyright (c) 2009-2024 - Xceed Software Inc.
 
 This application demonstrates how to use margins, indentations and directions
 when using the API from the Xceed Words for .NET.
@@ -38,9 +54,6 @@ namespace Xceed.Words.NET.Examples
 
     #region Public Methods
 
-    /// <summary>
-    /// Modify the direction of text in a paragraph or document.
-    /// </summary>
     public static void SetDirection()
     {
       Console.WriteLine( "\tSetDirection()" );
@@ -77,9 +90,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Add indentations on paragraphs.
-    /// </summary>
     public static void Indentation()
     {
       Console.WriteLine( "\tIndentation()" );
@@ -113,9 +123,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Add margins for a document.
-    /// </summary>
     public static void Margins()
     {
       Console.WriteLine( "\tMargins()" );

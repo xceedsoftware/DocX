@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -44,9 +44,6 @@ namespace Xceed.Document.NET
     Both
   }
 
-  /// <summary>
-  /// Represents a document.
-  /// </summary>
   public class Document : Container, IDisposable
   {
     #region Namespaces
@@ -460,27 +457,6 @@ namespace Xceed.Document.NET
     //  }
     //}
 
-    /// <summary>
-    /// Returns true if any editing restrictions are imposed on this document.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     if(document.IsProtected)
-    ///         Console.WriteLine("Protected");
-    ///     else
-    ///         Console.WriteLine("Not protected");
-    ///         
-    ///     // Save the document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
-    /// <seealso cref="AddProtection(EditRestrictions)"/>
-    /// <seealso cref="RemoveProtection"/>
-    /// <seealso cref="GetProtectionType"/>
     public bool IsProtected
     {
       get
@@ -523,33 +499,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns a collection of Headers in this Document's first section.
-    /// A document's section typically contains three Headers.
-    /// A default one (odd), one for the first page and one for even pages.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///    // Add header support to this document.
-    ///    document.AddHeaders();
-    ///
-    ///    // Get a collection of all headers in this document's first section.
-    ///    Headers headers = document.Headers;
-    ///
-    ///    // The header used for the first page in this document's first section.
-    ///    Header first = headers.First;
-    ///
-    ///    // The header used for odd pages in this document's first section.
-    ///    Header odd = headers.Odd;
-    ///
-    ///    // The header used for even pages in this document's first section.
-    ///    Header even = headers.Even;
-    /// }
-    /// </code>
-    /// </example>
     public Headers Headers
     {
       get
@@ -562,33 +511,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns a collection of Footers in this Document's first section.
-    /// A document's section typically contains three Footers.
-    /// A default one (odd), one for the first page and one for even pages.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///    // Add footer support to this document's first section.
-    ///    document.AddFooters();
-    ///
-    ///    // Get a collection of all footers in this document's first section.
-    ///    Footers footers = document.Footers;
-    ///
-    ///    // The footer used for the first page in this document's first section.
-    ///    Footer first = footers.First;
-    ///
-    ///    // The footer used for odd pages in this document's first section.
-    ///    Footer odd = footers.Odd;
-    ///
-    ///    // The footer used for even pages in this document's first section.
-    ///    Footer even = footers.Even;
-    /// }
-    /// </code>
-    /// </example>
     public Footers Footers
     {
       get
@@ -601,41 +523,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Should the Document use different Headers and Footers for odd and even pages?
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Add header support to this document.
-    ///     document.AddHeaders();
-    ///
-    ///     // Get a collection of all headers in this document.
-    ///     Headers headers = document.Headers;
-    ///
-    ///     // The header used for odd pages of this document.
-    ///     Header odd = headers.Odd;
-    ///
-    ///     // The header used for even pages of this document.
-    ///     Header even = headers.Even;
-    ///
-    ///     // Force the document to use a different header for odd and even pages.
-    ///     document.DifferentOddAndEvenPages = true;
-    ///
-    ///     // Content can be added to the Headers in the same manor that it would be added to the main document.
-    ///     Paragraph p1 = odd.InsertParagraph();
-    ///     p1.Append("This is the odd pages header.");
-    ///     
-    ///     Paragraph p2 = even.InsertParagraph();
-    ///     p2.Append("This is the even pages header.");
-    ///
-    ///     // Save all changes to this document.
-    ///     document.Save();    
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public bool DifferentOddAndEvenPages
     {
       get
@@ -665,30 +552,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Should the Document use an independent Header and Footer for the first page?
-    /// </summary>
-    /// <example>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Add header support to this document.
-    ///     document.AddHeaders();
-    ///
-    ///     // The header used for the first page of this document.
-    ///     Header first = document.Headers.First;
-    ///
-    ///     // Force the document to use a different header for first page.
-    ///     document.DifferentFirstPage = true;
-    ///     
-    ///     // Content can be added to the Headers in the same manor that it would be added to the main document.
-    ///     Paragraph p = first.InsertParagraph();
-    ///     p.Append("This is the first pages header.");
-    ///
-    ///     // Save all changes to this document.
-    ///     document.Save();    
-    /// }// Release this document from memory.
-    /// </example>
     public bool DifferentFirstPage
     {
       get
@@ -710,28 +573,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns a list of Images in this document.
-    /// </summary>
-    /// <example>
-    /// Get the unique Id of every Image in this document.
-    /// <code>
-    /// // Load a document.
-    /// var document = DocX.Load(@"C:\Example\Test.docx");
-    ///
-    /// // Loop through each Image in this document.
-    /// foreach (Xceed.Document.NET.Image i in document.Images)
-    /// {
-    ///     // Get the unique Id which identifies this Image.
-    ///     string uniqueId = i.Id;
-    /// }
-    ///
-    /// </code>
-    /// </example>
-    /// <seealso cref="AddImage(string)"/>
-    /// <seealso cref="AddImage(Stream, string)"/>
-    /// <seealso cref="Paragraph.Pictures"/>
-    /// <seealso cref="Paragraph.InsertPicture"/>
     public List<Image> Images
     {
       get
@@ -750,59 +591,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns a list of custom properties in this document.
-    /// </summary>
-    /// <example>
-    /// Method 1: Get the name, type and value of each CustomProperty in this document.
-    /// <code>
-    /// // Load Example.docx
-    /// var document = DocX.Load(@"C:\Example\Test.docx");
-    ///
-    /// /*
-    ///  * No two custom properties can have the same name,
-    ///  * so a Dictionary is the perfect data structure to store them in.
-    ///  * Each custom property can be accessed using its name.
-    ///  */
-    /// foreach (string name in document.CustomProperties.Keys)
-    /// {
-    ///     // Grab a custom property using its name.
-    ///     CustomProperty cp = document.CustomProperties[name];
-    ///
-    ///     // Write this custom properties details to Console.
-    ///     Console.WriteLine(string.Format("Name: '{0}', Value: {1}", cp.Name, cp.Value));
-    /// }
-    ///
-    /// Console.WriteLine("Press any key...");
-    ///
-    /// // Wait for the user to press a key before closing the Console.
-    /// Console.ReadKey();
-    /// </code>
-    /// </example>
-    /// <example>
-    /// Method 2: Get the name, type and value of each CustomProperty in this document.
-    /// <code>
-    /// // Load Example.docx
-    /// var document = DocX.Load(@"C:\Example\Test.docx");
-    /// 
-    /// /*
-    ///  * No two custom properties can have the same name,
-    ///  * so a Dictionary is the perfect data structure to store them in.
-    ///  * The values of this Dictionary are CustomProperties.
-    ///  */
-    /// foreach (CustomProperty cp in document.CustomProperties.Values)
-    /// {
-    ///     // Write this custom properties details to Console.
-    ///     Console.WriteLine(string.Format("Name: '{0}', Value: {1}", cp.Name, cp.Value));
-    /// }
-    ///
-    /// Console.WriteLine("Press any key...");
-    ///
-    /// // Wait for the user to press a key before closing the Console.
-    /// Console.ReadKey();
-    /// </code>
-    /// </example>
-    /// <seealso cref="AddCustomProperty"/>
     public Dictionary<string, CustomProperty> CustomProperties
     {
       get
@@ -829,9 +617,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    ///<summary>
-    /// Returns the list of document core properties with corresponding values.
-    ///</summary>
     public Dictionary<string, string> CoreProperties
     {
       get
@@ -858,25 +643,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Get the Text of this document.
-    /// </summary>
-    /// <example>
-    /// Write to Console the Text from this document.
-    /// <code>
-    /// // Load a document
-    /// var document = DocX.Load(@"C:\Example\Test.docx");
-    ///
-    /// // Get the text of this document.
-    /// string text = document.Text;
-    ///
-    /// // Write the text of this document to Console.
-    /// Console.Write(text);
-    ///
-    /// // Wait for the user to press a key before closing the console window.
-    /// Console.ReadKey();
-    /// </code>
-    /// </example>
     public string Text
     {
       get
@@ -918,9 +684,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Get the Footnotes of this document
-    /// </summary>
     public IEnumerable<string> FootnotesText
     {
       get
@@ -930,9 +693,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Get the Endnotes of this document
-    /// </summary>
     public IEnumerable<string> EndnotesText
     {
       get
@@ -1563,33 +1323,6 @@ namespace Xceed.Document.NET
       return null;
     }
 
-    /// <summary>
-    /// Returns the type of editing protection imposed on this document.
-    /// </summary>
-    /// <returns>The type of editing protection imposed on this document.</returns>
-    /// <example>
-    /// <code>
-    /// Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Make sure the document is protected before checking the protection type.
-    ///     if (document.IsProtected)
-    ///     {
-    ///         EditRestrictions protection = document.GetProtectionType();
-    ///         Console.WriteLine("Document is protected using " + protection.ToString());
-    ///     }
-    ///
-    ///     else
-    ///         Console.WriteLine("Document is not protected.");
-    ///
-    ///     // Save the document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
-    /// <seealso cref="AddProtection"/>
-    /// <seealso cref="RemoveProtection"/>
-    /// <seealso cref="IsProtected"/>
     public EditRestrictions GetProtectionType()
     {
       if( IsProtected )
@@ -1602,26 +1335,6 @@ namespace Xceed.Document.NET
       return EditRestrictions.none;
     }
 
-    /// <summary>
-    /// Add editing protection to this document. 
-    /// </summary>
-    /// <param name="er">The type of protection to add to this document.</param>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Allow no editing, only the adding of comment.
-    ///     document.AddProtection(EditRestrictions.comments);
-    ///     
-    ///     // Save the document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
-    /// <seealso cref="RemoveProtection"/>
-    /// <seealso cref="GetProtectionType"/>
-    /// <seealso cref="IsProtected"/>
     public void AddProtection( EditRestrictions er )
     {
       // Call remove protection before adding a new protection element.
@@ -1637,25 +1350,6 @@ namespace Xceed.Document.NET
       _settings.Root.AddFirst( documentProtection );
     }
 
-    /// <summary>
-    /// Remove editing protection from this document.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Remove any editing restrictions that are imposed on this document.
-    ///     document.RemoveProtection();
-    ///
-    ///     // Save the document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
-    /// <seealso cref="AddProtection(EditRestrictions)"/>
-    /// <seealso cref="GetProtectionType"/>
-    /// <seealso cref="IsProtected"/>
     public void RemoveProtection()
     {
       if( IsPasswordProtected )
@@ -1665,34 +1359,6 @@ namespace Xceed.Document.NET
       _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).Remove();
     }
 
-    /// <summary>
-    /// Insert the contents of another document at the end of this document. 
-    /// </summary>
-    /// <param name="remote_document">The document to insert at the end of this document.</param>
-    /// <param name="append">When true, document is added at the end. If False, document is added at the beginning.</param>
-    /// <param name="useSectionBreak">When true, each joined document will be located in its own section. When false, the documents will remain in the same section.</param>
-    /// <param name="sameStyleSelectionMode">When styles have the same name and different attributes, should we keep the local one, the remote one or both of them. Default is Both.</param>
-    /// <example>
-    /// Create a new document and insert an old document into it.
-    /// <code>
-    /// // Create a new document.
-    /// using (DocX newDocument = DocX.Create(@"NewDocument.docx"))
-    /// {
-    ///     // Load an old document.
-    ///     using (DocX oldDocument = DocX.Load(@"OldDocument.docx"))
-    ///     {
-    ///         // Insert the old document into the new document.
-    ///         newDocument.InsertDocument(oldDocument);
-    ///
-    ///         // Save the new document.
-    ///         newDocument.Save();
-    ///     }// Release the old document from memory.
-    /// }// Release the new document from memory.
-    /// </code>
-    /// <remarks>
-    /// If the document being inserted contains Images, CustomProperties and or custom styles, these will be correctly inserted into the new document. In the case of Images, new ID's are generated for the Images being inserted to avoid ID conflicts. CustomProperties with the same name will be ignored not replaced.
-    /// </remarks>
-    /// </example>
     public void InsertDocument( Document remote_document, bool append = true, bool useSectionBreak = true, MergingMode mergingMode = MergingMode.Both )
     {
       XDocument remote_mainDoc;
@@ -1730,41 +1396,6 @@ namespace Xceed.Document.NET
 
 
 
-    /// <summary>
-    /// Insert a new Table at the end of this document.
-    /// </summary>
-    /// <param name="columnCount">The number of columns to create.</param>
-    /// <param name="rowCount">The number of rows to create.</param>
-    /// <returns>A new Table.</returns>
-    /// <example>
-    /// Insert a new Table with 2 columns and 3 rows, at the end of a document.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Create a new Table with 2 columns and 3 rows.
-    ///     Table newTable = document.InsertTable(2, 3);
-    ///
-    ///     // Set the design of this Table.
-    ///     newTable.Design = TableDesign.LightShadingAccent2;
-    ///
-    ///     // Set the column names.
-    ///     newTable.Rows[0].Cells[0].Paragraph.InsertText("Ice Cream", false);
-    ///     newTable.Rows[0].Cells[1].Paragraph.InsertText("Price", false);
-    ///
-    ///     // Fill row 1
-    ///     newTable.Rows[1].Cells[0].Paragraph.InsertText("Chocolate", false);
-    ///     newTable.Rows[1].Cells[1].Paragraph.InsertText("€3:50", false);
-    ///
-    ///     // Fill row 2
-    ///     newTable.Rows[2].Cells[0].Paragraph.InsertText("Vanilla", false);
-    ///     newTable.Rows[2].Cells[1].Paragraph.InsertText("€3:00", false);
-    ///
-    ///     // Save all changes made to document b.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public new Table InsertTable( int rowCount, int columnCount )
     {
       if( rowCount < 1 || columnCount < 1 )
@@ -1788,39 +1419,6 @@ namespace Xceed.Document.NET
 
 
 
-    /// <summary>
-    /// Insert a Table into this document. The Table's source can be a completely different document.
-    /// </summary>
-    /// <param name="t">The Table to insert.</param>
-    /// <param name="index">The index to insert this Table at.</param>
-    /// <returns>The Table now associated with this document.</returns>
-    /// <example>
-    /// Extract a Table from document a and insert it into document b, at index 10.
-    /// <code>
-    /// // Place holder for a Table.
-    /// Table t;
-    ///
-    /// // Load document a.
-    /// using (DocX documentA = DocX.Load(@"C:\Example\a.docx"))
-    /// {
-    ///     // Get the first Table from this document.
-    ///     t = documentA.Tables[0];
-    /// }
-    ///
-    /// // Load document b.
-    /// using (DocX documentB = DocX.Load(@"C:\Example\b.docx"))
-    /// {
-    ///     /* 
-    ///      * Insert the Table that was extracted from document a, into document b. 
-    ///      * This creates a new Table that is now associated with document b.
-    ///      */
-    ///     Table newTable = documentB.InsertTable(10, t);
-    ///
-    ///     // Save all changes made to document b.
-    ///     documentB.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public new Table InsertTable( int index, Table t )
     {
       var t2 = base.InsertTable( index, t );
@@ -1828,38 +1426,6 @@ namespace Xceed.Document.NET
       return t2;
     }
 
-    /// <summary>
-    /// Insert a Table into this document. The Table's source can be a completely different document.
-    /// </summary>
-    /// <param name="t">The Table to insert.</param>
-    /// <returns>The Table now associated with this document.</returns>
-    /// <example>
-    /// Extract a Table from document a and insert it at the end of document b.
-    /// <code>
-    /// // Place holder for a Table.
-    /// Table t;
-    ///
-    /// // Load document a.
-    /// using (DocX documentA = DocX.Load(@"C:\Example\a.docx"))
-    /// {
-    ///     // Get the first Table from this document.
-    ///     t = documentA.Tables[0];
-    /// }
-    ///
-    /// // Load document b.
-    /// using (DocX documentB = DocX.Load(@"C:\Example\b.docx"))
-    /// {
-    ///     /* 
-    ///      * Insert the Table that was extracted from document a, into document b. 
-    ///      * This creates a new Table that is now associated with document b.
-    ///      */
-    ///     Table newTable = documentB.InsertTable(t);
-    ///
-    ///     // Save all changes made to document b.
-    ///     documentB.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public new Table InsertTable( Table t )
     {
       t = base.InsertTable( t );
@@ -1867,42 +1433,6 @@ namespace Xceed.Document.NET
       return t;
     }
 
-    /// <summary>
-    /// Insert a new Table at the end of this document.
-    /// </summary>
-    /// <param name="columnCount">The number of columns to create.</param>
-    /// <param name="rowCount">The number of rows to create.</param>
-    /// <param name="index">The index to insert this Table at.</param>
-    /// <returns>A new Table.</returns>
-    /// <example>
-    /// Insert a new Table with 2 columns and 3 rows, at index 37 in this document.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Create a new Table with 3 rows and 2 columns. Insert this Table at index 37.
-    ///     Table newTable = document.InsertTable(37, 3, 2);
-    ///
-    ///     // Set the design of this Table.
-    ///     newTable.Design = TableDesign.LightShadingAccent3;
-    ///
-    ///     // Set the column names.
-    ///     newTable.Rows[0].Cells[0].Paragraph.InsertText("Ice Cream", false);
-    ///     newTable.Rows[0].Cells[1].Paragraph.InsertText("Price", false);
-    ///
-    ///     // Fill row 1
-    ///     newTable.Rows[1].Cells[0].Paragraph.InsertText("Chocolate", false);
-    ///     newTable.Rows[1].Cells[1].Paragraph.InsertText("€3:50", false);
-    ///
-    ///     // Fill row 2
-    ///     newTable.Rows[2].Cells[0].Paragraph.InsertText("Vanilla", false);
-    ///     newTable.Rows[2].Cells[1].Paragraph.InsertText("€3:00", false);
-    ///
-    ///     // Save all changes made to document b.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public new Table InsertTable( int index, int rowCount, int columnCount )
     {
       if( rowCount < 1 || columnCount < 1 )
@@ -2089,22 +1619,11 @@ namespace Xceed.Document.NET
       return newEndnote;
     }
 
-    ///<summary>
-    /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
-    ///</summary>
-    ///<param name="templateFilePath">The path to the document template file.</param>
-    ///<exception cref="FileNotFoundException">The document template file not found.</exception>
     public void ApplyTemplate( string templateFilePath )
     {
       ApplyTemplate( templateFilePath, true );
     }
 
-    ///<summary>
-    /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
-    ///</summary>
-    ///<param name="templateFilePath">The path to the document template file.</param>
-    ///<param name="includeContent">Whether to copy the document template text content to document.</param>
-    ///<exception cref="FileNotFoundException">The document template file not found.</exception>
     public void ApplyTemplate( string templateFilePath, bool includeContent )
     {
       if( !File.Exists( templateFilePath ) )
@@ -2121,20 +1640,11 @@ namespace Xceed.Document.NET
       }
     }
 
-    ///<summary>
-    /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
-    ///</summary>
-    ///<param name="templateStream">The stream of the document template file.</param>
     public void ApplyTemplate( Stream templateStream )
     {
       ApplyTemplate( templateStream, true );
     }
 
-    ///<summary>
-    /// Applies document template to the document. Document template may include styles, headers, footers, properties, etc. as well as text content.
-    ///</summary>
-    ///<param name="templateStream">The stream of the document template file.</param>
-    ///<param name="includeContent">Whether to copy the document template text content to document.</param>
     public void ApplyTemplate( Stream templateStream, bool includeContent )
     {
       var templatePackage = Package.Open( templateStream );
@@ -2265,27 +1775,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Add an Image into this document from a fully qualified or relative filename.
-    /// </summary>
-    /// <param name="filename">The fully qualified or relative filename.</param>
-    /// <returns>An Image file.</returns>
-    /// <example>
-    /// Add an Image into this document from a fully qualified filename.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Add an Image from a file.
-    ///     document.AddImage(@"C:\Example\Image.png");
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// <seealso cref="AddImage(Stream, string)"/>
-    /// <seealso cref="Paragraph.InsertPicture"/>
     public Image AddImage( string filename )
     {
       string contentType = "";
@@ -2322,32 +1811,6 @@ namespace Xceed.Document.NET
       return this.AddImage( filename as object, contentType );
     }
 
-    /// <summary>
-    /// Add an Image into this document from a Stream.
-    /// </summary>
-    /// <param name="stream">A Stream stream.</param>
-    /// <param name="contentType">MIME type of image.</param>
-    /// <returns>An Image file.</returns>
-    /// <example>
-    /// Add an Image into a document using a Stream. 
-    /// <code>
-    /// // Open a FileStream fs to an Image.
-    /// using (FileStream fs = new FileStream(@"C:\Example\Image.jpg", FileMode.Open))
-    /// {
-    ///     // Load a document.
-    ///     using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    ///     {
-    ///         // Add an Image from a filestream fs.
-    ///         document.AddImage(fs);
-    ///
-    ///         // Save all changes made to this document.
-    ///         document.Save();
-    ///     }// Release this document from memory.
-    /// }
-    /// </code>
-    /// </example>
-    /// <seealso cref="AddImage(string)"/>
-    /// <seealso cref="Paragraph.InsertPicture"/>
     public Image AddImage( Stream stream, string contentType = "image/jpeg" )
     {
       stream.Position = 0;
@@ -2357,121 +1820,21 @@ namespace Xceed.Document.NET
 
 
 
-    /// <summary>
-    /// Adds a hyperlink with a uri to a document and creates a Paragraph which uses it.
-    /// </summary>
-    /// <param name="text">The text as displayed by the hyperlink.</param>
-    /// <param name="uri">The hyperlink itself.</param>
-    /// <returns>Returns a hyperlink with a uri that can be inserted into a Paragraph.</returns>
-    /// <example>
-    /// Adds a hyperlink to a document and creates a Paragraph which uses it.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///    // Add a hyperlink to this document.
-    ///    Hyperlink h = document.AddHyperlink("Google", new Uri("http://www.google.com"));
-    ///    
-    ///    // Add a new Paragraph to this document.
-    ///    Paragraph p = document.InsertParagraph();
-    ///    p.Append("My favourite search engine is ");
-    ///    p.AppendHyperlink(h);
-    ///    p.Append(", I think it's great.");
-    ///
-    ///    // Save all changes made to this document.
-    ///    document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public Hyperlink AddHyperlink( string text, Uri uri )
     {
       return this.AddHyperlinkCore( text, uri, null, null, null );
     }
 
-    /// <summary>
-    /// Adds a hyperlink with an anchor to a document and creates a Paragraph which uses it.
-    /// </summary>
-    /// <param name="text">The text as displayed by the hyperlink.</param>
-    /// <param name="anchor">The anchor to a bookmark.</param>
-    /// <returns>Returns a hyperlink with an anchor that can be inserted into a Paragraph.</returns>
     public Hyperlink AddHyperlink( string text, string anchor )
     {
       return this.AddHyperlinkCore( text, null, anchor, null, null );
     }
 
-    /// <summary>
-    /// Adds three new Headers to this document. One for the first page, one for odd pages and one for even pages.
-    /// </summary>
-    /// <example>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Add header support to this document.
-    ///     document.AddHeaders();
-    ///
-    ///     // Get a collection of all headers in this document.
-    ///     Headers headers = document.Headers;
-    ///
-    ///     // The header used for the first page of this document.
-    ///     Header first = headers.first;
-    ///
-    ///     // The header used for odd pages of this document.
-    ///     Header odd = headers.odd;
-    ///
-    ///     // The header used for even pages of this document.
-    ///     Header even = headers.even;
-    ///
-    ///     // Force the document to use a different header for first, odd and even pages.
-    ///     document.DifferentFirstPage = true;
-    ///     document.DifferentOddAndEvenPages = true;
-    ///
-    ///     // Content can be added to the Headers in the same manor that it would be added to the main document.
-    ///     Paragraph p = first.InsertParagraph();
-    ///     p.Append("This is the first pages header.");
-    ///
-    ///     // Save all changes to this document.
-    ///     document.Save();    
-    /// }// Release this document from memory.
-    /// </example>
     public void AddHeaders()
     {
       this.Sections[ 0 ].AddHeadersOrFootersXml( true );
     }
 
-    /// <summary>
-    /// Adds three new Footers to this document. One for the first page, one for odd pages and one for even pages.
-    /// </summary>
-    /// <example>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Add footer support to this document.
-    ///     document.AddFooters();
-    ///
-    ///     // Get a collection of all footers in this document.
-    ///     Footers footers = document.Footers;
-    ///
-    ///     // The footer used for the first page of this document.
-    ///     Footer first = footers.first;
-    ///
-    ///     // The footer used for odd pages of this document.
-    ///     Footer odd = footers.odd;
-    ///
-    ///     // The footer used for even pages of this document.
-    ///     Footer even = footers.even;
-    ///
-    ///     // Force the document to use a different footer for first, odd and even pages.
-    ///     document.DifferentFirstPage = true;
-    ///     document.DifferentOddAndEvenPages = true;
-    ///
-    ///     // Content can be added to the Footers in the same manor that it would be added to the main document.
-    ///     Paragraph p = first.InsertParagraph();
-    ///     p.Append("This is the first pages footer.");
-    ///
-    ///     // Save all changes to this document.
-    ///     document.Save();    
-    /// }// Release this document from memory.
-    /// </example>
     public void AddFooters()
     {
       this.Sections[ 0 ].AddHeadersOrFootersXml( false );
@@ -2481,40 +1844,6 @@ namespace Xceed.Document.NET
     {
     }
 
-    /// <summary>
-    /// Save this document to a file.
-    /// </summary>
-    /// <param name="filename">The filename to save this document as.</param>
-    /// <example>
-    /// Load a document from one file and save it to another.
-    /// <code>
-    /// // Load a document using its fully qualified filename.
-    /// var document = DocX.Load(@"C:\Example\Test1.docx");
-    ///
-    /// // Insert a new Paragraph
-    /// document.InsertParagraph("Hello world!", false);
-    ///
-    /// // Save the document to a new location.
-    /// document.SaveAs(@"C:\Example\Test2.docx");
-    /// </code>
-    /// </example>
-    /// <example>
-    /// Load a document from a Stream and save it to a file.
-    /// <code>
-    /// DocX document;
-    /// using (FileStream fs1 = new FileStream(@"C:\Example\Test1.docx", FileMode.Open))
-    /// {
-    ///     // Load a document using a stream.
-    ///     document = DocX.Load(fs1);
-    ///
-    ///     // Insert a new Paragraph
-    ///     document.InsertParagraph("Hello world again!", false);
-    /// }
-    ///    
-    /// // Save the document to a new location.
-    /// document.SaveAs(@"C:\Example\Test2.docx");
-    /// </code>
-    /// </example>
     public virtual void SaveAs( string filename, string password = "" )
     {
       this.SetFileName( filename );
@@ -2522,55 +1851,6 @@ namespace Xceed.Document.NET
       Save( password );
     }
 
-    /// <summary>
-    /// Save this document to a Stream.
-    /// </summary>
-    /// <param name="stream">The Stream to save this document to.</param>
-    /// <example>
-    /// Load a document from a file and save it to a Stream.
-    /// <code>
-    /// // Place holder for a document.
-    /// DocX document;
-    ///
-    /// using (FileStream fs1 = new FileStream(@"C:\Example\Test1.docx", FileMode.Open))
-    /// {
-    ///     // Load a document using a stream.
-    ///     document = DocX.Load(fs1);
-    ///
-    ///     // Insert a new Paragraph
-    ///     document.InsertParagraph("Hello world again!", false);
-    /// }
-    ///
-    /// using (FileStream fs2 = new FileStream(@"C:\Example\Test2.docx", FileMode.Create))
-    /// {
-    ///     // Save the document to a different stream.
-    ///     document.SaveAs(fs2);
-    /// }
-    ///
-    /// // Release this document from memory.
-    /// document.Dispose();
-    /// </code>
-    /// </example>
-    /// <example>
-    /// Load a document from one Stream and save it to another.
-    /// <code>
-    /// DocX document;
-    /// using (FileStream fs1 = new FileStream(@"C:\Example\Test1.docx", FileMode.Open))
-    /// {
-    ///     // Load a document using a stream.
-    ///     document = DocX.Load(fs1);
-    ///
-    ///     // Insert a new Paragraph
-    ///     document.InsertParagraph("Hello world again!", false);
-    /// }
-    /// 
-    /// using (FileStream fs2 = new FileStream(@"C:\Example\Test2.docx", FileMode.Create))
-    /// {
-    ///     // Save the document to a different stream.
-    ///     document.SaveAs(fs2);
-    /// }
-    /// </code>
-    /// </example>
     public virtual void SaveAs( Stream stream, string password = "" )
     {
       if( !_isCopyingDocument )
@@ -2581,41 +1861,6 @@ namespace Xceed.Document.NET
       Save( password );
     }
 
-    /// <summary>
-    /// Add a core property to this document. If a core property already exists with the same name it will be replaced. Core property names are case insensitive.
-    /// </summary>
-    ///<param name="propertyName">The property name.</param>
-    ///<param name="propertyValue">The property value.</param>
-    ///<example>
-    /// Add a core properties of each type to a document.
-    /// <code>
-    /// // Load Example.docx
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // If this document does not contain a core property called 'forename', create one.
-    ///     if (!document.CoreProperties.ContainsKey("forename"))
-    ///     {
-    ///         // Create a new core property called 'forename' and set its value.
-    ///         document.AddCoreProperty("forename", "Cathal");
-    ///     }
-    ///
-    ///     // Get this documents core property called 'forename'.
-    ///     string forenameValue = document.CoreProperties["forename"];
-    ///
-    ///     // Print all of the information about this core property to Console.
-    ///     Console.WriteLine(string.Format("Name: '{0}', Value: '{1}'\nPress any key...", "forename", forenameValue));
-    ///     
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// } // Release this document from memory.
-    ///
-    /// // Wait for the user to press a key before exiting.
-    /// Console.ReadKey();
-    /// </code>
-    /// </example>
-    /// <seealso cref="CoreProperties"/>
-    /// <seealso cref="CustomProperty"/>
-    /// <seealso cref="CustomProperties"/>
     public void AddCoreProperty( string propertyName, string propertyValue )
     {
       var propertyNamespacePrefix = propertyName.Contains( ":" ) ? propertyName.Split( ':' )[ 0 ] : "cp";
@@ -2653,42 +1898,6 @@ namespace Xceed.Document.NET
       Document.UpdateCorePropertyValue( this, propertyLocalName, propertyValue );
     }
 
-    /// <summary>
-    /// Add a custom property to this document. If a custom property already exists with the same name it will be replace. CustomProperty names are case insensitive.
-    /// </summary>
-    /// <param name="cp">The CustomProperty to add to this document.</param>
-    /// <example>
-    /// Add a custom properties of each type to a document.
-    /// <code>
-    /// // Load Example.docx
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // A CustomProperty called forename which stores a string.
-    ///     CustomProperty forename;
-    ///
-    ///     // If this document does not contain a custom property called 'forename', create one.
-    ///     if (!document.CustomProperties.ContainsKey("forename"))
-    ///     {
-    ///         // Create a new custom property called 'forename' and set its value.
-    ///         document.AddCustomProperty(new CustomProperty("forename", "Cathal"));
-    ///     }
-    ///
-    ///     // Get this documents custom property called 'forename'.
-    ///     forename = document.CustomProperties["forename"];
-    ///
-    ///     // Print all of the information about this CustomProperty to Console.
-    ///     Console.WriteLine(string.Format("Name: '{0}', Value: '{1}'\nPress any key...", forename.Name, forename.Value));
-    ///     
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// } // Release this document from memory.
-    ///
-    /// // Wait for the user to press a key before exiting.
-    /// Console.ReadKey();
-    /// </code>
-    /// </example>
-    /// <seealso cref="CustomProperty"/>
-    /// <seealso cref="CustomProperties"/>
     public void AddCustomProperty( CustomProperty cp )
     {
       // If this document does not contain a customFilePropertyPart create one.
@@ -2850,9 +2059,6 @@ namespace Xceed.Document.NET
       return paragraphs.ToArray();
     }
 
-    /// <summary>
-    /// Create an equation and insert it in the new paragraph
-    /// </summary>        
     public override Paragraph InsertEquation( String equation, Alignment align = Alignment.center )
     {
       var p = base.InsertEquation( equation, align );
@@ -2861,25 +2067,16 @@ namespace Xceed.Document.NET
       return p;
     }
 
-    /// <summary>
-    /// Insert a chart in document
-    /// </summary>
     public void InsertChart( Chart chart, float width = 432f, float height = 252f )
     {
       this.InsertChart( chart, null, width, height );
     }
 
-    /// <summary>
-    /// Insert a chart in document after the specified paragraph
-    /// </summary>
     public void InsertChartAfterParagraph( Chart chart, Paragraph paragraph, float width = 432f, float height = 252f )
     {
       this.InsertChart( chart, paragraph, width, height );
     }
 
-    /// <summary>
-    /// Create a new List
-    /// </summary>
     public List AddList( string listText = null, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false, Formatting formatting = null )
     {
       if( startNumber.HasValue && continueNumbering )
@@ -2906,9 +2103,6 @@ namespace Xceed.Document.NET
 
 
 
-    /// <summary>
-    /// Add a list item to an existing list
-    /// </summary>
     public List AddListItem( List list,
                              string listText,
                              int level = 0,
@@ -2932,11 +2126,6 @@ namespace Xceed.Document.NET
       return result;
     }
 
-    /// <summary>
-    /// Insert a list in the document
-    /// </summary>
-    /// <param name="list">The list to insert into the document.</param>
-    /// <returns>The list that was inserted into the document.</returns>
     public override List InsertList( List list )
     {
       base.InsertList( list );
@@ -2955,30 +2144,18 @@ namespace Xceed.Document.NET
       return list;
     }
 
-    /// <summary>
-    /// Insert a list at an index location in the document
-    /// </summary>
-    /// <param name="index">Index in document to insert the list.</param>
-    /// <param name="list">The list that was inserted into the document.</param>
-    /// <returns></returns>
     public new List InsertList( int index, List list )
     {
       base.InsertList( index, list );
       return list;
     }
 
-    /// <summary>
-    /// Insert a default Table of Contents in the current document
-    /// </summary>    
     public TableOfContents InsertDefaultTableOfContents()
     {
       var switchesDictionary = TableOfContents.BuildTOCSwitchesDictionary( TableOfContentsSwitches.O | TableOfContentsSwitches.H | TableOfContentsSwitches.Z | TableOfContentsSwitches.U );
       return InsertTableOfContents( "Table of contents", switchesDictionary );
     }
 
-    /// <summary>
-    /// Insert a Table of Contents in the current document
-    /// </summary>
     public TableOfContents InsertTableOfContents( string title, IDictionary<TableOfContentsSwitches, string> switches, string headerStyle = null, int? rightTabPos = null )
     {
       var toc = TableOfContents.CreateTableOfContents( this, title, switches, headerStyle, rightTabPos );
@@ -2986,9 +2163,6 @@ namespace Xceed.Document.NET
       return toc;
     }
 
-    /// <summary>
-    /// Insert a Table of Contents in the current document
-    /// </summary>
     [Obsolete( "This method is obsolete and should no longer be used. Use the InsertTableOfContents methods containing an IDictionary<TableOfContentsSwitches, string> parameter instead." )]
     public TableOfContents InsertTableOfContents( string title, TableOfContentsSwitches switches, string headerStyle = null, int maxIncludeLevel = 3, int? rightTabPos = null )
     {
@@ -2999,9 +2173,6 @@ namespace Xceed.Document.NET
       return toc;
     }
 
-    /// <summary>
-    /// Insert a Table of Contents in the current document at a specific location (prior to the referenced paragraph)
-    /// </summary>
     [Obsolete( "This method is obsolete and should no longer be used. Use the InsertTableOfContents methods containing an IDictionary<TableOfContentsSwitches, string> parameter instead." )]
     public TableOfContents InsertTableOfContents( Paragraph reference, string title, TableOfContentsSwitches switches, string headerStyle = null, int maxIncludeLevel = 3, int? rightTabPos = null )
     {
@@ -3011,9 +2182,6 @@ namespace Xceed.Document.NET
       return toc;
     }
 
-    /// <summary>
-    /// Insert a Table of Contents in the current document at a specific location (prior to the referenced paragraph)
-    /// </summary>
     public TableOfContents InsertTableOfContents( Paragraph reference, string title, IDictionary<TableOfContentsSwitches, string> switches, string headerStyle = null, int? rightTabPos = null )
     {
       var toc = TableOfContents.CreateTableOfContents( this, title, switches, headerStyle, rightTabPos );
@@ -3021,10 +2189,6 @@ namespace Xceed.Document.NET
       return toc;
     }
 
-    /// <summary>
-    /// Copy the Document into a new Document
-    /// </summary>
-    /// <returns>Returns a copy of a the Document</returns>
     public virtual Document Copy()
     {
       return null;
@@ -3481,9 +2645,7 @@ namespace Xceed.Document.NET
         //var partLookup = _package.GetParts().ToDictionary( x => x.Uri.ToString(), x => x, StringComparer.Ordinal );
 
         //var imageParts = new List<PackagePart>();
-        //// all image relationships.
         //var relationshipImages = this.PackagePart.GetRelationshipsByType( RelationshipImage );
-        //// take all used images (from relationships)
         //foreach( var item in relationshipImages )
         //{
         //  var targetUri = item.TargetUri.ToString();
@@ -3495,7 +2657,6 @@ namespace Xceed.Document.NET
         //  }
         //}
 
-        //// all document's relationship parts.
         //var relsParts = partLookup
         // .Where(
         //   item =>
@@ -3548,7 +2709,6 @@ namespace Xceed.Document.NET
         //  }
         //}
 
-        //// Loop through each image part in this document.
         //foreach( var pp in imageParts )
         //{
         //  // Get the image object for this image part.
@@ -3716,13 +2876,6 @@ namespace Xceed.Document.NET
       // Document.PopulateDocument( document, document._package );
     }
 
-    /// <summary>
-    /// Update the custom properties inside the document
-    /// </summary>
-    /// <param name="document">The Document document</param>
-    /// <param name="customPropertyName">The property used inside the document</param>
-    /// <param name="customPropertyValue">The new value for the property</param>
-    /// <remarks>Different version of Word create different Document XML.</remarks>
     internal static void UpdateCustomPropertyValue( Document document, CustomProperty cp )
     {
       var customPropertyName = cp.Name;
@@ -3923,9 +3076,6 @@ namespace Xceed.Document.NET
       return _styles.Element( XName.Get( "styles", Document.w.NamespaceName ) ).Element( XName.Get( "docDefaults", Document.w.NamespaceName ) );
     }
 
-    /// <summary>
-    /// Finds the next free Id for bookmarkStart/docPr.
-    /// </summary>
     internal long GetNextFreeDocPrId()
     {
       lock( nextFreeDocPrIdLock )
@@ -4116,7 +3266,7 @@ namespace Xceed.Document.NET
 
     internal string GetDocDefaultFontFamily()
     {
-      var docDefault = this.Document.GetDocDefaults();
+      var docDefault = this.GetDocDefaults();
       if( docDefault != null )
       {
         var rPrDefault = docDefault.Element( XName.Get( "rPrDefault", Document.w.NamespaceName ) );
@@ -4128,13 +3278,19 @@ namespace Xceed.Document.NET
             var rFonts = rPr.Element( XName.Get( "rFonts", Document.w.NamespaceName ) );
             if( rFonts != null )
             {
-              return rFonts.GetAttribute( XName.Get( "ascii", Document.w.NamespaceName ) );
+              var fontName = rFonts.GetAttribute( XName.Get( "ascii", Document.w.NamespaceName ) )
+                            ?? rFonts.GetAttribute( XName.Get( "hAnsi", Document.w.NamespaceName ) )
+                            ?? rFonts.GetAttribute( XName.Get( "cs", Document.w.NamespaceName ) )
+                            ?? rFonts.GetAttribute( XName.Get( "hint", Document.w.NamespaceName ) )
+                            ?? rFonts.GetAttribute( XName.Get( "eastAsia", Document.w.NamespaceName ) );
+              if( !string.IsNullOrEmpty( fontName ) )
+                return fontName;
             }
           }
         }
       }
 
-      return Document.DefaultFontFamily;
+      return  "Calibri";
     }
 
     #endregion
@@ -5527,17 +4683,17 @@ namespace Xceed.Document.NET
 
       if( package.PartExists( new Uri( "/word/_rels/document.xml.rels", UriKind.Relative ) ) )
       {
+        XDocument docRelationShipDocument;
+        bool needUpdate = false;
         var docRelationships = package.GetPart( new Uri( "/word/_rels/document.xml.rels", UriKind.Relative ) );
         using( var tr = new StreamReader( docRelationships.GetStream( FileMode.Open, FileAccess.Read ) ) )
         {
-          XDocument docRelationShipDocument;
           docRelationShipDocument = XDocument.Load( tr, LoadOptions.PreserveWhitespace );
 
           var urisToValidate = docRelationShipDocument
                                   .Descendants( XName.Get( "Relationship", rel.NamespaceName ) )
                                   .Where( relation => ( relation.Attribute( "TargetMode" ) != null ) && ( ( string )relation.Attribute( "TargetMode" ) == "External" ) );
 
-          bool needUpdate = false;
           foreach( var relation in urisToValidate )
           {
             var target = ( string )relation.Attribute( "Target" );
@@ -5555,13 +4711,13 @@ namespace Xceed.Document.NET
               }
             }
           }
+        }
 
-          if( needUpdate )
+        if( needUpdate )
+        {
+          using( var tw = new StreamWriter( new PackagePartStream( docRelationships.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
           {
-            using( var tw = new StreamWriter( new PackagePartStream( docRelationships.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-            {
-              docRelationShipDocument.Save( tw, SaveOptions.None );
-            }
+            docRelationShipDocument.Save( tw, SaveOptions.None );
           }
         }
       }
@@ -5825,32 +4981,6 @@ namespace Xceed.Document.NET
 
     #region IDisposable Members
 
-    /// <summary>
-    /// Releases all resources used by this document.
-    /// </summary>
-    /// <example>
-    /// If you take advantage of the using keyword, Dispose() is automatically called for you.
-    /// <code>
-    /// // Load document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///      // The document is only in memory while in this scope.
-    ///
-    /// }// Dispose() is automatically called at this point.
-    /// </code>
-    /// </example>
-    /// <example>
-    /// This example is equilivant to the one above example.
-    /// <code>
-    /// // Load document.
-    /// var document = DocX.Load(@"C:\Example\Test.docx");
-    /// 
-    /// // Do something with the document here.
-    ///
-    /// // Dispose of the document.
-    /// document.Dispose();
-    /// </code>
-    /// </example>
     public void Dispose()
     {
       _package.Close();
@@ -5859,9 +4989,6 @@ namespace Xceed.Document.NET
     #endregion
   }
 
-  /// <summary>
-  /// Represents encryption class
-  /// </summary>
   internal class Encryption
   {
     #region Public fields

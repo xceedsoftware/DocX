@@ -84,6 +84,7 @@
     <None Include="Samples\Document\Resources\ReplaceTextWithObjects.docx" />
     <None Include="Samples\Document\Resources\RtfSample.rtf" />
     <None Include="Samples\Document\Resources\Second.docx" />
+    <None Include="Samples\Document\Resources\Template-2.docx" />
     <None Include="Samples\Document\Resources\Template.docx" />
     <None Include="Samples\List\Resources\Lists.docx" />
     <None Include="Samples\Protection\Resources\PasswordProtected.docx" />

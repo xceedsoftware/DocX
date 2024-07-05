@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -28,9 +28,6 @@ using System.Diagnostics;
 
 namespace Xceed.Document.NET
 {
-  /// <summary>
-  /// Represents a Table in a document.
-  /// </summary>
   public class Table : InsertBeforeOrAfter
   {
     #region Private Members
@@ -41,10 +38,6 @@ namespace Xceed.Document.NET
     private TableLook _tableLook;
     private double _indentFromLeft;
 
-    /// <summary>
-    /// The custom design\style to apply to this table.
-    /// 
-    /// </summary>
     private string _customTableDesignName;
     private int _cachedColumnCount = -1;
 
@@ -52,10 +45,6 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// Returns a list of all Paragraphs inside this container.
-    /// </summary>
-    /// 
     public virtual List<Paragraph> Paragraphs
     {
       get
@@ -69,28 +58,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns a list of all Pictures in a Table.
-    /// </summary>
-    /// <example>
-    /// Returns a list of all Pictures in a Table.
-    /// <code>
-    /// <![CDATA[
-    /// // Create a document.
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///     // Get the first Table in a document.
-    ///     Table t = document.Tables[0];
-    ///
-    ///     // Get all of the Pictures in this Table.
-    ///     List<Picture> pictures = t.Pictures;
-    ///
-    ///     // Save this document.
-    ///     document.Save();
-    /// }
-    /// ]]>
-    /// </code>
-    /// </example>
     public List<Picture> Pictures
     {
       get
@@ -112,26 +79,6 @@ namespace Xceed.Document.NET
 
 
 
-    /// <summary>
-    /// Get all of the Hyperlinks in this Table.
-    /// </summary>
-    /// <example>
-    /// Get all of the Hyperlinks in this Table.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///     // Get the first Table in this document.
-    ///     Table t = document.Tables[0];
-    ///
-    ///     // Get a list of all Hyperlinks in this Table.
-    ///     List&lt;Hyperlink&gt; hyperlinks = t.Hyperlinks;
-    ///
-    ///     // Save this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public List<Hyperlink> Hyperlinks
     {
       get
@@ -147,9 +94,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns the number of rows in this table.
-    /// </summary>
     public Int32 RowCount
     {
       get
@@ -158,9 +102,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns the number of columns in this table.
-    /// </summary>
     public Int32 ColumnCount
     {
       get
@@ -178,9 +119,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns a list of rows in this table.
-    /// </summary>
     public List<Row> Rows
     {
       get
@@ -260,13 +198,10 @@ namespace Xceed.Document.NET
           tblInd = tblPr.Element( XName.Get( "tblInd", Document.w.NamespaceName ) );
         }
         tblInd.SetAttributeValue( XName.Get( "w", Document.w.NamespaceName ), _indentFromLeft );
+        tblInd.Add( new XAttribute( XName.Get( "type", Document.w.NamespaceName ), "dxa" ) );
       }
     }
 
-    /// <summary>
-    /// Auto size this table according to some rule.
-    /// </summary>
-    /// 
     public AutoFit AutoFit
     {
       get
@@ -476,9 +411,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The design\style to apply to this table.
-    /// </summary>
     public TableDesign Design
     {
       get
@@ -877,35 +809,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns the index of this Table.
-    /// </summary>
-    /// <example>
-    /// Replace the first table in this document with a new Table.
-    /// <code>
-    /// // Load a document into memory.
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///     // Get the first Table in this document.
-    ///     Table t = document.Tables[0];
-    ///
-    ///     // Get the character index of Table t in this document.
-    ///     int index = t.Index;
-    ///
-    ///     // Remove Table t.
-    ///     t.Remove();
-    ///
-    ///     // Insert a new Table at the original index of Table t.
-    ///     Table newTable = document.InsertTable(index, 4, 4);
-    ///
-    ///     // Set the design of this new Table, so that we can see it.
-    ///     newTable.Design = TableDesign.LightShadingAccent1;
-    ///
-    ///     // Save all changes made to the document.
-    ///     document.Save();
-    /// } // Release this document from memory.
-    /// </code>
-    /// </example>
     public int Index
     {
       get
@@ -920,9 +823,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The custom design/style to apply to this table.
-    /// </summary>
     public string CustomTableDesignName
     {
       get
@@ -937,9 +837,6 @@ namespace Xceed.Document.NET
 
     }
 
-    /// <summary>
-    /// Gets or sets the value of the Table Caption (Alternate Text Title) of this table.
-    /// </summary>
     public string TableCaption
     {
       get
@@ -968,9 +865,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets or sets the value of the Table Description (Alternate Text Description) of this table.
-    /// </summary>
     public string TableDescription
     {
       get
@@ -1183,9 +1077,6 @@ namespace Xceed.Document.NET
 
     #region Public Methods
 
-    /// <summary>
-    /// Merge cells in given column starting with startRow and ending with endRow.
-    /// </summary>
     public void MergeCellsInColumn( int columnIndex, int startRow, int endRow )
     {
       // Check for valid start and end indexes.
@@ -1242,27 +1133,6 @@ namespace Xceed.Document.NET
       start_vMerge.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), "restart" );
     }
 
-    /// <summary>
-    /// Set the direction of all content in this Table.
-    /// </summary>
-    /// <param name="direction">(Left to Right) or (Right to Left)</param>
-    /// <example>
-    /// Set the content direction for all content in a table to RightToLeft.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///     // Get the first table in a document.
-    ///     Table table = document.Tables[0];
-    ///
-    ///     // Set the content direction for all content in this table to RightToLeft.
-    ///     table.SetDirection(Direction.RightToLeft);
-    ///    
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public void SetDirection( Direction direction )
     {
       var tblPr = GetOrCreate_tblPr();
@@ -1274,26 +1144,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Remove this Table from this document.
-    /// </summary>
-    /// <example>
-    /// Remove the first Table from this document.
-    /// <code>
-    /// // Load a document into memory.
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///     // Get the first Table in this document.
-    ///     Table t = d.Tables[0];
-    ///        
-    ///     // Remove this Table.
-    ///     t.Remove();
-    ///
-    ///     // Save all changes made to the document.
-    ///     document.Save();
-    /// } // Release this document from memory.
-    /// </code>
-    /// </example>
     public void Remove()
     {
       this.RemoveInternal();
@@ -1302,135 +1152,26 @@ namespace Xceed.Document.NET
       this.Document.UpdateCacheSections();
     }
 
-    /// <summary>
-    /// Insert a row at the end of this table.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Get the first table in this document.
-    ///     Table table = document.Tables[0];
-    ///        
-    ///     // Insert a new row at the end of this table.
-    ///     Row row = table.InsertRow();
-    ///
-    ///     // Loop through each cell in this new row.
-    ///     foreach (Cell c in row.Cells)
-    ///     {
-    ///         // Set the text of each new cell to "Hello".
-    ///         c.Paragraphs[0].InsertText("Hello", false);
-    ///     }
-    ///
-    ///     // Save the document to a new file.
-    ///     document.SaveAs(@"C:\Example\Test2.docx");
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// <returns>A new row.</returns>
     public Row InsertRow()
     {
       return this.InsertRow( this.RowCount );
     }
 
-    /// <summary>
-    /// Insert a copy of a row at the end of this table.
-    /// </summary>      
-    /// <returns>A new row.</returns>
     public Row InsertRow( Row row, bool keepFormatting = false )
     {
       return this.InsertRow( row, this.RowCount, keepFormatting );
     }
 
-    /// <summary>
-    /// Insert a column to the right of a Table.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Get the first Table in this document.
-    ///     Table table = document.Tables[0];
-    ///
-    ///     // Insert a new column to this right of this table.
-    ///     table.InsertColumn();
-    ///
-    ///     // Set the new columns text to "Row no."
-    ///     table.Rows[0].Cells[table.ColumnCount - 1].Paragraph.InsertText("Row no.", false);
-    ///
-    ///     // Loop through each row in the table.
-    ///     for (int i = 1; i &lt; table.Rows.Count; i++)
-    ///     {
-    ///         // The current row.
-    ///         Row row = table.Rows[i];
-    ///
-    ///         // The cell in this row that belongs to the new column.
-    ///         Cell cell = row.Cells[table.ColumnCount - 1];
-    ///
-    ///         // The first Paragraph that this cell houses.
-    ///         Paragraph p = cell.Paragraphs[0];
-    ///
-    ///         // Insert this rows index.
-    ///         p.InsertText(i.ToString(), false);
-    ///     }
-    ///
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public void InsertColumn()
     {
       this.InsertColumn( this.ColumnCount - 1, true );
     }
 
-    /// <summary>
-    /// Remove the last row from this Table.
-    /// </summary>
-    /// <example>
-    /// Remove the last row from a Table.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Get the first table in this document.
-    ///     Table table = document.Tables[0];
-    ///
-    ///     // Remove the last row from this table.
-    ///     table.RemoveRow();
-    ///
-    ///     // Save the document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public void RemoveRow()
     {
       this.RemoveRow( RowCount - 1 );
     }
 
-    /// <summary>
-    /// Remove a row from this Table.
-    /// </summary>
-    /// <param name="index">The row to remove.</param>
-    /// <example>
-    /// Remove the first row from a Table.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Get the first table in this document.
-    ///     Table table = document.Tables[0];
-    ///
-    ///     // Remove the first row from this table.
-    ///     table.RemoveRow(0);
-    ///
-    ///     // Save the document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public void RemoveRow( int index )
     {
       if( index < 0 || index > RowCount - 1 )
@@ -1445,52 +1186,11 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Remove the last column for this Table.
-    /// </summary>
-    /// <example>
-    /// Remove the last column from a Table.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Get the first table in this document.
-    ///     Table table = document.Tables[0];
-    ///
-    ///     // Remove the last column from this table.
-    ///     table.RemoveColumn();
-    ///
-    ///     // Save the document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public void RemoveColumn()
     {
       this.RemoveColumn( this.ColumnCount - 1 );
     }
 
-    /// <summary>
-    /// Remove a column from this Table.
-    /// </summary>
-    /// <param name="index">The column to remove.</param>
-    /// <example>
-    /// Remove the first column from a Table.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Get the first table in this document.
-    ///     Table table = document.Tables[0];
-    ///
-    ///     // Remove the first column from this table.
-    ///     table.RemoveColumn(0);
-    ///
-    ///     // Save the document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public void RemoveColumn( int index )
     {
       if( ( index < 0 ) || ( index > this.ColumnCount - 1 ) )
@@ -1532,34 +1232,6 @@ namespace Xceed.Document.NET
       this.Document.ClearParagraphsCache();
     }
 
-    /// <summary>
-    /// Insert a row into this table.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Get the first table in this document.
-    ///     Table table = document.Tables[0];
-    ///        
-    ///     // Insert a new row at index 1 in this table.
-    ///     Row row = table.InsertRow(1);
-    ///
-    ///     // Loop through each cell in this new row.
-    ///     foreach (Cell c in row.Cells)
-    ///     {
-    ///         // Set the text of each new cell to "Hello".
-    ///         c.Paragraphs[0].InsertText("Hello", false);
-    ///     }
-    ///
-    ///     // Save the document to a new file.
-    ///     document.SaveAs(@"C:\Example\Test2.docx");
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// <param name="index">Index to insert row at.</param>
-    /// <returns>A new Row</returns>
     public Row InsertRow( int index )
     {
       if( ( index < 0 ) || ( index > this.RowCount ) )
@@ -1577,13 +1249,6 @@ namespace Xceed.Document.NET
       return this.InsertRow( content, index );
     }
 
-    /// <summary>
-    /// Insert a copy of a row into this table.
-    /// </summary>
-    /// <param name="row">Row to copy and insert.</param>
-    /// <param name="index">Index to insert row at.</param>
-    /// <param name="keepFormatting">True to clone everithing, False to clone cell structure only.</param>
-    /// <returns>A new Row</returns>
     public Row InsertRow( Row row, int index, bool keepFormatting = false )
     {
       if( row == null )
@@ -1601,46 +1266,6 @@ namespace Xceed.Document.NET
       return InsertRow( content, index );
     }
 
-    /// <summary>
-    /// Insert a column into a table.
-    /// </summary>
-    /// <param name="index">The index to insert the column at.</param>
-    /// <param name="direction">The side in which you wish to place the colum : True for right, false for left.</param>
-    /// <example>
-    /// Insert a column to the left of a table.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Get the first Table in this document.
-    ///     Table table = document.Tables[0];
-    ///
-    ///     // Insert a new column to this left of this table.
-    ///     table.InsertColumn(0, false);
-    ///
-    ///     // Set the new columns text to "Row no."
-    ///     table.Rows[0].Cells[table.ColumnCount - 1].Paragraph.InsertText("Row no.", false);
-    ///
-    ///     // Loop through each row in the table.
-    ///     for (int i = 1; i &lt; table.Rows.Count; i++)
-    ///     {
-    ///         // The current row.
-    ///         Row row = table.Rows[i];
-    ///
-    ///         // The cell in this row that belongs to the new column.
-    ///         Cell cell = row.Cells[table.ColumnCount - 1];
-    ///
-    ///         // The first Paragraph that this cell houses.
-    ///         Paragraph p = cell.Paragraphs[0];
-    ///
-    ///         // Insert this rows index.
-    ///         p.InsertText(i.ToString(), false);
-    ///     }
-    ///
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public void InsertColumn( int index, bool direction )
     {
       var colCount = this.ColumnCount;
@@ -1704,30 +1329,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Insert a page break before a Table.
-    /// </summary>
-    /// <example>
-    /// Insert a Table and a Paragraph into a document with a page break between them.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {              
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p1 = document.InsertParagraph("Paragraph", false);
-    ///
-    ///     // Insert a new Table.
-    ///     Table t1 = document.InsertTable(2, 2);
-    ///     t1.Design = TableDesign.LightShadingAccent1;
-    ///     
-    ///     // Insert a page break before this Table.
-    ///     t1.InsertPageBreakBeforeSelf();
-    ///     
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override void InsertPageBreakBeforeSelf()
     {
       base.InsertPageBreakBeforeSelf();
@@ -1779,440 +1380,71 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Insert a page break after a Table.
-    /// </summary>
-    /// <example>
-    /// Insert a Table and a Paragraph into a document with a page break between them.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Table.
-    ///     Table t1 = document.InsertTable(2, 2);
-    ///     t1.Design = TableDesign.LightShadingAccent1;
-    ///        
-    ///     // Insert a page break after this Table.
-    ///     t1.InsertPageBreakAfterSelf();
-    ///        
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p1 = document.InsertParagraph("Paragraph", false);
-    ///
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override void InsertPageBreakAfterSelf()
     {
       base.InsertPageBreakAfterSelf();
     }
 
-    /// <summary>
-    /// Insert a new Table before this Table, this Table can be from this document or another document.
-    /// </summary>
-    /// <param name="t">The Table t to be inserted</param>
-    /// <returns>A new Table inserted before this Table.</returns>
-    /// <example>
-    /// Insert a new Table before this Table.
-    /// <code>
-    /// // Place holder for a Table.
-    /// Table t;
-    ///
-    /// // Load document a.
-    /// using (DocX documentA = DocX.Load(@"a.docx"))
-    /// {
-    ///     // Get the first Table from this document.
-    ///     t = documentA.Tables[0];
-    /// }
-    ///
-    /// // Load document b.
-    /// using (DocX documentB = DocX.Load(@"b.docx"))
-    /// {
-    ///     // Get the first Table in document b.
-    ///     Table t2 = documentB.Tables[0];
-    ///
-    ///     // Insert the Table from document a before this Table.
-    ///     Table newTable = t2.InsertTableBeforeSelf(t);
-    ///
-    ///     // Save all changes made to document b.
-    ///     documentB.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override Table InsertTableBeforeSelf( Table t )
     {
       return base.InsertTableBeforeSelf( t );
     }
 
-    /// <summary>
-    /// Insert a new Table into this document before this Table.
-    /// </summary>
-    /// <param name="rowCount">The number of rows this Table should have.</param>
-    /// <param name="columnCount">The number of columns this Table should have.</param>
-    /// <returns>A new Table inserted before this Table.</returns>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     //Insert a Table into this document.
-    ///     Table t = document.InsertTable(2, 2);
-    ///     t.Design = TableDesign.LightShadingAccent1;
-    ///     t.Alignment = Alignment.center;
-    ///     
-    ///     // Insert a new Table before this Table.
-    ///     Table newTable = t.InsertTableBeforeSelf(2, 2);
-    ///     newTable.Design = TableDesign.LightShadingAccent2;
-    ///     newTable.Alignment = Alignment.center;
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override Table InsertTableBeforeSelf( int rowCount, int columnCount )
     {
       return base.InsertTableBeforeSelf( rowCount, columnCount );
     }
 
-    /// <summary>
-    /// Insert a new Table after this Table, this Table can be from this document or another document.
-    /// </summary>
-    /// <param name="t">The Table t to be inserted</param>
-    /// <returns>A new Table inserted after this Table.</returns>
-    /// <example>
-    /// Insert a new Table after this Table.
-    /// <code>
-    /// // Place holder for a Table.
-    /// Table t;
-    ///
-    /// // Load document a.
-    /// using (DocX documentA = DocX.Load(@"a.docx"))
-    /// {
-    ///     // Get the first Table from this document.
-    ///     t = documentA.Tables[0];
-    /// }
-    ///
-    /// // Load document b.
-    /// using (DocX documentB = DocX.Load(@"b.docx"))
-    /// {
-    ///     // Get the first Table in document b.
-    ///     Table t2 = documentB.Tables[0];
-    ///
-    ///     // Insert the Table from document a after this Table.
-    ///     Table newTable = t2.InsertTableAfterSelf(t);
-    ///
-    ///     // Save all changes made to document b.
-    ///     documentB.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override Table InsertTableAfterSelf( Table t )
     {
       return base.InsertTableAfterSelf( t );
     }
 
-    /// <summary>
-    /// Insert a new Table into this document after this Table.
-    /// </summary>
-    /// <param name="rowCount">The number of rows this Table should have.</param>
-    /// <param name="columnCount">The number of columns this Table should have.</param>
-    /// <returns>A new Table inserted before this Table.</returns>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     //Insert a Table into this document.
-    ///     Table t = document.InsertTable(2, 2);
-    ///     t.Design = TableDesign.LightShadingAccent1;
-    ///     t.Alignment = Alignment.center;
-    ///     
-    ///     // Insert a new Table after this Table.
-    ///     Table newTable = t.InsertTableAfterSelf(2, 2);
-    ///     newTable.Design = TableDesign.LightShadingAccent2;
-    ///     newTable.Alignment = Alignment.center;
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override Table InsertTableAfterSelf( int rowCount, int columnCount )
     {
       return base.InsertTableAfterSelf( rowCount, columnCount );
     }
 
-    /// <summary>
-    /// Insert a Paragraph before this Table, this Paragraph may have come from the same or another document.
-    /// </summary>
-    /// <param name="p">The Paragraph to insert.</param>
-    /// <returns>The Paragraph now associated with this document.</returns>
-    /// <example>
-    /// Take a Paragraph from document a, and insert it into document b before this Table.
-    /// <code>
-    /// // Place holder for a Paragraph.
-    /// Paragraph p;
-    ///
-    /// // Load document a.
-    /// using (DocX documentA = DocX.Load(@"a.docx"))
-    /// {
-    ///     // Get the first paragraph from this document.
-    ///     p = documentA.Paragraphs[0];
-    /// }
-    ///
-    /// // Load document b.
-    /// using (DocX documentB = DocX.Load(@"b.docx"))
-    /// {
-    ///     // Get the first Table in document b.
-    ///     Table t = documentB.Tables[0];
-    ///
-    ///     // Insert the Paragraph from document a before this Table.
-    ///     Paragraph newParagraph = t.InsertParagraphBeforeSelf(p);
-    ///
-    ///     // Save all changes made to document b.
-    ///     documentB.Save();
-    /// }// Release this document from memory.
-    /// </code> 
-    /// </example>
     public override Paragraph InsertParagraphBeforeSelf( Paragraph p )
     {
       return base.InsertParagraphBeforeSelf( p );
     }
 
-    /// <summary>
-    /// Insert a new Paragraph before this Table.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <returns>A new Paragraph inserted before this Table.</returns>
-    /// <example>
-    /// Insert a new Paragraph before the first Table in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Table into this document.
-    ///     Table t = document.InsertTable(2, 2);
-    ///
-    ///     t.InsertParagraphBeforeSelf("I was inserted before the next Table.");
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphBeforeSelf( string text )
     {
       return base.InsertParagraphBeforeSelf( text );
     }
 
-    /// <summary>
-    /// Insert a new Paragraph before this Table.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-    /// <returns>A new Paragraph inserted before this Table.</returns>
-    /// <example>
-    /// Insert a new paragraph before the first Table in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Table into this document.
-    ///     Table t = document.InsertTable(2, 2);
-    ///
-    ///     t.InsertParagraphBeforeSelf("I was inserted before the next Table.", false);
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphBeforeSelf( string text, bool trackChanges )
     {
       return base.InsertParagraphBeforeSelf( text, trackChanges );
     }
 
-    /// <summary>
-    /// Insert a new Paragraph before this Table.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-    /// <param name="formatting">The formatting to apply to this insertion.</param>
-    /// <returns>A new Paragraph inserted before this Table.</returns>
-    /// <example>
-    /// Insert a new paragraph before the first Table in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Table into this document.
-    ///     Table t = document.InsertTable(2, 2);
-    ///
-    ///     Formatting boldFormatting = new Formatting();
-    ///     boldFormatting.Bold = true;
-    ///
-    ///     t.InsertParagraphBeforeSelf("I was inserted before the next Table.", false, boldFormatting);
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphBeforeSelf( string text, bool trackChanges, Formatting formatting )
     {
       return base.InsertParagraphBeforeSelf( text, trackChanges, formatting );
     }
 
-    /// <summary>
-    /// Insert a Paragraph after this Table, this Paragraph may have come from the same or another document.
-    /// </summary>
-    /// <param name="p">The Paragraph to insert.</param>
-    /// <returns>The Paragraph now associated with this document.</returns>
-    /// <example>
-    /// Take a Paragraph from document a, and insert it into document b after this Table.
-    /// <code>
-    /// // Place holder for a Paragraph.
-    /// Paragraph p;
-    ///
-    /// // Load document a.
-    /// using (DocX documentA = DocX.Load(@"a.docx"))
-    /// {
-    ///     // Get the first paragraph from this document.
-    ///     p = documentA.Paragraphs[0];
-    /// }
-    ///
-    /// // Load document b.
-    /// using (DocX documentB = DocX.Load(@"b.docx"))
-    /// {
-    ///     // Get the first Table in document b.
-    ///     Table t = documentB.Tables[0];
-    ///
-    ///     // Insert the Paragraph from document a after this Table.
-    ///     Paragraph newParagraph = t.InsertParagraphAfterSelf(p);
-    ///
-    ///     // Save all changes made to document b.
-    ///     documentB.Save();
-    /// }// Release this document from memory.
-    /// </code> 
-    /// </example>
     public override Paragraph InsertParagraphAfterSelf( Paragraph p )
     {
       return base.InsertParagraphAfterSelf( p );
     }
 
-    /// <summary>
-    /// Insert a new Paragraph after this Table.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-    /// <param name="formatting">The formatting to apply to this insertion.</param>
-    /// <returns>A new Paragraph inserted after this Table.</returns>
-    /// <example>
-    /// Insert a new paragraph after the first Table in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Table into this document.
-    ///     Table t = document.InsertTable(2, 2);
-    ///
-    ///     Formatting boldFormatting = new Formatting();
-    ///     boldFormatting.Bold = true;
-    ///
-    ///     t.InsertParagraphAfterSelf("I was inserted after the previous Table.", false, boldFormatting);
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphAfterSelf( string text, bool trackChanges, Formatting formatting )
     {
       return base.InsertParagraphAfterSelf( text, trackChanges, formatting );
     }
 
-    /// <summary>
-    /// Insert a new Paragraph after this Table.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-    /// <returns>A new Paragraph inserted after this Table.</returns>
-    /// <example>
-    /// Insert a new paragraph after the first Table in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Table into this document.
-    ///     Table t = document.InsertTable(2, 2);
-    ///
-    ///     t.InsertParagraphAfterSelf("I was inserted after the previous Table.", false);
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphAfterSelf( string text, bool trackChanges )
     {
       return base.InsertParagraphAfterSelf( text, trackChanges );
     }
 
-    /// <summary>
-    /// Insert a new Paragraph after this Table.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <returns>A new Paragraph inserted after this Table.</returns>
-    /// <example>
-    /// Insert a new Paragraph after the first Table in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Table into this document.
-    ///     Table t = document.InsertTable(2, 2);
-    ///
-    ///     t.InsertParagraphAfterSelf("I was inserted after the previous Table.");
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphAfterSelf( string text )
     {
       return base.InsertParagraphAfterSelf( text );
     }
 
-    /// <summary>
-    /// Set a table border
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    ///using (var document = DocX.Create("Test.docx"))
-    ///{
-    ///    // Insert a table into this document.
-    ///    Table t = document.InsertTable(3, 3);
-    ///
-    ///    // Create a large blue border.
-    ///    Border b = new Border(BorderStyle.Tcbs_single, BorderSize.seven, 0, Color.Blue);
-    ///
-    ///    // Set the tables Top, Bottom, Left and Right Borders to b.
-    ///    t.SetBorder(TableBorderType.Top, b);
-    ///    t.SetBorder(TableBorderType.Bottom, b);
-    ///    t.SetBorder(TableBorderType.Left, b);
-    ///    t.SetBorder(TableBorderType.Right, b);
-    ///
-    ///    // Save the document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
-    /// <param name="borderType">The table border to set</param>
-    /// <param name="border">Border object to set the table border</param>
     public void SetBorder( TableBorderType borderType, Border border )
     {
       /*
@@ -2308,10 +1540,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Get a table border
-    /// </summary>
-    /// <param name="borderType">The table border to get</param>
     public Border GetBorder( TableBorderType borderType )
     {
       // instance with default border values
@@ -2592,11 +1820,6 @@ namespace Xceed.Document.NET
       side.Add( new XAttribute( XName.Get( "type", Document.w.NamespaceName ), "dxa" ) );
     }
 
-    /// <summary>
-    /// Deletes a cell in a row and shift the others to the left.
-    /// </summary>
-    /// <param name="rowIndex">index of the row where a cell will be removed.</param>
-    /// <param name="celIndex">index of the cell to remove in the row.</param>
     public void DeleteAndShiftCellsLeft( int rowIndex, int celIndex )
     {
       var trPr = this.Rows[ rowIndex ].Xml.Element( XName.Get( "trPr", Document.w.NamespaceName ) );
@@ -2662,10 +1885,6 @@ namespace Xceed.Document.NET
       return AutoFit.ColumnWidth;
     }
 
-    /// <summary>
-    /// If the tblPr element doesent exist it is created, either way it is returned by this function.
-    /// </summary>
-    /// <returns>The tblPr element for this Table.</returns>
     internal XElement GetOrCreate_tblPr()
     {
       // Get the element.
@@ -2895,9 +2114,6 @@ namespace Xceed.Document.NET
 
   }
 
-  /// <summary>
-  /// Represents a single row in a Table.
-  /// </summary>
   public class Row : Container
   {
     #region Internal Members
@@ -2908,9 +2124,6 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// Calculates columns count in the row, taking spanned cells into account
-    /// </summary>
     public Int32 ColumnCount
     {
       get
@@ -2931,9 +2144,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns the row.GridAfter => The number of deleted cells in a row.
-    /// </summary>
     public int GridAfter
     {
       get
@@ -2978,9 +2188,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// A list of Cells in this Row.
-    /// </summary>
     public List<Cell> Cells
     {
       get
@@ -3015,9 +2222,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Height in pixels.
-    /// </summary>
     public double Height
     {
       get
@@ -3059,9 +2263,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Minimum Height in pixels.
-    /// </summary>
     public double MinHeight
     {
       get
@@ -3101,11 +2302,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Allow row to break across pages.
-    /// Default value is True : Word will break the contents of the row across the pages.
-    /// When False, the contents of the row will not be split across the pages; it will be entirely moved to the next page.
-    /// </summary>
     public bool BreakAcrossPages
     {
       get
@@ -3167,9 +2363,6 @@ namespace Xceed.Document.NET
         table.Remove();
     }
 
-    /// <summary>
-    /// Merge cells starting with startIndex and ending with endIndex.
-    /// </summary>
     public void MergeCells( int startIndex, int endIndex )
     {
       // Check for valid start and end indexes.
@@ -3565,9 +2758,6 @@ namespace Xceed.Document.NET
 
     #endregion  //ShadingPattern
 
-    /// <summary>
-    /// Width in pixels.
-    /// </summary>
     public double Width
     {
       get
@@ -3657,32 +2847,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// LeftMargin in pixels.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    ///using (var document = DocX.Create("Test.docx"))
-    ///{
-    ///    // Insert table into this document.
-    ///    Table t = document.InsertTable(3, 3);
-    ///    t.Design = TableDesign.TableGrid;
-    ///
-    ///    // Get the center cell.
-    ///    Cell center = t.Rows[1].Cells[1];
-    ///
-    ///    // Insert some text so that we can see the effect of the Margins.
-    ///    center.Paragraphs[0].Append("Center Cell");
-    ///
-    ///    // Set the center cells Left, Margin to 10.
-    ///    center.MarginLeft = 25;
-    ///
-    ///    // Save the document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
     public double MarginLeft
     {
       get
@@ -3770,32 +2934,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// RightMargin in pixels.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    ///using (var document = DocX.Create("Test.docx"))
-    ///{
-    ///    // Insert table into this document.
-    ///    Table t = document.InsertTable(3, 3);
-    ///    t.Design = TableDesign.TableGrid;
-    ///
-    ///    // Get the center cell.
-    ///    Cell center = t.Rows[1].Cells[1];
-    ///
-    ///    // Insert some text so that we can see the effect of the Margins.
-    ///    center.Paragraphs[0].Append("Center Cell");
-    ///
-    ///    // Set the center cells Right, Margin to 10.
-    ///    center.MarginRight = 25;
-    ///
-    ///    // Save the document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
     public double MarginRight
     {
       get
@@ -3883,32 +3021,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// TopMargin in pixels.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    ///using (var document = DocX.Create("Test.docx"))
-    ///{
-    ///    // Insert table into this document.
-    ///    Table t = document.InsertTable(3, 3);
-    ///    t.Design = TableDesign.TableGrid;
-    ///
-    ///    // Get the center cell.
-    ///    Cell center = t.Rows[1].Cells[1];
-    ///
-    ///    // Insert some text so that we can see the effect of the Margins.
-    ///    center.Paragraphs[0].Append("Center Cell");
-    ///
-    ///    // Set the center cells Top, Margin to 10.
-    ///    center.MarginTop = 25;
-    ///
-    ///    // Save the document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
     public double MarginTop
     {
       get
@@ -3996,32 +3108,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// BottomMargin in pixels.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    ///using (var document = DocX.Create("Test.docx"))
-    ///{
-    ///    // Insert table into this document.
-    ///    Table t = document.InsertTable(3, 3);
-    ///    t.Design = TableDesign.TableGrid;
-    ///
-    ///    // Get the center cell.
-    ///    Cell center = t.Rows[1].Cells[1];
-    ///
-    ///    // Insert some text so that we can see the effect of the Margins.
-    ///    center.Paragraphs[0].Append("Center Cell");
-    ///
-    ///    // Set the center cells Top, Margin to 10.
-    ///    center.MarginBottom = 25;
-    ///
-    ///    // Save the document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
     public double MarginBottom
     {
       get
@@ -4203,9 +3289,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns the Cell.GridSpan => How many cells are merged horizontally.
-    /// </summary>
     public int GridSpan
     {
       get
@@ -4226,9 +3309,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns the Cell.RowSpan => How many cells are merged vertically.
-    /// </summary>
     public int RowSpan
     {
       get
@@ -4423,10 +3503,6 @@ namespace Xceed.Document.NET
       tcBorderType.SetAttributeValue( XName.Get( "color", Document.w.NamespaceName ), border.Color.ToHex() );
     }
 
-    /// <summary>
-    /// Get a table cell border
-    /// </summary>
-    /// <param name="borderType">The table cell border to get</param>
     public Border GetBorder( TableCellBorderType borderType )
     {
       // instance with default border values

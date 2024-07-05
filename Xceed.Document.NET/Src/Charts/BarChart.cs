@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -22,17 +22,10 @@ using System.Xml.Linq;
 
 namespace Xceed.Document.NET
 {
-  /// <summary>
-  /// This element contains the 2-D bar or column series on this chart.
-  /// 21.2.2.16 barChart (Bar Charts)
-  /// </summary>
   public class BarChart : Chart
   {
     #region Public Properties
 
-    /// <summary>
-    /// Specifies the possible directions for a bar chart.
-    /// </summary>
     public BarDirection BarDirection
     {
       get
@@ -51,9 +44,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Specifies the possible groupings for a bar chart.
-    /// </summary>
     public BarGrouping BarGrouping
     {
       get
@@ -79,9 +69,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Specifies that its contents contain a percentage between 0% and 500%.
-    /// </summary>
     public Int32 GapWidth
     {
       get
@@ -138,10 +125,6 @@ namespace Xceed.Document.NET
     #endregion
   }
 
-  /// <summary>
-  /// Specifies the possible directions for a bar chart.
-  /// 21.2.3.3 ST_BarDir (Bar Direction)
-  /// </summary>
   public enum BarDirection
   {
     [XmlName( "col" )]
@@ -150,10 +133,6 @@ namespace Xceed.Document.NET
     Bar
   }
 
-  /// <summary>
-  /// Specifies the possible groupings for a bar chart.
-  /// 21.2.3.4 ST_BarGrouping (Bar Grouping)
-  /// </summary>
   public enum BarGrouping
   {
     [XmlName( "clustered" )]

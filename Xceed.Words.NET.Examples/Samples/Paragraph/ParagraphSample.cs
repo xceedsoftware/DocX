@@ -1,6 +1,22 @@
 ﻿/***************************************************************************************
+ 
+   DocX – DocX is the community edition of Xceed Words for .NET
+ 
+   Copyright (C) 2009-2024 Xceed Software Inc.
+ 
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
+ 
+   For more features and fast professional support,
+   pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
+ 
+  *************************************************************************************/
+
+
+/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Paragraph Sample Application
-Copyright (c) 2009-2023 - Xceed Software Inc.
+Copyright (c) 2009-2024 - Xceed Software Inc.
 
 This application demonstrates how to create, format and position paragraphs
 when using the API from the Xceed Words for .NET.
@@ -49,9 +65,6 @@ namespace Xceed.Words.NET.Examples
 
     #region Public Methods
 
-    /// <summary>
-    /// Create a document with formatted paragraphs.
-    /// </summary>
     public static void SimpleFormattedParagraphs()
     {
       Console.WriteLine( "\tSimpleFormattedParagraphs()" );
@@ -145,9 +158,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Create a document with styled paragraphs. The styles are already defined in a template document.
-    /// </summary>
     public static void StyleParagraphs()
     {
       Console.WriteLine( "\tStyleParagraphs()" );
@@ -177,9 +187,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Create a document and add a paragraph with all its lines on a single page.
-    /// </summary>
     public static void ForceParagraphOnSinglePage()
     {
       Console.WriteLine( "\tForceParagraphOnSinglePage()" );
@@ -210,9 +217,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Create a document and add a paragraph with all its lines on the same page as the next paragraph.
-    /// </summary>
     public static void ForceMultiParagraphsOnSinglePage()
     {
       Console.WriteLine( "\tForceMultiParagraphsOnSinglePage()" );
@@ -246,9 +250,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Create a document and insert, remove and replace texts.
-    /// </summary>
     public static void TextActions()
     {
       Console.WriteLine( "\tTextActions()" );
@@ -317,9 +318,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Set different Heading type for a Paragraph.
-    /// </summary>
     public static void Heading()
     {
       Console.WriteLine( "\tHeading()" );
@@ -347,9 +345,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Add objects from another document.
-    /// </summary>
     public static void AddObjectsFromOtherDocument()
     {
       Console.WriteLine( "\tAddObjectsFromOtherDocument()" );

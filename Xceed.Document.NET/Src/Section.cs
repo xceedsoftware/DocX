@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -154,9 +154,6 @@ namespace Xceed.Document.NET
       internal set;
     }
 
-    /// <summary>
-    /// Bottom margin in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginBottom
     {
       get
@@ -170,9 +167,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Footer margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginFooter
     {
       get
@@ -185,9 +179,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Header margin value in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginHeader
     {
       get
@@ -200,9 +191,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Left margin in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginLeft
     {
       get
@@ -216,9 +204,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Right margin in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginRight
     {
       get
@@ -232,9 +217,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Top margin in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float MarginTop
     {
       get
@@ -330,9 +312,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Page height in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float PageHeight
     {
       get
@@ -438,9 +417,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Page width in points. 1pt = 1/72 of an inch. Word internally writes docx using units = 1/20th of a point.
-    /// </summary>
     public float PageWidth
     {
       get
@@ -674,10 +650,6 @@ namespace Xceed.Document.NET
 
     #region Internal Methods
 
-    /// <summary>
-    /// Adds a Header to a section.
-    /// If the section already contains a Header it will be replaced.
-    /// </summary>
     internal void AddHeadersOrFootersXml( bool b )
     {
       var element = b ? "hdr" : "ftr";

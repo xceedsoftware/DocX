@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -23,9 +23,6 @@ using System.IO.Packaging;
 
 namespace Xceed.Document.NET
 {
-  /// <summary>
-  /// Represents a Hyperlink in a document.
-  /// </summary>
   public class Hyperlink : DocumentElement
   {
     #region Internal Members
@@ -43,28 +40,6 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// Change the Text of a Hyperlink.
-    /// </summary>
-    /// <example>
-    /// Change the Text of a Hyperlink.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///    // Get all of the hyperlinks in this document
-    ///    List&lt;Hyperlink&gt; hyperlinks = document.Hyperlinks;
-    ///    
-    ///    // Change the first hyperlinks text and Uri
-    ///    Hyperlink h0 = hyperlinks[0];
-    ///    h0.Text = "DocX";
-    ///    h0.Uri = new Uri("http://docx.codeplex.com");
-    ///
-    ///    // Save this document.
-    ///    document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public string Text
     {
       get
@@ -122,30 +97,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Change the Uri of a Hyperlink.
-    /// </summary>
-    /// <example>
-    /// Change the Uri of a Hyperlink.
-    /// <code>
-    /// <![CDATA[
-    /// // Create a document.
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///    // Get all of the hyperlinks in this document
-    ///    List<Hyperlink> hyperlinks = document.Hyperlinks;
-    ///    
-    ///    // Change the first hyperlinks text and Uri
-    ///    Hyperlink h0 = hyperlinks[0];
-    ///    h0.Text = "DocX";
-    ///    h0.Uri = new Uri("http://docx.codeplex.com");
-    ///
-    ///    // Save this document.
-    ///    document.Save();
-    /// }
-    /// ]]>
-    /// </code>
-    /// </example>
     public Uri Uri
     {
       get
@@ -248,35 +199,6 @@ namespace Xceed.Document.NET
 
     #region Public Methods
 
-    /// <summary>
-    /// Remove a Hyperlink from this Paragraph only.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///    // Add a hyperlink to this document.
-    ///    Hyperlink h = document.AddHyperlink("link", new Uri("http://www.google.com"));
-    ///
-    ///    // Add a Paragraph to this document and insert the hyperlink
-    ///    Paragraph p1 = document.InsertParagraph();
-    ///    p1.Append("This is a cool ").AppendHyperlink(h).Append(" .");
-    ///
-    ///    /* 
-    ///     * Remove the hyperlink from this Paragraph only. 
-    ///     * Note a reference to the hyperlink will still exist in the document and it can thus be reused.
-    ///     */
-    ///    p1.Hyperlinks[0].Remove();
-    ///
-    ///    // Add a new Paragraph to this document and reuse the hyperlink h.
-    ///    Paragraph p2 = document.InsertParagraph();
-    ///    p2.Append("This is the same cool ").AppendHyperlink(h).Append(" .");
-    ///
-    ///    document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public void Remove()
     {
       Xml.Remove();

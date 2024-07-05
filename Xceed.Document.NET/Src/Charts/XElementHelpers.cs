@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -23,10 +23,6 @@ namespace Xceed.Document.NET
 {
   internal static class XElementHelpers
   {
-    /// <summary>
-    /// Get value from XElement and convert it to enum
-    /// </summary>
-    /// <typeparam name="T">Enum type</typeparam>        
     internal static T GetValueToEnum<T>( XElement element )
     {
       if( element == null )
@@ -45,10 +41,6 @@ namespace Xceed.Document.NET
       throw new ArgumentException( "Invalid element value!" );
     }
 
-    /// <summary>
-    /// Convert value to xml string and set it into XElement
-    /// </summary>
-    /// <typeparam name="T">Enum type</typeparam> 
     internal static void SetValueFromEnum<T>( XElement element, T value )
     {
       if( element == null )
@@ -56,10 +48,6 @@ namespace Xceed.Document.NET
       element.Attribute( XName.Get( "val" ) ).Value = GetXmlNameFromEnum<T>( value );
     }
 
-    /// <summary>
-    /// Return xml string for this value
-    /// </summary>
-    /// <typeparam name="T">Enum type</typeparam> 
     internal static String GetXmlNameFromEnum<T>( T value )
     {
       if( value == null )
@@ -73,24 +61,9 @@ namespace Xceed.Document.NET
     }
   }
 
-  /// <summary>
-  /// This attribute applied to enum's fields for definition their's real xml names in Document file.
-  /// </summary>
-  /// <example>
-  /// public enum MyEnum
-  /// {
-  ///    [XmlName("one")] // This means, that xml element has 'val="one"'
-  ///    ValueOne,
-  ///    [XmlName("two")] // This means, that xml element has 'val="two"'
-  ///    ValueTwo
-  /// }
-  /// </example>
   [AttributeUsage( AttributeTargets.Field, Inherited = false, AllowMultiple = false )]
   internal sealed class XmlNameAttribute : Attribute
   {
-    /// <summary>
-    /// Real xml name
-    /// </summary>
     public String XmlName
     {
       get; private set;

@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -26,9 +26,6 @@ using System.IO;
 
 namespace Xceed.Document.NET
 {
-  /// <summary>
-  /// Represents every Chart in this document.
-  /// </summary>
   public abstract class Chart
   {
     #region Private Members
@@ -43,26 +40,17 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// The xml representation of this chart
-    /// </summary>
 
     public XElement ExternalXml
     {
       get; private set;
     }
 
-    /// <summary>
-    /// The xml representation of this chart contained in the document paragraph with wrappings and relationId
-    /// </summary>
     public XElement Xml
     {
       get; private set;
     }
 
-    /// <summary>
-    /// Chart's series
-    /// </summary>
     public List<Series> Series
     {
       get
@@ -83,9 +71,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Return maximum count of series
-    /// </summary>
     public virtual Int16 MaxSeriesCount
     {
       get
@@ -94,18 +79,11 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Chart's legend.
-    /// If legend doesn't exist property is null.
-    /// </summary>
     public ChartLegend Legend
     {
       get; internal set;
     }
 
-    /// <summary>
-    /// Represents the category axis
-    /// </summary>
     public CategoryAxis CategoryAxis
     {
       get
@@ -116,9 +94,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Represents the values axis
-    /// </summary>
     public ValueAxis ValueAxis
     {
       get
@@ -129,9 +104,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Represents existing the axis
-    /// </summary>
     public virtual Boolean IsAxisExist
     {
       get
@@ -140,9 +112,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Get or set 3D view for this chart
-    /// </summary>
     public Boolean View3D
     {
       get
@@ -175,9 +144,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Specifies how blank cells shall be plotted on a chart
-    /// </summary>
     public DisplayBlanksAs DisplayBlanksAs
     {
       get
@@ -246,9 +212,6 @@ namespace Xceed.Document.NET
 
     #region Constructors
 
-    /// <summary>
-    /// Create an Chart for this document
-    /// </summary>        
     public Chart()
     {
 
@@ -350,9 +313,6 @@ namespace Xceed.Document.NET
 
     #region Public Methods
 
-    /// <summary>
-    /// Add a new series to this chart
-    /// </summary>
     public virtual void AddSeries( Series series )
     {
       Series.Add(series);
@@ -374,17 +334,11 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Add standart legend to the chart.
-    /// </summary>
     public void AddLegend()
     {
       AddLegend( ChartLegendPosition.Right, false );
     }
 
-    /// <summary>
-    /// Add a legend with parameters to the chart.
-    /// </summary>
     public void AddLegend( ChartLegendPosition position, Boolean overlay )
     {
       if( this.Legend != null )
@@ -399,9 +353,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Remove the legend from the chart.
-    /// </summary>
     public void RemoveLegend()
     {
       if( this.Legend != null )
@@ -454,14 +405,8 @@ namespace Xceed.Document.NET
 
     #region Protected Methods
 
-    /// <summary>
-    /// An abstract method which creates the current external chart xml
-    /// </summary>
     protected abstract XElement CreateExternalChartXml();
 
-    /// <summary>
-    /// An abstract method to get the external chart xml
-    /// </summary>
     protected abstract XElement GetChartTypeXElement();
 
     #endregion
@@ -519,17 +464,10 @@ namespace Xceed.Document.NET
   }
 
 
-  /// <summary>
-  /// Represents a chart legend
-  /// More: http://msdn.microsoft.com/ru-ru/library/cc845123.aspx
-  /// </summary>
   public class ChartLegend
   {
     #region Public Properties
 
-    /// <summary>
-    /// Specifies that other chart elements shall be allowed to overlap this chart element
-    /// </summary>
     public Boolean Overlay
     {
       get
@@ -542,9 +480,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Specifies the possible positions for a legend
-    /// </summary>
     public ChartLegendPosition Position
     {
       get
@@ -563,9 +498,6 @@ namespace Xceed.Document.NET
 
     #region Internal Properties
 
-    /// <summary>
-    /// Legend xml element
-    /// </summary>
     internal XElement Xml
     {
       get; private set;
@@ -594,10 +526,6 @@ namespace Xceed.Document.NET
 
     #region Private Methods
 
-    /// <summary>
-    /// ECMA-376, page 3840
-    /// 21.2.2.132 overlay (Overlay)
-    /// </summary>
     private String GetOverlayValue( Boolean overlay )
     {
       if( overlay )
@@ -609,10 +537,6 @@ namespace Xceed.Document.NET
     #endregion
   }
 
-  /// <summary>
-  /// Specifies the possible positions for a legend.
-  /// 21.2.3.24 ST_LegendPos (Legend Position)
-  /// </summary>
   public enum ChartLegendPosition
   {
     [XmlName( "t" )]
@@ -627,10 +551,6 @@ namespace Xceed.Document.NET
     TopRight
   }
 
-  /// <summary>
-  /// Specifies the possible ways to display blanks.
-  /// 21.2.3.10 ST_DispBlanksAs (Display Blanks As)
-  /// </summary>
   public enum DisplayBlanksAs
   {
     [XmlName( "gap" )]

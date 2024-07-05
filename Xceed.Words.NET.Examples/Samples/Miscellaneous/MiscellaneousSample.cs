@@ -1,6 +1,22 @@
 ﻿/***************************************************************************************
+ 
+   DocX – DocX is the community edition of Xceed Words for .NET
+ 
+   Copyright (C) 2009-2024 Xceed Software Inc.
+ 
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
+ 
+   For more features and fast professional support,
+   pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
+ 
+  *************************************************************************************/
+
+
+/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Miscellaneous Sample Application
-Copyright (c) 2009-2023 - Xceed Software Inc.
+Copyright (c) 2009-2024 - Xceed Software Inc.
 
 This application demonstrates how to create docs file by using the most common
 features of the API from the Xceed Words for .NET.
@@ -53,9 +69,6 @@ namespace Xceed.Words.NET.Examples
 
     #region Public Methods
 
-    /// <summary>
-    /// Create a file and add a picture, a table, an hyperlink, paragraphs, a bulleted list and a numbered list.
-    /// </summary>
     public static void CreateRecipe()
     {
       Console.WriteLine( "\tCreateRecipe()" );
@@ -117,9 +130,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Create a document and add headers/footers with tables and pictures, paragraphs and charts.
-    /// </summary>
     public static void CompanyReport()
     {
       Console.WriteLine( "\tCompanyReport()" );
@@ -195,10 +205,6 @@ namespace Xceed.Words.NET.Examples
     }
 
 
-    /// <summary>
-    /// Load a document containing a templated invoice with Custom properties, tables, paragraphs and a picture. 
-    /// Set the values of those Custom properties, modify the picture, and fill the details table.
-    /// </summary>
     public static void CreateInvoice()
     {
       Console.WriteLine( "\tCreateInvoice()" );

@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -22,9 +22,6 @@ using System.Globalization;
 
 namespace Xceed.Document.NET
 {
-  /// <summary>
-  /// A text formatting.
-  /// </summary>
   public class Formatting : IComparable
   {
     #region Private Members
@@ -58,9 +55,6 @@ namespace Xceed.Document.NET
 
     #region Constructors
 
-    /// <summary>
-    /// A text formatting.
-    /// </summary>
     public Formatting()
     {
       // Use current culture by default
@@ -73,9 +67,6 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// Text language
-    /// </summary>
     public CultureInfo Language
     {
       get
@@ -89,9 +80,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// This formatting will apply Bold.
-    /// </summary>
     public bool? Bold
     {
       get
@@ -104,9 +92,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// This formatting will apply Italic.
-    /// </summary>
     public bool? Italic
     {
       get
@@ -119,9 +104,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// This formatting will apply StrickThrough.
-    /// </summary>
     public StrikeThrough? StrikeThrough
     {
       get
@@ -134,9 +116,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The script that this formatting should be, normal, superscript or subscript.
-    /// </summary>
     public Script? Script
     {
       get
@@ -149,9 +128,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The Size of this text, must be between 0 and 1638.
-    /// </summary>
     public double? Size
     {
       get
@@ -184,9 +160,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Percentage scale must be between 1 and 600.
-    /// </summary>
     public float? PercentageScale
     {
       get
@@ -212,9 +185,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The Kerning to apply to this text.
-    /// </summary>
     public float? Kerning
     {
       get
@@ -228,9 +198,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Text position must be in the range (-1585 - 1585).
-    /// </summary>
     public float? Position
     {
       get
@@ -247,9 +214,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Text spacing must be in the range (-1585 - 1585).
-    /// </summary>
     public double? Spacing
     {
       get
@@ -274,9 +238,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The colour of the text.
-    /// </summary>
     public Color? FontColor
     {
       get
@@ -289,9 +250,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Highlight colour.
-    /// </summary>
     public Highlight? Highlight
     {
       get
@@ -304,9 +262,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Shading color.
-    /// </summary>
     [Obsolete( "This property is obsolete and should no longer be used. Use the ShadingPattern property instead." )]
     public Color? Shading
     {
@@ -369,9 +324,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The Underline style that this formatting applies.
-    /// </summary>
     public UnderlineStyle? UnderlineStyle
     {
       get
@@ -384,9 +336,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The underline colour.
-    /// </summary>
     public Color? UnderlineColor
     {
       get
@@ -399,9 +348,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Misc settings.
-    /// </summary>
     public Misc? Misc
     {
       get
@@ -414,9 +360,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Is this text hidden or visible.
-    /// </summary>
     public bool? Hidden
     {
       get
@@ -429,9 +372,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Capitalization style.
-    /// </summary>
     public CapsStyle? CapsStyle
     {
       get
@@ -444,13 +384,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The font Family of this formatting.
-    /// </summary>
-    /// <!-- 
-    /// Bug found and fixed by krugs525 on August 12 2009.
-    /// Use TFS compare to see exact code change.
-    /// -->
     public Font FontFamily
     {
       get
@@ -666,10 +599,6 @@ namespace Xceed.Document.NET
 
     #region Public Methods
 
-    /// <summary>
-    /// Returns a cloned instance of Formatting.
-    /// </summary>
-    /// <returns></returns>
     public Formatting Clone()
     {
       var clone = new Formatting();
@@ -716,7 +645,7 @@ namespace Xceed.Document.NET
       return clone;
     }
 
-    public static Formatting Parse( XElement rPr, Formatting formatting = null )
+    public static Formatting Parse( XElement rPr, Formatting formatting = null, string defaultFontFamily = null )
     {
       if( formatting == null )
       {
@@ -767,7 +696,7 @@ namespace Xceed.Document.NET
             formatting.FontFamily = ( fontName != null )
                                     ? new Font( fontName )
                                     : ( formatting.FontFamily == null ) ?
-                                      new Font( "Calibri" ) : formatting.FontFamily;
+                                      new Font(  ( defaultFontFamily != null ) ? defaultFontFamily : "Calibri" ) : formatting.FontFamily;
             break;
           case "color":
             try

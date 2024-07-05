@@ -1,6 +1,22 @@
 ﻿/***************************************************************************************
+ 
+   DocX – DocX is the community edition of Xceed Words for .NET
+ 
+   Copyright (C) 2009-2024 Xceed Software Inc.
+ 
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
+ 
+   For more features and fast professional support,
+   pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
+ 
+  *************************************************************************************/
+
+
+/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Headers Footers Sample Application
-Copyright (c) 2009-2023 - Xceed Software Inc.
+Copyright (c) 2009-2024 - Xceed Software Inc.
 
 This application demonstrates how to create footnotes and endnotes when using the API 
 from the Xceed Words for .NET.
@@ -41,9 +57,6 @@ namespace Xceed.Words.NET.Example
 
     #region Public Methods
 
-    /// <summary>
-    /// Add footnotes to a document.
-    /// </summary>
     public static void AddFootnotes()
     {
       Console.WriteLine( "\tAddFootnotes()" );
@@ -79,9 +92,6 @@ namespace Xceed.Words.NET.Example
       }
     }
 
-    /// <summary>
-    /// Add custom footnotes to a document.
-    /// </summary>
     public static void AddCustomFootnotes()
     {
       Console.WriteLine( "\tAddCustomFootnotes()" );
@@ -123,9 +133,6 @@ namespace Xceed.Words.NET.Example
       }
     }
 
-    /// <summary>
-    /// Add endnotes to a document.
-    /// </summary>
     public static void AddEndnotes()
     {
       Console.WriteLine( "\tAddEndnotes()" );

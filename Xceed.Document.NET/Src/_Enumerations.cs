@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -90,10 +90,6 @@ namespace Xceed.Document.NET
     trackedChanges
   }
 
-  /// <summary>
-  /// Table Cell Border styles
-  /// source: http://msdn.microsoft.com/en-us/library/documentformat.openxml.wordprocessing.tablecellborders.aspx
-  /// </summary>
   public enum BorderStyle
   {
     Tcbs_none = 0,
@@ -125,10 +121,6 @@ namespace Xceed.Document.NET
     Tcbs_nil
   }
 
-  /// <summary>
-  /// Table Cell Border Types
-  /// source: http://msdn.microsoft.com/en-us/library/documentformat.openxml.wordprocessing.tablecellborders.aspx
-  /// </summary>
   public enum TableCellBorderType
   {
     Top,
@@ -141,10 +133,6 @@ namespace Xceed.Document.NET
     TopRightToBottomLeft
   }
 
-  /// <summary>
-  /// Table Border Types
-  /// source: http://msdn.microsoft.com/en-us/library/documentformat.openxml.wordprocessing.tableborders.aspx
-  /// </summary>
   public enum TableBorderType
   {
     Top,
@@ -240,28 +228,13 @@ namespace Xceed.Document.NET
     engrave
   };
 
-  /// <summary>
-  /// Change the caps style of text, for use with Append and AppendLine.
-  /// </summary>
   public enum CapsStyle
   {
-    /// <summary>
-    /// No caps, make all characters are lowercase.
-    /// </summary>
     none,
-    /// <summary>
-    /// All caps, make every character uppercase.
-    /// </summary>
     caps,
-    /// <summary>
-    /// Small caps, make all characters capital but with a small font size.
-    /// </summary>
     smallCaps
   };
 
-  /// <summary>
-  /// Designs\Styles that can be applied to a table.
-  /// </summary>
   public enum TableDesign
   {
     Custom,
@@ -368,9 +341,6 @@ namespace Xceed.Document.NET
     None
   };
 
-  /// <summary>
-  /// How a Table should auto resize.
-  /// </summary>
   public enum AutoFit
   {
     Contents,
@@ -554,29 +524,14 @@ namespace Xceed.Document.NET
     accentBorderCallout3
   };
 
-  /// <summary>
-  /// Text alignment of a Paragraph.
-  /// </summary>
   public enum Alignment
   {
-    /// <summary>
-    /// Align Paragraph to the left.
-    /// </summary>
     left,
 
-    /// <summary>
-    /// Align Paragraph as centered.
-    /// </summary>
     center,
 
-    /// <summary>
-    /// Align Paragraph to the right.
-    /// </summary>
     right,
 
-    /// <summary>
-    /// (Justified) Align Paragraph to both the left and right margins, adding extra space between content as necessary.
-    /// </summary>
     both
   };
 
@@ -586,60 +541,24 @@ namespace Xceed.Document.NET
     RightToLeft
   };
 
-  /// <summary>
-  /// Paragraph edit types
-  /// </summary>
   internal enum EditType
   {
-    /// <summary>
-    /// A ins is a tracked insertion
-    /// </summary>
     ins,
-    /// <summary>
-    /// A del is  tracked deletion
-    /// </summary>
     del
   }
 
-  /// <summary>
-  /// Custom property types.
-  /// </summary>
   internal enum CustomPropertyType
   {
-    /// <summary>
-    /// System.String
-    /// </summary>
     Text,
-    /// <summary>
-    /// System.DateTime
-    /// </summary>
     Date,
-    /// <summary>
-    /// System.Int32
-    /// </summary>
     NumberInteger,
-    /// <summary>
-    /// System.Double
-    /// </summary>
     NumberDecimal,
-    /// <summary>
-    /// System.Boolean
-    /// </summary>
     YesOrNo
   }
 
-  /// <summary>
-  /// Text types in a Run
-  /// </summary>
   public enum RunTextType
   {
-    /// <summary>
-    /// System.String
-    /// </summary>
     Text,
-    /// <summary>
-    /// System.String
-    /// </summary>
     DelText,
   }
 
@@ -838,10 +757,6 @@ namespace Xceed.Document.NET
     chicago
   }
 
-  /// <summary>
-  /// The numbering format which shall be used for a group of automatically numbered objects.
-  /// Reference : https://c-rex.net/projects/samples/ooxml/e1/Part4/OOXML_P4_DOCX_ST_NumberFormat_topic_ID0EDNB3.html#topic_ID0EDNB3
-  /// </summary>
   public enum NumberingFormat
   {
     aiueo,

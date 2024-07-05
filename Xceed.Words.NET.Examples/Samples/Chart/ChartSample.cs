@@ -1,6 +1,22 @@
 ﻿/***************************************************************************************
+ 
+   DocX – DocX is the community edition of Xceed Words for .NET
+ 
+   Copyright (C) 2009-2024 Xceed Software Inc.
+ 
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
+ 
+   For more features and fast professional support,
+   pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
+ 
+  *************************************************************************************/
+
+
+/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Chart Sample Application
-Copyright (c) 2009-2023 - Xceed Software Inc.
+Copyright (c) 2009-2024 - Xceed Software Inc.
 
 This application demonstrates how to create a chart when using the API 
 from the Xceed Words for .NET.
@@ -40,9 +56,6 @@ namespace Xceed.Words.NET.Examples
 
     #region Public Methods
 
-    /// <summary>
-    /// Add a Bar chart to a document.
-    /// </summary>
     public static void BarChart()
     {
       Console.WriteLine( "\tBarChart()" );
@@ -92,9 +105,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Add a Line chart to a document.
-    /// </summary>
     public static void LineChart()
     {
       Console.WriteLine( "\tLineChart()" );
@@ -145,9 +155,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Add a Pie chart to a document.
-    /// </summary>
     public static void PieChart()
     {
       Console.WriteLine( "\tPieChart()" );
@@ -179,10 +186,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Add a 3D bar chart to a document.
-    /// </summary>
-    /// 
     public static void Chart3D()
     {
       Console.WriteLine( "\tChart3D()" );

@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -29,53 +29,6 @@ namespace Xceed.Document.NET
   {
     #region Public Properties
 
-    /// <summary>
-    /// Returns a list of all Paragraphs inside this container.
-    /// </summary>
-    /// <example>
-    /// <code>
-    ///  Load a document.
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///    // All Paragraphs in this document.
-    ///    <![CDATA[List<Paragraph>]]> documentParagraphs = document.Paragraphs;
-    ///    
-    ///    // Make sure this document contains at least one Table.
-    ///    if (document.Tables.Count() > 0)
-    ///    {
-    ///        // Get the first Table in this document.
-    ///        Table t = document.Tables[0];
-    ///
-    ///        // All Paragraphs in this Table.
-    ///        <![CDATA[List<Paragraph>]]> tableParagraphs = t.Paragraphs;
-    ///    
-    ///        // Make sure this Table contains at least one Row.
-    ///        if (t.Rows.Count() > 0)
-    ///        {
-    ///            // Get the first Row in this document.
-    ///            Row r = t.Rows[0];
-    ///
-    ///            // All Paragraphs in this Row.
-    ///             <![CDATA[List<Paragraph>]]> rowParagraphs = r.Paragraphs;
-    ///
-    ///            // Make sure this Row contains at least one Cell.
-    ///            if (r.Cells.Count() > 0)
-    ///            {
-    ///                // Get the first Cell in this document.
-    ///                Cell c = r.Cells[0];
-    ///
-    ///                // All Paragraphs in this Cell.
-    ///                <![CDATA[List<Paragraph>]]> cellParagraphs = c.Paragraphs;
-    ///            }
-    ///        }
-    ///    }
-    ///
-    ///    // Save all changes to this document.
-    ///    document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    ///
     public virtual ReadOnlyCollection<Paragraph> Paragraphs
     {
       get
@@ -279,40 +232,6 @@ namespace Xceed.Document.NET
       return sections;
     }
 
-    /// <summary>
-    /// Sets the Direction of content.
-    /// </summary>
-    /// <param name="direction">Direction either LeftToRight or RightToLeft</param>
-    /// <example>
-    /// Set the Direction of content in a Paragraph to RightToLeft.
-    /// <code>
-    /// // Load a document.
-    /// using (Document document = DocX.Load(@"Test.docx"))
-    /// {
-    ///    // Get the first Paragraph from this document.
-    ///    Paragraph p = document.InsertParagraph();
-    ///
-    ///    // Set the Direction of this Paragraph.
-    ///    p.Direction = Direction.RightToLeft;
-    ///
-    ///    // Make sure the document contains at lest one Table.
-    ///    if (document.Tables.Count() > 0)
-    ///    {
-    ///        // Get the first Table from this document.
-    ///        Table t = document.Tables[0];
-    ///
-    ///        /* 
-    ///         * Set the direction of the entire Table.
-    ///         * Note: The same function is available at the Row and Cell level.
-    ///         */
-    ///        t.SetDirection(Direction.RightToLeft);
-    ///    }
-    ///
-    ///    // Save all changes to this document.
-    ///    document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public virtual void SetDirection( Direction direction )
     {
       foreach( Paragraph p in Paragraphs )
@@ -343,13 +262,6 @@ namespace Xceed.Document.NET
       return list;
     }
 
-    /// <summary>
-    /// Find all unique instances of the given Regex Pattern,
-    /// returning the list of the unique strings found
-    /// </summary>
-    /// <param name="pattern"></param>
-    /// <param name="options"></param>
-    /// <returns></returns>
     public virtual List<string> FindUniqueByPattern( string pattern, RegexOptions options )
     {
       var rawResults = new List<string>();
@@ -427,17 +339,6 @@ namespace Xceed.Document.NET
     }
 
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="searchValue">The value to find.</param>
-    /// <param name="regexMatchHandler">A Func who accepts the matching regex search group value and passes it to this to return the replacement string.</param>
-    /// <param name="trackChanges">Enable or disable the track changes.</param>
-    /// <param name="options">The Regex options.</param>
-    /// <param name="newFormatting"></param>
-    /// <param name="matchFormatting"></param>
-    /// <param name="fo"></param>
-    /// <param name="removeEmptyParagraph">Remove empty paragraph</param>
     [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with a FunctionReplaceTextOptions parameter instead." )]
     public virtual void ReplaceText( string searchValue,
                                      Func<string, string> regexMatchHandler,
@@ -566,7 +467,6 @@ namespace Xceed.Document.NET
 
 
 
-    /// Inserts the provided text at a bookmark location in this Container, using the specified formatting.
     public virtual void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
     {
       if( string.IsNullOrWhiteSpace( bookmarkName ) )
@@ -578,7 +478,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// Replaces the text of the Bookmark in this Container. Equivalent to document.Bookmarks[ "abc" ].SetText("new ABC");
     public virtual void ReplaceAtBookmark( string text, string bookmarkName, Formatting formatting = null )
     {
       if( string.IsNullOrWhiteSpace( bookmarkName ) )
@@ -873,11 +772,6 @@ namespace Xceed.Document.NET
 
 
 
-    /// <summary>
-    /// Removes paragraph at specified position
-    /// </summary>
-    /// <param name="index">Index of paragraph to remove</param>
-    /// <returns>True if paragraph removed</returns>
     public bool RemoveParagraphAt( int index )
     {
       var paragraphs = Xml.Descendants( Document.w + "p" ).ToList();
@@ -898,11 +792,6 @@ namespace Xceed.Document.NET
       return false;
     }
 
-    /// <summary>
-    /// Removes a paragraph
-    /// </summary>
-    /// <param name="paragraph">The paragraph to remove</param>
-    /// <returns>True if paragraph removed</returns>
     public bool RemoveParagraph( Paragraph paragraph )
     {
       var paragraphs = Xml.Descendants( Document.w + "p" );
@@ -1442,6 +1331,8 @@ namespace Xceed.Document.NET
 
 
 
+
+
         foreach( var p in this.Paragraphs.ToList() )
         {
           if( ( replaceTextOptions.StartIndex >= 0 ) && ( p.EndIndex < replaceTextOptions.StartIndex ) )
@@ -1475,7 +1366,6 @@ namespace Xceed.Document.NET
 
       this.PreventUpdateParagraphIndexes = false;
       this.NeedRefreshParagraphIndexes = true;
-
 
       return replaceSuccess;
     }

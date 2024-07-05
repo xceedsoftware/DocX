@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Xceed.Words.NET.Examples</RootNamespace>
-    <AssemblyName>Xceed.Words.NET5.Examples</AssemblyName>
+    <AssemblyName>Xceed.Words.NET.Examples</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
@@ -113,15 +113,18 @@
     <None Remove="Samples\Pdf\Resources\zz.docx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
     <PackageReference Include="System.IO.Packaging" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Xceed.Document.NET5.dll">
-      <HintPath>..\Xceed.Document.NET\bin\$(Configuration)\net5.0\Xceed.Document.NET5.dll</HintPath>
+    <Reference Include="Xceed.Document.NET.dll">
+      <HintPath>..\Xceed.Document.NET\bin\$(Configuration)\net5.0\Xceed.Document.NET.dll</HintPath>
     </Reference>
-    <Reference Include="Xceed.Words.NET5.dll">
-      <HintPath>..\Xceed.Words.NET\bin\$(Configuration)\net5.0\Xceed.Words.NET5.dll</HintPath>
+    <Reference Include="Xceed.Pdf.NET.dll">
+      <HintPath>..\Xceed.Pdf\bin\$(Configuration)\net5.0\Xceed.Pdf.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Words.NET.dll">
+      <HintPath>..\Xceed.Words.NET\bin\$(Configuration)\net5.0\Xceed.Words.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

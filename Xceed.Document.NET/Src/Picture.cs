@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -26,9 +26,6 @@ using System.IO;
 
 namespace Xceed.Document.NET
 {
-  /// <summary>
-  /// Represents a Picture in this document, a Picture is a customized view of an Image.
-  /// </summary>
   public class Picture : DocumentElement
   {
     #region Private Members
@@ -61,9 +58,6 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// A unique id that identifies an Image embedded in this document.
-    /// </summary>
     public string Id
     {
       get
@@ -72,9 +66,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Flip this Picture Horizontally.
-    /// </summary>
     public bool FlipHorizontal
     {
       get
@@ -96,9 +87,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Flip this Picture Vertically.
-    /// </summary>
     public bool FlipVertical
     {
       get
@@ -120,9 +108,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The rotation in degrees of this image, actual value = value % 360
-    /// </summary>
     public uint Rotation
     {
       get
@@ -161,9 +146,6 @@ namespace Xceed.Document.NET
 
 
 
-    /// <summary>
-    /// Gets or sets the name of this Image.
-    /// </summary>
     public string Name
     {
       get
@@ -182,9 +164,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets or sets the description for this Image.
-    /// </summary>
     public string Description
     {
       get
@@ -203,9 +182,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    ///<summary>
-    /// Returns the name of the image file for the picture.
-    ///</summary>
     public string FileName
     {
       get
@@ -214,9 +190,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets or sets the Width of this Image.
-    /// </summary>
     public float Width
     {
       get
@@ -233,9 +206,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets or sets the Width of this Image (in Inches)
-    /// </summary>
     public float WidthInches
     {
       get
@@ -249,9 +219,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets or sets the height of this Image.
-    /// </summary>
     public float Height
     {
       get
@@ -268,9 +235,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets or sets the Height of this Image (in Inches)
-    /// </summary>
     public float HeightInches
     {
       get
@@ -296,12 +260,6 @@ namespace Xceed.Document.NET
 
     #region Constructors
 
-    /// <summary>
-    /// Wraps an XElement as an Image
-    /// </summary>
-    /// <param name="document"></param>
-    /// <param name="i">The XElement i to wrap</param>
-    /// <param name="image"></param>
     internal Picture( Document document, XElement i, Image image ) : base( document, i )
     {
       _img = image;
@@ -451,73 +409,42 @@ namespace Xceed.Document.NET
 
     #region Public Methods
 
-    /// <summary>
-    /// Remove this Picture from this document.
-    /// </summary>
     public void Remove()
     {
       this.Xml.Remove();
       _img.Remove();
     }
 
-    /// <summary>
-    /// Set the shape of this Picture to one in the BasicShapes enumeration.
-    /// </summary>
-    /// <param name="shape">A shape from the BasicShapes enumeration.</param>
     public void SetPictureShape( BasicShapes shape )
     {
       SetPictureShape( ( object )shape );
     }
 
-    /// <summary>
-    /// Set the shape of this Picture to one in the RectangleShapes enumeration.
-    /// </summary>
-    /// <param name="shape">A shape from the RectangleShapes enumeration.</param>
     public void SetPictureShape( RectangleShapes shape )
     {
       SetPictureShape( ( object )shape );
     }
 
-    /// <summary>
-    /// Set the shape of this Picture to one in the BlockArrowShapes enumeration.
-    /// </summary>
-    /// <param name="shape">A shape from the BlockArrowShapes enumeration.</param>
     public void SetPictureShape( BlockArrowShapes shape )
     {
       SetPictureShape( ( object )shape );
     }
 
-    /// <summary>
-    /// Set the shape of this Picture to one in the EquationShapes enumeration.
-    /// </summary>
-    /// <param name="shape">A shape from the EquationShapes enumeration.</param>
     public void SetPictureShape( EquationShapes shape )
     {
       SetPictureShape( ( object )shape );
     }
 
-    /// <summary>
-    /// Set the shape of this Picture to one in the FlowchartShapes enumeration.
-    /// </summary>
-    /// <param name="shape">A shape from the FlowchartShapes enumeration.</param>
     public void SetPictureShape( FlowchartShapes shape )
     {
       SetPictureShape( ( object )shape );
     }
 
-    /// <summary>
-    /// Set the shape of this Picture to one in the StarAndBannerShapes enumeration.
-    /// </summary>
-    /// <param name="shape">A shape from the StarAndBannerShapes enumeration.</param>
     public void SetPictureShape( StarAndBannerShapes shape )
     {
       SetPictureShape( ( object )shape );
     }
 
-    /// <summary>
-    /// Set the shape of this Picture to one in the CalloutShapes enumeration.
-    /// </summary>
-    /// <param name="shape">A shape from the CalloutShapes enumeration.</param>
     public void SetPictureShape( CalloutShapes shape )
     {
       SetPictureShape( ( object )shape );

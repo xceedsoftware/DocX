@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -25,9 +25,6 @@ using System.Xml.Linq;
 namespace Xceed.Document.NET
 {
 
-  /// <summary>
-  /// Axis base class
-  /// </summary>
   public abstract class Axis
   {
     #region Private properties
@@ -37,9 +34,6 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// ID of this Axis 
-    /// </summary>
     public string Id
     {
       get
@@ -48,9 +42,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Return true if this axis is visible
-    /// </summary>
     public bool IsVisible
     {
       get
@@ -119,9 +110,6 @@ namespace Xceed.Document.NET
 
     #region Internal Properties
 
-    /// <summary>
-    /// Axis xml element
-    /// </summary>
     internal XElement Xml
     {
       get; set;

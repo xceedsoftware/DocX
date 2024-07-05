@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -21,10 +21,6 @@ using System.Xml.Linq;
 
 namespace Xceed.Document.NET
 {
-  /// <summary>
-  /// All Document types are derived from DocumentElement. 
-  /// This class contains properties which every element of a Document must contain.
-  /// </summary>
   public abstract class DocumentElement
   {
     #region Private Members
@@ -35,15 +31,6 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// This is the actual Xml that gives this element substance. 
-    /// For example, a Paragraphs Xml might look something like the following
-    /// <p>
-    ///     <r>
-    ///         <t>Hello World!</t>
-    ///     </r>
-    /// </p>
-    /// </summary>
     public XElement Xml
     {
       get; set;
@@ -65,10 +52,6 @@ namespace Xceed.Document.NET
 
     #region Internal Properties
 
-    /// <summary>
-    /// This is a reference to the Document object that this element belongs to.
-    /// Every Document element is connected to a document.
-    /// </summary>
     internal Document Document
     {
       get; set;
@@ -78,11 +61,6 @@ namespace Xceed.Document.NET
 
     #region Constructors
 
-    /// <summary>
-    /// Store both the document and xml so that they can be accessed by derived types.
-    /// </summary>
-    /// <param name="document">The document that this element belongs to.</param>
-    /// <param name="xml">The Xml that gives this element substance</param>
     public DocumentElement( Document document, XElement xml )
     {
       this.Document = document;
@@ -107,10 +85,6 @@ namespace Xceed.Document.NET
     #endregion
   }
 
-  /// <summary>
-  /// This class provides functions for inserting new DocXElements before or after the current DocumentElement.
-  /// Only certain DocXElements can support these functions without creating invalid documents, at the moment these are Paragraphs and Table.
-  /// </summary>
   public abstract class InsertBeforeOrAfter : DocumentElement
   {
     #region Constructors

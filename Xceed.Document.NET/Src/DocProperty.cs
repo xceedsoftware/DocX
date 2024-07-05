@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -19,9 +19,6 @@ using System.Text.RegularExpressions;
 
 namespace Xceed.Document.NET
 {
-  /// <summary>
-  /// Represents a field of type document property. This field displays the value stored in a custom property.
-  /// </summary>
   public class DocProperty : DocumentElement
   {
 
@@ -33,9 +30,6 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// The custom property to display.
-    /// </summary>
     public string Name
     {
       get;

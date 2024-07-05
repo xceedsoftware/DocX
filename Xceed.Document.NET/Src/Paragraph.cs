@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2023 Xceed Software Inc.
+   Copyright (C) 2009-2024 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -28,9 +28,6 @@ using System.IO;
 
 namespace Xceed.Document.NET
 {
-  /// <summary>
-  /// Represents a document paragraph.
-  /// </summary>
   public class Paragraph : InsertBeforeOrAfter
   {
     #region Internal Members
@@ -71,6 +68,9 @@ namespace Xceed.Document.NET
 
     private static float DefaultImageHorizontalResolution = 96f;
     private static float DefaultImageVerticalResolution = 96f;
+
+    private bool m_removed = false; // this will be used when a paragraph is removed via RemoveText method
+
     #endregion
 
     #region Private Properties
@@ -131,28 +131,6 @@ namespace Xceed.Document.NET
       get; set;
     }
 
-    /// <summary>
-    /// Returns a list of all Pictures in a Paragraph.
-    /// </summary>
-    /// <example>
-    /// Returns a list of all Pictures in a Paragraph.
-    /// <code>
-    /// <![CDATA[
-    /// // Create a document.
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///    // Get the first Paragraph in a document.
-    ///    Paragraph p = document.Paragraphs[0];
-    /// 
-    ///    // Get all of the Pictures in this Paragraph.
-    ///    List<Picture> pictures = p.Pictures;
-    ///
-    ///    // Save this document.
-    ///    document.Save();
-    /// }
-    /// ]]>
-    /// </code>
-    /// </example>
     public List<Picture> Pictures
     {
       get
@@ -174,30 +152,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns a list of Hyperlinks in this Paragraph.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///    // Get the first Paragraph in this document.
-    ///    Paragraph p = document.Paragraphs[0];
-    ///    
-    ///    // Get all of the hyperlinks in this Paragraph.
-    ///    <![CDATA[ List<hyperlink> ]]> hyperlinks = paragraph.Hyperlinks;
-    ///    
-    ///    // Change the first hyperlinks text and Uri
-    ///    Hyperlink h0 = hyperlinks[0];
-    ///    h0.Text = "DocX";
-    ///    h0.Uri = new Uri("http://docx.codeplex.com");
-    ///
-    ///    // Save this document.
-    ///    document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public List<Hyperlink> Hyperlinks
     {
       get
@@ -268,9 +222,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    ///<summary>
-    /// The style name of the paragraph.
-    ///</summary>
     [Obsolete( "This property is obsolete and should no longer be used. Use StyleId instead." )]
     public string StyleName
     {
@@ -284,9 +235,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    ///<summary>
-    /// The style id of the paragraph.
-    ///</summary>
     public string StyleId
     {
       get
@@ -320,9 +268,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Returns a list of field type DocProperty in this document.
-    /// </summary>
     public List<DocProperty> DocumentProperties
     {
       get
@@ -331,26 +276,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets or Sets the Direction of content in this Paragraph.
-    /// <example>
-    /// Create a Paragraph with content that flows right to left. Default is left to right.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create("Test.docx"))
-    /// {
-    ///     // Create a new Paragraph with the text "Hello World".
-    ///     Paragraph p = document.InsertParagraph("Hello World.");
-    /// 
-    ///     // Make this Paragraph flow right to left. Default is left to right.
-    ///     p.Direction = Direction.RightToLeft;
-    ///     
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
-    /// </summary>
     public Direction Direction
     {
       get
@@ -380,26 +305,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Get or set the indentation of the first line of this Paragraph.
-    /// </summary>
-    /// <example>
-    /// Indent only the first line of a Paragraph.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create("Test.docx"))
-    /// {
-    ///     // Create a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
-    /// 
-    ///     // Indent only the first line of the Paragraph.
-    ///     p.IndentationFirstLine = 36f;
-    ///     
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public float IndentationFirstLine
     {
       get
@@ -437,26 +342,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Get or set the indentation of all but the first line of this Paragraph.
-    /// </summary>
-    /// <example>
-    /// Indent all but the first line of a Paragraph.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create("Test.docx"))
-    /// {
-    ///     // Create a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
-    /// 
-    ///     // Indent all but the first line of the Paragraph.
-    ///     p.IndentationHanging = 36f;
-    ///     
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public float IndentationHanging
     {
       get
@@ -503,26 +388,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Set the before indentation in pt for this Paragraph.
-    /// </summary>
-    /// <example>
-    /// // Indent an entire Paragraph from the left.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create("Test.docx"))
-    /// {
-    ///    // Create a new Paragraph.
-    ///    Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
-    ///
-    ///    // Indent this entire Paragraph from the left.
-    ///    p.IndentationBefore = 36f;
-    ///    
-    ///    // Save all changes made to this document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
     public float IndentationBefore
     {
       get
@@ -562,29 +427,6 @@ namespace Xceed.Document.NET
     }
 
 
-    /// <summary>
-    /// Set the after indentation in pt for this Paragraph.
-    /// </summary>
-    /// <example>
-    /// // Indent an entire Paragraph from the right.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create("Test.docx"))
-    /// {
-    ///     // Create a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph("Line 1\nLine 2\nLine 3");
-    /// 
-    ///     // Make the content of this Paragraph flow right to left.
-    ///     p.Direction = Direction.RightToLeft;
-    /// 
-    ///     // Indent this entire Paragraph from the right.
-    ///     p.IndentationAfter = 36f;
-    ///     
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public float IndentationAfter
     {
       get
@@ -623,9 +465,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets or set this Paragraphs text alignment.
-    /// </summary>
     public Alignment Alignment
     {
       get
@@ -667,9 +506,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets the text value of this Paragraph.
-    /// </summary>
     public string Text
     {
       // Returns the underlying XElement's Value property.
@@ -686,9 +522,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets the formatted text value of this Paragraph.
-    /// </summary>
     public List<FormattedText> MagicText
     {
       // Returns the underlying XElement's Value property.
@@ -702,24 +535,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <returns>This Paragraph in curent culture</returns>
-    /// <example>
-    /// Add a new Paragraph with russian text to this document and then set language of text to local culture.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph with russian text and set curent local culture to it.
-    ///     Paragraph p = document.InsertParagraph("Привет мир!").CurentCulture();
-    ///       
-    ///     // Save this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public Paragraph CurrentCulture()
     {
       ApplyTextFormattingProperty( XName.Get( "lang", Document.w.NamespaceName ),
@@ -728,9 +543,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    ///<summary>
-    /// Returns tables following the paragraph. Null if the following element isn't table.
-    ///</summary>
     public List<Table> FollowingTables
     {
       get
@@ -878,9 +690,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Indicates if this paragraph is a list element
-    /// </summary>
     public bool IsListItem
     {
       get
@@ -890,9 +699,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Get the indentation level of the list item
-    /// </summary>
     public int? IndentLevel
     {
       get
@@ -970,7 +776,6 @@ namespace Xceed.Document.NET
     {
       //_startIndex = startIndex;
 
-      //// Do not count text from inner AlternateContent
       //var alternateContentValue = xml.DescendantsAndSelf().FirstOrDefault( x => x.Name.Equals( XName.Get( "AlternateContent", Document.mc.NamespaceName ) ) );
       //if( alternateContentValue != null )
       //{
@@ -990,10 +795,8 @@ namespace Xceed.Document.NET
 
       RebuildDocProperties();
 
-      //// Check if this Paragraph references any pStyle elements.
       //var stylesElements = xml.Descendants( XName.Get( "pStyle", Document.w.NamespaceName ) );
 
-      //// If one or more pStyles are referenced.
       //if( stylesElements.Count() > 0 )
       //{
       //  Uri style_package_uri = new Uri( "/word/styles.xml", UriKind.Relative );
@@ -1033,38 +836,6 @@ namespace Xceed.Document.NET
 
     #region Public Methods
 
-    /// <summary>
-    /// Insert a new Table before this Paragraph, this Table can be from this document or another document.
-    /// </summary>
-    /// <param name="t">The Table t to be inserted.</param>
-    /// <returns>A new Table inserted before this Paragraph.</returns>
-    /// <example>
-    /// Insert a new Table before this Paragraph.
-    /// <code>
-    /// // Place holder for a Table.
-    /// Table t;
-    ///
-    /// // Load document a.
-    /// using (DocX documentA = DocX.Load(@"a.docx"))
-    /// {
-    ///     // Get the first Table from this document.
-    ///     t = documentA.Tables[0];
-    /// }
-    ///
-    /// // Load document b.
-    /// using (DocX documentB = DocX.Load(@"b.docx"))
-    /// {
-    ///     // Get the first Paragraph in document b.
-    ///     Paragraph p2 = documentB.Paragraphs[0];
-    ///
-    ///     // Insert the Table from document a before this Paragraph.
-    ///     Table newTable = p2.InsertTableBeforeSelf(t);
-    ///
-    ///     // Save all changes made to document b.
-    ///     documentB.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override Table InsertTableBeforeSelf( Table t )
     {
       t = base.InsertTableBeforeSelf( t );
@@ -1073,67 +844,11 @@ namespace Xceed.Document.NET
       return t;
     }
 
-    /// <summary>
-    /// Insert a new Table into this document before this Paragraph.
-    /// </summary>
-    /// <param name="rowCount">The number of rows this Table should have.</param>
-    /// <param name="columnCount">The number of columns this Table should have.</param>
-    /// <returns>A new Table inserted before this Paragraph.</returns>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     //Insert a Paragraph into this document.
-    ///     Paragraph p = document.InsertParagraph("Hello World", false);
-    ///
-    ///     // Insert a new Table before this Paragraph.
-    ///     Table newTable = p.InsertTableBeforeSelf(2, 2);
-    ///     newTable.Design = TableDesign.LightShadingAccent2;
-    ///     newTable.Alignment = Alignment.center;
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override Table InsertTableBeforeSelf( int rowCount, int columnCount )
     {
       return base.InsertTableBeforeSelf( rowCount, columnCount );
     }
 
-    /// <summary>
-    /// Insert a new Table after this Paragraph.
-    /// </summary>
-    /// <param name="t">The Table t to be inserted.</param>
-    /// <returns>A new Table inserted after this Paragraph.</returns>
-    /// <example>
-    /// Insert a new Table after this Paragraph.
-    /// <code>
-    /// // Place holder for a Table.
-    /// Table t;
-    ///
-    /// // Load document a.
-    /// using (DocX documentA = DocX.Load(@"a.docx"))
-    /// {
-    ///     // Get the first Table from this document.
-    ///     t = documentA.Tables[0];
-    /// }
-    ///
-    /// // Load document b.
-    /// using (DocX documentB = DocX.Load(@"b.docx"))
-    /// {
-    ///     // Get the first Paragraph in document b.
-    ///     Paragraph p2 = documentB.Paragraphs[0];
-    ///
-    ///     // Insert the Table from document a after this Paragraph.
-    ///     Table newTable = p2.InsertTableAfterSelf(t);
-    ///
-    ///     // Save all changes made to document b.
-    ///     documentB.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override Table InsertTableAfterSelf( Table t )
     {
       t = base.InsertTableAfterSelf( t );
@@ -1147,30 +862,6 @@ namespace Xceed.Document.NET
       return t;
     }
 
-    /// <summary>
-    /// Insert a new Table into this document after this Paragraph.
-    /// </summary>
-    /// <param name="rowCount">The number of rows this Table should have.</param>
-    /// <param name="columnCount">The number of columns this Table should have.</param>
-    /// <returns>A new Table inserted after this Paragraph.</returns>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     //Insert a Paragraph into this document.
-    ///     Paragraph p = document.InsertParagraph("Hello World", false);
-    ///
-    ///     // Insert a new Table after this Paragraph.
-    ///     Table newTable = p.InsertTableAfterSelf(2, 2);
-    ///     newTable.Design = TableDesign.LightShadingAccent2;
-    ///     newTable.Alignment = Alignment.center;
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override Table InsertTableAfterSelf( int rowCount, int columnCount )
     {
       var t = base.InsertTableAfterSelf( rowCount, columnCount );
@@ -1183,12 +874,6 @@ namespace Xceed.Document.NET
       return t;
     }
 
-    /// <summary>
-    /// Replaces an existing Picture with a new Picture.
-    /// </summary>
-    /// <param name="toBeReplaced">The picture object to be replaced.</param>
-    /// <param name="replaceWith">The picture object that should be inserted instead of <paramref name="toBeReplaced"/>.</param>
-    /// <returns>The new <see cref="Picture"/> object that replaces the old one.</returns>
     public Picture ReplacePicture( Picture toBeReplaced, Picture replaceWith )
     {
       var document = this.Document;
@@ -1213,40 +898,9 @@ namespace Xceed.Document.NET
       return replacePicture;
     }
 
-    /// <summary>
-    /// Insert a Paragraph before this Paragraph, this Paragraph may have come from the same or another document.
-    /// </summary>
-    /// <param name="p">The Paragraph to insert.</param>
-    /// <returns>The Paragraph now associated with this document.</returns>
-    /// <example>
-    /// Take a Paragraph from document a, and insert it into document b before this Paragraph.
-    /// <code>
-    /// // Place holder for a Paragraph.
-    /// Paragraph p;
-    ///
-    /// // Load document a.
-    /// using (DocX documentA = DocX.Load(@"a.docx"))
-    /// {
-    ///     // Get the first paragraph from this document.
-    ///     p = documentA.Paragraphs[0];
-    /// }
-    ///
-    /// // Load document b.
-    /// using (DocX documentB = DocX.Load(@"b.docx"))
-    /// {
-    ///     // Get the first Paragraph in document b.
-    ///     Paragraph p2 = documentB.Paragraphs[0];
-    ///
-    ///     // Insert the Paragraph from document a before this Paragraph.
-    ///     Paragraph newParagraph = p2.InsertParagraphBeforeSelf(p);
-    ///
-    ///     // Save all changes made to document b.
-    ///     documentB.Save();
-    /// }// Release this document from memory.
-    /// </code> 
-    /// </example>
     public override Paragraph InsertParagraphBeforeSelf( Paragraph p )
     {
+      this.ValidateInsert();
       this.ClearContainerParagraphsCache();
 
       var p2 = base.InsertParagraphBeforeSelf( p );
@@ -1257,29 +911,10 @@ namespace Xceed.Document.NET
       return p2;
     }
 
-    /// <summary>
-    /// Insert a new Paragraph before this Paragraph.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <returns>A new Paragraph inserted before this Paragraph.</returns>
-    /// <example>
-    /// Insert a new paragraph before the first Paragraph in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Paragraph into this document.
-    ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
-    ///
-    ///     p.InsertParagraphBeforeSelf("I was inserted before the next Paragraph.");
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphBeforeSelf( string text )
     {
+      this.ValidateInsert();
+
       // Inserting a paragraph at a specific index needs an update of Paragraph cache.
       this.ClearContainerParagraphsCache();
       var p = base.InsertParagraphBeforeSelf( text );
@@ -1290,30 +925,9 @@ namespace Xceed.Document.NET
       return p;
     }
 
-    /// <summary>
-    /// Insert a new Paragraph before this Paragraph.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-    /// <returns>A new Paragraph inserted before this Paragraph.</returns>
-    /// <example>
-    /// Insert a new paragraph before the first Paragraph in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Paragraph into this document.
-    ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
-    ///
-    ///     p.InsertParagraphBeforeSelf("I was inserted before the next Paragraph.", false);
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphBeforeSelf( string text, bool trackChanges )
     {
+      this.ValidateInsert();
       this.ClearContainerParagraphsCache();
 
       var p = base.InsertParagraphBeforeSelf( text, trackChanges );
@@ -1324,34 +938,9 @@ namespace Xceed.Document.NET
       return p;
     }
 
-    /// <summary>
-    /// Insert a new Paragraph before this Paragraph.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-    /// <param name="formatting">The formatting to apply to this insertion.</param>
-    /// <returns>A new Paragraph inserted before this Paragraph.</returns>
-    /// <example>
-    /// Insert a new paragraph before the first Paragraph in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Paragraph into this document.
-    ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
-    ///
-    ///     Formatting boldFormatting = new Formatting();
-    ///     boldFormatting.Bold = true;
-    ///
-    ///     p.InsertParagraphBeforeSelf("I was inserted before the next Paragraph.", false, boldFormatting);
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphBeforeSelf( string text, bool trackChanges, Formatting formatting )
     {
+      this.ValidateInsert();
       this.ClearContainerParagraphsCache();
 
       var p = base.InsertParagraphBeforeSelf( text, trackChanges, formatting );
@@ -1362,55 +951,11 @@ namespace Xceed.Document.NET
       return p;
     }
 
-    /// <summary>
-    /// Insert a page break before a Paragraph.
-    /// </summary>
-    /// <example>
-    /// Insert 2 Paragraphs into a document with a page break between them.
-    /// <code>
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///    // Insert a new Paragraph.
-    ///    Paragraph p1 = document.InsertParagraph("Paragraph 1", false);
-    ///       
-    ///    // Insert a new Paragraph.
-    ///    Paragraph p2 = document.InsertParagraph("Paragraph 2", false);
-    ///    
-    ///    // Insert a page break before Paragraph two.
-    ///    p2.InsertPageBreakBeforeSelf();
-    ///    
-    ///    // Save this document.
-    ///    document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override void InsertPageBreakBeforeSelf()
     {
       base.InsertPageBreakBeforeSelf();
     }
 
-    /// <summary>
-    /// Insert a page break after a Paragraph.
-    /// </summary>
-    /// <example>
-    /// Insert 2 Paragraphs into a document with a page break between them.
-    /// <code>
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///    // Insert a new Paragraph.
-    ///    Paragraph p1 = document.InsertParagraph("Paragraph 1", false);
-    ///       
-    ///    // Insert a page break after this Paragraph.
-    ///    p1.InsertPageBreakAfterSelf();
-    ///       
-    ///    // Insert a new Paragraph.
-    ///    Paragraph p2 = document.InsertParagraph("Paragraph 2", false);
-    ///
-    ///    // Save this document.
-    ///    document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public override void InsertPageBreakAfterSelf()
     {
       base.InsertPageBreakAfterSelf();
@@ -1422,12 +967,6 @@ namespace Xceed.Document.NET
       return InsertHyperlink( h, index );
     }
 
-    /// <summary>
-    /// This function inserts a hyperlink into a Paragraph at a specified character index.
-    /// </summary>
-    /// <param name="index">The index to insert at.</param>
-    /// <param name="h">The hyperlink to insert.</param>
-    /// <returns>The Paragraph with the Hyperlink inserted at the specified index.</returns>
 
     public Paragraph InsertHyperlink( Hyperlink h, int index = 0 )
     {
@@ -1496,32 +1035,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Remove the Hyperlink at the provided index. The first hyperlink is at index 0.
-    /// Using a negative index or an index greater than the index of the last hyperlink will cause an ArgumentOutOfRangeException() to be thrown.
-    /// </summary>
-    /// <param name="index">The index of the hyperlink to be removed.</param>
-    /// <example>
-    /// <code>
-    /// // Crete a new document.
-    /// using (var document = DocX.Create("Test.docx"))
-    /// {
-    ///     // Add a Hyperlink into this document.
-    ///     Hyperlink h = document.AddHyperlink("link", new Uri("http://www.google.com"));
-    ///
-    ///     // Insert a new Paragraph into the document.
-    ///     Paragraph p1 = document.InsertParagraph("AC");
-    ///     
-    ///     // Insert the hyperlink into this Paragraph.
-    ///     p1.InsertHyperlink(1, h);
-    ///     Assert.IsTrue(p1.Text == "AlinkC"); // Make sure the hyperlink was inserted correctly;
-    ///     
-    ///     // Remove the hyperlink
-    ///     p1.RemoveHyperlink(0);
-    ///     Assert.IsTrue(p1.Text == "AC"); // Make sure the hyperlink was removed correctly;
-    /// }
-    /// </code>
-    /// </example>
     public void RemoveHyperlink( int index )
     {
       // Dosen't make sense to remove a Hyperlink at a negative index.
@@ -1538,40 +1051,9 @@ namespace Xceed.Document.NET
         throw new ArgumentOutOfRangeException();
     }
 
-    /// <summary>
-    /// Insert a Paragraph after this Paragraph, this Paragraph may have come from the same or another document.
-    /// </summary>
-    /// <param name="p">The Paragraph to insert.</param>
-    /// <returns>The Paragraph now associated with this document.</returns>
-    /// <example>
-    /// Take a Paragraph from document a, and insert it into document b after this Paragraph.
-    /// <code>
-    /// // Place holder for a Paragraph.
-    /// Paragraph p;
-    ///
-    /// // Load document a.
-    /// using (DocX documentA = DocX.Load(@"a.docx"))
-    /// {
-    ///     // Get the first paragraph from this document.
-    ///     p = documentA.Paragraphs[0];
-    /// }
-    ///
-    /// // Load document b.
-    /// using (DocX documentB = DocX.Load(@"b.docx"))
-    /// {
-    ///     // Get the first Paragraph in document b.
-    ///     Paragraph p2 = documentB.Paragraphs[0];
-    ///
-    ///     // Insert the Paragraph from document a after this Paragraph.
-    ///     Paragraph newParagraph = p2.InsertParagraphAfterSelf(p);
-    ///
-    ///     // Save all changes made to document b.
-    ///     documentB.Save();
-    /// }// Release this document from memory.
-    /// </code> 
-    /// </example>
     public override Paragraph InsertParagraphAfterSelf( Paragraph p )
     {
+      this.ValidateInsert();
       this.ClearContainerParagraphsCache();
 
       var p2 = base.InsertParagraphAfterSelf( p );
@@ -1580,34 +1062,9 @@ namespace Xceed.Document.NET
       return p2;
     }
 
-    /// <summary>
-    /// Insert a new Paragraph after this Paragraph.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-    /// <param name="formatting">The formatting to apply to this insertion.</param>
-    /// <returns>A new Paragraph inserted after this Paragraph.</returns>
-    /// <example>
-    /// Insert a new paragraph after the first Paragraph in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Paragraph into this document.
-    ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
-    ///
-    ///     Formatting boldFormatting = new Formatting();
-    ///     boldFormatting.Bold = true;
-    ///
-    ///     p.InsertParagraphAfterSelf("I was inserted after the previous Paragraph.", false, boldFormatting);
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphAfterSelf( string text, bool trackChanges, Formatting formatting )
     {
+      this.ValidateInsert();
       this.ClearContainerParagraphsCache();
 
       var p = base.InsertParagraphAfterSelf( text, trackChanges, formatting );
@@ -1616,30 +1073,9 @@ namespace Xceed.Document.NET
       return p;
     }
 
-    /// <summary>
-    /// Insert a new Paragraph after this Paragraph.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <param name="trackChanges">Should this insertion be tracked as a change?</param>
-    /// <returns>A new Paragraph inserted after this Paragraph.</returns>
-    /// <example>
-    /// Insert a new paragraph after the first Paragraph in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Paragraph into this document.
-    ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
-    ///
-    ///     p.InsertParagraphAfterSelf("I was inserted after the previous Paragraph.", false);
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphAfterSelf( string text, bool trackChanges )
     {
+      this.ValidateInsert();
       this.ClearContainerParagraphsCache();
 
       var p = base.InsertParagraphAfterSelf( text, trackChanges );
@@ -1648,29 +1084,9 @@ namespace Xceed.Document.NET
       return p;
     }
 
-    /// <summary>
-    /// Insert a new Paragraph after this Paragraph.
-    /// </summary>
-    /// <param name="text">The initial text for this new Paragraph.</param>
-    /// <returns>A new Paragraph inserted after this Paragraph.</returns>
-    /// <example>
-    /// Insert a new paragraph after the first Paragraph in this document.
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a Paragraph into this document.
-    ///     Paragraph p = document.InsertParagraph("I am a Paragraph", false);
-    ///
-    ///     p.InsertParagraphAfterSelf("I was inserted after the previous Paragraph.");
-    ///
-    ///     // Save all changes made to this new document.
-    ///     document.Save();
-    ///    }// Release this new document form memory.
-    /// </code>
-    /// </example>
     public override Paragraph InsertParagraphAfterSelf( string text )
     {
+      this.ValidateInsert();
       this.ClearContainerParagraphsCache();
 
       var p = base.InsertParagraphAfterSelf( text );
@@ -1680,27 +1096,6 @@ namespace Xceed.Document.NET
     }
 
 
-    /// <summary>
-    /// Remove this Paragraph from the document.
-    /// </summary>
-    /// <param name="trackChanges">Should this remove be tracked as a change?</param>
-    /// <example>
-    /// Remove a Paragraph from a document and track it as a change.
-    /// <code>
-    /// // Create a document using a relative filename.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Create and Insert a new Paragraph into this document.
-    ///     Paragraph p = document.InsertParagraph("Hello", false);
-    ///
-    ///     // Remove the Paragraph and track this as a change.
-    ///     p.Remove(true);
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public void Remove( bool trackChanges )
     {
       var mainContainer = this.GetMainParentContainer();
@@ -1877,118 +1272,11 @@ namespace Xceed.Document.NET
     //    return InsertPicture(index, imageID, string.Empty, string.Empty);
     //}
 
-    /// <summary>
-    /// Inserts a specified instance of System.String into a Xceed.Document.NET.Document.Paragraph at a specified index position.
-    /// </summary>
-    /// <example>
-    /// <code> 
-    /// // Create a document using a relative filename.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Create a text formatting.
-    ///     Formatting f = new Formatting();
-    ///     f.FontColor = Color.Red;
-    ///     f.Size = 30;
-    ///
-    ///     // Iterate through the Paragraphs in this document.
-    ///     foreach (Paragraph p in document.Paragraphs)
-    ///     {
-    ///         // Insert the string "Start: " at the begining of every Paragraph and flag it as a change.
-    ///         p.InsertText("Start: ", true, f);
-    ///     }
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// <example>
-    /// Inserting tabs using the \t switch.
-    /// <code>  
-    /// // Create a document using a relative filename.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///      // Create a text formatting.
-    ///      Formatting f = new Formatting();
-    ///      f.FontColor = Color.Red;
-    ///      f.Size = 30;
-    ///        
-    ///      // Iterate through the paragraphs in this document.
-    ///      foreach (Paragraph p in document.Paragraphs)
-    ///      {
-    ///          // Insert the string "\tEnd" at the end of every paragraph and flag it as a change.
-    ///          p.InsertText("\tEnd", true, f);
-    ///      }
-    ///       
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-    /// <seealso cref="Paragraph.RemoveText(int, int, bool, bool)"/>
-    /// <param name="value">The System.String to insert.</param>
-    /// <param name="trackChanges">Flag this insert as a change.</param>
-    /// <param name="formatting">The text formatting.</param>
     public void InsertText( string value, bool trackChanges = false, Formatting formatting = null )
     {
       this.InsertText( this.Text.Length, value, trackChanges, formatting );
     }
 
-    /// <summary>
-    /// Inserts a specified instance of System.String into a Xceed.Document.NET.Document.Paragraph at a specified index position.
-    /// </summary>
-    /// <example>
-    /// <code> 
-    /// // Create a document using a relative filename.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Create a text formatting.
-    ///     Formatting f = new Formatting();
-    ///     f.FontColor = Color.Red;
-    ///     f.Size = 30;
-    ///
-    ///     // Iterate through the Paragraphs in this document.
-    ///     foreach (Paragraph p in document.Paragraphs)
-    ///     {
-    ///         // Insert the string "Start: " at the begining of every Paragraph and flag it as a change.
-    ///         p.InsertText(0, "Start: ", true, f);
-    ///     }
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// <example>
-    /// Inserting tabs using the \t switch.
-    /// <code>  
-    /// // Create a document using a relative filename.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Create a text formatting.
-    ///     Formatting f = new Formatting();
-    ///     f.FontColor = Color.Red;
-    ///     f.Size = 30;
-    ///
-    ///     // Iterate through the paragraphs in this document.
-    ///     foreach (Paragraph p in document.Paragraphs)
-    ///     {
-    ///         // Insert the string "\tStart:\t" at the begining of every paragraph and flag it as a change.
-    ///         p.InsertText(0, "\tStart:\t", true, f);
-    ///     }
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-    /// <seealso cref="Paragraph.RemoveText(int, int, bool, bool)"/>
-    /// <param name="index">The index position of the insertion.</param>
-    /// <param name="value">The System.String to insert.</param>
-    /// <param name="trackChanges">Flag this insert as a change.</param>
-    /// <param name="formatting">The text formatting.</param>
     public void InsertText( int index, string value, bool trackChanges = false, Formatting formatting = null )
     {
       // Timestamp to mark the start of insert
@@ -2132,25 +1420,6 @@ namespace Xceed.Document.NET
       this.NeedRefreshIndexes();
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="culture">The CultureInfo for text</param>
-    /// <returns>This Paragraph in curent culture</returns>
-    /// <example>
-    /// Add a new Paragraph with russian text to this document and then set language of text to local culture.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph with russian text and set specific culture to it.
-    ///     Paragraph p = document.InsertParagraph("Привет мир").Culture(CultureInfo.CreateSpecificCulture("ru-RU"));
-    ///       
-    ///     // Save this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public Paragraph Culture( CultureInfo culture )
     {
       this.ApplyTextFormattingProperty( XName.Get( "lang", Document.w.NamespaceName ),
@@ -2160,25 +1429,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Append text to this Paragraph.
-    /// </summary>
-    /// <param name="text">The text to append.</param>
-    /// <returns>This Paragraph with the new text appened.</returns>
-    /// <example>
-    /// Add a new Paragraph to this document and then append some text to it.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph and Append some text to it.
-    ///     Paragraph p = document.InsertParagraph().Append("Hello World!!!");
-    ///       
-    ///     // Save this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public Paragraph Append( string text )
     {
       var newRuns = HelperFunctions.FormatInput( text, null );
@@ -2191,32 +1441,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Append text to this Paragraph and apply the provided format
-    /// </summary>
-    /// <param name="text">The text to append.</param>
-    /// <param name="format">The format to use.</param>
-    /// <returns>This Paragraph with the new text appended.</returns>
-    /// <example>
-    /// Add a new Paragraph to this document, append some text to it and apply the provided format.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Prepare format to use
-    ///     Formatting format = new Formatting();
-    ///     format.Bold = true;
-    ///     format.Size = 18;
-    ///     format.FontColor = Color.Blue;
-    /// 
-    ///     // Insert a new Paragraph and append some text to it with the custom format
-    ///     Paragraph p = document.InsertParagraph().Append("Hello World!!!", format);
-    ///       
-    ///     // Save this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public Paragraph Append( string text, Formatting format )
     {
       // Text
@@ -2309,31 +1533,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Append a hyperlink to a Paragraph.
-    /// </summary>
-    /// <param name="h">The hyperlink to append.</param>
-    /// <returns>The Paragraph with the hyperlink appended.</returns>
-    /// <example>
-    /// Creates a Paragraph with some text and a hyperlink.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///    // Add a hyperlink to this document.
-    ///    Hyperlink h = document.AddHyperlink("Google", new Uri("http://www.google.com"));
-    ///    
-    ///    // Add a new Paragraph to this document.
-    ///    Paragraph p = document.InsertParagraph();
-    ///    p.Append("My favourite search engine is ");
-    ///    p.AppendHyperlink(h);
-    ///    p.Append(", I think it's great.");
-    ///
-    ///    // Save all changes made to this document.
-    ///    document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public Paragraph AppendHyperlink( Hyperlink h )
     {
       // Convert the path of this mainPart to its equilivant rels file path.
@@ -2358,37 +1557,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Add an image to a document, create a custom view of that image (picture) and then insert it into a Paragraph using append.
-    /// </summary>
-    /// <param name="p">The Picture to append.</param>
-    /// <returns>The Paragraph with the Picture now appended.</returns>
-    /// <example>
-    /// Add an image to a document, create a custom view of that image (picture) and then insert it into a Paragraph using append.
-    /// <code>
-    /// using (var document = DocX.Create("Test.docx"))
-    /// {
-    ///    // Add an image to the document. 
-    ///    Image     i = document.AddImage(@"Image.jpg");
-    ///    
-    ///    // Create a picture i.e. (A custom view of an image)
-    ///    Picture   p = i.CreatePicture();
-    ///    p.FlipHorizontal = true;
-    ///    p.Rotation = 10;
-    ///
-    ///    // Create a new Paragraph.
-    ///    Paragraph par = document.InsertParagraph();
-    ///    
-    ///    // Append content to the Paragraph.
-    ///    par.Append("Here is a cool picture")
-    ///       .AppendPicture(p)
-    ///       .Append(" don't you think so?");
-    ///
-    ///    // Save all changes made to this document.
-    ///    document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public Paragraph AppendPicture( Picture p )
     {
       // Convert the path of this mainPart to its equilivant rels file path.
@@ -2512,25 +1680,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Add an equation to a document.
-    /// </summary>
-    /// <param name="equation">The Equation to append.</param>
-    /// <param name="align">The alignment of the equation.</param>
-    /// <returns>The Paragraph with the Equation now appended.</returns>
-    /// <example>
-    /// Add an equation to a document.
-    /// <code>
-    /// using (var document = DocX.Create("Test.docx"))
-    /// {
-    ///    // Add an equation to the document. 
-    ///    document.AddEquation("x=y+z");
-    ///    
-    ///    // Save all changes made to this document.
-    ///    document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public Paragraph AppendEquation( String equation, Alignment align = Alignment.center )
     {
       var alignString = string.Empty;
@@ -2587,63 +1736,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Insert a Picture into a Paragraph at the given text index.
-    /// If no index is provided defaults to 0.
-    /// </summary>
-    /// <param name="p">The Picture to insert.</param>
-    /// <param name="index">The text index to insert at.</param>
-    /// <returns>The modified Paragraph.</returns>
-    /// <example>
-    /// <code>
-    ///Load test document.
-    ///using (var document = DocX.Create("Test.docx"))
-    ///{
-    ///    // Add Headers and Footers into this document.
-    ///    document.AddHeaders();
-    ///    document.AddFooters();
-    ///    document.DifferentFirstPage = true;
-    ///    document.DifferentOddAndEvenPages = true;
-    ///
-    ///    // Add an Image to this document.
-    ///    Xceed.Document.NET.Image img = document.AddImage(directory_documents + "purple.png");
-    ///
-    ///    // Create a Picture from this Image.
-    ///    Picture pic = img.CreatePicture();
-    ///
-    ///    // Main document.
-    ///    Paragraph p0 = document.InsertParagraph("Hello");
-    ///    p0.InsertPicture(pic, 3);
-    ///
-    ///    // Header first.
-    ///    Paragraph p1 = document.Headers.first.InsertParagraph("----");
-    ///    p1.InsertPicture(pic, 2);
-    ///
-    ///    // Header odd.
-    ///    Paragraph p2 = document.Headers.odd.InsertParagraph("----");
-    ///    p2.InsertPicture(pic, 2);
-    ///
-    ///    // Header even.
-    ///    Paragraph p3 = document.Headers.even.InsertParagraph("----");
-    ///    p3.InsertPicture(pic, 2);
-    ///
-    ///    // Footer first.
-    ///    Paragraph p4 = document.Footers.first.InsertParagraph("----");
-    ///    p4.InsertPicture(pic, 2);
-    ///
-    ///    // Footer odd.
-    ///    Paragraph p5 = document.Footers.odd.InsertParagraph("----");
-    ///    p5.InsertPicture(pic, 2);
-    ///
-    ///    // Footer even.
-    ///    Paragraph p6 = document.Footers.even.InsertParagraph("----");
-    ///    p6.InsertPicture(pic, 2);
-    ///
-    ///    // Save this document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
     public Paragraph InsertPicture( Picture p, int index = 0 )
     {
       // Convert the path of this mainPart to its equilivant rels file path.
@@ -2659,8 +1751,8 @@ namespace Xceed.Document.NET
       XElement p_xml;
       if( index == 0 )
       {
-        // Add this picture befor ethe first run.
-        var firstRun = Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).FirstOrDefault();
+        // Add this picture before the first run.
+        var firstRun = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).FirstOrDefault();
         if( firstRun != null )
         {
           firstRun.AddBeforeSelf( p.Xml );
@@ -2670,23 +1762,30 @@ namespace Xceed.Document.NET
         }
         else
         {
-          Xml.AddFirst( p.Xml );
-
-          // Extract the picture back out of the DOM.
-          p_xml = ( XElement )Xml.FirstNode;
+          var pPr = this.Xml.Element( XName.Get( "pPr", Document.w.NamespaceName ) );
+          if( pPr != null )
+          {
+            pPr.AddAfterSelf( p.Xml );
+            p_xml = (XElement)pPr.NextNode;
+          }
+          else
+          {
+            this.Xml.AddFirst( p.Xml );
+            p_xml = (XElement)this.Xml.FirstNode;
+          }
         }
       }
       else
       {
         // Get the first run effected by this Insert
-        var run = GetFirstRunEffectedByEdit( index );
+        var run = this.GetFirstRunEffectedByEdit( index );
         if( run == null )
         {
           // Add this picture as the last element.
-          Xml.Add( p.Xml );
+          this.Xml.Add( p.Xml );
 
           // Extract the picture back out of the DOM.
-          p_xml = ( XElement )Xml.LastNode;
+          p_xml = ( XElement )this.Xml.LastNode;
         }
         else
         {
@@ -2734,14 +1833,6 @@ namespace Xceed.Document.NET
 
 
 
-    /// <summary>
-    /// Add a new TabStopPosition in the current paragraph.
-    /// </summary>
-    /// <param name="alignment">Specifies the alignment of the Tab stop.</param>
-    /// <param name="position">Specifies the horizontal position of the tab stop.</param>
-    /// <param name="leader">Specifies the character used to fill in the space created by a tab.</param>
-    /// <param name="index">The TabStopPosition index to insert at.</param>
-    /// <returns>The modified Paragraph.</returns>
     public Paragraph InsertTabStopPosition( Alignment alignment, float position, TabStopPositionLeader leader = TabStopPositionLeader.none, int index = -1 )
     {
       var pPr = GetOrCreate_pPr();
@@ -2810,75 +1901,16 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Append text on a new line to this Paragraph.
-    /// </summary>
-    /// <param name="text">The text to append.</param>
-    /// <returns>This Paragraph with the new text appened.</returns>
-    /// <example>
-    /// Add a new Paragraph to this document and then append a new line with some text to it.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph and Append a new line with some text to it.
-    ///     Paragraph p = document.InsertParagraph().AppendLine("Hello World!!!");
-    ///       
-    ///     // Save this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public Paragraph AppendLine( string text )
     {
       return Append( "\n" + text );
     }
 
-    /// <summary>
-    /// Append a new line to this Paragraph.
-    /// </summary>
-    /// <returns>This Paragraph with a new line appeneded.</returns>
-    /// <example>
-    /// Add a new Paragraph to this document and then append a new line to it.
-    /// <code>
-    /// // Load a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph and Append a new line with some text to it.
-    ///     Paragraph p = document.InsertParagraph().AppendLine();
-    ///       
-    ///     // Save this document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
     public Paragraph AppendLine()
     {
       return Append( "\n" );
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <returns>This Paragraph with the last appended text bold.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then make it bold.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("Bold").Bold()
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph Bold( bool isBold = true )
     {
       ApplyTextFormattingProperty( XName.Get( "b", Document.w.NamespaceName ), string.Empty, isBold ? null : new XAttribute( XName.Get( "val", Document.w.NamespaceName ), "0" ) );
@@ -2886,28 +1918,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <returns>This Paragraph with the last appended text italic.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then make it italic.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("Italic").Italic()
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph Italic( bool isItalic = true )
     {
       ApplyTextFormattingProperty( XName.Get( "i", Document.w.NamespaceName ), string.Empty, isItalic ? null : new XAttribute( XName.Get( "val", Document.w.NamespaceName ), "0" ) );
@@ -2915,29 +1925,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="c">A color to use on the appended text.</param>
-    /// <returns>This Paragraph with the last appended text colored.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then color it.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("Blue").Color(Color.Blue)
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph Color( Color c )
     {
       ApplyTextFormattingProperty( XName.Get( "color", Document.w.NamespaceName ), string.Empty, new XAttribute( XName.Get( "val", Document.w.NamespaceName ), c.ToHex() ) );
@@ -2945,29 +1932,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="underlineStyle">The underline style to use for the appended text.</param>
-    /// <returns>This Paragraph with the last appended text underlined.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then underline it.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("Underlined").UnderlineStyle(UnderlineStyle.doubleLine)
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph UnderlineStyle( UnderlineStyle underlineStyle )
     {
       string value;
@@ -2992,29 +1956,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="fontSize">The font size to use for the appended text.</param>
-    /// <returns>This Paragraph with the last appended text resized.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then resize it.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("Big").FontSize(20)
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph FontSize( double fontSize )
     {
       double tempSize = fontSize * 2;
@@ -3033,39 +1974,11 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="fontName">The font to use for the appended text.</param>
-    /// <returns>This Paragraph with the last appended text's font changed.</returns>
     public Paragraph Font( string fontName )
     {
       return Font( new Font( fontName ) );
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="fontFamily">The font to use for the appended text.</param>
-    /// <returns>This Paragraph with the last appended text's font changed.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then change its font.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("Times new roman").Font(new FontFamily("Times new roman"))
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph Font( Font fontFamily )
     {
       ApplyTextFormattingProperty
@@ -3084,29 +1997,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="capsStyle">The caps style to apply to the last appended text.</param>
-    /// <returns>This Paragraph with the last appended text's caps style changed.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then set it to full caps.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("Capitalized").CapsStyle(CapsStyle.caps)
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph CapsStyle( CapsStyle capsStyle )
     {
       switch( capsStyle )
@@ -3124,29 +2014,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="script">The script style to apply to the last appended text.</param>
-    /// <returns>This Paragraph with the last appended text's script style changed.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then set it to superscript.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("superscript").Script(Script.superscript)
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph Script( Script script )
     {
       switch( script )
@@ -3164,29 +2031,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    ///<param name="highlight">The highlight to apply to the last appended text.</param>
-    /// <returns>This Paragraph with the last appended text highlighted.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then highlight it.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("highlighted").Highlight(Highlight.green)
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph Highlight( Highlight highlight )
     {
       ApplyTextFormattingProperty( XName.Get( "highlight", Document.w.NamespaceName ), string.Empty, new XAttribute( XName.Get( "val", Document.w.NamespaceName ), highlight.ToString() ) );
@@ -3272,29 +2116,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="misc">The miscellaneous property to set.</param>
-    /// <returns>This Paragraph with the last appended text changed by a miscellaneous property.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then apply a miscellaneous property.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("outlined").Misc(Misc.outline)
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph Misc( Misc misc )
     {
       switch( misc )
@@ -3328,29 +2149,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="strikeThrough">The strike through style to used on the last appended text.</param>
-    /// <returns>This Paragraph with the last appended text striked.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then strike it.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("striked").StrikeThrough(StrikeThrough.doubleStrike)
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph StrikeThrough( StrikeThrough strikeThrough )
     {
       string value;
@@ -3371,29 +2169,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <param name="underlineColor">The underline color to use, if no underline is set, a single line will be used.</param>
-    /// <returns>This Paragraph with the last appended text underlined in a color.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then underline it using a color.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("color underlined").UnderlineStyle(UnderlineStyle.dotted).UnderlineColor(Color.Orange)
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph UnderlineColor( Color underlineColor )
     {
       foreach( XElement run in _runs )
@@ -3419,28 +2194,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// For use with Append() and AppendLine()
-    /// </summary>
-    /// <returns>This Paragraph with the last appended text hidden.</returns>
-    /// <example>
-    /// Append text to this Paragraph and then hide it.
-    /// <code>
-    /// // Create a document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Insert a new Paragraph.
-    ///     Paragraph p = document.InsertParagraph();
-    ///
-    ///     p.Append("I am ")
-    ///     .Append("hidden").Hide()
-    ///     .Append(" I am not");
-    ///        
-    ///     // Save this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public Paragraph Hide()
     {
       ApplyTextFormattingProperty( XName.Get( "vanish", Document.w.NamespaceName ), string.Empty, null );
@@ -3606,42 +2359,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Append a field of type document property, this field will display the custom property cp, at the end of this paragraph.
-    /// </summary>
-    /// <param name="cp">The custom property to display.</param>
-    /// <param name="f">The formatting to use for this text.</param>
-    /// <param name="trackChanges"></param>
-    /// <example>
-    /// Create, add and display a custom property in a document.
-    /// <code>
-    /// // Load a document.
-    ///using (var document = DocX.Create("CustomProperty_Add.docx"))
-    ///{
-    ///    // Add a few Custom Properties to this document.
-    ///    document.AddCustomProperty(new CustomProperty("fname", "cathal"));
-    ///    document.AddCustomProperty(new CustomProperty("age", 24));
-    ///    document.AddCustomProperty(new CustomProperty("male", true));
-    ///    document.AddCustomProperty(new CustomProperty("newyear2012", new DateTime(2012, 1, 1)));
-    ///    document.AddCustomProperty(new CustomProperty("fav_num", 3.141592));
-    ///
-    ///    // Insert a new Paragraph and append a load of DocProperties.
-    ///    Paragraph p = document.InsertParagraph("fname: ")
-    ///        .AppendDocProperty(document.CustomProperties["fname"])
-    ///        .Append(", age: ")
-    ///        .AppendDocProperty(document.CustomProperties["age"])
-    ///        .Append(", male: ")
-    ///        .AppendDocProperty(document.CustomProperties["male"])
-    ///        .Append(", newyear2012: ")
-    ///        .AppendDocProperty(document.CustomProperties["newyear2012"])
-    ///        .Append(", fav_num: ")
-    ///        .AppendDocProperty(document.CustomProperties["fav_num"]);
-    ///    
-    ///    // Save the changes to the document.
-    ///    document.Save();
-    ///}
-    /// </code>
-    /// </example>
     public Paragraph AppendDocProperty( CustomProperty cp, bool trackChanges = false, Formatting f = null )
     {
       this.InsertDocProperty( cp, trackChanges, f );
@@ -3649,41 +2366,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Insert a field of type document property, this field will display the custom property cp, at the end of this paragraph.
-    /// </summary>
-    /// <param name="cp">The custom property to display.</param>
-    /// <param name="trackChanges">if the changes are tracked.</param>
-    /// <param name="f">The formatting to use for this text.</param>
-    /// <example>
-    /// Create, add and display a custom property in a document.
-    /// <code>
-    /// // Load a document
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Create a custom property.
-    ///     CustomProperty name = new CustomProperty("name", "Cathal Coffey");
-    ///        
-    ///     // Add this custom property to this document.
-    ///     document.AddCustomProperty(name);
-    ///
-    ///     // Create a text formatting.
-    ///     Formatting f = new Formatting();
-    ///     f.Bold = true;
-    ///     f.Size = 14;
-    ///     f.StrikeThrough = StrickThrough.strike;
-    ///
-    ///     // Insert a new paragraph.
-    ///     Paragraph p = document.InsertParagraph("Author: ", false, f);
-    ///
-    ///     // Insert a field of type document property to display the custom property name and track this change.
-    ///     p.InsertDocProperty(name, true, f);
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public DocProperty InsertDocProperty( CustomProperty cp, bool trackChanges = false, Formatting f = null )
     {
       XElement f_xml = null;
@@ -3710,32 +2392,6 @@ namespace Xceed.Document.NET
       return new DocProperty( this.Document, xml );
     }
 
-    /// <summary>
-    /// Removes characters from a Xceed.Document.NET.Document.Paragraph.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a document using a relative filename.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Iterate through the paragraphs
-    ///     foreach (Paragraph p in document.Paragraphs)
-    ///     {
-    ///         // Remove the first two characters from every paragraph
-    ///         p.RemoveText(0, 2, false);
-    ///     }
-    ///        
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
-    /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
-    /// <param name="index">The position to begin deleting characters.</param>
-    /// <param name="count">The number of characters to delete</param>
-    /// <param name="trackChanges">Track changes</param>
-    /// <param name="removeEmptyParagraph">Remove empty paragraph</param>
     public void RemoveText( int index, int count, bool trackChanges = false, bool removeEmptyParagraph = true )
     {
       if( count == 0 )
@@ -3842,7 +2498,10 @@ namespace Xceed.Document.NET
           canRemove &= parentElement.Descendants( XName.Get( "drawing", Document.w.NamespaceName ) ).Count() == 0;
 
           if( canRemove )
+          {
             parentElement.Remove();
+            m_removed = true;
+          }
         }
       }
       while( processed < count );
@@ -3857,90 +2516,11 @@ namespace Xceed.Document.NET
       this.NeedRefreshIndexes();
     }
 
-
-    /// <summary>
-    /// Removes characters from a Xceed.Document.NET.Document.Paragraph.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Create a document using a relative filename.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // Iterate through the paragraphs
-    ///     foreach (Paragraph p in document.Paragraphs)
-    ///     {
-    ///         // Remove all but the first 2 characters from this Paragraph.
-    ///         p.RemoveText(2, false);
-    ///     }
-    ///        
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
-    /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
-    /// <param name="index">The position to begin deleting characters.</param>
-    /// <param name="trackChanges">Track changes</param>
     public void RemoveText( int index, bool trackChanges = false )
     {
       this.RemoveText( index, Text.Length - index, trackChanges );
     }
 
-    /// <summary>
-    /// Replaces all occurrences of a specified System.String in this instance, with another specified System.String.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// // Load a document using a relative filename.
-    /// using (var document = DocX.Load(@"C:\Example\Test.docx"))
-    /// {
-    ///     // The formatting to match.
-    ///     Formatting matchFormatting = new Formatting();
-    ///     matchFormatting.Size = 10;
-    ///     matchFormatting.Italic = true;
-    ///     matchFormatting.FontFamily = new FontFamily("Times New Roman");
-    ///
-    ///     // The formatting to apply to the inserted text.
-    ///     Formatting newFormatting = new Formatting();
-    ///     newFormatting.Size = 22;
-    ///     newFormatting.UnderlineStyle = UnderlineStyle.dotted;
-    ///     newFormatting.Bold = true;
-    ///
-    ///     // Iterate through the paragraphs in this document.
-    ///     foreach (Paragraph p in document.Paragraphs)
-    ///     {
-    ///         /* 
-    ///          * Replace all instances of the string "wrong" with the string "right" and ignore case.
-    ///          * Each inserted instance of "wrong" should use the Formatting newFormatting.
-    ///          * Only replace an instance of "wrong" if it is Size 10, Italic and Times New Roman.
-    ///          * SubsetMatch means that the formatting must contain all elements of the match formatting,
-    ///          * but it can also contain additional formatting for example Color, UnderlineStyle, etc.
-    ///          * ExactMatch means it must not contain additional formatting.
-    ///          */
-    ///         p.ReplaceText("wrong", "right", false, RegexOptions.IgnoreCase, newFormatting, matchFormatting, MatchFormattingOptions.SubsetMatch);
-    ///     }
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
-    /// <seealso cref="Paragraph.RemoveText(int, int, bool, bool)"/>
-    /// <seealso cref="Paragraph.RemoveText(int, bool)"/>
-    /// <seealso cref="Paragraph.InsertText(int, string, bool, Formatting)"/>
-    /// <seealso cref="Paragraph.InsertText(string, bool, Formatting)"/>
-    /// <param name="newValue">A System.String to replace all occurrences of oldValue.</param>
-    /// <param name="searchValue">A System.String to be replaced.</param>
-    /// <param name="options">A bitwise OR combination of RegexOption enumeration options.</param>
-    /// <param name="trackChanges">Track changes</param>
-    /// <param name="newFormatting">The formatting to apply to the text being inserted.</param>
-    /// <param name="matchFormatting">The formatting that the text must match in order to be replaced.</param>
-    /// <param name="fo">How should formatting be matched?</param>
-    /// <param name="escapeRegEx">True if the oldValue needs to be escaped, otherwise false. If it represents a valid RegEx pattern this should be false.</param>
-    /// <param name="useRegExSubstitutions">True if RegEx-like replace should be performed, i.e. if newValue contains RegEx substitutions. Does not perform named-group substitutions (only numbered groups).</param>
-    /// <param name="removeEmptyParagraph">Remove empty paragraph</param>
-    ///   [Obsolete("BarChart() is obsolete. Use Document.AddChart<BarChart>() instead.")]
     [Obsolete( "ReplaceText() with many parameters is obsolete. Use ReplaceText() with a StringReplaceTextOptions parameter instead." )]
     public void ReplaceText( string searchValue,
                              string newValue,
@@ -4221,6 +2801,8 @@ namespace Xceed.Document.NET
 
 
 
+
+
     public bool ReplaceText( FunctionReplaceTextOptions replaceTextOptions )
     {
       if( string.IsNullOrEmpty( replaceTextOptions.FindPattern ) )
@@ -4298,80 +2880,11 @@ namespace Xceed.Document.NET
       return replaceSuccess;
     }
 
-    /// <summary>
-    /// Find all instances of a string in this paragraph and return their indexes in a List.
-    /// </summary>
-    /// <param name="str">The string to find</param>
-    /// <returns>A list of indexes.</returns>
-    /// <example>
-    /// Find all instances of Hello in this document and insert 'don't' in frount of them.
-    /// <code>
-    /// // Load a document
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///     // Loop through the paragraphs in this document.
-    ///     foreach(Paragraph p in document.Paragraphs)
-    ///     {
-    ///         // Find all instances of 'go' in this paragraph.
-    ///         <![CDATA[ List<int> ]]> gos = document.FindAll("go");
-    ///
-    ///         /* 
-    ///          * Insert 'don't' in frount of every instance of 'go' in this document to produce 'don't go'.
-    ///          * An important trick here is to do the inserting in reverse document order. If you inserted 
-    ///          * in document order, every insert would shift the index of the remaining matches.
-    ///          */
-    ///         gos.Reverse();
-    ///         foreach (int index in gos)
-    ///         {
-    ///             p.InsertText(index, "don't ", false);
-    ///         }
-    ///     }
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public List<int> FindAll( string str )
     {
       return this.FindAll( str, RegexOptions.None );
     }
 
-    /// <summary>
-    /// Find all instances of a string in this paragraph and return their indexes in a List.
-    /// </summary>
-    /// <param name="str">The string to find</param>
-    /// <param name="options">The options to use when finding a string match.</param>
-    /// <returns>A list of indexes.</returns>
-    /// <example>
-    /// Find all instances of Hello in this document and insert 'don't' in frount of them.
-    /// <code>
-    /// // Load a document
-    /// using (var document = DocX.Load(@"Test.docx"))
-    /// {
-    ///     // Loop through the paragraphs in this document.
-    ///     foreach(Paragraph p in document.Paragraphs)
-    ///     {
-    ///         // Find all instances of 'go' in this paragraph (Ignore case).
-    ///         <![CDATA[ List<int> ]]>  gos = document.FindAll("go", RegexOptions.IgnoreCase);
-    ///
-    ///         /* 
-    ///          * Insert 'don't' in frount of every instance of 'go' in this document to produce 'don't go'.
-    ///          * An important trick here is to do the inserting in reverse document order. If you inserted 
-    ///          * in document order, every insert would shift the index of the remaining matches.
-    ///          */
-    ///         gos.Reverse();
-    ///         foreach (int index in gos)
-    ///         {
-    ///             p.InsertText(index, "don't ", false);
-    ///         }
-    ///     }
-    ///
-    ///     // Save all changes made to this document.
-    ///     document.Save();
-    /// }// Release this document from memory.
-    /// </code>
-    /// </example>
     public List<int> FindAll( string str, RegexOptions options )
     {
       var mc = Regex.Matches( this.Text, Regex.Escape( str ), options );
@@ -4385,12 +2898,6 @@ namespace Xceed.Document.NET
       return query;
     }
 
-    /// <summary>
-    ///  Find all unique instances of the given Regex Pattern
-    /// </summary>
-    /// <param name="str"></param>
-    /// <param name="options"></param>
-    /// <returns></returns>
     public List<string> FindAllByPattern( string str, RegexOptions options )
     {
       MatchCollection mc = Regex.Matches( this.Text, str, options );
@@ -4404,40 +2911,6 @@ namespace Xceed.Document.NET
       return query;
     }
 
-    /// <summary>
-    /// Insert a PageNumber place holder into a Paragraph.
-    /// This place holder should only be inserted into a Header or Footer Paragraph.
-    /// Word will not automatically update this field if it is inserted into a document level Paragraph.
-    /// </summary>
-    /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
-    /// <param name="index">The text index to insert this PageNumber place holder at.</param>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Add Headers to the document.
-    ///     document.AddHeaders();
-    ///
-    ///     // Get the default Header.
-    ///     Header header = document.Headers.odd;
-    ///
-    ///     // Insert a Paragraph into the Header.
-    ///     Paragraph p0 = header.InsertParagraph("Page ( of )");
-    ///
-    ///     // Insert place holders for PageNumber and PageCount into the Header.
-    ///     // Word will replace these with the correct value for each Page.
-    ///     p0.InsertPageNumber(PageNumberFormat.normal, 6);
-    ///     p0.InsertPageCount(PageNumberFormat.normal, 11);
-    ///
-    ///     // Save the document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
-    /// <seealso cref="AppendPageCount"/>
-    /// <seealso cref="AppendPageNumber"/>
-    /// <seealso cref="InsertPageCount"/>
     public void InsertPageNumber( PageNumberFormat? pnf = null, int index = 0 )
     {
       var fldSimple = this.SetPageNumberFields( pnf );
@@ -4464,40 +2937,6 @@ namespace Xceed.Document.NET
       this.NeedRefreshIndexes();
     }
 
-    /// <summary>
-    /// Append a PageNumber place holder onto the end of a Paragraph.
-    /// </summary>
-    /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Add Headers to the document.
-    ///     document.AddHeaders();
-    ///
-    ///     // Get the default Header.
-    ///     Header header = document.Headers.odd;
-    ///
-    ///     // Insert a Paragraph into the Header.
-    ///     Paragraph p0 = header.InsertParagraph();
-    ///
-    ///     // Appemd place holders for PageNumber and PageCount into the Header.
-    ///     // Word will replace these with the correct value for each Page.
-    ///     p0.Append("Page (");
-    ///     p0.AppendPageNumber(PageNumberFormat.normal);
-    ///     p0.Append(" of ");
-    ///     p0.AppendPageCount(PageNumberFormat.normal);
-    ///     p0.Append(")");
-    /// 
-    ///     // Save the document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
-    /// <seealso cref="AppendPageCount"/>
-    /// <seealso cref="InsertPageNumber"/>
-    /// <seealso cref="InsertPageCount"/>
     public Paragraph AppendPageNumber( PageNumberFormat? pnf = null )
     {
       var fldSimple = this.SetPageNumberFields( pnf );
@@ -4510,40 +2949,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Insert a PageCount place holder into a Paragraph.
-    /// This place holder should only be inserted into a Header or Footer Paragraph.
-    /// Word will not automatically update this field if it is inserted into a document level Paragraph.
-    /// </summary>
-    /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
-    /// <param name="index">The text index to insert this PageCount place holder at.</param>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Add Headers to the document.
-    ///     document.AddHeaders();
-    ///
-    ///     // Get the default Header.
-    ///     Header header = document.Headers.odd;
-    ///
-    ///     // Insert a Paragraph into the Header.
-    ///     Paragraph p0 = header.InsertParagraph("Page ( of )");
-    ///
-    ///     // Insert place holders for PageNumber and PageCount into the Header.
-    ///     // Word will replace these with the correct value for each Page.
-    ///     p0.InsertPageNumber(PageNumberFormat.normal, 6);
-    ///     p0.InsertPageCount(PageNumberFormat.normal, 11);
-    ///
-    ///     // Save the document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
-    /// <seealso cref="AppendPageCount"/>
-    /// <seealso cref="AppendPageNumber"/>
-    /// <seealso cref="InsertPageNumber"/>
     public void InsertPageCount( PageNumberFormat? pnf = null, int index = 0, bool useSectionPageCount = true )
     {
       var fldSimple = this.SetPageCountFields( pnf, useSectionPageCount );
@@ -4568,40 +2973,6 @@ namespace Xceed.Document.NET
       this.NeedRefreshIndexes();
     }
 
-    /// <summary>
-    /// Append a PageCount place holder onto the end of a Paragraph.
-    /// </summary>
-    /// <param name="pnf">The PageNumberFormat can be normal: (1, 2, ...) or Roman: (I, II, ...)</param>
-    /// <example>
-    /// <code>
-    /// // Create a new document.
-    /// using (var document = DocX.Create(@"Test.docx"))
-    /// {
-    ///     // Add Headers to the document.
-    ///     document.AddHeaders();
-    ///
-    ///     // Get the default Header.
-    ///     Header header = document.Headers.odd;
-    ///
-    ///     // Insert a Paragraph into the Header.
-    ///     Paragraph p0 = header.InsertParagraph();
-    ///
-    ///     // Appemd place holders for PageNumber and PageCount into the Header.
-    ///     // Word will replace these with the correct value for each Page.
-    ///     p0.Append("Page (");
-    ///     p0.AppendPageNumber(PageNumberFormat.normal);
-    ///     p0.Append(" of ");
-    ///     p0.AppendPageCount(PageNumberFormat.normal);
-    ///     p0.Append(")");
-    /// 
-    ///     // Save the document.
-    ///     document.Save();
-    /// }
-    /// </code>
-    /// </example>
-    /// <seealso cref="AppendPageNumber"/>
-    /// <seealso cref="InsertPageNumber"/>
-    /// <seealso cref="InsertPageCount"/>
     public Paragraph AppendPageCount( PageNumberFormat? pnf = null, bool useSectionPageCount = false )
     {
       var fldSimple = this.SetPageCountFields( pnf, useSectionPageCount );
@@ -4615,11 +2986,6 @@ namespace Xceed.Document.NET
     }
 
 
-    /// <summary>
-    /// Set the Line spacing for this paragraph manually.
-    /// </summary>
-    /// <param name="spacingType">The type of spacing to be set, can be either Before, After or Line (Standard line spacing).</param>
-    /// <param name="spacingFloat">A float value of the amount of spacing. Equals the value that will be set in Word using the "Line and Paragraph spacing" button.</param>
     public void SetLineSpacing( LineSpacingType spacingType, float spacingFloat )
     {
       var pPr = this.GetOrCreate_pPr();
@@ -4637,10 +3003,6 @@ namespace Xceed.Document.NET
       spacing.SetAttributeValue( XName.Get( spacingTypeAttribute, Document.w.NamespaceName ), ( int )( spacingFloat * 20f ) );
     }
 
-    /// <summary>
-    /// Set the Line spacing for this paragraph using the Auto value.
-    /// </summary>
-    /// <param name="spacingTypeAuto">The type of spacing to be set automatically. Using Auto will set both Before and After. None will remove any line spacing.</param>
     public void SetLineSpacing( LineSpacingTypeAuto spacingTypeAuto )
     {
       var pPr = this.GetOrCreate_pPr();
@@ -4758,7 +3120,6 @@ namespace Xceed.Document.NET
       return bookmarks;
     }
 
-    /// Inserts the provided text at a bookmark location in this Paragraph, using the specified formatting.
     public void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
     {
       var bookmark = this.Xml.Descendants( XName.Get( "bookmarkStart", Document.w.NamespaceName ) )
@@ -4792,7 +3153,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// Replaces the text of the Bookmark in this Paragraph. Equivalent to document.Bookmarks[ "abc" ].SetText("new ABC");
     public void ReplaceAtBookmark( string text, string bookmarkName, Formatting formatting = null )
     {
       string bookmarkStartId = null;
@@ -4916,11 +3276,6 @@ namespace Xceed.Document.NET
       bookmarkEndXml.Remove();
     }
 
-    /// <summary>
-    /// Paragraph that will be kept on the same page as the next paragraph.
-    /// </summary>
-    /// <param name="keepWithNextParagraph"></param>
-    /// <returns></returns>
     public Paragraph KeepWithNextParagraph( bool keepWithNextParagraph = true )
     {
       var pPr = GetOrCreate_pPr();
@@ -4939,11 +3294,6 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    /// <summary>
-    /// Paragraph with lines that will stay together on the same page.
-    /// </summary>
-    /// <param name="keepLinesTogether"></param>
-    /// <returns></returns>
     public Paragraph KeepLinesTogether( bool keepLinesTogether = true )
     {
       var pPr = GetOrCreate_pPr();
@@ -5101,10 +3451,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// If the pPr element doesent exist it is created, either way it is returned by this function.
-    /// </summary>
-    /// <returns>The pPr element for this Paragraph.</returns>
     internal XElement GetOrCreate_pPr()
     {
       // Get the element.
@@ -5137,10 +3483,6 @@ namespace Xceed.Document.NET
       return rPr;
     }
 
-    /// <summary>
-    /// If the ind element doesent exist it is created, either way it is returned by this function.
-    /// </summary>
-    /// <returns>The ind element for this Paragraphs pPr.</returns>
     internal XElement GetOrCreate_pPr_ind()
     {
       // Get the element.
@@ -5196,15 +3538,6 @@ namespace Xceed.Document.NET
       IndentLevelBacker = null;
     }
 
-    /// <summary>
-    /// Create a new Picture.
-    /// </summary>
-    /// <param name="document"></param>
-    /// <param name="id">A unique id that identifies an Image embedded in this document.</param>
-    /// <param name="name">The name of this Picture.</param>
-    /// <param name="descr">The description of this Picture.</param>
-    /// <param name="width">The width of this Picture.</param>
-    /// <param name="height">The height of this Picture.</param>
     static internal Picture CreatePicture( Document document, string id, string name, string descr, float width, float height )
     {
       var part = document._package.GetPart( document.PackagePart.GetRelationship( id ).TargetUri );
@@ -5278,13 +3611,6 @@ namespace Xceed.Document.NET
       return picture;
     }
 
-    /// <summary>
-    /// Creates an Edit either a ins or a del with the specified content and date
-    /// </summary>
-    /// <param name="t">The type of this edit (ins or del)</param>
-    /// <param name="edit_time">The time stamp to use for this edit</param>
-    /// <param name="content">The initial content of this edit</param>
-    /// <returns></returns>
     internal static XElement CreateEdit( EditType t, DateTime edit_time, object content )
     {
       if( t == EditType.del )
@@ -5407,10 +3733,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <!-- 
-    /// Bug found and fixed by krugs525 on August 12 2009.
-    /// Use TFS compare to see exact code change.
-    /// -->
     static internal int GetElementTextLength( XElement xml )
     {
       int count = 0;
@@ -6075,6 +4397,14 @@ namespace Xceed.Document.NET
       footer.ClearParagraphsCache();
     }
 
+    private void ValidateInsert()
+    {
+      if( m_removed )
+      {
+        throw new InvalidOperationException( "Cannot insert before or after a removed paragraph." );
+      }
+    }
+
 
 
 
@@ -6550,46 +4880,55 @@ namespace Xceed.Document.NET
 
     private Container GetHeaderContainer()
     {
-      var header = this.Document.Headers.First;
-      if( header != null )
+      foreach( var section in this.Document.Sections )
       {
-        if( header.PackagePart.Uri == this.PackagePart.Uri )
-          return header;
-      }
-
-      header = this.Document.Headers.Odd;
-      if( header != null )
-      {
-        if( header.PackagePart.Uri == this.PackagePart.Uri )
+        var header = section.Headers.First;
+        if( header != null )
         {
-          return header;
+          if( header.PackagePart.Uri == this.PackagePart.Uri )
+            return header;
         }
+
+        header = section.Headers.Odd;
+        if( header != null )
+        {
+          if( header.PackagePart.Uri == this.PackagePart.Uri )
+          {
+            return header;
+          }
+        }
+
+        header = section.Headers.Even;
+        return header;
       }
 
-      header = this.Document.Headers.Even;
-      return header;
+      return null;
     }
 
     private Container GetFooterContainer()
     {
-      var footer = this.Document.Footers.First;
-      if( footer != null )
+      foreach( var section in this.Document.Sections )
       {
-        if( footer.PackagePart.Uri == this.PackagePart.Uri )
-          return footer;
-      }
-
-      footer = this.Document.Footers.Odd;
-      if( footer != null )
-      {
-        if( footer.PackagePart.Uri == this.PackagePart.Uri )
+        var footer = section.Footers.First;
+        if( footer != null )
         {
-          return footer;
+          if( footer.PackagePart.Uri == this.PackagePart.Uri )
+            return footer;
         }
-      }
 
-      footer = this.Document.Footers.Even;
-      return footer;
+        footer = section.Footers.Odd;
+        if( footer != null )
+        {
+          if( footer.PackagePart.Uri == this.PackagePart.Uri )
+          {
+            return footer;
+          }
+        }
+
+        footer = section.Footers.Even;
+        return footer;
+      }
+      return null;
     }
 
     private IList<Paragraph> GetContainerParagraphs()
@@ -6645,9 +4984,6 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// Gets the start index of this Text (text length before this text)
-    /// </summary>
     public int StartIndex
     {
       get
@@ -6656,9 +4992,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets the end index of this Text (text length before this text + this texts length)
-    /// </summary>
     public int EndIndex
     {
       get
@@ -6671,9 +5004,6 @@ namespace Xceed.Document.NET
 
     #region Internal Properties
 
-    /// <summary>
-    /// The text value of this text element
-    /// </summary>
     internal string Value
     {
       set
@@ -6819,9 +5149,6 @@ namespace Xceed.Document.NET
 
     #region Public Properties
 
-    /// <summary>
-    /// Gets the start index of this Text (text length before this text)
-    /// </summary>
     public int StartIndex
     {
       get
@@ -6830,9 +5157,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// Gets the end index of this Text (text length before this text + this texts length)
-    /// </summary>
     public int EndIndex
     {
       get
@@ -6841,9 +5165,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    /// <summary>
-    /// The text value of this text element
-    /// </summary>
     public string Value
     {
       get
@@ -6903,11 +5224,6 @@ namespace Xceed.Document.NET
 
     #region Public Methods
 
-    /// <summary>
-    /// If a text element or delText element, starts or ends with a space,
-    /// it must have the attribute space, otherwise it must not have it.
-    /// </summary>
-    /// <param name="e">The (t or delText) element check</param>
     public static void PreserveSpace( XElement e )
     {
       // PreserveSpace should only be used on (t or delText) elements

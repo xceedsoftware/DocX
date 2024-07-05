@@ -23,8 +23,6 @@
     <DefineConstants>TRACE;DEBUG;NETFRAMEWORK</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -55,6 +53,7 @@
     <Compile Include="..\Xceed.Document.NET\AssemblyVersionInfoCommon.cs">
       <Link>AssemblyVersionInfoCommon.cs</Link>
     </Compile>
+    <Compile Include="Message.cs" />
     <Compile Include="DocX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

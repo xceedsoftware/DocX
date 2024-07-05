@@ -1,6 +1,22 @@
 ﻿/***************************************************************************************
+ 
+   DocX – DocX is the community edition of Xceed Words for .NET
+ 
+   Copyright (C) 2009-2024 Xceed Software Inc.
+ 
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
+ 
+   For more features and fast professional support,
+   pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
+ 
+  *************************************************************************************/
+
+
+/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Image Sample Application
-Copyright (c) 2009-2023 - Xceed Software Inc.
+Copyright (c) 2009-2024 - Xceed Software Inc.
 
 This application demonstrates how to create, copy or modify a picture when using the API 
 from the Xceed Words for .NET.
@@ -43,9 +59,6 @@ namespace Xceed.Words.NET.Examples
 
     #region Public Methods
 
-    /// <summary>
-    /// Add a picture loaded from disk or stream to a document.
-    /// </summary>
     public static void AddPicture()
     {
       Console.WriteLine( "\tAddPicture()" );
@@ -104,9 +117,6 @@ namespace Xceed.Words.NET.Examples
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
-    /// <summary>
-    /// Copy a picture from a paragraph.
-    /// </summary>
     public static void CopyPicture()
     {
       Console.WriteLine( "\tCopyPicture()" );
@@ -142,9 +152,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Modify an image from a document by writing text into it.
-    /// </summary>
     public static void ModifyImage()
     {
       Console.WriteLine( "\tModifyImage()" );

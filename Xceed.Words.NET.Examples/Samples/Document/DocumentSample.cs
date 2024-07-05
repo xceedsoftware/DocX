@@ -1,6 +1,22 @@
 ﻿/***************************************************************************************
+ 
+   DocX – DocX is the community edition of Xceed Words for .NET
+ 
+   Copyright (C) 2009-2024 Xceed Software Inc.
+ 
+   This program is provided to you under the terms of the XCEED SOFTWARE, INC.
+   COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
+   https://github.com/xceedsoftware/DocX/blob/master/license.md
+ 
+   For more features and fast professional support,
+   pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
+ 
+  *************************************************************************************/
+
+
+/***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Document Sample Application
-Copyright (c) 2009-2023 - Xceed Software Inc.
+Copyright (c) 2009-2024 - Xceed Software Inc.
 
 This application demonstrates how to modify the content of a document when using the API 
 from the Xceed Words for .NET.
@@ -50,9 +66,6 @@ namespace Xceed.Words.NET.Examples
 
     #region Public Methods
 
-    /// <summary>
-    /// Load a document and replace texts following a replace pattern.
-    /// </summary>
     public static void ReplaceTextWithText()
     {
       Console.WriteLine( "\tReplaceTextWithText()" );
@@ -80,9 +93,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Load a document and replace texts with images.
-    /// </summary>
     public static void ReplaceTextWithObjects()
     {
       Console.WriteLine( "\tReplaceTextWithObjects()" );
@@ -107,7 +117,7 @@ namespace Xceed.Words.NET.Examples
         t.Design = TableDesign.DarkListAccent4;
         t.AutoFit = AutoFit.Window;
         t.Rows[ 0 ].Cells[ 0 ].Paragraphs[ 0 ].Append( "xceed.com" );
-        t.Rows[ 0 ].Cells[ 1 ].Paragraphs[ 0 ].Append( "@copyright 2023" );
+        t.Rows[ 0 ].Cells[ 1 ].Paragraphs[ 0 ].Append( "@copyright 2024" );
         document.ReplaceTextWithObject( new ObjectReplaceTextOptions() { SearchValue = "<year_table>", NewObject = t } );
 
         // Save this document to disk.
@@ -116,9 +126,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Add custom properties to a document.
-    /// </summary>
     public static void AddCustomProperties()
     {
       Console.WriteLine( "\tAddCustomProperties()" );
@@ -151,9 +158,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Add a template to a document.
-    /// </summary>
     public static void ApplyTemplate()
     {
       Console.WriteLine( "\tApplyTemplate()" );
@@ -178,9 +182,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Insert a document at the end of another document.
-    /// </summary>
     public static void AppendDocument()
     {
       Console.WriteLine( "\tAppendDocument()" );
@@ -206,9 +207,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Insert a document inside another document.
-    /// </summary>
     public static void InsertDocument()
     {
 
@@ -272,9 +270,6 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
-    /// <summary>
-    /// Create a document and add html text to it.
-    /// </summary>
     public static void AddHtml()
     {
 
@@ -290,9 +285,6 @@ namespace Xceed.Words.NET.Examples
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
-    /// <summary>
-    /// Create a document and add rtf text to it.
-    /// </summary>
     public static void AddRtf()
     {
 
@@ -303,9 +295,6 @@ namespace Xceed.Words.NET.Examples
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
-    /// <summary>
-    /// Create a document and add html text from an html file.
-    /// </summary>
     public static void AddHtmlFromFile()
     {
 
@@ -314,9 +303,6 @@ namespace Xceed.Words.NET.Examples
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
-    /// <summary>
-    /// Create a document and add rtf text from an rtf file.
-    /// </summary>
     public static void AddRtfFromFile()
     {
 
@@ -325,9 +311,6 @@ namespace Xceed.Words.NET.Examples
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
-    /// <summary>
-    /// Load a document and replace texts with html content.
-    /// </summary>
     public static void ReplaceTextWithHtml()
     {
 
