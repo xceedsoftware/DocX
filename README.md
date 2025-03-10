@@ -156,7 +156,7 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td>YES</td>
 </tr>
 <tr>
-<td>Works in Windows/Linux/Mac/iOS/Android</td>
+<td>Works on Windows/Linux/Mac/iOS/Android</td>
 <td>YES</td>
 <td>YES</td>
 </tr>
