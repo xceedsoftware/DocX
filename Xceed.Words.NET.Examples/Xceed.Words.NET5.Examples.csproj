@@ -11,6 +11,7 @@
     <AssemblyName>Xceed.Words.NET.Examples</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;NET5</DefineConstants>
@@ -21,107 +22,89 @@
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="obj\**" />
-    <Compile Remove="PDF_Sample_Resources\**" />
-    <Compile Remove="Samples\Bookmark\Output\**" />
-    <Compile Remove="Samples\Chart\Output\**" />
-    <Compile Remove="Samples\Document\Output\**" />
-    <Compile Remove="Samples\Equation\Output\**" />
-    <Compile Remove="Samples\HeaderFooter\Output\**" />
-    <Compile Remove="Samples\Hyperlink\Output\**" />
-    <Compile Remove="Samples\Image\Output\**" />
-    <Compile Remove="Samples\Line\Output\**" />
-    <Compile Remove="Samples\List\Output\**" />
-    <Compile Remove="Samples\Margin\Output\**" />
-    <Compile Remove="Samples\Miscellaneous\Output\**" />
-    <Compile Remove="Samples\Paragraph\Output\**" />
-    <Compile Remove="Samples\Parallel\Output\**" />
-    <Compile Remove="Samples\Pdf\Output\**" />
-    <Compile Remove="Samples\Protection\Output\**" />
-    <Compile Remove="Samples\Section\Output\**" />
-    <Compile Remove="Samples\TableOfContent\Output\**" />
-    <Compile Remove="Samples\Table\Output\**" />
-    <EmbeddedResource Remove="obj\**" />
-    <EmbeddedResource Remove="PDF_Sample_Resources\**" />
-    <EmbeddedResource Remove="Samples\Bookmark\Output\**" />
-    <EmbeddedResource Remove="Samples\Chart\Output\**" />
-    <EmbeddedResource Remove="Samples\Document\Output\**" />
-    <EmbeddedResource Remove="Samples\Equation\Output\**" />
-    <EmbeddedResource Remove="Samples\HeaderFooter\Output\**" />
-    <EmbeddedResource Remove="Samples\Hyperlink\Output\**" />
-    <EmbeddedResource Remove="Samples\Image\Output\**" />
-    <EmbeddedResource Remove="Samples\Line\Output\**" />
-    <EmbeddedResource Remove="Samples\List\Output\**" />
-    <EmbeddedResource Remove="Samples\Margin\Output\**" />
-    <EmbeddedResource Remove="Samples\Miscellaneous\Output\**" />
-    <EmbeddedResource Remove="Samples\Paragraph\Output\**" />
-    <EmbeddedResource Remove="Samples\Parallel\Output\**" />
-    <EmbeddedResource Remove="Samples\Pdf\Output\**" />
-    <EmbeddedResource Remove="Samples\Protection\Output\**" />
-    <EmbeddedResource Remove="Samples\Section\Output\**" />
-    <EmbeddedResource Remove="Samples\TableOfContent\Output\**" />
-    <EmbeddedResource Remove="Samples\Table\Output\**" />
-    <None Remove="obj\**" />
-    <None Remove="PDF_Sample_Resources\**" />
-    <None Remove="Samples\Bookmark\Output\**" />
-    <None Remove="Samples\Chart\Output\**" />
-    <None Remove="Samples\Document\Output\**" />
-    <None Remove="Samples\Equation\Output\**" />
-    <None Remove="Samples\HeaderFooter\Output\**" />
-    <None Remove="Samples\Hyperlink\Output\**" />
-    <None Remove="Samples\Image\Output\**" />
-    <None Remove="Samples\Line\Output\**" />
-    <None Remove="Samples\List\Output\**" />
-    <None Remove="Samples\Margin\Output\**" />
-    <None Remove="Samples\Miscellaneous\Output\**" />
-    <None Remove="Samples\Paragraph\Output\**" />
-    <None Remove="Samples\Parallel\Output\**" />
-    <None Remove="Samples\Pdf\Output\**" />
-    <None Remove="Samples\Protection\Output\**" />
-    <None Remove="Samples\Section\Output\**" />
-    <None Remove="Samples\TableOfContent\Output\**" />
-    <None Remove="Samples\Table\Output\**" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Samples\Bookmark\BookmarkSample.cs" />
+    <Compile Include="Samples\Chart\ChartData.cs" />
+    <Compile Include="Samples\Chart\ChartSample.cs" />
+    <Compile Include="Samples\CheckBox\CheckBoxSample.cs" />
+    <Compile Include="Samples\DigitalSignature\DigitalSignatureSample.cs" />
+    <Compile Include="Samples\Document\DocumentSample.cs" />
+    <Compile Include="Samples\Equation\EquationSample.cs" />
+    <Compile Include="Samples\FootnoteEndnote\FootnoteEndnoteSample.cs" />
+    <Compile Include="Samples\HeaderFooter\HeaderFooterSample.cs" />
+    <Compile Include="Samples\Hyperlink\HyperlinkSample.cs" />
+    <Compile Include="Samples\Hyphenation\HyphenationSample.cs" />
+    <Compile Include="Samples\Image\ImageSample.cs" />
+    <Compile Include="Samples\Line\LineSample.cs" />
+    <Compile Include="Samples\List\ListSample.cs" />
+    <Compile Include="Samples\Margin\MarginSample.cs" />
+    <Compile Include="Samples\Miscellaneous\MiscellaneousSample.cs" />
+    <Compile Include="Samples\Paragraph\ParagraphSample.cs" />
+    <Compile Include="Samples\Parallel\ParallelSample.cs" />
+    <Compile Include="Samples\Pdf\PdfSample.cs" />
+    <Compile Include="Samples\Protection\ProtectionSample.cs" />
+    <Compile Include="Samples\Section\SectionSample.cs" />
+    <Compile Include="Samples\Shape\ShapeSample.cs" />
+    <Compile Include="Samples\TableOfContent\TableOfContentSample.cs" />
+    <Compile Include="Samples\Table\TableSample.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="app.config" />
-    <None Remove="Program.exe" />
-    <None Remove="Samples\Pdf\Resources\aa.docx" />
-    <None Remove="Samples\Pdf\Resources\AddList.docx" />
-    <None Remove="Samples\Pdf\Resources\AddList2.docx" />
-    <None Remove="Samples\Pdf\Resources\AddPictureWithTextWrapping.docx" />
-    <None Remove="Samples\Pdf\Resources\AppBody-Sample-English.docx" />
-    <None Remove="Samples\Pdf\Resources\demo.docx" />
-    <None Remove="Samples\Pdf\Resources\DemoCompany.doc" />
-    <None Remove="Samples\Pdf\Resources\DemoCompany2.docx" />
-    <None Remove="Samples\Pdf\Resources\DemoCompany3.docx" />
-    <None Remove="Samples\Pdf\Resources\easychair.docx" />
-    <None Remove="Samples\Pdf\Resources\sample1.docx" />
-    <None Remove="Samples\Pdf\Resources\tables.docx" />
-    <None Remove="Samples\Pdf\Resources\test.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName10.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName11.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName12.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName2.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName3.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName4.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName5.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName6.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName7.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName8.docx" />
-    <None Remove="Samples\Pdf\Resources\yourName9.docx" />
-    <None Remove="Samples\Pdf\Resources\zz.docx" />
+    <None Include="Samples\Bookmark\Resources\DocumentWithBookmarks.docx" />
+    <None Include="Samples\Chart\Resources\Report.docx" />
+    <None Include="Samples\CheckBox\Resources\DocumentWithCheckBoxes.docx" />
+    <None Include="Samples\DigitalSignature\Resources\CustomCertificate.pfx" />
+    <None Include="Samples\DigitalSignature\Resources\SignedDocument.docx" />
+    <None Include="Samples\Document\Resources\First.docx" />
+    <None Include="Samples\Document\Resources\ReplaceText.docx" />
+    <None Include="Samples\Document\Resources\ReplaceTextWithObjects.docx" />
+    <None Include="Samples\Document\Resources\RtfSample.rtf" />
+    <None Include="Samples\Document\Resources\Second.docx" />
+    <None Include="Samples\Document\Resources\Template-2.docx" />
+    <None Include="Samples\Document\Resources\Template.docx" />
+    <None Include="Samples\List\Resources\Lists.docx" />
+    <None Include="Samples\Protection\Resources\PasswordProtected.docx" />
+    <None Include="Samples\Image\Resources\Input.docx" />
+    <None Include="Samples\List\Resources\TemplateLists.docx" />
+    <None Include="Samples\Hyphenation\Resources\HyphenatedDocument.docx" />
+    <None Include="Samples\Miscellaneous\Resources\TemplateInvoice.docx" />
+    <None Include="Samples\Miscellaneous\Resources\TemplateMailMerge.docx" />
+    <None Include="Samples\Paragraph\Resources\Template.docx" />
+    <None Include="Samples\Paragraph\Resources\TemplateStyledParagraph.docx" />
+    <None Include="Samples\Parallel\Resources\Doc1.docx" />
+    <None Include="Samples\Parallel\Resources\Doc2.docx" />
+    <None Include="Samples\Parallel\Resources\Doc3.docx" />
+    <None Include="Samples\Pdf\Resources\DocumentToConvert.docx" />
+    <None Include="Samples\Pdf\Resources\DocumentToConvertWithUninstalledFont.docx" />
+    <None Include="Samples\Pdf\Resources\The Bugatten.ttf" />
+    <None Include="Samples\TableOfContent\Resources\TOCDocument.docx" />
+    <None Include="Samples\Table\Resources\DocumentWithTemplateTable.docx" />
+    <None Include="Samples\Table\Resources\TemplateTable.docx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <Content Include="Samples\DigitalSignature\Resources\MarkStoneSignature.png" />
+    <Content Include="Samples\DigitalSignature\Resources\TomSawyerSignature.png" />
+    <Content Include="Samples\Document\Resources\2018.jpg" />
+    <Content Include="Samples\Document\Resources\HtmlSample.html" />
+    <Content Include="Samples\FootnoteEndnote\Resources\xceed.png" />
+    <Content Include="Samples\Image\Resources\balloon.jpg" />
+    <Content Include="Samples\Image\Resources\W.png" />
+    <Content Include="Samples\Image\Resources\WordsIcon.png" />
+    <Content Include="Samples\Miscellaneous\Resources\cupcake.png" />
+    <Content Include="Samples\Miscellaneous\Resources\Phone.png" />
+    <Content Include="Samples\Parallel\Resources\potato.jpg" />
+    <Content Include="Samples\Table\Resources\logo_xceed.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
     <PackageReference Include="System.IO.Packaging" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Xceed.Document.NET.dll">
       <HintPath>..\Xceed.Document.NET\bin\$(Configuration)\net5.0\Xceed.Document.NET.dll</HintPath>
     </Reference>
-    <Reference Include="Xceed.Pdf.NET.dll">
-      <HintPath>..\Xceed.Pdf\bin\$(Configuration)\net5.0\Xceed.Pdf.NET.dll</HintPath>
+    <Reference Include="Xceed.Drawing.NET.dll">
+      <HintPath>..\Xceed.Drawing\bin\$(Configuration)\net5.0\Xceed.Drawing.NET.dll</HintPath>
     </Reference>
     <Reference Include="Xceed.Words.NET.dll">
       <HintPath>..\Xceed.Words.NET\bin\$(Configuration)\net5.0\Xceed.Words.NET.dll</HintPath>

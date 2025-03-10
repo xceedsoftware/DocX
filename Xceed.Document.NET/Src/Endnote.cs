@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -19,11 +19,15 @@ using System.Xml.Linq;
 
 namespace Xceed.Document.NET
 {
-  public class Endnote: Note
+  public class Endnote : Note
   {
     #region Constructor
 
     internal Endnote( Document document, PackagePart part, XElement xml ) : base( document, part, xml )
+    {
+    }
+
+    internal Endnote( Document document, Paragraph paragraph, PackagePart part, XElement xml ) : base( document, paragraph, part, xml )
     {
     }
 
@@ -38,11 +42,11 @@ namespace Xceed.Document.NET
 
     internal override XElement CreateReferenceRunCore( bool customMarkFollows, XElement symbol, Formatting noteNumberFormatting )
     {
-      var rPr = (noteNumberFormatting != null)
-                ? noteNumberFormatting.Xml 
+      var rPr = ( noteNumberFormatting != null )
+                ? noteNumberFormatting.Xml
                 : new XElement( XName.Get( "rPr", Document.w.NamespaceName ) );
 
-      rPr.AddFirst( new XElement( XName.Get( "rStyle", Document.w.NamespaceName ), 
+      rPr.AddFirst( new XElement( XName.Get( "rStyle", Document.w.NamespaceName ),
                                             new XAttribute( XName.Get( "val", Document.w.NamespaceName ), "EndnoteReference" ) ) );
 
       var r = new XElement( XName.Get( "r", Document.w.NamespaceName ) );

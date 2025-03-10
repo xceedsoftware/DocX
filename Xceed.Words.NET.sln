@@ -1,17 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29418.71
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35208.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xceed.Words.NET.Examples", "Xceed.Words.NET.Examples\Xceed.Words.NET.Examples.csproj", "{F3022BB7-0E40-4C80-A495-37FEAF3671AB}"
 	ProjectSection(ProjectDependencies) = postProject
-		{E863D072-AA8B-4108-B5F1-785241B37F67} = {E863D072-AA8B-4108-B5F1-785241B37F67}
 		{6A9B96D0-A011-4F33-8EE2-AC31C948CCA9} = {6A9B96D0-A011-4F33-8EE2-AC31C948CCA9}
+		{77B5B028-73C6-477F-B440-58E764D7BCBC} = {77B5B028-73C6-477F-B440-58E764D7BCBC}
+		{E863D072-AA8B-4108-B5F1-785241B37F67} = {E863D072-AA8B-4108-B5F1-785241B37F67}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xceed.Words.NET", "Xceed.Words.NET\Xceed.Words.NET.csproj", "{6A9B96D0-A011-4F33-8EE2-AC31C948CCA9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xceed.Document.NET", "Xceed.Document.NET\Xceed.Document.NET.csproj", "{E863D072-AA8B-4108-B5F1-785241B37F67}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xceed.Drawing.NET", "Xceed.Drawing\Xceed.Drawing.NET.csproj", "{77B5B028-73C6-477F-B440-58E764D7BCBC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -80,6 +83,24 @@ Global
 		{E863D072-AA8B-4108-B5F1-785241B37F67}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E863D072-AA8B-4108-B5F1-785241B37F67}.Release|x86.ActiveCfg = Release|Any CPU
 		{E863D072-AA8B-4108-B5F1-785241B37F67}.Release|x86.Build.0 = Release|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Debug|x86.Build.0 = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.PerformanceTest|Any CPU.ActiveCfg = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.PerformanceTest|Any CPU.Build.0 = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.PerformanceTest|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.PerformanceTest|Mixed Platforms.Build.0 = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.PerformanceTest|x86.ActiveCfg = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.PerformanceTest|x86.Build.0 = Debug|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Release|x86.ActiveCfg = Release|Any CPU
+		{77B5B028-73C6-477F-B440-58E764D7BCBC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

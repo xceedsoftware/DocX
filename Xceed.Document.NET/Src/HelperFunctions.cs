@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -25,8 +25,9 @@ using System.Reflection;
 using System.IO.Compression;
 using System.Globalization;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Drawing2D;
+#if NET5
+using System.Runtime.InteropServices;
+#endif
 
 namespace Xceed.Document.NET
 {
@@ -504,6 +505,15 @@ namespace Xceed.Document.NET
           }
         case ResourceType.NumberingBullet:
           {
+#if NET5
+            if( RuntimeInformation.IsOSPlatform( OSPlatform.Windows ) )
+              return "Xceed.Document.NET.Resources.numbering.default_bullet_abstract.xml.gz";
+            else if( RuntimeInformation.IsOSPlatform( OSPlatform.OSX ) )
+              return "Xceed.Document.NET.Resources.numbering.default_bullet_abstract_mac.xml.gz";
+            else if( RuntimeInformation.IsOSPlatform( OSPlatform.Create( "ANDROID" ) ) )
+              return "Xceed.Document.NET.Resources.numbering.default_bullet_abstract_android.xml.gz";
+#endif
+
             return "Xceed.Document.NET.Resources.numbering.default_bullet_abstract.xml.gz";
           }
         case ResourceType.NumberingDecimal:
@@ -640,17 +650,6 @@ namespace Xceed.Document.NET
 
 
 
-
-    internal static void RenumberIDs( Document document )
-    {
-      IEnumerable<XAttribute> trackerIDs =
-                      ( from d in document._mainDoc.Descendants()
-                        where d.Name.LocalName == "ins" || d.Name.LocalName == "del"
-                        select d.Attribute( XName.Get( "id", "http://schemas.openxmlformats.org/wordprocessingml/2006/main" ) ) );
-
-      for( int i = 0; i < trackerIDs.Count(); i++ )
-        trackerIDs.ElementAt( i ).Value = i.ToString();
-    }
 
     internal static Paragraph GetFirstParagraphEffectedByInsert( Container container, int index )
     {
@@ -947,7 +946,7 @@ namespace Xceed.Document.NET
       return true;
     }
 
-    internal static Color GetColorFromHtml( string stringColor, string autoColor = "FFFFFF" )
+    internal static Xceed.Drawing.Color GetColorFromHtml( string stringColor, string autoColor = "FFFFFF" )
     {
       Debug.Assert( !string.IsNullOrEmpty( stringColor ), "stringColor should not be null or empty." );
       // Default to White when "auto".
@@ -957,7 +956,7 @@ namespace Xceed.Document.NET
       }
       Debug.Assert( stringColor.Length == 6, "stringColor should have a length of 6 characters." );
 
-      return Color.FromArgb( Convert.ToInt32( stringColor.Substring( 0, 2 ), 16 ), Convert.ToInt32( stringColor.Substring( 2, 2 ), 16 ), Convert.ToInt32( stringColor.Substring( 4, 2 ), 16 ) );
+      return Xceed.Drawing.Color.Parse( stringColor );
     }
 
     internal static string ConvertIntToRoman( int numberToConvert )
@@ -1444,7 +1443,7 @@ namespace Xceed.Document.NET
         return null;
 
       var borderSize = BorderSize.one;
-      var borderColor = Color.Black;
+      var borderColor = Xceed.Drawing.Color.Black;
       var borderSpace = 0f;
       var borderStyle = BorderStyle.Tcbs_single;
 
@@ -1693,6 +1692,9 @@ namespace Xceed.Document.NET
       }
       return Id;
     }
+
+
+
 
     private static int GetLinkedStyleNumId( Document document, string numId )
     {

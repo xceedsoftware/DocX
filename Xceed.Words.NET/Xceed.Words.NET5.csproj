@@ -10,6 +10,7 @@
     <AssemblyName>Xceed.Words.NET</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;NET5</DefineConstants>
@@ -22,16 +23,10 @@
     <DefineConstants>TRACE;NET5</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="obj\**" />
-    <EmbeddedResource Remove="obj\**" />
-    <None Remove="obj\**" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\Xceed.Document.NET\AssemblyVersionInfo.cs" Link="AssemblyVersionInfo.cs" />
-    <Compile Include="..\Xceed.Document.NET\AssemblyVersionInfoCommon.cs" Link="AssemblyVersionInfoCommon.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <Compile Include="Message.cs" />
+    <Compile Include="DocX.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xceed.Document.NET\Xceed.Document.NET5.csproj">

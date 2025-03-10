@@ -3,14 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32407.343
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xceed.Drawing.NET5", "Xceed.Drawing\Xceed.Drawing.NET5.csproj", "{2672D5CC-80B4-46A9-8F58-9FFC4E1A29A2}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xceed.Words.NET5", "Xceed.Words.NET\Xceed.Words.NET5.csproj", "{BB110307-4CDE-4B47-9139-1DB0A70F7F7C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xceed.Document.NET5", "Xceed.Document.NET\Xceed.Document.NET5.csproj", "{0A1032B8-252A-493A-9A47-8F196CDC5458}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xceed.Words.NET5.Examples", "Xceed.Words.NET.Examples\Xceed.Words.NET5.Examples.csproj", "{66A401E7-2555-4A7B-A48B-556FB409FAAD}"
 	ProjectSection(ProjectDependencies) = postProject
-		{BB110307-4CDE-4B47-9139-1DB0A70F7F7C} = {BB110307-4CDE-4B47-9139-1DB0A70F7F7C}
 		{0A1032B8-252A-493A-9A47-8F196CDC5458} = {0A1032B8-252A-493A-9A47-8F196CDC5458}
+		{2672D5CC-80B4-46A9-8F58-9FFC4E1A29A2} = {2672D5CC-80B4-46A9-8F58-9FFC4E1A29A2}
+		{BB110307-4CDE-4B47-9139-1DB0A70F7F7C} = {BB110307-4CDE-4B47-9139-1DB0A70F7F7C}
 	EndProjectSection
 EndProject
 Global
@@ -19,6 +22,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2672D5CC-80B4-46A9-8F58-9FFC4E1A29A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2672D5CC-80B4-46A9-8F58-9FFC4E1A29A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2672D5CC-80B4-46A9-8F58-9FFC4E1A29A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2672D5CC-80B4-46A9-8F58-9FFC4E1A29A2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BB110307-4CDE-4B47-9139-1DB0A70F7F7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BB110307-4CDE-4B47-9139-1DB0A70F7F7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB110307-4CDE-4B47-9139-1DB0A70F7F7C}.Release|Any CPU.ActiveCfg = Release|Any CPU

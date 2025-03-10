@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -23,13 +23,11 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using Microsoft.Win32;
-using System.Drawing;
 using System.Drawing.Imaging;
 using System.Xml;
 #endif
 using System.Xml.Linq;
 using Xceed.Document.NET;
-using Xceed.Words.Net;
 
 namespace Xceed.Words.NET
 {
@@ -266,7 +264,7 @@ namespace Xceed.Words.NET
 
     public override Xceed.Document.NET.Document Copy()
     {
-      return this.InternalCopy();     
+      return this.InternalCopy();
     }
 
 
@@ -449,15 +447,19 @@ namespace Xceed.Words.NET
 
           var documentProtection = _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).FirstOrDefault();
 
-          var salt = documentProtection.Attribute( XName.Get( "salt", w.NamespaceName ) );
-          var hash = documentProtection.Attribute( XName.Get( "hash", w.NamespaceName ) );
-
-          if( hash != null && salt != null )
+          if( documentProtection != null )
           {
-            var encryption = new Encryption();
-            var keyValues = encryption.Decrypt( password, salt.Value );
-            if( hash.Value != keyValues )
-              throw new UnauthorizedAccessException( "Invalid password." );
+            var hash = documentProtection.Attribute( XName.Get( "hash", w.NamespaceName ) );
+
+            if( hash != null )
+            {
+              var keyValues = ComputeHashValue( password, documentProtection );
+
+              if( !string.IsNullOrEmpty( keyValues ) && hash.Value != keyValues )
+              {
+                throw new UnauthorizedAccessException( "Invalid password." );
+              }
+            }
           }
         }
       }
@@ -531,7 +533,7 @@ namespace Xceed.Words.NET
 
     private void WriteToFileOrStream()
     {
-      if( _filename != null && !_isCopyingDocument)
+      if( _filename != null && !_isCopyingDocument )
       {
         using( var fs = new FileStream( _filename, FileMode.Create ) )
         {
@@ -542,7 +544,7 @@ namespace Xceed.Words.NET
             HelperFunctions.CopyStream( _memoryStream, fs );
           }
           else
-            fs.Write( _memoryStream.ToArray(), 0, (int)_memoryStream.Length );
+            fs.Write( _memoryStream.ToArray(), 0, ( int )_memoryStream.Length );
         }
       }
       else if( _stream.CanSeek )  //Check if stream can be seeked to support System.Web.HttpResponseStream.

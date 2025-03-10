@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -465,7 +465,74 @@ namespace Xceed.Document.NET
       return this.ReplaceTextCore( replaceTextOptions );
     }
 
+    public Picture ReplacePicture( Picture toBeReplaced, Picture replaceWith )
+    {
+      if( toBeReplaced == null )
+        return null;
 
+      Picture newPicture = null;
+      var paragraphContainingOldPicture = this.Paragraphs.FirstOrDefault( paragraph => paragraph.Pictures.FirstOrDefault( picture => picture.Id == toBeReplaced.Id ) != null );
+      if( paragraphContainingOldPicture != null )
+      {
+        newPicture = paragraphContainingOldPicture.ReplacePicture( toBeReplaced, replaceWith );
+      }
+
+      return newPicture;
+    }
+
+
+
+
+
+
+
+    public virtual bool RemoveText( string startingTag, string endingTag )
+    {
+      var paragraphs = this.Paragraphs;
+      var startingParagraph = paragraphs.FirstOrDefault( p => p.Text.Contains( startingTag ) );
+      var endingParagraph = paragraphs.FirstOrDefault( p => p.Text.Contains( endingTag ) );
+
+      if( ( startingParagraph == null ) || ( endingParagraph == null ) )
+        return false;
+
+      var startIndex = startingParagraph.Text.IndexOf( startingTag );
+      if( startIndex >= 0 )
+      {
+        var endIndex = startingParagraph.Text.IndexOf( endingTag );
+
+        // Text to remove starts and ends in the same paragraph.
+        if( endIndex > 0 )
+        {
+          startingParagraph.RemoveText( startIndex, endIndex + endingTag.Length - startIndex, false, true );
+        }
+        else
+        {
+          // Text to remove starts in this paragraph, but ends in another paragraph.
+          startingParagraph.RemoveText( startIndex, startingParagraph.Text.Length - startIndex, false, true );
+          var currentParagraph = startingParagraph.NextParagraph;
+          while( true && ( currentParagraph != null ) )
+          {
+            endIndex = currentParagraph.Text.IndexOf( endingTag );
+
+            // Text to remove ends in this paragraph.
+            if( endIndex >= 0 )
+            {
+              currentParagraph.RemoveText( 0, endIndex + endingTag.Length, false, true );
+              return true;
+            }
+            else
+            {
+              // Text to remove is not located in this paragraph so we remove this whole paragraph.
+              var nextParagraph = currentParagraph.NextParagraph;
+              currentParagraph.Remove( false );
+              currentParagraph = nextParagraph;
+            }
+          }
+        }
+      }
+
+      return false;
+    }
 
     public virtual void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
     {
@@ -1062,7 +1129,7 @@ namespace Xceed.Document.NET
       return count;
     }
 
-    internal void RemoveParagraph( Paragraph paragraph, bool trackChanges )
+    internal void RemoveParagraph( Paragraph paragraph, bool trackChanges, RemoveParagraphFlags removeParagraphFlags )
     {
       if( trackChanges )
       {
@@ -1084,24 +1151,16 @@ namespace Xceed.Document.NET
           {
             if( temp.Count() > 0 )
             {
-              e.AddBeforeSelf( Paragraph.CreateEdit( EditType.del, now, temp.Elements() ) );
+              e.AddBeforeSelf( Document.CreateEdit( EditType.del, now, temp.Elements() ) );
               temp.Clear();
             }
           }
         }
 
         if( temp.Count() > 0 )
-          paragraph.Xml.Add( Paragraph.CreateEdit( EditType.del, now, temp ) );
+          paragraph.Xml.Add( Document.CreateEdit( EditType.del, now, temp ) );
 
-        if( paragraph.FollowingTables != null )
-        {
-          foreach( var table in paragraph.FollowingTables.ToList() )
-          {
-            paragraph.FollowingTables.Remove( table );
-
-            table.Remove();
-          }
-        }
+        paragraph.UpdateObjects( removeParagraphFlags );
 
         //Remove paragraph from Cache
         this.RemoveParagraphFromCache( paragraph );
@@ -1118,21 +1177,7 @@ namespace Xceed.Document.NET
         }
         else
         {
-          if( paragraph.FollowingTables != null )
-          {
-            foreach( var table in paragraph.FollowingTables.ToList() )
-            {
-              paragraph.FollowingTables.Remove( table );
-
-              table.Remove();
-            }
-          }
-
-          foreach( var picture in paragraph.Pictures )
-          {
-            picture.Remove();
-          }
-
+          paragraph.UpdateObjects( removeParagraphFlags );
 
           //Remove paragraph from Cache
           this.RemoveParagraphFromCache( paragraph );
@@ -1349,9 +1394,13 @@ namespace Xceed.Document.NET
           {
             result = p.ReplaceText( replaceTextOptions as FunctionReplaceTextOptions );
           }
-          else
+          else if( replaceTextOptions is ObjectReplaceTextOptions )
           {
             result = p.ReplaceTextWithObject( replaceTextOptions as ObjectReplaceTextOptions );
+          }
+          else
+          {
+            throw new InvalidDataException( "Unknown ReplaceTextOptions. ");
           }
 
           if( !replaceSuccess )

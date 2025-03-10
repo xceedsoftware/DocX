@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -20,7 +20,6 @@ using System.Linq;
 using System.Xml.Linq;
 using System.IO.Packaging;
 using System.IO;
-using System.Drawing;
 using System.Globalization;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -1131,6 +1130,25 @@ namespace Xceed.Document.NET
       }
 
       start_vMerge.SetAttributeValue( XName.Get( "val", Document.w.NamespaceName ), "restart" );
+
+      // If the original cell has borders, re-apply them in the merged cells.
+      var start_tcBorders = start_tcPr.Element( XName.Get( "tcBorders", Document.w.NamespaceName ) );
+      if( start_tcBorders != null )
+      {
+        // for all merged cells with the starting one...
+        validRows = this.Rows.GetRange( startRow + 1, endRow - (startRow + 1) + 1 );
+        foreach( var row in validRows )
+        {
+          var c = row.Cells[ columnIndex ];
+          var tcPr = c.Xml.Element( XName.Get( "tcPr", Document.w.NamespaceName ) );
+          var tcBorders = tcPr.Element( XName.Get( "tcBorders", Document.w.NamespaceName ) );
+          if( tcBorders != null )
+          {
+            tcBorders.Remove();
+          }
+          tcPr.Add( start_tcBorders );
+        }
+      }
     }
 
     public void SetDirection( Direction direction )
@@ -2636,7 +2654,7 @@ namespace Xceed.Document.NET
     }
 
     [Obsolete( "This property is obsolete and should no longer be used. Use the ShadingPattern property instead." )]
-    public Color Shading
+    public Xceed.Drawing.Color Shading
     {
       get
       {
@@ -2657,7 +2675,7 @@ namespace Xceed.Document.NET
 
         // If fill is null, this cell contains no Color information.
         if( fill == null )
-          return Color.White;
+          return Xceed.Drawing.Color.White;
 
         return HelperFunctions.GetColorFromHtml( fill.Value );
       }
@@ -3195,7 +3213,7 @@ namespace Xceed.Document.NET
       }
     }
 
-    public Color FillColor
+    public Xceed.Drawing.Color FillColor
     {
       get
       {
@@ -3207,10 +3225,9 @@ namespace Xceed.Document.NET
         XElement shd = tcPr?.Element( XName.Get( "shd", Document.w.NamespaceName ) );
         XAttribute fill = shd?.Attribute( XName.Get( "fill", Document.w.NamespaceName ) );
         if( fill == null )
-          return Color.Empty;
+          return Xceed.Drawing.Color.Transparent;
 
-        int argb = Int32.Parse( fill.Value.Replace( "#", "" ), NumberStyles.HexNumber );
-        return Color.FromArgb( argb );
+        return Xceed.Drawing.Color.Parse( fill.Value.Replace( "#", "" ) );
       }
 
       set

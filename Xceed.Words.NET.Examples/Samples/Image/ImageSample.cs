@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -16,7 +16,7 @@
 
 /***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Image Sample Application
-Copyright (c) 2009-2024 - Xceed Software Inc.
+Copyright (c) 2009-2025 - Xceed Software Inc.
 
 This application demonstrates how to create, copy or modify a picture when using the API 
 from the Xceed Words for .NET.
@@ -28,8 +28,6 @@ is only intended as a supplement to the documentation, and is provided
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using Xceed.Document.NET;
@@ -149,45 +147,6 @@ namespace Xceed.Words.NET.Examples
 
         document.Save();
         Console.WriteLine( "\tCreated: CopyPicture.docx\n" );
-      }
-    }
-
-    public static void ModifyImage()
-    {
-      Console.WriteLine( "\tModifyImage()" );
-
-      // Open the document Input.docx.
-      using( var document = DocX.Load( ImageSample.ImageSampleResourcesDirectory + @"Input.docx" ) )
-      {
-        // Add a title
-        document.InsertParagraph( 0, "Modifying Image by adding text/circle into the following image", false ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
-
-        // Get the first image in the document.
-        var image = document.Images.FirstOrDefault();
-        if( image != null )
-        {
-          // Create a bitmap from the image.
-          Bitmap bitmap;
-          using( var stream = image.GetStream( FileMode.Open, FileAccess.ReadWrite ) )
-          {
-            bitmap = new Bitmap( stream );
-          }
-          // Get the graphic from the bitmap to be able to draw in it.
-          var graphic = Graphics.FromImage( bitmap );
-          if( graphic != null )
-          {
-            // Draw a string with a specific font, font size and color at (0,10) from top left of the image.
-            graphic.DrawString( "@copyright", new System.Drawing.Font( "Arial Bold", 12 ), Brushes.Red, new PointF( 0f, 10f ) );
-            // Draw a blue circle of 10x10 at (30, 5) from the top left of the image.
-            graphic.FillEllipse( Brushes.Blue, 30, 5, 10, 10 );
-
-            // Save this Bitmap back into the document using a Create\Write stream.
-            bitmap.Save( image.GetStream( FileMode.Create, FileAccess.Write ), ImageFormat.Png );
-          }
-        }
-
-        document.SaveAs( ImageSample.ImageSampleOutputDirectory + @"ModifyImage.docx" );
-        Console.WriteLine( "\tCreated: ModifyImage.docx\n" );
       }
     }
 

@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -16,7 +16,7 @@
 
 /***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Document Sample Application
-Copyright (c) 2009-2024 - Xceed Software Inc.
+Copyright (c) 2009-2025 - Xceed Software Inc.
 
 This application demonstrates how to modify the content of a document when using the API 
 from the Xceed Words for .NET.
@@ -32,6 +32,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Xceed.Document.NET;
+using Xceed.Drawing;
 
 namespace Xceed.Words.NET.Examples
 {
@@ -82,7 +83,7 @@ namespace Xceed.Words.NET.Examples
             FindPattern = "<(.*?)>",
             RegexMatchHandler = DocumentSample.ReplaceFunc,
             RegExOptions = RegexOptions.IgnoreCase,
-            NewFormatting = new Formatting() { Bold = true, FontColor = System.Drawing.Color.Green }
+            NewFormatting = new Formatting() { Bold = true, FontColor = Color.Green }
           };
           document.ReplaceText( replaceTextOptions );
 
@@ -91,6 +92,13 @@ namespace Xceed.Words.NET.Examples
           Console.WriteLine( "\tCreated: ReplacedTextWithText.docx\n" );
         }
       }
+    }
+
+    public static void ReplaceTextWithMultipleTexts()
+    {
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     public static void ReplaceTextWithObjects()
@@ -117,7 +125,7 @@ namespace Xceed.Words.NET.Examples
         t.Design = TableDesign.DarkListAccent4;
         t.AutoFit = AutoFit.Window;
         t.Rows[ 0 ].Cells[ 0 ].Paragraphs[ 0 ].Append( "xceed.com" );
-        t.Rows[ 0 ].Cells[ 1 ].Paragraphs[ 0 ].Append( "@copyright 2024" );
+        t.Rows[ 0 ].Cells[ 1 ].Paragraphs[ 0 ].Append( "@copyright 2025" );
         document.ReplaceTextWithObject( new ObjectReplaceTextOptions() { SearchValue = "<year_table>", NewObject = t } );
 
         // Save this document to disk.

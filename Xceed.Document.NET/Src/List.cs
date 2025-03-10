@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -96,24 +96,40 @@ namespace Xceed.Document.NET
       if( paragraph.IsListItem )
       {
         var numId = paragraph.GetNumId();
-        if( numId == -1 )
-          return;
-
-        if( this.CanAddListItem( paragraph ) )
+        if( numId != -1 )
         {
+          if( !this.CanAddListItem( paragraph ) )
+            throw new InvalidOperationException( "New list items can only be added to this list if they have the same numId." );
+
           this.NumId = numId;
-          if( _listType == null )
-          {
-            var listItemType = HelperFunctions.GetListItemType( paragraph, this.Document );
-            if( listItemType != null )
-            {
-              _listType = listItemType.Equals( "bullet" ) ? ListItemType.Bulleted : ListItemType.Numbered;
-            }
-          }
+          this.SetListType( paragraph );
           this.Items.Add( paragraph );
         }
-        else
-          throw new InvalidOperationException( "New list items can only be added to this list if they are have the same numId." );
+      }
+    }
+
+    public void InsertItem( Paragraph paragraph, int level, int? index = null )
+    {
+      if( paragraph.IsListItem )
+      {
+        var numId = paragraph.GetNumId();
+        if( numId != -1 )
+        {
+          if( !this.CanAddListItem( paragraph ) )
+            throw new InvalidOperationException( "New list items can only be added to this list if they have the same numId." );
+
+          this.NumId = numId;
+          this.SetListType( paragraph );
+
+          if( index != null )
+          {
+            this.AddItemAtSpecificIndex( paragraph, level, index.Value );
+          }
+          else
+          {
+            this.Items.Add( paragraph );
+          }
+        }
       }
     }
 
@@ -142,6 +158,14 @@ namespace Xceed.Document.NET
       }
       return false;
     }
+
+
+
+
+
+
+
+
 
 
 
@@ -281,6 +305,11 @@ namespace Xceed.Document.NET
 
 
 
+
+
+
+
+
     internal XElement GetAbstractNum( int numId )
     {
       return HelperFunctions.GetAbstractNum( this.Document, numId.ToString() );
@@ -300,6 +329,18 @@ namespace Xceed.Document.NET
           return HelperFunctions.DecompressXMLResource( HelperFunctions.GetResources( ResourceType.NumberingDecimal ) );
         default:
           throw new InvalidOperationException( string.Format( "Unable to deal with ListItemType: {0}.", listType.ToString() ) );
+      }
+    }
+
+    private void SetListType( Paragraph paragraph )
+    {
+      if( _listType == null )
+      {
+        var listItemType = HelperFunctions.GetListItemType( paragraph, this.Document );
+        if( listItemType != null )
+        {
+          _listType = listItemType.Equals( "bullet" ) ? ListItemType.Bulleted : ListItemType.Numbered;
+        }
       }
     }
 
@@ -359,6 +400,49 @@ namespace Xceed.Document.NET
 
 
 
+
+
+    private static int GetLevelIndex( Paragraph p )
+    {
+      // Extract the ilvl value from the p element.
+      XElement ilvlElement = p.Xml.Descendants( XName.Get( "ilvl", Document.w.NamespaceName ) ).FirstOrDefault();
+      return ilvlElement != null && ilvlElement.Attribute( XName.Get( "val", Document.w.NamespaceName ) ) != null
+                         ? int.Parse( ilvlElement.Attribute( XName.Get( "val", Document.w.NamespaceName ) ).Value )
+                         : -1;
+    }
+
+    private void AddItemAtSpecificIndex( Paragraph paragraph, int level, int index )
+    {
+      if( index >= 0 && index <= this.Items.Count )
+      {
+        var indexToInsertAt = List.FindIndexFromListItemsAtLevel( this.Items, level, index );
+
+        if( indexToInsertAt != -1 )
+        {
+          this.Items.Insert( indexToInsertAt, paragraph );
+        }
+      }
+    }
+
+    private static int FindIndexFromListItemsAtLevel( List<Paragraph> items, int level, int levelIndex )
+    {
+      if( items != null && items.Count > 0 )
+      {
+        var levelItems = items.Where( p => GetLevelIndex( p ) == level ).ToList();
+
+        if( ( levelIndex >= 0 ) && ( levelIndex < levelItems.Count ) )
+        {
+          var targetItem = levelItems[ levelIndex ];
+
+          // Find the overall index of the item
+          var overallIndex = items.IndexOf( items.FirstOrDefault( i => i.Xml == targetItem.Xml ) );
+
+          return overallIndex;
+        }
+      }
+
+      return -1;
+    }
 
     private void SetAbstractNumTemplate( ListItemType listType, out int numId, out int abstractNumId, out XElement abstractNumTemplate )
     {

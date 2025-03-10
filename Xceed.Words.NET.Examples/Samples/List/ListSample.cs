@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -16,7 +16,7 @@
 
 /***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – List Sample Application
-Copyright (c) 2009-2024 - Xceed Software Inc.
+Copyright (c) 2009-2025 - Xceed Software Inc.
 
 This application demonstrates how to add lists when using the API 
 from the Xceed Words for .NET.
@@ -27,12 +27,11 @@ is only intended as a supplement to the documentation, and is provided
 *************************************************************************************/
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using Xceed.Document.NET;
+using Xceed.Drawing;
 
 namespace Xceed.Words.NET.Examples
 {
@@ -174,6 +173,8 @@ namespace Xceed.Words.NET.Examples
 
     public static void ModifyList()
     {
+
+
 
 
 

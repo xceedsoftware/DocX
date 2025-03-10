@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -15,6 +15,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
@@ -36,6 +37,8 @@ namespace Xceed.Document.NET
 
     private int _id;
     private Symbol _customMark;
+
+    private Paragraph _containedParagraph;
 
     #endregion
 
@@ -80,6 +83,7 @@ namespace Xceed.Document.NET
       {
         if( _customMark != null )
         {
+          _customMark.ParentNote = this;
           _customMark.PropertyChanged -= this.CustomMark_PropertyChanged;
         }
 
@@ -87,31 +91,16 @@ namespace Xceed.Document.NET
 
         if( _customMark != null )
         {
+          _customMark.ParentNote = this;
           _customMark.PropertyChanged += this.CustomMark_PropertyChanged;
         }
 
         this.UpdateCustomMarkXml();
+        this.UpdateParagraphFootOrEndnoteReference();
       }
     }
 
     #endregion  //CustomMark
-
-    #region Paragraphs
-
-    public override ReadOnlyCollection<Paragraph> Paragraphs
-    {
-      get
-      {
-        var paragraphs = base.Paragraphs;
-        foreach( var paragraph in paragraphs )
-        {
-          paragraph.PackagePart = this.PackagePart;
-        }
-        return paragraphs;
-      }
-    }
-
-    #endregion  // Paragraphs
 
     #endregion
 
@@ -139,6 +128,11 @@ namespace Xceed.Document.NET
 
       var id = this.Xml.Attribute( XName.Get( "id", Document.w.NamespaceName ) );
       _id = ( id != null ) ? Int32.Parse( id.Value ) : 0;
+    }
+
+    internal Note( Document document, Paragraph paragraph, PackagePart part, XElement xml ) : this( document, part, xml )
+    {
+      _containedParagraph = paragraph;
     }
 
     #endregion 
@@ -192,11 +186,7 @@ namespace Xceed.Document.NET
       return referenceRun;
     }
 
-    #endregion
-
-    #region Private Methods
-
-    private void UpdateCustomMarkXml()
+    internal void UpdateCustomMarkXml()
     {
       if( _customMark != null )
       {
@@ -228,6 +218,11 @@ namespace Xceed.Document.NET
       }
     }
 
+    internal void SetContainedParagraph( Paragraph paragraph )
+    {
+      _containedParagraph = paragraph;
+    }
+
     #endregion
 
     #region Event Handlers
@@ -235,14 +230,131 @@ namespace Xceed.Document.NET
     private void CustomMark_PropertyChanged( object sender, PropertyChangedEventArgs e )
     {
       this.UpdateCustomMarkXml();
+      this.UpdateParagraphFootOrEndnoteReference();
     }
 
     #endregion
+
+    #region Private Methods
+
+    private void UpdateParagraphFootOrEndnoteReference()
+    {
+      if( this is Footnote )
+      {
+        this.UpdateParagraphFootnoteReference();
+      }
+      else if( this is Endnote )
+      {
+        this.UpdateParagraphEndnoteReference();
+      }
+    }
+
+    private void UpdateParagraphFootnoteReference()
+    {
+      if( _containedParagraph != null )
+      {
+        var footnoteReferences = _containedParagraph.Xml.Descendants( XName.Get( "footnoteReference", Document.w.NamespaceName ) ).ToList();
+
+        var newFootnoteReference = new XElement(
+            XName.Get( "footnoteReference", Document.w.NamespaceName ),
+            new XAttribute( XName.Get( "id", Document.w.NamespaceName ), this.Id )
+        );
+
+        var existingReference = footnoteReferences.FirstOrDefault( f => f.Attribute( XName.Get( "id", Document.w.NamespaceName ) ) != null &&
+            f.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value == this.Id.ToString() );
+
+        if( existingReference != null )
+        {
+          if( this.CustomMark != null )
+          {
+            var sym = new XElement(
+                XName.Get( "sym", Document.w.NamespaceName ),
+                new XAttribute( XName.Get( "char", Document.w.NamespaceName ), this.CustomMark.HexCode ),
+                new XAttribute( XName.Get( "font", Document.w.NamespaceName ), this.CustomMark.Font.Name )
+            );
+
+            newFootnoteReference.SetAttributeValue( XName.Get( "customMarkFollows", Document.w.NamespaceName ), "1" );
+
+            this.UpdateParentRun( existingReference, sym, NoteType.Footnote );
+          }
+          else
+          {
+            this.UpdateParentRun( existingReference, new XElement( XName.Get( "footnoteRef", Document.w.NamespaceName ) ), NoteType.Footnote );
+          }
+
+          existingReference.ReplaceWith( newFootnoteReference );
+        }
+      }
+    }
+
+    private void UpdateParagraphEndnoteReference()
+    {
+      if( _containedParagraph != null )
+      {
+        var endnoteReferences = _containedParagraph.Xml.Descendants( XName.Get( "endnoteReference", Document.w.NamespaceName ) ).ToList();
+
+        var newEndnoteReference = new XElement(
+            XName.Get( "endnoteReference", Document.w.NamespaceName ),
+            new XAttribute( XName.Get( "id", Document.w.NamespaceName ), this.Id )
+        );
+
+        var existingReference = endnoteReferences.FirstOrDefault( f => f.Attribute( XName.Get( "id", Document.w.NamespaceName ) ) != null &&
+            f.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value == this.Id.ToString() );
+
+        if( existingReference != null )
+        {
+          if( this.CustomMark != null )
+          {
+            var sym = new XElement(
+                XName.Get( "sym", Document.w.NamespaceName ),
+                new XAttribute( XName.Get( "char", Document.w.NamespaceName ), this.CustomMark.HexCode ),
+                new XAttribute( XName.Get( "font", Document.w.NamespaceName ), this.CustomMark.Font.Name )
+            );
+
+            newEndnoteReference.SetAttributeValue( XName.Get( "customMarkFollows", Document.w.NamespaceName ), "1" );
+
+            this.UpdateParentRun( existingReference, sym, NoteType.Endnote );
+          }
+          else
+          {
+            this.UpdateParentRun( existingReference, new XElement( XName.Get( "endnoteRef", Document.w.NamespaceName ) ), NoteType.Endnote );
+          }
+
+          existingReference.ReplaceWith( newEndnoteReference );
+        }
+      }
+    }
+
+    private void UpdateParentRun( XElement existingReference, XElement replacement, NoteType noteType )
+    {
+      if( existingReference != null )
+      {
+        var parentRun = existingReference.Parent;
+        if( parentRun != null )
+        {
+          var currentElement = parentRun.Descendants( XName.Get( "sym", Document.w.NamespaceName ) ).FirstOrDefault() ??
+                               parentRun.Descendants( XName.Get( noteType == NoteType.Footnote ? "footnoteRef" : "endnoteRef", Document.w.NamespaceName ) ).FirstOrDefault();
+
+          if( currentElement != null )
+          {
+            currentElement.ReplaceWith( replacement );
+          }
+        }
+      }
+    }
+
+    #endregion // Private Methods
   }
 
 
   public class Symbol : INotifyPropertyChanged
   {
+    #region Internal Members
+
+    internal Note ParentNote { get; set; }
+
+    #endregion
+
     #region Private Members
 
     private int _code;

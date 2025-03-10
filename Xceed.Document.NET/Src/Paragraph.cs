@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -21,7 +21,6 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using System.IO.Packaging;
-using System.Drawing;
 using System.Globalization;
 using System.Diagnostics;
 using System.IO;
@@ -426,7 +425,6 @@ namespace Xceed.Document.NET
       }
     }
 
-
     public float IndentationAfter
     {
       get
@@ -695,7 +693,7 @@ namespace Xceed.Document.NET
       get
       {
         IsListItemBacker = IsListItemBacker ?? ( ParagraphNumberProperties != null );
-        return ( bool )IsListItemBacker;
+        return (bool)IsListItemBacker;
       }
     }
 
@@ -768,6 +766,95 @@ namespace Xceed.Document.NET
     }
 
 
+    public List<Footnote> Footnotes
+    {
+      get
+      {
+        var footnotes = new List<Footnote>();
+
+        if( this.Xml == null )
+        {
+          return footnotes;
+        }
+
+
+        // Get all footnote reference elements in the paragraph
+        var footnoteReferences = this.Xml.Descendants( XName.Get( "footnoteReference", Document.w.NamespaceName ) ).ToList();
+
+        if( footnoteReferences != null && footnoteReferences.Count > 0 )
+        {
+          foreach( var footnoteReference in footnoteReferences )
+          {
+            var footnoteId = footnoteReference.GetAttribute( XName.Get( "id", Document.w.NamespaceName ) );
+
+            if( !string.IsNullOrEmpty( footnoteId ) )
+            {
+              var documentFootnotes = this.Document.GetFootnotes();
+
+              if( documentFootnotes != null )
+              {
+                var footnoteXml = documentFootnotes.Descendants()
+                                                   .FirstOrDefault( f => f.Attribute( XName.Get( "id", Document.w.NamespaceName ) ) != null
+                                                                      && f.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value == footnoteId );
+
+                if( footnoteXml != null )
+                {
+                  var footnote = new Footnote( this.Document, this, this.Document._footnotesPart, footnoteXml );
+                  footnotes.Add( footnote );
+                }
+              }
+            }
+          }
+        }
+
+        return footnotes;
+      }
+    }
+
+    public List<Endnote> Endnotes
+    {
+      get
+      {
+        var endnotes = new List<Endnote>();
+
+        if( this.Xml == null )
+        {
+          return endnotes;
+        }
+
+        // Get all endnote reference elements in the paragraph
+        var endnoteReferences = this.Xml.Descendants( XName.Get( "endnoteReference", Document.w.NamespaceName ) ).ToList();
+
+        if( endnoteReferences != null && endnoteReferences.Count > 0 )
+        {
+          foreach( var endnoteReference in endnoteReferences )
+          {
+            var endnoteId = endnoteReference.GetAttribute( XName.Get( "id", Document.w.NamespaceName ) );
+
+            if( !string.IsNullOrEmpty( endnoteId ) )
+            {
+              var documentEndnotes = this.Document.GetEndnotes();
+
+              if( documentEndnotes != null )
+              {
+                var endnoteXml = documentEndnotes.Descendants()
+                                                 .FirstOrDefault( f => f.Attribute( XName.Get( "id", Document.w.NamespaceName ) ) != null
+                                                                    && f.Attribute( XName.Get( "id", Document.w.NamespaceName ) ).Value == endnoteId );
+
+                if( endnoteXml != null )
+                {
+                  var endnote = new Endnote( this.Document, this, this.Document._endnotesPart, endnoteXml );
+                  endnotes.Add( endnote );
+                }
+              }
+            }
+          }
+        }
+
+        return endnotes;
+      }
+    }
+
     #endregion
 
     #region Constructors
@@ -825,7 +912,7 @@ namespace Xceed.Document.NET
       //  }
       //}
 
-      _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
     }
 
     internal Paragraph( XElement newParagraph ) : base( null, newParagraph )
@@ -877,22 +964,30 @@ namespace Xceed.Document.NET
     public Picture ReplacePicture( Picture toBeReplaced, Picture replaceWith )
     {
       var document = this.Document;
-      var newDocPrId = document.GetNextFreeDocPrId();
+      Picture replacePicture = null;
 
-      var xml = XElement.Parse( toBeReplaced.Xml.ToString() );
+      if( toBeReplaced == null )
+        return null;
 
-      foreach( var element in xml.Descendants( XName.Get( "docPr", Document.wp.NamespaceName ) ) )
+      if( replaceWith != null )
       {
-        element.SetAttributeValue( XName.Get( "id" ), newDocPrId );
-      }
+        var newDocPrId = document.GetNextFreeDocPrId();
 
-      foreach( var element in xml.Descendants( XName.Get( "blip", Document.a.NamespaceName ) ) )
-      {
-        element.SetAttributeValue( XName.Get( "embed", Document.r.NamespaceName ), replaceWith.Id );
-      }
+        var xml = XElement.Parse( toBeReplaced.Xml.ToString() );
 
-      var replacePicture = new Picture( this.Document, xml, new Image( document, this.PackagePart.GetRelationship( replaceWith.Id ) ) );
-      this.AppendPicture( replacePicture );
+        foreach( var element in xml.Descendants( XName.Get( "docPr", Document.wp.NamespaceName ) ) )
+        {
+          element.SetAttributeValue( XName.Get( "id" ), newDocPrId );
+        }
+
+        foreach( var element in xml.Descendants( XName.Get( "blip", Document.a.NamespaceName ) ) )
+        {
+          element.SetAttributeValue( XName.Get( "embed", Document.r.NamespaceName ), replaceWith.Id );
+        }
+
+        replacePicture = new Picture( this.Document, xml, new Image( document, this.PackagePart.GetRelationship( replaceWith.Id ) ) );
+        this.AppendPicture( replacePicture );
+      }
       toBeReplaced.Remove();
 
       return replacePicture;
@@ -907,6 +1002,7 @@ namespace Xceed.Document.NET
       p2.PackagePart = this.PackagePart;
 
       this.NeedRefreshIndexes();
+      this.InsertFollowingTables( p, false );
 
       return p2;
     }
@@ -990,7 +1086,7 @@ namespace Xceed.Document.NET
         Xml.AddFirst( h.Xml );
 
         // Extract the picture back out of the DOM.
-        h_xml = ( XElement )Xml.FirstNode;
+        h_xml = (XElement)Xml.FirstNode;
       }
       else
       {
@@ -1003,7 +1099,7 @@ namespace Xceed.Document.NET
           Xml.Add( h.Xml );
 
           // Extract the picture back out of the DOM.
-          h_xml = ( XElement )Xml.LastNode;
+          h_xml = (XElement)Xml.LastNode;
         }
         else
         {
@@ -1022,13 +1118,13 @@ namespace Xceed.Document.NET
           run = GetFirstRunEffectedByEdit( index );
 
           // The picture has to be the next element, extract it back out of the DOM.
-          h_xml = ( XElement )run.Xml.NextNode;
+          h_xml = (XElement)run.Xml.NextNode;
         }
       }
 
       h_xml.SetAttributeValue( Document.r + "id", Id );
 
-      _runs = this.Xml.Elements().Last().Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
       this.NeedRefreshIndexes();
 
@@ -1054,6 +1150,7 @@ namespace Xceed.Document.NET
     public override Paragraph InsertParagraphAfterSelf( Paragraph p )
     {
       this.ValidateInsert();
+      this.InsertFollowingTables( p, true );
       this.ClearContainerParagraphsCache();
 
       var p2 = base.InsertParagraphAfterSelf( p );
@@ -1095,13 +1192,12 @@ namespace Xceed.Document.NET
       return p;
     }
 
-
-    public void Remove( bool trackChanges )
+    public void Remove( bool trackChanges, RemoveParagraphFlags removeParagraphFlags = RemoveParagraphFlags.All )
     {
       var mainContainer = this.GetMainParentContainer();
       if( mainContainer != null )
       {
-        mainContainer.RemoveParagraph( this, trackChanges );
+        mainContainer.RemoveParagraph( this, trackChanges, removeParagraphFlags );
         mainContainer.NeedRefreshParagraphIndexes = true;
       }
     }
@@ -1282,7 +1378,6 @@ namespace Xceed.Document.NET
       // Timestamp to mark the start of insert
       var now = DateTime.Now;
       var insert_datetime = new DateTime( now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc );
-      var reCalculateIds = false;
 
       // Get the first run effected by this Insert
       var run = this.GetFirstRunEffectedByEdit( index );
@@ -1293,8 +1388,7 @@ namespace Xceed.Document.NET
 
         if( trackChanges )
         {
-          insert = CreateEdit( EditType.ins, insert_datetime, insert );
-          reCalculateIds = true;
+          insert = Document.CreateEdit( EditType.ins, insert_datetime, insert );
         }
         this.Xml.Add( insert );
       }
@@ -1368,8 +1462,7 @@ namespace Xceed.Document.NET
               object insert = newRuns;
               if( trackChanges )
               {
-                insert = CreateEdit( EditType.ins, insert_datetime, newRuns );
-                reCalculateIds = true;
+                insert = Document.CreateEdit( EditType.ins, insert_datetime, newRuns );
               }
 
               // Split this Edit at the point you want to insert
@@ -1391,8 +1484,7 @@ namespace Xceed.Document.NET
               object insert = newRuns;
               if( trackChanges && !parentElement.Name.LocalName.Equals( "ins" ) )
               {
-                insert = CreateEdit( EditType.ins, insert_datetime, newRuns );
-                reCalculateIds = true;
+                insert = Document.CreateEdit( EditType.ins, insert_datetime, newRuns );
               }
               // Split this run at the point you want to insert
               var splitRun = Run.SplitRun( run, index );
@@ -1410,12 +1502,7 @@ namespace Xceed.Document.NET
         }
       }
 
-      _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
-
-      if( reCalculateIds )
-      {
-        HelperFunctions.RenumberIDs( Document );
-      }
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
       this.NeedRefreshIndexes();
     }
@@ -1434,7 +1521,7 @@ namespace Xceed.Document.NET
       var newRuns = HelperFunctions.FormatInput( text, null );
       this.Xml.Add( newRuns );
 
-      _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).Reverse().Take( newRuns.Count() ).ToList();
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).Reverse().Take( newRuns.Count() ).ToList();
 
       this.NeedRefreshIndexes();
 
@@ -1551,7 +1638,7 @@ namespace Xceed.Document.NET
       this.Xml.Add( h.Xml );
       this.Xml.Elements().Last().SetAttributeValue( Document.r + "id", Id );
 
-      _runs = this.Xml.Elements().Last().Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
       this.NeedRefreshIndexes();
       return this;
@@ -1599,7 +1686,7 @@ namespace Xceed.Document.NET
 
       // For formatting such as .Bold()
       // _runs = Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).Reverse().Take( p.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).Count() ).ToList();
-      _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
       return this;
     }
@@ -1633,6 +1720,8 @@ namespace Xceed.Document.NET
     {
       if( note != null )
       {
+        note.SetContainedParagraph( this );
+
         // Append the note to the paragraph and format the number in the paragraph.
         this.Xml.Add( note.CreateReferenceRun( noteNumberFormatting ) );
       }
@@ -1758,7 +1847,7 @@ namespace Xceed.Document.NET
           firstRun.AddBeforeSelf( p.Xml );
 
           // Extract the picture back out of the DOM.
-          p_xml = ( XElement )firstRun.PreviousNode;
+          p_xml = (XElement)firstRun.PreviousNode;
         }
         else
         {
@@ -1785,7 +1874,7 @@ namespace Xceed.Document.NET
           this.Xml.Add( p.Xml );
 
           // Extract the picture back out of the DOM.
-          p_xml = ( XElement )this.Xml.LastNode;
+          p_xml = (XElement)this.Xml.LastNode;
         }
         else
         {
@@ -1798,7 +1887,7 @@ namespace Xceed.Document.NET
           run = GetFirstRunEffectedByEdit( index );
 
           // The picture has to be the next element, extract it back out of the DOM.
-          p_xml = ( XElement )run.Xml.NextNode;
+          p_xml = (XElement)run.Xml.NextNode;
         }
       }
 
@@ -1925,7 +2014,7 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    public Paragraph Color( Color c )
+    public Paragraph Color( Xceed.Drawing.Color c )
     {
       ApplyTextFormattingProperty( XName.Get( "color", Document.w.NamespaceName ), string.Empty, new XAttribute( XName.Get( "val", Document.w.NamespaceName ), c.ToHex() ) );
 
@@ -1959,7 +2048,7 @@ namespace Xceed.Document.NET
     public Paragraph FontSize( double fontSize )
     {
       double tempSize = fontSize * 2;
-      if( tempSize - ( int )tempSize == 0 )
+      if( tempSize - (int)tempSize == 0 )
       {
         if( !( fontSize > 0 && fontSize < 1639 ) )
           throw new ArgumentException( "Size", "Value must be in the range 1 - 1638" );
@@ -2039,7 +2128,7 @@ namespace Xceed.Document.NET
     }
 
     [Obsolete( "This method is obsolete and should no longer be used. Use the ShadingPattern method instead." )]
-    public Paragraph Shading( Color shading, ShadingType shadingType = ShadingType.Text )
+    public Paragraph Shading( Xceed.Drawing.Color shading, ShadingType shadingType = ShadingType.Text )
     {
       // Add to run
       if( shadingType == ShadingType.Text )
@@ -2169,7 +2258,7 @@ namespace Xceed.Document.NET
       return this;
     }
 
-    public Paragraph UnderlineColor( Color underlineColor )
+    public Paragraph UnderlineColor( Xceed.Drawing.Color underlineColor )
     {
       foreach( XElement run in _runs )
       {
@@ -2204,7 +2293,7 @@ namespace Xceed.Document.NET
     public Paragraph Spacing( double spacing )
     {
       double tempSize = spacing * 20;
-      if( tempSize - ( int )tempSize == 0 )
+      if( tempSize - (int)tempSize == 0 )
       {
         if( !( spacing > -1585 && spacing < 1585 ) )
           throw new ArgumentException( "Spacing", "Value must be in the range: (-1584, 1584)" );
@@ -2224,7 +2313,7 @@ namespace Xceed.Document.NET
       var pPr = GetOrCreate_pPr();
       var spacing = pPr.Element( XName.Get( "spacing", Document.w.NamespaceName ) );
 
-      if( spacingBefore > 0 )
+      if( spacingBefore >= 0 )
       {
         if( spacing == null )
         {
@@ -2240,7 +2329,7 @@ namespace Xceed.Document.NET
           beforeAttribute.SetValue( spacingBefore );
       }
 
-      if( Math.Abs( spacingBefore ) < 0.1f && spacing != null )
+      if( Math.Abs( spacingBefore ) < 0f && spacing != null )
       {
         var beforeAttribute = spacing.Attribute( XName.Get( "before", Document.w.NamespaceName ) );
         if( beforeAttribute != null )
@@ -2264,7 +2353,7 @@ namespace Xceed.Document.NET
       var pPr = GetOrCreate_pPr();
       var spacing = pPr.Element( XName.Get( "spacing", Document.w.NamespaceName ) );
 
-      if( spacingAfter > 0 )
+      if( spacingAfter >= 0 )
       {
         if( spacing == null )
         {
@@ -2280,7 +2369,7 @@ namespace Xceed.Document.NET
           afterAttribute.SetValue( spacingAfter );
       }
 
-      if( Math.Abs( spacingAfter ) < 0.1f && spacing != null )
+      if( Math.Abs( spacingAfter ) < 0f && spacing != null )
       {
         var afterAttribute = spacing.Attribute( XName.Get( "after", Document.w.NamespaceName ) );
         if( afterAttribute != null )
@@ -2304,7 +2393,7 @@ namespace Xceed.Document.NET
       var pPr = GetOrCreate_pPr();
       var spacing = pPr.Element( XName.Get( "spacing", Document.w.NamespaceName ) );
 
-      if( lineSpacing > 0 )
+      if( lineSpacing >= 0 )
       {
         if( spacing == null )
         {
@@ -2320,7 +2409,7 @@ namespace Xceed.Document.NET
           lineAttribute.SetValue( lineSpacing );
       }
 
-      if( Math.Abs( lineSpacing ) < 0.1f && spacing != null )
+      if( Math.Abs( lineSpacing ) < 0f && spacing != null )
       {
         var lineAttribute = spacing.Attribute( XName.Get( "line", Document.w.NamespaceName ) );
         lineAttribute.Remove();
@@ -2384,7 +2473,7 @@ namespace Xceed.Document.NET
       {
         var now = DateTime.Now;
         var insert_datetime = new DateTime( now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc );
-        e = CreateEdit( EditType.ins, insert_datetime, e );
+        e = Document.CreateEdit( EditType.ins, insert_datetime, e );
       }
 
       this.Xml.Add( e );
@@ -2403,7 +2492,6 @@ namespace Xceed.Document.NET
 
       // The number of characters processed so far
       int processed = 0;
-      var reCalculateIds = false;
 
       do
       {
@@ -2421,15 +2509,11 @@ namespace Xceed.Document.NET
               var splitEditAfter = this.SplitEdit( parentElement, index + min, EditType.del );
 
               var temp = this.SplitEdit( splitEditBefore[ 1 ], index + min, EditType.del )[ 1 ];
-              var middle = Paragraph.CreateEdit( EditType.del, remove_datetime, temp.Elements() );
+              var middle = Document.CreateEdit( EditType.del, remove_datetime, temp.Elements() );
               processed += Paragraph.GetElementTextLength( middle as XElement );
 
-              if( trackChanges )
-              {
-                reCalculateIds = true;
-              }
-              else
-              {
+              if( !trackChanges )
+              { 
                 middle = null;
               }
 
@@ -2461,14 +2545,10 @@ namespace Xceed.Document.NET
                 var min = Math.Min( index + ( count - processed ), run.EndIndex );
                 var splitRunAfter = Run.SplitRun( run, min, EditType.del );
 
-                var middle = Paragraph.CreateEdit( EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun( new Run( Document, splitRunBefore[ 1 ], run.StartIndex + GetElementTextLength( splitRunBefore[ 0 ] ) ), min, EditType.del )[ 0 ] } );
+                var middle = Document.CreateEdit( EditType.del, remove_datetime, new List<XElement>() { Run.SplitRun( new Run( Document, splitRunBefore[ 1 ], run.StartIndex + GetElementTextLength( splitRunBefore[ 0 ] ) ), min, EditType.del )[ 0 ] } );
                 processed = processed + Paragraph.GetElementTextLength( middle as XElement );
 
-                if( trackChanges )
-                {
-                  reCalculateIds = true;
-                }
-                else
+                if( !trackChanges )
                 {
                   middle = null;
                 }
@@ -2485,6 +2565,7 @@ namespace Xceed.Document.NET
 
         // In some cases, removing an empty paragraph is allowed
         var canRemove = removeEmptyParagraph && GetElementTextLength( parentElement ) == 1 && string.IsNullOrEmpty( Text );
+
         if( parentElement.Parent != null )
         {
           // Need to make sure there is another paragraph in the parent cell
@@ -2506,12 +2587,7 @@ namespace Xceed.Document.NET
       }
       while( processed < count );
 
-      _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
-
-      if( reCalculateIds )
-      {
-        HelperFunctions.RenumberIDs( Document );
-      }
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
       this.NeedRefreshIndexes();
     }
@@ -2734,15 +2810,15 @@ namespace Xceed.Document.NET
           {
             if( objectToAdd is Picture )
             {
-              this.InsertPicture( ( Picture )objectToAdd, m.Index + m.Length );
+              this.InsertPicture( (Picture)objectToAdd, m.Index + m.Length );
             }
             else if( objectToAdd is Hyperlink )
             {
-              this.InsertHyperlink( ( Hyperlink )objectToAdd, m.Index + m.Length );
+              this.InsertHyperlink( (Hyperlink)objectToAdd, m.Index + m.Length );
             }
             else if( objectToAdd is Table )
             {
-              this.InsertTableAfterSelf( ( Table )objectToAdd );
+              this.InsertTableAfterSelf( (Table)objectToAdd );
             }
             else
             {
@@ -2794,6 +2870,19 @@ namespace Xceed.Document.NET
       }
       return replaceSuccess;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2934,6 +3023,8 @@ namespace Xceed.Document.NET
         );
       }
 
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
+
       this.NeedRefreshIndexes();
     }
 
@@ -2944,6 +3035,8 @@ namespace Xceed.Document.NET
 
       fldSimple.Add( content );
       Xml.Add( fldSimple );
+
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
       this.NeedRefreshIndexes();
       return this;
@@ -2970,6 +3063,8 @@ namespace Xceed.Document.NET
         );
       }
 
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
+
       this.NeedRefreshIndexes();
     }
 
@@ -2980,6 +3075,8 @@ namespace Xceed.Document.NET
 
       fldSimple.Add( content );
       Xml.Add( fldSimple );
+
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
 
       this.NeedRefreshIndexes();
       return this;
@@ -3000,7 +3097,7 @@ namespace Xceed.Document.NET
       var spacingTypeAttribute = ( spacingType == LineSpacingType.Before )
                                  ? "before"
                                  : ( spacingType == LineSpacingType.After ) ? "after" : "line";
-      spacing.SetAttributeValue( XName.Get( spacingTypeAttribute, Document.w.NamespaceName ), ( int )( spacingFloat * 20f ) );
+      spacing.SetAttributeValue( XName.Get( spacingTypeAttribute, Document.w.NamespaceName ), (int)( spacingFloat * 20f ) );
     }
 
     public void SetLineSpacing( LineSpacingTypeAuto spacingTypeAuto )
@@ -3149,7 +3246,7 @@ namespace Xceed.Document.NET
       {
         var run = HelperFunctions.FormatInput( toInsert, ( formatting != null ) ? formatting.Xml : null );
         refPosition.AddBeforeSelf( run );
-        _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
+        _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
       }
     }
 
@@ -3338,7 +3435,7 @@ namespace Xceed.Document.NET
       }
     }
 
-    public void InsertHorizontalLine( HorizontalBorderPosition position = HorizontalBorderPosition.bottom, BorderStyle lineType = BorderStyle.Tcbs_single, int size = 6, int space = 1, Color? color = null )
+    public void InsertHorizontalLine( HorizontalBorderPosition position = HorizontalBorderPosition.bottom, BorderStyle lineType = BorderStyle.Tcbs_single, int size = 6, int space = 1, Xceed.Drawing.Color? color = null )
     {
       var pBrXName = XName.Get( "pBdr", Document.w.NamespaceName );
       var borderPositionXName = ( position == HorizontalBorderPosition.bottom ) ? XName.Get( "bottom", Document.w.NamespaceName ) : XName.Get( "top", Document.w.NamespaceName );
@@ -3451,6 +3548,45 @@ namespace Xceed.Document.NET
       }
     }
 
+    internal void UpdateObjects( RemoveParagraphFlags removeParagraphFlags )
+    {
+      var previousParagraph = this.PreviousParagraph;
+
+      if( this.FollowingTables != null )
+      {
+        foreach( var table in this.FollowingTables.ToList() )
+        {
+          if( ( removeParagraphFlags & RemoveParagraphFlags.Tables ) == RemoveParagraphFlags.Tables )
+          {
+            this.FollowingTables.Remove( table );
+
+            table.Remove();
+          }
+          else if( previousParagraph != null )
+          {
+            if( previousParagraph.FollowingTables == null )
+            {
+              previousParagraph.FollowingTables = new List<Table>();
+            }
+            previousParagraph.FollowingTables.Add( table );
+          }
+        }
+      }
+
+      foreach( var picture in this.Pictures )
+      {
+        if( ( removeParagraphFlags & RemoveParagraphFlags.Pictures ) == RemoveParagraphFlags.Pictures )
+        {
+          picture.Remove();
+        }
+        else if( previousParagraph != null )
+        {
+          previousParagraph.Xml.Add( picture.Xml );
+        }
+      }
+
+    }
+
     internal XElement GetOrCreate_pPr()
     {
       // Get the element.
@@ -3545,13 +3681,13 @@ namespace Xceed.Document.NET
 
       using( PackagePartStream packagePartStream = new PackagePartStream( part.GetStream() ) )
       {
-        using( System.Drawing.Image img = System.Drawing.Image.FromStream( packagePartStream, useEmbeddedColorManagement: false, validateImageData: false ) )
+        using( var img = Xceed.Drawing.Image.FromStream( packagePartStream ) )
         {
           // ooxml uses image size in EMU : 
           // image in inches(in) is : pt / 72
           // image in EMU is : in * 914400
-          var imgHorizontalResolution = ( img.HorizontalResolution > 0 ) ? img.HorizontalResolution : DefaultImageHorizontalResolution;
-          var imgVerticalResolution = ( img.VerticalResolution > 0 ) ? img.VerticalResolution : DefaultImageVerticalResolution;
+          var imgHorizontalResolution = ( img.HorizontalResolution > 0 ) ? img.HorizontalResolution : Paragraph.DefaultImageHorizontalResolution;
+          var imgVerticalResolution = ( img.VerticalResolution > 0 ) ? img.VerticalResolution : Paragraph.DefaultImageVerticalResolution;
 
           cx = Convert.ToInt64( img.Width * ( 72f / imgHorizontalResolution ) * Picture.EmusInPixel );
           cy = Convert.ToInt64( img.Height * ( 72f / imgVerticalResolution ) * Picture.EmusInPixel );
@@ -3559,7 +3695,7 @@ namespace Xceed.Document.NET
       }
 
       var xml = XElement.Parse
-      ( string.Format( @"
+        ( string.Format( @"
         <w:r xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
             <w:drawing>
                 <wp:inline distT=""0"" distB=""0"" distL=""0"" distR=""0"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"">
@@ -3609,59 +3745,6 @@ namespace Xceed.Document.NET
         picture.Height = height;
       }
       return picture;
-    }
-
-    internal static XElement CreateEdit( EditType t, DateTime edit_time, object content )
-    {
-      if( t == EditType.del )
-      {
-        foreach( object o in ( IEnumerable<XElement> )content )
-        {
-          if( o is XElement )
-          {
-            XElement e = ( o as XElement );
-            IEnumerable<XElement> ts = e.DescendantsAndSelf( XName.Get( "t", Document.w.NamespaceName ) );
-
-            for( int i = 0; i < ts.Count(); i++ )
-            {
-              XElement text = ts.ElementAt( i );
-              text.ReplaceWith( new XElement( Document.w + "delText", text.Attributes(), text.Value ) );
-            }
-          }
-        }
-      }
-
-      // Check the author in a Try/Catch 
-      // (for the cases where we do not have the rights to access that information)
-      string author = "";
-      try
-      {
-        author = Environment.UserDomainName + "\\" + Environment.UserName;
-      }
-      catch( Exception )
-      {
-        // do nothing
-      }
-
-      if( author.Trim() == "" )
-      {
-        return
-        (
-            new XElement( Document.w + t.ToString(),
-                new XAttribute( Document.w + "id", 0 ),
-                new XAttribute( Document.w + "date", edit_time ),
-            content )
-        );
-      }
-
-      return
-      (
-          new XElement( Document.w + t.ToString(),
-              new XAttribute( Document.w + "id", 0 ),
-              new XAttribute( Document.w + "author", author ),
-              new XAttribute( Document.w + "date", edit_time ),
-          content )
-      );
     }
 
     internal Run GetFirstRunEffectedByEdit( int index, EditType type = EditType.ins )
@@ -3825,13 +3908,13 @@ namespace Xceed.Document.NET
         if( content as XAttribute != null )
         {
           // Add or Update the attribute to the last element
-          if( lastElement.Attribute( ( ( XAttribute )( content ) ).Name ) == null )
+          if( lastElement.Attribute( ( (XAttribute)( content ) ).Name ) == null )
           {
             lastElement.Add( content );
           }
           else
           {
-            lastElement.Attribute( ( ( XAttribute )( content ) ).Name ).Value = ( ( XAttribute )( content ) ).Value;
+            lastElement.Attribute( ( (XAttribute)( content ) ).Name ).Value = ( (XAttribute)( content ) ).Value;
           }
         }
         return;
@@ -3863,13 +3946,13 @@ namespace Xceed.Document.NET
         {
           foreach( object property in fontProperties )
           {
-            if( last.Attribute( ( ( XAttribute )( property ) ).Name ) == null )
+            if( last.Attribute( ( (XAttribute)( property ) ).Name ) == null )
             {
               last.Add( property );
             }
             else
             {
-              last.Attribute( ( ( XAttribute )( property ) ).Name ).Value = ( ( XAttribute )( property ) ).Value;
+              last.Attribute( ( (XAttribute)( property ) ).Name ).Value = ( (XAttribute)( property ) ).Value;
             }
           }
         }
@@ -3877,13 +3960,13 @@ namespace Xceed.Document.NET
 
         if( content as XAttribute != null )//If content is an attribute
         {
-          if( last.Attribute( ( ( XAttribute )( content ) ).Name ) == null )
+          if( last.Attribute( ( (XAttribute)( content ) ).Name ) == null )
           {
             last.Add( content ); //Add this attribute if element doesn't have it
           }
           else
           {
-            last.Attribute( ( ( XAttribute )( content ) ).Name ).Value = ( ( XAttribute )( content ) ).Value; //Apply value only if element already has it
+            last.Attribute( ( (XAttribute)( content ) ).Name ).Value = ( (XAttribute)( content ) ).Value; //Apply value only if element already has it
           }
         }
         else
@@ -4227,10 +4310,12 @@ namespace Xceed.Document.NET
 
     private List<Picture> GetPictures( string localName, string localNameEquals, string attributeName )
     {
+      // Do not include picture contained in a Fallback.
       var pictures =
        (
            from p in Xml.Descendants()
            where ( p.Name.LocalName == localName )
+           where ( p.Ancestors().FirstOrDefault( x => x.Name.Equals( XName.Get( "Fallback", Document.mc.NamespaceName ) ) ) == null )
            let ids =
            (
                from e in p.Descendants()
@@ -4429,7 +4514,7 @@ namespace Xceed.Document.NET
       var xElementList = HelperFunctions.FormatInput( text, ( formatting != null ) ? formatting.Xml : null );
       bookmark.AddAfterSelf( xElementList );
 
-      _runs = this.Xml.Elements( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
+      _runs = this.Xml.Descendants( XName.Get( "r", Document.w.NamespaceName ) ).ToList();
     }
 
     private void AddParagraphStyleIfNotPresent( string wantedParagraphStyleId )
@@ -4745,17 +4830,17 @@ namespace Xceed.Document.NET
         {
           if( replaceTextOptions.NewObject is Picture )
           {
-            this.InsertPicture( ( Picture )replaceTextOptions.NewObject, singleMatchIndexInFullText + singleMatch.Length );
+            this.InsertPicture( (Picture)replaceTextOptions.NewObject, singleMatchIndexInFullText + singleMatch.Length );
             replacedSuccess = true;
           }
           else if( replaceTextOptions.NewObject is Hyperlink )
           {
-            this.InsertHyperlink( ( Hyperlink )replaceTextOptions.NewObject, singleMatchIndexInFullText + singleMatch.Length );
+            this.InsertHyperlink( (Hyperlink)replaceTextOptions.NewObject, singleMatchIndexInFullText + singleMatch.Length );
             replacedSuccess = true;
           }
           else if( replaceTextOptions.NewObject is Table )
           {
-            this.InsertTableAfterSelf( ( Table )replaceTextOptions.NewObject );
+            this.InsertTableAfterSelf( (Table)replaceTextOptions.NewObject );
             replacedSuccess = true;
           }
           else
@@ -4962,6 +5047,32 @@ namespace Xceed.Document.NET
         else
         {
           return this.Document.Paragraphs;
+        }
+      }
+    }
+
+    private void InsertFollowingTables( Paragraph p, bool isInsertingAfter )
+    {
+      if( p != null )
+      {
+        var tables = p.FollowingTables;
+
+        if( tables != null )
+        {
+          if( isInsertingAfter )
+          {
+            foreach( var table in tables )
+            {
+              this.InsertTableAfterSelf( table );
+            }
+          }
+          else
+          {
+            foreach( var table in tables )
+            {
+              this.InsertTableBeforeSelf( table );
+            }
+          }
         }
       }
     }

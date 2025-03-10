@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -16,7 +16,7 @@
 
 /***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Line Sample Application
-Copyright (c) 2009-2024 - Xceed Software Inc.
+Copyright (c) 2009-2025 - Xceed Software Inc.
 
 This application demonstrates how to insert horizontal lines when using the API 
 from the Xceed Words for .NET.
@@ -26,9 +26,9 @@ is only intended as a supplement to the documentation, and is provided
 "as is", without warranty of any kind, either expressed or implied.
 *************************************************************************************/
 using System;
-using System.Drawing;
 using System.IO;
 using Xceed.Document.NET;
+using Xceed.Drawing;
 
 namespace Xceed.Words.NET.Examples
 {
@@ -96,7 +96,7 @@ namespace Xceed.Words.NET.Examples
         // Add a paragraph with a wave blue top line.
         var p6 = document.InsertParagraph();
         p6.Append( "This is a paragraph with a wave blue top line." ).Font( new Xceed.Document.NET.Font( "Arial" ) ).FontSize( 15 );
-        p6.InsertHorizontalLine( HorizontalBorderPosition.top, BorderStyle.Tcbs_wave, 6, 1, Color.FromArgb( 0, 0, 255 ) );
+        p6.InsertHorizontalLine( HorizontalBorderPosition.top, BorderStyle.Tcbs_wave, 6, 1, Color.Parse( 0, 0, 255 ) );
         p5.SpacingAfter( 20 );
 
         document.Save();

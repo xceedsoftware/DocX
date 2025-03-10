@@ -50,14 +50,15 @@
     <Compile Include="..\Xceed.Document.NET\AssemblyVersionInfo.cs">
       <Link>AssemblyVersionInfo.cs</Link>
     </Compile>
-    <Compile Include="..\Xceed.Document.NET\AssemblyVersionInfoCommon.cs">
-      <Link>AssemblyVersionInfoCommon.cs</Link>
-    </Compile>
     <Compile Include="Message.cs" />
     <Compile Include="DocX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Xceed.Drawing\Xceed.Drawing.NET.csproj">
+      <Project>{77b5b028-73c6-477f-b440-58e764d7bcbc}</Project>
+      <Name>Xceed.Drawing.NET</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Xceed.Document.NET\Xceed.Document.NET.csproj">
       <Project>{e863d072-aa8b-4108-b5f1-785241b37f67}</Project>
       <Name>Xceed.Document.NET</Name>

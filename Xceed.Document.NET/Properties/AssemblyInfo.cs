@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -26,7 +26,7 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyCompany( "Xceed Software Inc." )]
 [assembly: AssemblyProduct( "Xceed Document for .NET" )]
-[assembly: AssemblyCopyright( "Copyright (C) Xceed Software Inc. 2009-2024" )]
+[assembly: AssemblyCopyright( "Copyright (C) Xceed Software Inc. 2009-2025" )]
 [assembly: AssemblyCulture("")]
 
 

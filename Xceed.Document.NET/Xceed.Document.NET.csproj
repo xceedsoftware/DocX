@@ -86,7 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyVersionInfo.cs" />
-    <Compile Include="AssemblyVersionInfoCommon.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Src\Bookmark.cs" />
     <Compile Include="Src\BookmarkCollection.cs" />
     <Compile Include="Src\Border.cs" />
@@ -125,8 +125,6 @@
     <Compile Include="Src\Section.cs" />
     <Compile Include="Src\ShadingPattern.cs" />
     <Compile Include="Src\TableOfContents.cs" />
-    <Compile Include="Utils\Exceptions\ThrowException.cs" />
-    <Compile Include="Utils\Licensing\LicenseOrigin.cs" />
     <Compile Include="Src\_BaseClasses.cs" />
     <Compile Include="Src\Table.cs" />
     <Compile Include="Src\_Enumerations.cs" />
@@ -135,14 +133,17 @@
     <Compile Include="Src\Picture.cs" />
     <Compile Include="Src\Paragraph.cs" />
     <Compile Include="Src\Document.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Src\_Extensions.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Src\_Extensions.cs" />
+    <Compile Include="Utils\Exceptions\ThrowException.cs" />
+    <Compile Include="Utils\Licensing\LicenseOrigin.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\default_styles.xml.gz" />
     <EmbeddedResource Include="Resources\styles.xml.gz" />
+    <EmbeddedResource Include="Resources\numbering.default_bullet_abstract.xml.gz" />
+    <EmbeddedResource Include="Resources\numbering.default_decimal_abstract.xml.gz" />
+    <EmbeddedResource Include="Resources\numbering.xml.gz" />
+    <EmbeddedResource Include="Resources\SignatureLine.emf" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -162,12 +163,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\numbering.default_bullet_abstract.xml.gz" />
-    <EmbeddedResource Include="Resources\numbering.default_decimal_abstract.xml.gz" />
-    <EmbeddedResource Include="Resources\numbering.xml.gz" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\SignatureLine.emf" />
+    <ProjectReference Include="..\Xceed.Drawing\Xceed.Drawing.NET.csproj">
+      <Project>{77b5b028-73c6-477f-b440-58e764d7bcbc}</Project>
+      <Name>Xceed.Drawing.NET</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

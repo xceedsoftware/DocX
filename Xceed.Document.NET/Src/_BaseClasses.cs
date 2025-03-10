@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -148,7 +148,10 @@ namespace Xceed.Document.NET
                                             .Where( field => ( field != null )
                                                 && ( field.GetAttribute( XName.Get( "instr", Document.w.NamespaceName ) ) != null )
                                                 && field.GetAttribute( XName.Get( "instr", Document.w.NamespaceName ) ).StartsWith( " SEQ " + captionText ) );
-      var captionNumber = actualCaptions.Count() + 1;
+      var actualCaptions2 = this.Document.Xml.Descendants( XName.Get( "instrText", Document.w.NamespaceName ) )
+                                             .Where( field => ( field != null )
+                                                  && field.Value.StartsWith( " SEQ " + captionText ) );
+      var captionNumber = actualCaptions.Count() + actualCaptions2.Count() + 1;
 
       var content = XElement.Parse( string.Format(
        @"<w:r xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
@@ -223,7 +226,7 @@ namespace Xceed.Document.NET
 
       if( trackChanges )
       {
-        newParagraph = Paragraph.CreateEdit( EditType.ins, DateTime.Now, newParagraph );
+        newParagraph = Document.CreateEdit( EditType.ins, DateTime.Now, newParagraph );
       }
 
       this.Xml.AddBeforeSelf( newParagraph );
@@ -245,7 +248,7 @@ namespace Xceed.Document.NET
       );
 
       if( trackChanges )
-        newParagraph = Paragraph.CreateEdit( EditType.ins, DateTime.Now, newParagraph );
+        newParagraph = Document.CreateEdit( EditType.ins, DateTime.Now, newParagraph );
 
       Xml.AddAfterSelf( newParagraph );
       XElement newlyInserted = Xml.ElementsAfterSelf().First();

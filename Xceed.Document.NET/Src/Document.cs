@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2024 Xceed Software Inc.
+   Copyright (C) 2009-2025 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -24,14 +24,11 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.IO.Packaging;
 using System.Security.Cryptography;
-using System.Drawing;
 using System.Collections.ObjectModel;
 using System.Net;
 using System.Diagnostics;
-using System.Drawing.Drawing2D;
 using System.Reflection;
 using System.ComponentModel;
-
 
 namespace Xceed.Document.NET
 {
@@ -76,9 +73,13 @@ namespace Xceed.Document.NET
     private readonly object nextFreeDocPrIdLock = new object();
     private long? nextFreeDocPrId;
     private string _defaultParagraphStyleId;
+    private static HashAlgorithmName _hashAlgorithmName;
 
     private static double DefaultFontSize = 11d;
     private static string DefaultFontFamily = "Calibri";
+    private static string ModifiedByCoreProperty = "cp:lastModifiedBy";
+
+    private int _lastEditId = -1;
 
     private IList<Section> _cachedSections;
 
@@ -384,7 +385,7 @@ namespace Xceed.Document.NET
       }
     }
 
-    public Color PageBackground
+    public Xceed.Drawing.Color PageBackground
     {
       get
       {
@@ -398,7 +399,7 @@ namespace Xceed.Document.NET
           }
         }
 
-        return Color.White;
+        return Xceed.Drawing.Color.White;
       }
 
       set
@@ -1240,6 +1241,16 @@ namespace Xceed.Document.NET
 
 
 
+
+
+
+
+
+
+
+
+
+
     public override void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
     {
       // Insert in body of document.
@@ -1329,7 +1340,7 @@ namespace Xceed.Document.NET
       {
         XElement documentProtection = _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).FirstOrDefault();
         string edit_type = documentProtection.Attribute( XName.Get( "edit", w.NamespaceName ) ).Value;
-        return ( EditRestrictions )Enum.Parse( typeof( EditRestrictions ), edit_type );
+        return (EditRestrictions)Enum.Parse( typeof( EditRestrictions ), edit_type );
       }
 
       return EditRestrictions.none;
@@ -1986,23 +1997,27 @@ namespace Xceed.Document.NET
     public override Paragraph InsertParagraph( Paragraph p )
     {
       // copy paragraph's pictures and styles.
-      this.InsertParagraphPictures( p );
-      this.InsertParagraphStyles( p );
+      // This will modify the p's Picture Ids before adding it in this Document with the following base.InsertParagraph( updatedParagraph );
+      var updatedParagraph = this.InsertParagraphPictures( p );
 
-      p.PackagePart = this.PackagePart;
+      this.InsertParagraphStyles( updatedParagraph );      
 
-      return base.InsertParagraph( p );
+      var newParagraph = base.InsertParagraph( updatedParagraph );
+      newParagraph.PackagePart = this.PackagePart;
+
+      return newParagraph;
     }
 
     public override Paragraph InsertParagraph( int index, Paragraph p )
     {
       // copy paragraph's pictures and styles.
-      this.InsertParagraphPictures( p );
-      this.InsertParagraphStyles( p );
+      // This will modify the p's Picture Ids before adding it in this Document with the following base.InsertParagraph( index, updatedParagraph );
+      var updatedParagraph = this.InsertParagraphPictures( p );
 
-      p.PackagePart = this.PackagePart;
+      this.InsertParagraphStyles( updatedParagraph );
 
-      var returnParagraph = base.InsertParagraph( index, p );
+      var returnParagraph = base.InsertParagraph( index, updatedParagraph );
+      returnParagraph.PackagePart = this.PackagePart;
 
       // Inserting a paragraph at a specific index needs an update of Paragraph cache.
       this.ClearParagraphsCache();
@@ -2194,14 +2209,61 @@ namespace Xceed.Document.NET
       return null;
     }
 
-    public void AddPasswordProtection( EditRestrictions editRestrictions, string password )
+    public void AddPasswordProtection( EditRestrictions editRestrictions, string password, HashAlgorithm hashAlgorithm = HashAlgorithm.None )
     {
       if( IsPasswordProtected )
         throw new UnauthorizedAccessException( "Document is already password protected." );
 
+      if( string.IsNullOrEmpty( password ) )
+        return;
+
       // If no EditRestrictions, nothing to do
       if( editRestrictions == EditRestrictions.none )
         return;
+
+      if( hashAlgorithm == HashAlgorithm.None || _hashAlgorithmName == HashAlgorithmName.NotSupported )
+      {
+        hashAlgorithm = HashAlgorithm.Sha512;
+      }
+
+      var cryptAlgorithmSid = "";
+      var cryptProviderType = "";
+
+      switch( hashAlgorithm )
+      {
+        case HashAlgorithm.Md2:
+          cryptProviderType = "rsaFull";
+          cryptAlgorithmSid = "1";
+          _hashAlgorithmName = HashAlgorithmName.SHA1;
+          break;
+        case HashAlgorithm.Md5:
+          cryptProviderType = "rsaFull";
+          cryptAlgorithmSid = "3";
+          _hashAlgorithmName = HashAlgorithmName.SHA1;
+          break;
+        case HashAlgorithm.Sha1:
+          cryptProviderType = "rsaFull";
+          cryptAlgorithmSid = "4";
+          _hashAlgorithmName = HashAlgorithmName.SHA1Managed;
+          break;
+        case HashAlgorithm.Sha256:
+          cryptProviderType = "rsaAES";
+          cryptAlgorithmSid = "12";
+          _hashAlgorithmName = HashAlgorithmName.SHA256Managed;
+          break;
+        case HashAlgorithm.Sha384:
+          cryptProviderType = "rsaAES";
+          cryptAlgorithmSid = "13";
+          _hashAlgorithmName = HashAlgorithmName.SHA384Managed;
+          break;
+        case HashAlgorithm.Sha512:
+          cryptProviderType = "rsaAES";
+          cryptAlgorithmSid = "14";
+          _hashAlgorithmName = HashAlgorithmName.SHA512Managed;
+          break;
+        default:
+          throw new NotSupportedException( string.Format( "Hash algorithm '{0}' is not supported for document write protection.", hashAlgorithm ) );
+      }
 
       // Init DocumentProtection element
       var documentProtection = new XElement( XName.Get( "documentProtection", w.NamespaceName ) );
@@ -2209,12 +2271,12 @@ namespace Xceed.Document.NET
       documentProtection.Add( new XAttribute( XName.Get( "enforcement", w.NamespaceName ), "1" ) );
 
       Encryption encryption = new Encryption();
-      var encryptionObj = encryption.Encrypt( password );
+      var encryptionObj = encryption.Encrypt( password, _hashAlgorithmName );
 
-      documentProtection.Add( new XAttribute( XName.Get( "cryptProviderType", w.NamespaceName ), "rsaFull" ) );
+      documentProtection.Add( new XAttribute( XName.Get( "cryptProviderType", w.NamespaceName ), cryptProviderType ) );
       documentProtection.Add( new XAttribute( XName.Get( "cryptAlgorithmClass", w.NamespaceName ), "hash" ) );
       documentProtection.Add( new XAttribute( XName.Get( "cryptAlgorithmType", w.NamespaceName ), "typeAny" ) );
-      documentProtection.Add( new XAttribute( XName.Get( "cryptAlgorithmSid", w.NamespaceName ), "4" ) );
+      documentProtection.Add( new XAttribute( XName.Get( "cryptAlgorithmSid", w.NamespaceName ), cryptAlgorithmSid ) );
       documentProtection.Add( new XAttribute( XName.Get( "cryptSpinCount", w.NamespaceName ), encryptionObj.Iterations.ToString() ) );
       documentProtection.Add( new XAttribute( XName.Get( "hash", w.NamespaceName ), Convert.ToBase64String( encryptionObj.KeyValues ) ) );
       documentProtection.Add( new XAttribute( XName.Get( "salt", w.NamespaceName ), Convert.ToBase64String( encryptionObj.SaltArray ) ) );
@@ -2229,21 +2291,25 @@ namespace Xceed.Document.NET
 
       var documentProtection = _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).FirstOrDefault();
 
-      var salt = documentProtection.Attribute( XName.Get( "salt", w.NamespaceName ) );
-      var hash = documentProtection.Attribute( XName.Get( "hash", w.NamespaceName ) );
-
-      if( hash != null && salt != null )
+      if( documentProtection != null )
       {
-        var encryption = new Encryption();
-        var keyValues = encryption.Decrypt( password, salt.Value );
-        if( hash.Value != keyValues )
-          throw new UnauthorizedAccessException( "Invalid password." );
+        var hash = documentProtection.Attribute( XName.Get( "hash", w.NamespaceName ) );
+
+        if( hash != null )
+        {
+          var keyValues = ComputeHashValue( password, documentProtection );
+
+          if( !string.IsNullOrEmpty( keyValues ) && hash.Value != keyValues )
+          {
+            throw new UnauthorizedAccessException( "Invalid password." );
+          }
+        }
       }
 
       _settings.Descendants( XName.Get( "documentProtection", w.NamespaceName ) ).Remove();
     }
 
-    public void SetDefaultFont( Font fontFamily, double fontSize = 11d, Color? fontColor = null )
+    public void SetDefaultFont( Font fontFamily, double fontSize = 11d, Xceed.Drawing.Color? fontColor = null )
     {
       var docDefault = this.GetDocDefaults();
       if( docDefault != null )
@@ -2313,6 +2379,16 @@ namespace Xceed.Document.NET
 
 
 
+
+
+
+
+
+
+
+
+
+
     public T AddChart<T>() where T : Chart, new()
     {
       var chart = new T();
@@ -2338,6 +2414,71 @@ namespace Xceed.Document.NET
 
 
 
+    internal XElement CreateEdit( EditType t, DateTime edit_time, object content )
+    {
+      if( t == EditType.del )
+      {
+        foreach( object o in (IEnumerable<XElement>)content )
+        {
+          if( o is XElement )
+          {
+            XElement e = ( o as XElement );
+            IEnumerable<XElement> ts = e.DescendantsAndSelf( XName.Get( "t", Document.w.NamespaceName ) );
+
+            for( int i = 0; i < ts.Count(); i++ )
+            {
+              XElement text = ts.ElementAt( i );
+              text.ReplaceWith( new XElement( Document.w + "delText", text.Attributes(), text.Value ) );
+            }
+          }
+        }
+      }
+
+      // Check the author in a Try/Catch 
+      // (for the cases where we do not have the rights to access that information)
+      string author = "";
+      try
+      {
+        author = Environment.UserDomainName + "\\" + Environment.UserName;
+      }
+      catch( Exception )
+      {
+        // do nothing
+      }
+
+      if( _lastEditId < 0 )
+      {
+        var trackerIDs = ( from d in _mainDoc.Descendants()
+                        where d.Name.LocalName == "ins" || d.Name.LocalName == "del"
+                        select d.Attribute( XName.Get( "id", "http://schemas.openxmlformats.org/wordprocessingml/2006/main" ) ) );
+
+        if( trackerIDs.Count() > 0 )
+        {
+          _lastEditId = trackerIDs.Select( id => int.Parse( id.Value ) ).Max();
+        }
+      }
+
+      if( author.Trim() == "" )
+      {
+        return
+        (
+            new XElement( Document.w + t.ToString(),
+                new XAttribute( Document.w + "id", ++_lastEditId ),
+                new XAttribute( Document.w + "date", edit_time ),
+            content )
+        );
+      }
+
+      return
+      (
+          new XElement( Document.w + t.ToString(),
+              new XAttribute( Document.w + "id", ++_lastEditId ),
+              new XAttribute( Document.w + "author", author ),
+              new XAttribute( Document.w + "date", edit_time ),
+          content )
+      );
+    }
+
     internal XDocument GetSettings()
     {
       if( _settings != null )
@@ -2350,6 +2491,16 @@ namespace Xceed.Document.NET
       }
 
       return settings ?? null;
+    }
+
+    internal XDocument GetFootnotes()
+    {
+      return _footnotes;
+    }
+
+    internal XDocument GetEndnotes()
+    {
+      return _endnotes;
     }
 
     protected internal override void AddElementInXml( object element )
@@ -2535,9 +2686,9 @@ namespace Xceed.Document.NET
         Stream receiveStream = null;
         try
         {
-          ServicePointManager.SecurityProtocol = ( SecurityProtocolType )3072;
-          request = ( HttpWebRequest )WebRequest.Create( filename );
-          response = ( HttpWebResponse )request.GetResponse();
+          ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+          request = (HttpWebRequest)WebRequest.Create( filename );
+          response = (HttpWebResponse)request.GetResponse();
           receiveStream = response.GetResponseStream();
           HelperFunctions.CopyStream( receiveStream, ms );
         }
@@ -2952,20 +3103,43 @@ namespace Xceed.Document.NET
           {
             var node = e.Parent.NextNode;
             bool found = false;
-            while( true )
+
+            while( node != null )
             {
               if( node.NodeType == XmlNodeType.Element )
               {
                 var ele = node as XElement;
+
                 var match = ele.Descendants( XName.Get( "t", w.NamespaceName ) );
                 if( match.Any() )
                 {
                   if( !found )
                   {
-                    var element = match.First();
-                    element.Value = "\n";
-                    var newValue = HelperFunctions.FormatInput( customPropertyValue, ( cp.Formatting != null ) ? cp.Formatting.Xml : null );
-                    element.Add( newValue );
+                    var newValue = HelperFunctions.FormatInput( customPropertyValue, cp.Formatting?.Xml );
+
+                    if( ele.Name.LocalName == "r" ) // Main run
+                    {
+                      var runElements = ele.Elements().Where( el => el.Name.LocalName != "t" ).ToList();
+                      var nextElement = ele.ElementsAfterSelf().FirstOrDefault();
+
+                      var lastRunTag = newValue.LastOrDefault();
+
+                      if( lastRunTag != null )
+                      {
+                        var targetElement = lastRunTag.Descendants( XName.Get( "t", w.NamespaceName ) ).FirstOrDefault();
+
+                        if( targetElement != null )
+                        {
+                          targetElement.AddBeforeSelf( runElements );
+                        }
+                      }
+
+                      ele.AddBeforeSelf( newValue );
+                      ele.Remove();
+                      node = nextElement; // Move to the next element
+                      continue;
+                    }
+
                     found = true;
                   }
                   else
@@ -2986,6 +3160,8 @@ namespace Xceed.Document.NET
                   }
                 }
               }
+
+              // Move to the next node
               node = node.NextNode;
             }
           }
@@ -3293,6 +3469,63 @@ namespace Xceed.Document.NET
       return  "Calibri";
     }
 
+    internal static string ComputeHashValue( string password, XElement documentProtection )
+    {
+      var salt = documentProtection.Attribute( XName.Get( "salt", w.NamespaceName ) );
+      var cryptProviderType = documentProtection.Attribute( XName.Get( "cryptProviderType", w.NamespaceName ) );
+      var cryptAlgorithmSid = documentProtection.Attribute( XName.Get( "cryptAlgorithmSid", w.NamespaceName ) );
+
+      var keyValues = "";
+
+      if( salt != null && cryptProviderType != null && cryptAlgorithmSid != null )
+      {
+        var saltValue = salt.Value;
+        var cryptProviderTypeValue = cryptProviderType.Value;
+        var cryptAlgorithmSidValue = cryptAlgorithmSid.Value;
+
+        if( !string.IsNullOrEmpty( saltValue ) && !string.IsNullOrEmpty( cryptProviderTypeValue ) )
+        {
+          HashAlgorithmName hashAlgorithm = HashAlgorithmName.NotSupported;
+
+          switch( cryptProviderTypeValue )
+          {
+            case "rsaFull":
+              switch( cryptAlgorithmSidValue )
+              {
+                case "1":
+                case "3":
+                  hashAlgorithm = HashAlgorithmName.SHA1;
+                  break;
+                case "4":
+                  hashAlgorithm = HashAlgorithmName.SHA1Managed;
+                  break;
+              }
+              break;
+            case "rsaAES":
+              switch( cryptAlgorithmSidValue )
+              {
+                case "12":
+                  hashAlgorithm = HashAlgorithmName.SHA256Managed;
+                  break;
+                case "13":
+                  hashAlgorithm = HashAlgorithmName.SHA384Managed;
+                  break;
+                case "14":
+                  hashAlgorithm = HashAlgorithmName.SHA512Managed;
+                  break;
+              }
+              break;
+          }
+
+          _hashAlgorithmName = hashAlgorithm;
+          var encryption = new Encryption();
+          keyValues = encryption.Decrypt( password, saltValue, hashAlgorithm );
+        }
+      }
+
+      return keyValues;
+    }
+
     #endregion
 
     #region Private Methods
@@ -3315,7 +3548,7 @@ namespace Xceed.Document.NET
 
     private void MergeDocumentsPackages( Document remote_document, MergingMode mergingMode, out XDocument remote_mainDoc, out XElement remote_body, out XElement local_body, out PackagePartCollection ppc )
     {
-      // We don't want to effect the original XDocument, so create a new one from the old one.
+      // We don't want to affect the original XDocument, so create a new one from the old one.
       remote_mainDoc = new XDocument( remote_document._mainDoc );
       XDocument remote_footnotes = null;
       if( remote_document._footnotes != null )
@@ -3624,20 +3857,30 @@ namespace Xceed.Document.NET
       }
     }
 
-    internal void InsertParagraphPictures( Paragraph p )
+    internal Paragraph InsertParagraphPictures( Paragraph p )
     {
       if( ( p != null ) && ( p.Pictures != null ) && ( p.Pictures.Count > 0 ) )
       {
-        var ppc = p.Document._package.GetParts();
+        var clonedParagraph = new Paragraph( p.Xml );
+        clonedParagraph.Document = p.Document.Copy();
+        clonedParagraph.PackagePart = p.PackagePart;
+
+        var ppc = clonedParagraph.Document._package.GetParts();
 
         foreach( var remote_pp in ppc )
         {
           if( _imageContentTypes.Contains( remote_pp.ContentType ) )
           {
-            this.MergeImages( remote_pp, p.Document, p.Document._mainDoc, remote_pp.ContentType );
+            // This will modify the clonedParagraph's Picture Ids before adding it in this Document with the following base.InsertParagraph( updatedParagraph );
+            this.MergeImages( remote_pp, clonedParagraph.Document, clonedParagraph.Document._mainDoc, remote_pp.ContentType );
           }
         }
+
+        // return an updated paragraph(new image Ids) of the p paragraph.
+        return clonedParagraph.Document.Paragraphs.First( paragraph => paragraph.StartIndex == p.StartIndex );
       }
+
+      return p;
     }
 
     internal void InsertParagraphStyles( Paragraph p )
@@ -4107,7 +4350,6 @@ namespace Xceed.Document.NET
 
               remote_num.SetAttributeValue( XName.Get( "numId", w.NamespaceName ), numGuid );
               numGuid++;
-              break;
             }
           }
         }
@@ -4510,15 +4752,25 @@ namespace Xceed.Document.NET
 
         // Set the styleId and name in the remote_style to this new Guid
         remote_style.SetAttributeValue( XName.Get( "styleId", w.NamespaceName ), guuid );
-        var name = remote_style.Element( XName.Get( "name", w.NamespaceName ) );
-        if( name != null )
+
+        if( local_styles.ContainsKey( styleIdValue ) )
         {
-          name.SetAttributeValue( XName.Get( "val", w.NamespaceName ), guuid );
+          var name = remote_style.Element( XName.Get( "name", w.NamespaceName ) );
+          if( name != null )
+          {
+            name.SetAttributeValue( XName.Get( "val", w.NamespaceName ), guuid );
+          }
         }
 
         _styles.Root.Add( remote_style );
       }
     }
+
+
+
+
+
+
 
 
 
@@ -4692,11 +4944,11 @@ namespace Xceed.Document.NET
 
           var urisToValidate = docRelationShipDocument
                                   .Descendants( XName.Get( "Relationship", rel.NamespaceName ) )
-                                  .Where( relation => ( relation.Attribute( "TargetMode" ) != null ) && ( ( string )relation.Attribute( "TargetMode" ) == "External" ) );
+                                  .Where( relation => ( relation.Attribute( "TargetMode" ) != null ) && ( (string)relation.Attribute( "TargetMode" ) == "External" ) );
 
           foreach( var relation in urisToValidate )
           {
-            var target = ( string )relation.Attribute( "Target" );
+            var target = (string)relation.Attribute( "Target" );
             if( !string.IsNullOrEmpty( target ) )
             {
               try
@@ -4989,6 +5241,28 @@ namespace Xceed.Document.NET
     #endregion
   }
 
+  public enum HashAlgorithm
+  {
+    None,
+    Md2,
+    Md5,
+    Sha1,
+    Sha256,
+    Sha384,
+    Sha512
+  }
+
+
+  public enum HashAlgorithmName
+  {
+    NotSupported,
+    SHA1,
+    SHA1Managed,
+    SHA256Managed,
+    SHA384Managed,
+    SHA512Managed
+  }
+
   internal class Encryption
   {
     #region Public fields
@@ -5000,21 +5274,41 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Public Methods
-    public Encryption Encrypt( string password )
+    public Encryption Encrypt( string password, HashAlgorithmName hashAlgorithm )
     {
-      return EncryptOrDecrypt( password );
+      return EncryptOrDecrypt( password, "", hashAlgorithm );
     }
 
-    public string Decrypt( string password, string salt )
+    public string Decrypt( string password, string salt, HashAlgorithmName hashAlgorithm )
     {
-      var decrypt = EncryptOrDecrypt( password, salt );
+      var decrypt = EncryptOrDecrypt( password, salt, hashAlgorithm );
       return Convert.ToBase64String( decrypt.KeyValues );
     }
 
     #endregion
 
     #region private methods
-    private Encryption EncryptOrDecrypt( string password, string salt = "" )
+
+    private static System.Security.Cryptography.HashAlgorithm GetHashAlgorithm( HashAlgorithmName algorithm )
+    {
+      switch( algorithm )
+      {
+        case HashAlgorithmName.SHA1:
+          return System.Security.Cryptography.SHA1.Create();
+        case HashAlgorithmName.SHA1Managed:
+          return System.Security.Cryptography.SHA1Managed.Create();
+        case HashAlgorithmName.SHA256Managed:
+          return System.Security.Cryptography.SHA256Managed.Create();
+        case HashAlgorithmName.SHA384Managed:
+          return System.Security.Cryptography.SHA384Managed.Create();
+        case HashAlgorithmName.SHA512Managed:
+          return System.Security.Cryptography.SHA512Managed.Create();
+        default:
+          throw new NotSupportedException( "Unsupported password encryption algorithm" );
+      }
+    }
+
+    private Encryption EncryptOrDecrypt( string password, string salt = "", HashAlgorithmName hashAlgorithm = HashAlgorithmName.NotSupported )
     {
       // Intellectual Property information :
       //
@@ -5025,7 +5319,6 @@ namespace Xceed.Document.NET
       // The code’s use is covered under Microsoft’s Open Specification Promise 
       // described here: https://msdn.microsoft.com/en-US/openspecifications/dn646765
 
-      // Variables
       int maxPasswordLength = 15;
       var saltArray = !string.IsNullOrEmpty( salt ) ? Convert.FromBase64String( salt ) : new byte[ 16 ];
       var keyValues = new byte[ 14 ];
@@ -5106,14 +5399,18 @@ namespace Xceed.Document.NET
 
         for( int i = 0; i < 4; i++ )
         {
-          keyValues[ i ] = Convert.ToByte( ( ( uint )( intCombinedkey & ( 0x000000FF << ( i * 8 ) ) ) ) >> ( i * 8 ) );
+          keyValues[ i ] = Convert.ToByte( ( (uint)( intCombinedkey & ( 0x000000FF << ( i * 8 ) ) ) ) >> ( i * 8 ) );
         }
       }
 
       var sb = new StringBuilder();
       for( int intTemp = 0; intTemp < 4; intTemp++ )
       {
-        sb.Append( Convert.ToString( keyValues[ intTemp ], 16 ) );
+        // Fix for Github issue #478 - https://github.com/xceedsoftware/DocX/issues/478
+        // Convert to hexadecimal string with at least 2 digits, padding with leading zeros if necessary
+        // Otherwise computed hash value will fail to match computed keyValues 
+        var str = keyValues[ intTemp ].ToString( "x2" );
+        sb.Append( str );
       }
 
       keyValues = Encoding.Unicode.GetBytes( sb.ToString().ToUpper() );
@@ -5121,8 +5418,8 @@ namespace Xceed.Document.NET
 
       int iterations = 100000;
 
-      var sha1 = new SHA1Managed();
-      keyValues = sha1.ComputeHash( keyValues );
+      var hash = Encryption.GetHashAlgorithm( hashAlgorithm );
+      keyValues = hash.ComputeHash( keyValues );
       var iterator = new byte[ 4 ];
       for( int i = 0; i < iterations; i++ )
       {
@@ -5132,7 +5429,7 @@ namespace Xceed.Document.NET
         iterator[ 3 ] = Convert.ToByte( ( i & 0xFF000000 ) >> 24 );
 
         keyValues = MergeArrays( iterator, keyValues );
-        keyValues = sha1.ComputeHash( keyValues );
+        keyValues = hash.ComputeHash( keyValues );
       }
 
       Encryption encryption = new Encryption()

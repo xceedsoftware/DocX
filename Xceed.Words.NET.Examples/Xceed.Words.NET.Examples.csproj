@@ -43,6 +43,12 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Xceed.Document.NET.dll">
+      <HintPath>..\Xceed.Document.NET\bin\$(Configuration)\Xceed.Document.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Words.NET.dll">
+      <HintPath>..\Xceed.Words.NET\bin\$(Configuration)\Xceed.Words.NET.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -120,11 +126,8 @@
     <Content Include="Samples\Table\Resources\logo_xceed.png" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Xceed.Document.NET.dll">
-      <HintPath>..\Xceed.Document.NET\bin\$(Configuration)\Xceed.Document.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="Xceed.Words.NET.dll">
-      <HintPath>..\Xceed.Words.NET\bin\$(Configuration)\Xceed.Words.NET.dll</HintPath>
+    <Reference Include="Xceed.Drawing.NET.dll">
+      <HintPath>..\Xceed.Drawing\bin\$(Configuration)\Xceed.Drawing.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
