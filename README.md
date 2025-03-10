@@ -155,6 +155,11 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td>YES</td>
 <td>YES</td>
 </tr>
+<tr>
+<td>Works in Windows/Linux/Mac/iOS/Android</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
 <td>Update document fields (ex: a table of contents) by calling only one method</td>
 <td></td>
 <td>YES</td>
