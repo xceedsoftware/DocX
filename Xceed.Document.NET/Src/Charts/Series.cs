@@ -17,15 +17,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO.Packaging;
 using System.Linq;
 using System.Xml.Linq;
-using Xceed.Drawing;
 
 namespace Xceed.Document.NET
 {
-  public class Series
+  public abstract class Series : CommonSeries
   {
 
     #region Private Members
@@ -34,7 +32,6 @@ namespace Xceed.Document.NET
     private XElement _numCache;
     private PackagePart _packagePart;
     #endregion
-
 
     #region Public Properties
 
@@ -61,81 +58,11 @@ namespace Xceed.Document.NET
 
 
 
-
-
-
-
-    public Color Color
-    {
-      get
-      {
-        var spPr = this.Xml.Element( XName.Get( "spPr", Document.c.NamespaceName ) );
-        if( spPr == null )
-          return Color.Transparent;
-
-        var srgbClr = spPr.Descendants( XName.Get( "srgbClr", Document.a.NamespaceName ) ).FirstOrDefault();
-        if( srgbClr != null )
-        {
-          var val = srgbClr.Attribute( XName.Get( "val" ) );
-          if( val != null )
-          {
-            var rgb = Color.Parse( val.Value );
-          }
-        }
-
-        return Color.Transparent;
-      }
-      set
-      {
-        var spPrElement = this.Xml.Element( XName.Get( "spPr", Document.c.NamespaceName ) );
-        string widthValue = string.Empty;
-
-        if( spPrElement != null )
-        {
-          var ln = spPrElement.Element( XName.Get( "ln", Document.a.NamespaceName ) );
-          if( ln != null )
-          {
-            var val = ln.Attribute( XName.Get( "w" ) );
-            if( val != null )
-            {
-              widthValue = val.Value;
-            }
-          }
-          spPrElement.Remove();
-        }
-
-        var colorData = new XElement( XName.Get( "solidFill", Document.a.NamespaceName ),
-                                   new XElement( XName.Get( "srgbClr", Document.a.NamespaceName ), new XAttribute( XName.Get( "val" ), value.ToHex() ) ) );
-
-        // When the chart containing this series is a lineChart, the line will be colored, else the shape will be colored.
-        if( string.IsNullOrEmpty( widthValue ) )
-        {
-          spPrElement = ( ( this.Xml.Parent != null ) && ( this.Xml.Parent.Name != null ) && ( this.Xml.Parent.Name.LocalName == "lineChart" ) )
-               ? new XElement( XName.Get( "spPr", Document.c.NamespaceName ),
-                          new XElement( XName.Get( "ln", Document.a.NamespaceName ), colorData ) )
-               : new XElement( XName.Get( "spPr", Document.c.NamespaceName ), colorData );
-        }
-        else
-        {
-          spPrElement = new XElement( XName.Get( "spPr", Document.c.NamespaceName ),
-                          new XElement( XName.Get( "ln", Document.a.NamespaceName ),
-                                       new XAttribute( XName.Get( "w" ), widthValue ), colorData ) );
-        }
-
-        this.Xml.Element( XName.Get( "tx", Document.c.NamespaceName ) ).AddAfterSelf( spPrElement );
-      }
-    }
-
     #endregion
 
     #region Internal Properties
 
-    internal XElement Xml
-    {
-      get; private set;
-    }
-
-    internal PackagePart PackagePart
+    internal override PackagePart PackagePart
     {
       get
       {
@@ -150,12 +77,13 @@ namespace Xceed.Document.NET
 
     #region Constructors
 
-    public Series( String name )
+    [Obsolete( "Series() is obsolete. Use new LineSeries, new BarSeries, new PieSeries...  instead." )]
+    public Series( String name ) : base( name )
     {
       _strCache = new XElement( XName.Get( "strCache", Document.c.NamespaceName ) );
       _numCache = new XElement( XName.Get( "numCache", Document.c.NamespaceName ) );
 
-      this.Xml = new XElement( XName.Get( "ser", Document.c.NamespaceName ),
+      var serXml = new XElement( XName.Get( "ser", Document.c.NamespaceName ),
                                new XElement( XName.Get( "tx", Document.c.NamespaceName ),
                                              new XElement( XName.Get( "strRef", Document.c.NamespaceName ),
                                                            new XElement( XName.Get( "f", Document.c.NamespaceName ), "" ),
@@ -173,11 +101,13 @@ namespace Xceed.Document.NET
                                                            new XElement( XName.Get( "f", Document.c.NamespaceName ), "" ),
                                                            _numCache ) )
           );
+
+      this.SetXml( serXml );
     }
 
-    internal Series( XElement xml )
+    internal Series( XElement xml ) : base( xml )
     {
-      this.Xml = xml;
+      this.SetXml( xml );
 
       var cat = xml.Element( XName.Get( "cat", Document.c.NamespaceName ) );
       if( cat != null )
@@ -266,7 +196,11 @@ namespace Xceed.Document.NET
 
 
 
-
     #endregion
+
+
+
+
+
   }
 }

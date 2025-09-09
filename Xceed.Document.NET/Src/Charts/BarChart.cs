@@ -15,6 +15,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO.Packaging;
 using System.Linq;
@@ -24,6 +25,12 @@ namespace Xceed.Document.NET
 {
   public class BarChart : Chart
   {
+    #region Private Properties
+
+    private List<BaseSeries> _series;
+
+    #endregion
+
     #region Public Properties
 
     public BarDirection BarDirection
@@ -88,10 +95,42 @@ namespace Xceed.Document.NET
       }
     }
 
+    public override List<BaseSeries> Series
+    {
+      get
+      {
+        if( _series == null )
+        {
+          _series = new List<BaseSeries>();
+          var chart = this.GetChartTypeXElement();
+          var ser = chart.Elements( XName.Get( "ser", Document.c.NamespaceName ) );
+          foreach( var element in ser )
+          {
+            var serie = new BarSeries( element );
+            serie.PackagePart = this.PackagePart;
+            _series.Add( serie );
+          }
+        }
+        return _series;
+      }
+    }
+
     #endregion
 
+    #region Protected Properties
+
+    protected override Type AllowedSeriesType
+    {
+      get
+      {
+        return typeof( BarSeries );
+      }
+    }
+
+    #endregion // Protected Properties
+
     #region Constructors
-    [Obsolete("BarChart() is obsolete. Use Document.AddChart<BarChart>() instead.")]
+    [Obsolete( "BarChart() is obsolete. Use Document.AddChart<BarChart>() instead." )]
     public BarChart()
     {
     }

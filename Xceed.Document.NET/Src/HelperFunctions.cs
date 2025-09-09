@@ -46,6 +46,7 @@ namespace Xceed.Document.NET
     public const string DOCUMENT_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
     public const string TEMPLATE_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml";
     public const string SETTING_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml";
+    public const string WEBSETTING_DOCUMENTTYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.websettings+xml";
     public const string MACRO_DOCUMENTTYPE = "application/vnd.ms-word.document.macroEnabled.main+xml";
 
     internal static readonly char[] RestrictedXmlCharacters = new char[]
@@ -71,18 +72,18 @@ namespace Xceed.Document.NET
       }
     }
 
-    internal static void CreateRelsPackagePart(Package package, Uri uri)
+    internal static void CreateRelsPackagePart( Package package, Uri uri )
     {
-      PackagePart pp = package.CreatePart(uri, Document.ContentTypeApplicationRelationShipXml, CompressionOption.Maximum);
-      using (TextWriter tw = new StreamWriter(new PackagePartStream(pp.GetStream())))
+      PackagePart pp = package.CreatePart( uri, Document.ContentTypeApplicationRelationShipXml, CompressionOption.Maximum );
+      using( TextWriter tw = new StreamWriter( new PackagePartStream( pp.GetStream() ) ) )
       {
         XDocument d = new XDocument
         (
-            new XDeclaration("1.0", "UTF-8", "yes"),
-            new XElement(XName.Get("Relationships", Document.rel.NamespaceName))
+            new XDeclaration( "1.0", "UTF-8", "yes" ),
+            new XElement( XName.Get( "Relationships", Document.rel.NamespaceName ) )
         );
         var root = d.Root;
-        d.Save(tw);
+        d.Save( tw );
       }
     }
 
@@ -121,7 +122,7 @@ namespace Xceed.Document.NET
       sb.Append( ToText( Xml ) );
 
       // Do not read text from Fallback or drawing(a new paragraph will take care of drawing).
-      if( Xml.HasElements && Paragraph.CanReadXml(Xml))
+      if( Xml.HasElements && Paragraph.CanReadXml( Xml ) )
         foreach( XElement e in Xml.Elements() )
           GetTextRecursive( e, ref sb );
     }
@@ -145,7 +146,7 @@ namespace Xceed.Document.NET
           last = alist.Last();
         }
 
-        if( (last != null) && (last.CompareTo( ft ) == 0) )
+        if( ( last != null ) && ( last.CompareTo( ft ) == 0 ) )
         {
           // Update text of last entry.
           last.text += ft.text;
@@ -213,12 +214,12 @@ namespace Xceed.Document.NET
           {
             var styleId = rStyle.GetAttribute( XName.Get( "val", Document.w.NamespaceName ), null );
             var formatting = HelperFunctions.GetFormattingFromStyle( document, styleId );
-            HelperFunctions.UpdateFormattingFromFormatting( ref formatting, Formatting.Parse( rPr ) );
+            HelperFunctions.UpdateFormattingFromFormatting( ref formatting, Formatting.Parse( rPr, null, null, document ) );
             ft.formatting = formatting;
           }
           else
           {
-            ft.formatting = Formatting.Parse( rPr );
+            ft.formatting = Formatting.Parse( rPr, null, null, document );
           }
         }
       }
@@ -270,7 +271,7 @@ namespace Xceed.Document.NET
 
         rPr = currentStyle.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
 
-        var retValue = Formatting.Parse( rPr, formatting, document.GetDocDefaultFontFamily() );
+        var retValue = Formatting.Parse( rPr, formatting, document.GetDocDefaultFontFamily(), document );
         retValue.StyleId = styleId;
 
         return retValue;
@@ -313,11 +314,11 @@ namespace Xceed.Document.NET
           goto case "delText";
         case "delText":
           {
-            if( (e.Name.LocalName == "t") && e.HasElements && (e.Element( XName.Get( "r", Document.w.NamespaceName ) ) != null) )
+            if( ( e.Name.LocalName == "t" ) && e.HasElements && ( e.Element( XName.Get( "r", Document.w.NamespaceName ) ) != null ) )
               return "";
 
 
-              return e.Value;
+            return e.Value;
           }
         case "tr":
           //goto case "br";
@@ -420,6 +421,36 @@ namespace Xceed.Document.NET
       }
 
       return settingsPart;
+    }
+
+    internal static PackagePart CreateOrGetWebSettingsPart( Package package )
+    {
+      var webSettingsPart = package.GetParts().FirstOrDefault( p => p.ContentType.Equals( WEBSETTING_DOCUMENTTYPE, StringComparison.CurrentCultureIgnoreCase ) );
+      if( webSettingsPart == null )
+      {
+        var settingsUri = new Uri( "/word/webSettings.xml", UriKind.Relative );
+        webSettingsPart = package.CreatePart( settingsUri, HelperFunctions.WEBSETTING_DOCUMENTTYPE, CompressionOption.Maximum );
+
+        var mainDocPart = GetMainDocumentPart( package );
+
+        mainDocPart.CreateRelationship( settingsUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings" );
+
+        var webSettings = XDocument.Parse
+        ( @"<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+                <w:webSettings xmlns:mc=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:w14=""http://schemas.microsoft.com/office/word/2010/wordml"" xmlns:w15=""http://schemas.microsoft.com/office/word/2012/wordml"" xmlns:w16cex=""http://schemas.microsoft.com/office/word/2018/wordml/cex"" xmlns:w16cid=""http://schemas.microsoft.com/office/word/2016/wordml/cid"" xmlns:w16=""http://schemas.microsoft.com/office/word/2018/wordml"" xmlns:w16du=""http://schemas.microsoft.com/office/word/2023/wordml/word16du"" xmlns:w16sdtdh=""http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash"" xmlns:w16se=""http://schemas.microsoft.com/office/word/2015/wordml/symex"" mc:Ignorable=""w14 w15 w16se w16cid w16 w16cex w16sdtdh w16du"">
+                <w:optimizeForBrowser/>
+                <w:allowPNG/>
+          </w:webSettings>"
+        );
+
+        // Save the document webSettings.
+        using( TextWriter tw = new StreamWriter( new PackagePartStream( webSettingsPart.GetStream() ) ) )
+        {
+          webSettings.Save( tw );
+        }
+      }
+
+      return webSettingsPart;
     }
 
     internal static void CreateCorePropertiesPart( Document document )
@@ -560,7 +591,7 @@ namespace Xceed.Document.NET
     {
       if( t == EditType.del )
       {
-        foreach( object o in ( IEnumerable<XElement> )content )
+        foreach( object o in (IEnumerable<XElement>)content )
         {
           if( o is XElement )
           {
@@ -879,7 +910,7 @@ namespace Xceed.Document.NET
         if( startNumber == null )
           list.AddItem( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ) );
         else
-          list.AddItemWithStartValue( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ), ( int )startNumber );
+          list.AddItemWithStartValue( new Paragraph( list.Document, newSection, 0, ContainerType.Paragraph ), (int)startNumber );
       }
       return list;
     }
@@ -1364,7 +1395,7 @@ namespace Xceed.Document.NET
           return "%1.";
       }
 
-      formatting = Formatting.Parse( lvlNode.Descendants().FirstOrDefault( n => n.Name.LocalName == "rPr" ) );
+      formatting = Formatting.Parse( lvlNode.Descendants().FirstOrDefault( n => n.Name.LocalName == "rPr" ), null, null, list.Document );
 
       var textFormatNode = lvlNode.Descendants().FirstOrDefault( n => n.Name.LocalName == "lvlText" );
       if( textFormatNode == null )
@@ -1485,7 +1516,7 @@ namespace Xceed.Document.NET
       var bdrStyle = xml.Attribute( XName.Get( "val", Document.w.NamespaceName ) );
       if( bdrStyle != null )
       {
-        borderStyle = ( BorderStyle )Enum.Parse( typeof( BorderStyle ), "Tcbs_" + bdrStyle.Value );
+        borderStyle = (BorderStyle)Enum.Parse( typeof( BorderStyle ), "Tcbs_" + bdrStyle.Value );
       }
 
       return new Border( borderStyle, borderSize, borderSpace, borderColor );
@@ -1684,7 +1715,7 @@ namespace Xceed.Document.NET
       ).SingleOrDefault();
 
       // If such a relation dosen't exist, create one.
-      if ( ( Id == null ) && ( h != null ) )
+      if( ( Id == null ) && ( h != null ) )
       {
         // Check to see if a relationship for this Picture exists and create it if not.
         var pr = packagePart.CreateRelationship( h, targetMode, relationshipString );

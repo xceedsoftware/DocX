@@ -411,8 +411,11 @@ namespace Xceed.Document.NET
 
     public void Remove()
     {
-      this.Xml.Remove();
-      _img.Remove();
+      if( this.Xml.Parent != null )
+      {
+        this.Xml.Remove();
+        _img.Remove();
+      }
     }
 
     public void SetPictureShape( BasicShapes shape )

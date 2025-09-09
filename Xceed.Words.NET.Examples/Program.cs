@@ -119,13 +119,18 @@ namespace Xceed.Words.NET.Examples
       BookmarkSample.InsertBookmarks();
       BookmarkSample.ReplaceText();
 
-      //Charts
+      // Charts
       ChartSample.BarChart();
       ChartSample.LineChart();
       ChartSample.PieChart();
       ChartSample.Chart3D();
       ChartSample.ModifyChartData();
       ChartSample.AddChartWithTextWrapping();
+      ChartSample.BubbleChart();
+      ChartSample.Sunburst();
+      ChartSample.ScatterChart();
+      ChartSample.RadarChart();
+      ChartSample.AreaChart();
 
       //Tale of Content
       TableOfContentSample.InsertTableOfContent();

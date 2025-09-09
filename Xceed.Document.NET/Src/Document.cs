@@ -48,6 +48,7 @@ namespace Xceed.Document.NET
     static internal XNamespace rel = "http://schemas.openxmlformats.org/package/2006/relationships";
 
     static internal XNamespace r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+    static internal XNamespace rex = "http://schemas.microsoft.com/office/2014/relationships/chartEx";
     static internal XNamespace m = "http://schemas.openxmlformats.org/officeDocument/2006/math";
     static internal XNamespace customPropertiesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
     static internal XNamespace customVTypesSchema = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
@@ -55,6 +56,7 @@ namespace Xceed.Document.NET
     static internal XNamespace wp = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
     static internal XNamespace a = "http://schemas.openxmlformats.org/drawingml/2006/main";
     static internal XNamespace c = "http://schemas.openxmlformats.org/drawingml/2006/chart";
+    static internal XNamespace cx = "http://schemas.microsoft.com/office/drawing/2014/chartex";
     static internal XNamespace pic = "http://schemas.openxmlformats.org/drawingml/2006/picture";
     internal static XNamespace n = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering";
     static internal XNamespace v = "urn:schemas-microsoft-com:vml";
@@ -104,6 +106,7 @@ namespace Xceed.Document.NET
 
     internal const string RelationshipImage = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
     internal const string RelationshipChart = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart";
+    internal const string RelationshipChartEx = "http://schemas.microsoft.com/office/2014/relationships/chartEx";
     internal const string ContentTypeApplicationRelationShipXml = "application/vnd.openxmlformats-package.relationships+xml";
 
     #endregion
@@ -112,12 +115,14 @@ namespace Xceed.Document.NET
 
     // Get the word\settings.xml part
     internal PackagePart _settingsPart;
+    internal PackagePart _webSettingsPart;
     internal PackagePart _endnotesPart;
     internal PackagePart _footnotesPart;
     internal PackagePart _stylesPart;
     internal PackagePart _stylesWithEffectsPart;
     internal PackagePart _numberingPart;
     internal PackagePart _fontTablePart;
+    internal PackagePart _themePart;
     internal bool _isCopyingDocument = false;
 
     #region Internal variables defined foreach Document object
@@ -127,12 +132,14 @@ namespace Xceed.Document.NET
     // The mainDocument is loaded into a XDocument object for easy querying and editing
     internal XDocument _mainDoc;
     internal XDocument _settings;
+    internal XDocument _webSettings;
     internal XDocument _endnotes;
     internal XDocument _footnotes;
     internal XDocument _styles;
     internal XDocument _stylesWithEffects;
     internal XDocument _numbering;
     internal XDocument _fontTable;
+    internal XDocument _theme;
 
     // A lookup for the Paragraphs in this document.
     internal Dictionary<int, Paragraph> _paragraphLookup = new Dictionary<int, Paragraph>();
@@ -1766,10 +1773,11 @@ namespace Xceed.Document.NET
           PopulateDocument( this, templatePackage );
 
           // DragonFire: I added next line and recovered ApplyTemplate method. 
-          // I do it, becouse  PopulateDocument(...) writes into field "settingsPart" the part of Template's package 
+          // I do it, because  PopulateDocument(...) writes into field "settingsPart" the part of Template's package 
           //  and after line "templatePackage.Close();" in finally, field "settingsPart" becomes not available and method "Save" throw an exception...
           // That's why I recreated settingsParts and unlinked it from Template's package =)
           _settingsPart = HelperFunctions.CreateOrGetSettingsPart( _package );
+          _webSettingsPart = HelperFunctions.CreateOrGetWebSettingsPart( _package );
         }
         if( !includeContent )
         {
@@ -2000,7 +2008,7 @@ namespace Xceed.Document.NET
       // This will modify the p's Picture Ids before adding it in this Document with the following base.InsertParagraph( updatedParagraph );
       var updatedParagraph = this.InsertParagraphPictures( p );
 
-      this.InsertParagraphStyles( updatedParagraph );      
+      this.InsertParagraphStyles( updatedParagraph );
 
       var newParagraph = base.InsertParagraph( updatedParagraph );
       newParagraph.PackagePart = this.PackagePart;
@@ -2082,14 +2090,16 @@ namespace Xceed.Document.NET
       return p;
     }
 
-    public void InsertChart( Chart chart, float width = 432f, float height = 252f )
+    public void InsertChart( BaseChart chart, float width = 432f, float height = 252f )
     {
       this.InsertChart( chart, null, width, height );
+
     }
 
-    public void InsertChartAfterParagraph( Chart chart, Paragraph paragraph, float width = 432f, float height = 252f )
+    public void InsertChartAfterParagraph( BaseChart chart, Paragraph paragraph, float width = 432f, float height = 252f )
     {
       this.InsertChart( chart, paragraph, width, height );
+
     }
 
     public List AddList( string listText = null, int level = 0, ListItemType listType = ListItemType.Numbered, int? startNumber = null, bool trackChanges = false, bool continueNumbering = false, Formatting formatting = null )
@@ -2389,11 +2399,14 @@ namespace Xceed.Document.NET
 
 
 
-    public T AddChart<T>() where T : Chart, new()
+    public T AddChart<T>() where T : BaseChart, new()
     {
       var chart = new T();
-      chart.PackagePart = this.CreateChartPackagePart();
-      chart.RelationPackage = this.CreateChartRelationShip( chart.PackagePart );
+
+      chart.PackagePart = this.CreateChartPackagePart( chart );
+      chart.RelationPackage = this.CreateChartRelationShip( chart );
+      chart.Document = this;
+
       return chart;
     }
     #endregion
@@ -2449,8 +2462,8 @@ namespace Xceed.Document.NET
       if( _lastEditId < 0 )
       {
         var trackerIDs = ( from d in _mainDoc.Descendants()
-                        where d.Name.LocalName == "ins" || d.Name.LocalName == "del"
-                        select d.Attribute( XName.Get( "id", "http://schemas.openxmlformats.org/wordprocessingml/2006/main" ) ) );
+                           where d.Name.LocalName == "ins" || d.Name.LocalName == "del"
+                           select d.Attribute( XName.Get( "id", "http://schemas.openxmlformats.org/wordprocessingml/2006/main" ) ) );
 
         if( trackerIDs.Count() > 0 )
         {
@@ -2501,6 +2514,11 @@ namespace Xceed.Document.NET
     internal XDocument GetEndnotes()
     {
       return _endnotes;
+    }
+
+    internal XDocument GetTheme()
+    {
+      return _theme;
     }
 
     protected internal override void AddElementInXml( object element )
@@ -2569,7 +2587,7 @@ namespace Xceed.Document.NET
       {
         mainDoc = XDocument.Parse
         ( @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
-                   <w:document xmlns:ve=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:wne=""http://schemas.microsoft.com/office/word/2006/wordml"" xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main"" xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
+                   <w:document xmlns:ve=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:wpc=""http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"" xmlns:cx=""http://schemas.microsoft.com/office/drawing/2014/chartex"" xmlns:cx1=""http://schemas.microsoft.com/office/drawing/2015/9/8/chartex"" xmlns:cx2=""http://schemas.microsoft.com/office/drawing/2015/10/21/chartex"" xmlns:cx3=""http://schemas.microsoft.com/office/drawing/2016/5/9/chartex"" xmlns:cx4=""http://schemas.microsoft.com/office/drawing/2016/5/10/chartex"" xmlns:cx5=""http://schemas.microsoft.com/office/drawing/2016/5/11/chartex"" xmlns:cx6=""http://schemas.microsoft.com/office/drawing/2016/5/12/chartex"" xmlns:cx7=""http://schemas.microsoft.com/office/drawing/2016/5/13/chartex"" xmlns:cx8=""http://schemas.microsoft.com/office/drawing/2016/5/14/chartex"" xmlns:mc=""http://schemas.openxmlformats.org/markup-compatibility/2006"" xmlns:aink=""http://schemas.microsoft.com/office/drawing/2016/ink"" xmlns:am3d=""http://schemas.microsoft.com/office/drawing/2017/model3d"" xmlns:o=""urn:schemas-microsoft-com:office:office"" xmlns:oel=""http://schemas.microsoft.com/office/2019/extlst"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"" xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"" xmlns:v=""urn:schemas-microsoft-com:vml"" xmlns:wp14=""http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"" xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"" xmlns:w10=""urn:schemas-microsoft-com:office:word"" xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:w14=""http://schemas.microsoft.com/office/word/2010/wordml"" xmlns:w15=""http://schemas.microsoft.com/office/word/2012/wordml"" xmlns:w16cex=""http://schemas.microsoft.com/office/word/2018/wordml/cex"" xmlns:w16cid=""http://schemas.microsoft.com/office/word/2016/wordml/cid"" xmlns:w16=""http://schemas.microsoft.com/office/word/2018/wordml"" xmlns:w16du=""http://schemas.microsoft.com/office/word/2023/wordml/word16du"" xmlns:w16sdtdh=""http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash"" xmlns:w16se=""http://schemas.microsoft.com/office/word/2015/wordml/symex"" xmlns:wpg=""http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"" xmlns:wpi=""http://schemas.microsoft.com/office/word/2010/wordprocessingInk"" xmlns:wne=""http://schemas.microsoft.com/office/word/2006/wordml"" xmlns:wps=""http://schemas.microsoft.com/office/word/2010/wordprocessingShape"" mc:Ignorable=""w14 w15 w16se w16cid w16 w16cex w16sdtdh w16du wp14"">
                    <w:body>
                     <w:sectPr w:rsidR=""003E25F4"" w:rsidSect=""00FC3028"">
                         <w:pgSz w:w=""11906"" w:h=""16838""/>
@@ -2620,6 +2638,11 @@ namespace Xceed.Document.NET
       using( TextReader tr = new StreamReader( document._settingsPart.GetStream() ) )
       {
         document._settings = XDocument.Load( tr );
+      }
+
+      using( TextReader tr = new StreamReader( document._webSettingsPart.GetStream() ) )
+      {
+        document._webSettings = XDocument.Load( tr );
       }
 
       document._paragraphLookup.Clear();
@@ -3370,13 +3393,12 @@ namespace Xceed.Document.NET
       _cachedSections = this.GetSections();
     }
 
-    internal Paragraph CreateChartElement( Chart chart, Paragraph paragraph, float width, float height )
+    internal Paragraph CreateChartElement( BaseChart chart, Paragraph paragraph, float width, float height )
     {
-
       if( chart.PackagePart == null )
       {
-        chart.PackagePart = this.CreateChartPackagePart();
-        chart.RelationPackage = this.CreateChartRelationShip( chart.PackagePart );
+        chart.PackagePart = this.CreateChartPackagePart( chart );
+        chart.RelationPackage = this.CreateChartRelationShip( chart );
       }
       var relID = chart.RelationPackage.Id.ToString();
 
@@ -3394,7 +3416,7 @@ namespace Xceed.Document.NET
       return p;
     }
 
-    internal PackagePart CreateChartPackagePart()
+    internal PackagePart CreateChartPackagePart( BaseChart chart )
     {
       // Create a new chart part uri.
       var chartPartUriPath = String.Empty;
@@ -3402,21 +3424,24 @@ namespace Xceed.Document.NET
       do
       {
         chartPartUriPath = String.Format( "/word/charts/chart{0}.xml", chartIndex );
+
+        chart._chartIndex = chartIndex;
         chartIndex++;
       } while( _package.PartExists( new Uri( chartPartUriPath, UriKind.Relative ) ) );
+
 
       // Create chart part.
       var chartPackagePart = _package.CreatePart( new Uri( chartPartUriPath, UriKind.Relative ), "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", CompressionOption.Normal );
 
-
       return chartPackagePart;
     }
 
-    internal PackageRelationship CreateChartRelationShip( PackagePart chartPackagePart )
+    internal PackageRelationship CreateChartRelationShip( BaseChart chart )
     {
       // Create a new chart relationship
       var relID = this.GetNextFreeRelationshipID();
-      return this.PackagePart.CreateRelationship( chartPackagePart.Uri, TargetMode.Internal, Document.RelationshipChart, relID );
+
+      return this.PackagePart.CreateRelationship( chart.PackagePart.Uri, TargetMode.Internal, Document.RelationshipChart, relID );
     }
 
     internal double GetDocDefaultFontSize()
@@ -4231,7 +4256,7 @@ namespace Xceed.Document.NET
           select int.Parse( d.Attribute( XName.Get( "pid" ) ).Value )
       );
 
-      int pid = pids.Max() + 1;
+      int pid = pids.Any() ? pids.Max() + 1 : 2;
 
       foreach( XElement remote_property in remote_custom_document.Root.Elements() )
       {
@@ -4851,6 +4876,7 @@ namespace Xceed.Document.NET
         throw new InvalidDataException( "Can't find body of document's xml. Make sure document has a body from namespace w:http://schemas.openxmlformats.org/wordprocessingml/2006/main" );
 
       document._settingsPart = HelperFunctions.CreateOrGetSettingsPart( package );
+      document._webSettingsPart = HelperFunctions.CreateOrGetWebSettingsPart( package );
 
       try
       {
@@ -4916,6 +4942,12 @@ namespace Xceed.Document.NET
             document._numberingPart = package.GetPart( new Uri( uriString, UriKind.Relative ) );
             using( TextReader tr = new StreamReader( document._numberingPart.GetStream() ) )
               document._numbering = XDocument.Load( tr );
+            break;
+
+          case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme":
+            document._themePart = package.GetPart( new Uri( uriString, UriKind.Relative ) );
+            using( TextReader tr = new StreamReader( document._themePart.GetStream() ) )
+              document._theme = XDocument.Load( tr );
             break;
 
           default:
@@ -5129,7 +5161,7 @@ namespace Xceed.Document.NET
       }
     }
 
-    private void InsertChart( Chart chart, Paragraph paragraph, float width = 432f, float height = 252f )
+    private void InsertChart( BaseChart chart, Paragraph paragraph, float width = 432f, float height = 252f )
     {
       var p = this.CreateChartElement( chart, paragraph, width, height );
       p.Xml.Add( chart.Xml );

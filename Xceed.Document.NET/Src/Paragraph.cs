@@ -736,7 +736,7 @@ namespace Xceed.Document.NET
         if( this.IsInMainContainer() )
           return _startIndex;
 
-        var documentParagraph = this.GetContainerParagraphs().FirstOrDefault( p => p.Xml == this.Xml );
+        var documentParagraph = this.GetContainerParagraphs()?.FirstOrDefault( p => p.Xml == this.Xml );
         if( documentParagraph != null )
           return documentParagraph._startIndex;
 
@@ -757,7 +757,7 @@ namespace Xceed.Document.NET
         if( this.IsInMainContainer() )
           return _endIndex;
 
-        var documentParagraph = this.GetContainerParagraphs().FirstOrDefault( p => p.Xml == this.Xml );
+        var documentParagraph = this.GetContainerParagraphs()?.FirstOrDefault( p => p.Xml == this.Xml );
         if( documentParagraph != null )
           return documentParagraph._endIndex;
 
@@ -1404,7 +1404,7 @@ namespace Xceed.Document.NET
 
           if( rPr != null )
           {
-            oldFormatting = Formatting.Parse( rPr );
+            oldFormatting = Formatting.Parse( rPr, null, null, this.Document );
             if( oldFormatting != null )
             {
               // Clone formatting and apply received formatting 
@@ -2513,7 +2513,7 @@ namespace Xceed.Document.NET
               processed += Paragraph.GetElementTextLength( middle as XElement );
 
               if( !trackChanges )
-              { 
+              {
                 middle = null;
               }
 
@@ -4339,22 +4339,21 @@ namespace Xceed.Document.NET
       if( header != null )
       {
         if( header.PackagePart.Uri == paragraph.PackagePart.Uri )
-        {
           return header.Paragraphs;
-        }
       }
 
       header = this.Document.Headers.Odd;
       if( header != null )
       {
         if( header.PackagePart.Uri == paragraph.PackagePart.Uri )
-        {
           return header.Paragraphs;
-        }
       }
 
       header = this.Document.Headers.Even;
-      return header.Paragraphs;
+      if( header != null )
+        return header.Paragraphs;
+
+      return null;
     }
 
     private IList<Paragraph> GetFooterParagraphs( Paragraph paragraph )
@@ -4364,22 +4363,21 @@ namespace Xceed.Document.NET
       if( footer != null )
       {
         if( footer.PackagePart.Uri == paragraph.PackagePart.Uri )
-        {
           return footer.Paragraphs;
-        }
       }
 
       footer = this.Document.Footers.Odd;
       if( footer != null )
       {
         if( footer.PackagePart.Uri == paragraph.PackagePart.Uri )
-        {
           return footer.Paragraphs;
-        }
       }
 
       footer = this.Document.Footers.Even;
-      return footer.Paragraphs;
+      if( footer != null )
+        return footer.Paragraphs;
+
+      return null;
     }
 
     private void ClearContainerParagraphsCache()
@@ -4390,7 +4388,8 @@ namespace Xceed.Document.NET
           {
             this.ClearHeaderParagraphsCache();
             break;
-          };
+          }
+          ;
 
         case ContainerType.Footer:
           {
@@ -4489,6 +4488,12 @@ namespace Xceed.Document.NET
         throw new InvalidOperationException( "Cannot insert before or after a removed paragraph." );
       }
     }
+
+
+
+
+
+
 
 
 
@@ -4859,6 +4864,15 @@ namespace Xceed.Document.NET
 
       return false;
     }
+
+
+
+
+
+
+
+
+
 
 
 

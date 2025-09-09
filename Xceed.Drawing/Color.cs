@@ -639,7 +639,7 @@ namespace Xceed.Drawing
       }
     }
 
-#endregion
+    #endregion
 
     #region R
 
@@ -673,7 +673,7 @@ namespace Xceed.Drawing
 
     #endregion
 
-#endregion
+    #endregion
 
     #region Static Methods
 
@@ -767,16 +767,16 @@ namespace Xceed.Drawing
     {
 #if NET5
       // Use reflection to find the property in SKColors that matches the color name
-    var colorProperty = typeof(SKColors).GetProperty( colorName, 
-        System.Reflection.BindingFlags.Public | 
-        System.Reflection.BindingFlags.Static | 
-        System.Reflection.BindingFlags.IgnoreCase);
+      var skColor = typeof( SKColors ).GetField( colorName,
+          System.Reflection.BindingFlags.Public |
+          System.Reflection.BindingFlags.Static |
+          System.Reflection.BindingFlags.IgnoreCase );
 
-    // If the property exists, return the corresponding SKColor
-    if (colorProperty != null)
-      return new Color( (SKColor)colorProperty.GetValue(null) );
+      // If the property exists, return the corresponding SKColor
+      if( skColor != null )
+        return new Color( (SKColor)skColor.GetValue( null ) );
 
-    return Color.Empty;
+      return Color.Black;
 #else
       var knownColors = (KnownColor[])Enum.GetValues( typeof( KnownColor ) );
       var knownColor = knownColors.Where( col => System.Drawing.Color.FromKnownColor( col ).Name == colorName ).SingleOrDefault();
@@ -791,7 +791,7 @@ namespace Xceed.Drawing
 #else
       return m_color.ToArgb();
 #endif
-    }   
+    }
 
     public float GetBrightness()
     {
@@ -824,7 +824,7 @@ namespace Xceed.Drawing
 #endif
     }
 
-#endregion
+    #endregion
 
     #region Public Methods
 

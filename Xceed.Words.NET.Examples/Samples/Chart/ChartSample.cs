@@ -28,6 +28,7 @@ is only intended as a supplement to the documentation, and is provided
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Xceed.Document.NET;
 using Xceed.Drawing;
 
@@ -81,17 +82,17 @@ namespace Xceed.Words.NET.Examples
         var brazil = ChartData.CreateBrazilExpenses();
 
         // Create and add series
-        var s1 = new Series( "Brazil" );
+        var s1 = new BarSeries( "Brazil" );
         s1.Color = Color.GreenYellow;
         s1.Bind( brazil, "Category", "Expenses" );
         c.AddSeries( s1 );
 
-        var s2 = new Series( "USA" );
+        var s2 = new BarSeries( "USA" );
         s2.Color = Color.LightBlue;
         s2.Bind( usa, "Category", "Expenses" );
         c.AddSeries( s2 );
 
-        var s3 = new Series( "Canada" );
+        var s3 = new BarSeries( "Canada" );
         s3.Color = Color.Gray;
         s3.Bind( canada, "Category", "Expenses" );
         c.AddSeries( s3 );
@@ -119,7 +120,7 @@ namespace Xceed.Words.NET.Examples
         var c = document.AddChart<LineChart>();
 
 
-        c.AddLegend(ChartLegendPosition.Left, false);
+        c.AddLegend( ChartLegendPosition.Left, false );
 
         // Create the data.
         var canada = ChartData.CreateCanadaExpenses();
@@ -127,7 +128,7 @@ namespace Xceed.Words.NET.Examples
         var brazil = ChartData.CreateBrazilExpenses();
 
         // Create and add series
-        var s1 = new Series( "Brazil" );
+        var s1 = new LineSeries( "Brazil" );
         s1.Color = Color.Yellow;
         s1.Bind( brazil, "Category", "Expenses" );
 
@@ -135,13 +136,13 @@ namespace Xceed.Words.NET.Examples
 
         c.AddSeries( s1 );
 
-        var s2 = new Series( "USA" );
+        var s2 = new LineSeries( "USA" );
         s2.Color = Color.Blue;
         s2.Bind( usa, "Category", "Expenses" );
 
         c.AddSeries( s2 );
 
-        var s3 = new Series( "Canada" );
+        var s3 = new LineSeries( "Canada" );
         s3.Color = Color.Red;
         s3.Bind( canada, "Category", "Expenses" );
         c.AddSeries( s3 );
@@ -173,7 +174,7 @@ namespace Xceed.Words.NET.Examples
         var brazil = ChartData.CreateBrazilExpenses();
 
         // Create and add series
-        var s1 = new Series( "Brazil" );
+        var s1 = new PieSeries( "Brazil" );
         s1.Bind( brazil, "Category", "Expenses" );
         c.AddSeries( s1 );
 
@@ -184,6 +185,33 @@ namespace Xceed.Words.NET.Examples
         document.Save();
         Console.WriteLine( "\tCreated: PieChart.docx\n" );
       }
+    }
+
+    public static void BubbleChart()
+    {
+
+
+
+
+
+
+
+
+
+
+// This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    public static void Sunburst()
+    {
+
+
+
+
+
+
+
+// This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     public static void Chart3D()
@@ -204,7 +232,7 @@ namespace Xceed.Words.NET.Examples
         var brazil = ChartData.CreateBrazilExpenses();
 
         // Create and add series
-        var s1 = new Series( "Brazil" );
+        var s1 = new BarSeries( "Brazil" );
         s1.Color = Color.GreenYellow;
         s1.Bind( brazil, "Category", "Expenses" );
         c.AddSeries( s1 );
@@ -218,8 +246,55 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
+    public static void ScatterChart()
+    {
+
+
+
+
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    public static void RadarChart()
+    {
+
+
+
+
+
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    public static void AreaChart()
+    {
+
+
+
+
+
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
     public static void ModifyChartData()
     {
+
+
+
+
+
+
 
 
 

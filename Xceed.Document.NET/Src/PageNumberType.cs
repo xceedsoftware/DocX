@@ -26,7 +26,7 @@ namespace Xceed.Document.NET
     private int? _pageNumberStart;
     private int _chapterStyle;
     private NumberingFormat _pageNumberFormat;
-    private ChapterSeperator _chapterNumberSeperator;
+    private ChapterSeparator _chapterNumberSeparator;
 
     #endregion
 
@@ -94,16 +94,16 @@ namespace Xceed.Document.NET
 
     #region ChapterNumberSeperator
 
-    public ChapterSeperator ChapterNumberSeperator
+    public ChapterSeparator ChapterNumberSeparator
     {
       get
       {
-        return _chapterNumberSeperator;
+        return _chapterNumberSeparator;
       }
 
       set
       {
-        _chapterNumberSeperator = value;
+        _chapterNumberSeparator = value;
         OnPropertyChanged("ChapterNumberSeperator");
       }
     }
@@ -119,7 +119,7 @@ namespace Xceed.Document.NET
       _pageNumberStart = null;
       _chapterStyle = 1;
       _pageNumberFormat = NumberingFormat.decimalNormal;
-      _chapterNumberSeperator = ChapterSeperator.hyphen;
+      _chapterNumberSeparator = ChapterSeparator.hyphen;
     }
 
     #endregion

@@ -76,7 +76,7 @@ namespace Xceed.Words.NET.Examples
         document.Sections[ 0 ].PageNumberType = new PageNumberType()
         {
           PageNumberFormat = NumberingFormat.chineseCounting,
-          ChapterNumberSeperator = ChapterSeperator.enDash,
+          ChapterNumberSeparator = ChapterSeparator.enDash,
           ChapterStyle = 1,
           PageNumberStart = 1
         };

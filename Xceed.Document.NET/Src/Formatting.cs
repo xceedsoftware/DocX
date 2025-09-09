@@ -18,6 +18,7 @@ using System;
 using System.Xml.Linq;
 using System.Globalization;
 using Xceed.Drawing;
+using System.Linq;
 
 namespace Xceed.Document.NET
 {
@@ -139,7 +140,7 @@ namespace Xceed.Document.NET
         double? temp = value * 2;
 
         // Accepting only whole number or half number.
-        if( temp - ( int )temp != 0 )
+        if( temp - (int)temp != 0 )
         {
           if( value.HasValue )
           {
@@ -224,7 +225,7 @@ namespace Xceed.Document.NET
       {
         double? temp = value * 20;
 
-        if( temp - ( int )temp == 0 )
+        if( temp - (int)temp == 0 )
         {
           if( value > -1585 && value < 1585 )
             _spacing = value;
@@ -644,7 +645,183 @@ namespace Xceed.Document.NET
       return clone;
     }
 
-    public static Formatting Parse( XElement rPr, Formatting formatting = null, string defaultFontFamily = null )
+    public int CompareTo( object obj )
+    {
+      Formatting other = (Formatting)obj;
+
+      if( other._hidden != _hidden )
+        return -1;
+
+      if( other._bold != _bold )
+        return -1;
+
+      if( other._italic != _italic )
+        return -1;
+
+      if( other._strikethrough != _strikethrough )
+        return -1;
+
+      if( other._script != _script )
+        return -1;
+
+      if( other._highlight != _highlight )
+        return -1;
+
+      if( other._shading != _shading )
+        return -1;
+
+      if( other._border != _border )
+        return -1;
+
+      if( other._size != _size )
+        return -1;
+
+      if( other._fontColor != _fontColor )
+        return -1;
+
+      if( other._underlineColor != _underlineColor )
+        return -1;
+
+      if( other._underlineStyle != _underlineStyle )
+        return -1;
+
+      if( other._misc != _misc )
+        return -1;
+
+      if( other._capsStyle != _capsStyle )
+        return -1;
+
+      if( other._fontFamily != _fontFamily )
+        return -1;
+
+      if( other._percentageScale != _percentageScale )
+        return -1;
+
+      if( other._kerning != _kerning )
+        return -1;
+
+      if( other._position != _position )
+        return -1;
+
+      if( other._spacing != _spacing )
+        return -1;
+
+      if( other._styleId != _styleId )
+        return -1;
+
+      if( !other._language.Equals( _language ) )
+        return -1;
+
+      return 0;
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private static string GetFont( XElement rPr, Document document )
+    {
+      var rFonts = rPr.Element( XName.Get( "rFonts", Document.w.NamespaceName ) );
+      string fontName = null;
+
+      if( rFonts != null )
+      {
+        fontName = Formatting.GetFontFromRunFonts( rFonts ) ?? Formatting.GetFontFromTheme( rFonts, fontName, document );
+      }
+      else
+      {
+        var docDefault = document.GetDocDefaults();
+        if( docDefault != null )
+        {
+          var rPrDefault = docDefault.Element( XName.Get( "rPrDefault", Document.w.NamespaceName ) );
+          if( rPrDefault != null )
+          {
+            var rPrFromDefault = rPrDefault.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+            if( rPrFromDefault != null )
+            {
+              //rFonts
+              var rFontsFromDefault = rPrFromDefault.Element( XName.Get( "rFonts", Document.w.NamespaceName ) );
+
+              if( rFontsFromDefault != null )
+              {
+                fontName = Formatting.GetFontFromRunFonts( rFontsFromDefault ) ?? Formatting.GetFontFromTheme( rFontsFromDefault, fontName, document );
+              }
+            }
+          }
+        }
+      }
+
+      return fontName;
+    }
+
+    private static string GetFontFromRunFonts( XElement rFonts )
+    {
+      return rFonts.GetAttribute( XName.Get( "ascii", Document.w.NamespaceName ), null ) ??
+             rFonts.GetAttribute( XName.Get( "hAnsi", Document.w.NamespaceName ), null ) ??
+             rFonts.GetAttribute( XName.Get( "cs", Document.w.NamespaceName ), null ) ??
+             rFonts.GetAttribute( XName.Get( "hint", Document.w.NamespaceName ), null ) ??
+             rFonts.GetAttribute( XName.Get( "eastAsia", Document.w.NamespaceName ), null );
+    }
+
+    private static string GetFontFromTheme( XElement rFonts, string fontName, Document document )
+    {
+      var theme = document.GetTheme();
+
+      if( theme != null )
+      {
+        var majorFont = "";
+        var minorFont = "";
+
+        majorFont = theme.Descendants()
+                         .Where( e => e.Name.LocalName == "majorFont" )?
+                         .FirstOrDefault()?
+                         .Element( XName.Get( "latin", Document.a.NamespaceName ) )?
+                         .Attribute( XName.Get( "typeface" ) )?.Value ?? "";
+
+        minorFont = theme.Descendants()
+                         .Where( e => e.Name.LocalName == "minorFont" )?
+                         .FirstOrDefault()?
+                         .Element( XName.Get( "latin", Document.a.NamespaceName ) )?
+                         .Attribute( XName.Get( "typeface" ) )?.Value ?? "";
+
+
+        var fontTheme = rFonts.GetAttribute( XName.Get( "asciiTheme", Document.w.NamespaceName ), null ) ??
+                        rFonts.GetAttribute( XName.Get( "hAnsiTheme", Document.w.NamespaceName ), null ) ??
+                        rFonts.GetAttribute( XName.Get( "csTheme", Document.w.NamespaceName ), null ) ??
+                        rFonts.GetAttribute( XName.Get( "hintTheme", Document.w.NamespaceName ), null ) ??
+                        rFonts.GetAttribute( XName.Get( "eastAsiaTheme", Document.w.NamespaceName ), null );
+
+
+        if( !string.IsNullOrEmpty( fontTheme ) )
+        {
+          // Theme font resolution
+          if( fontTheme == "majorEastAsia" || fontTheme == "majorBidi" || fontTheme == "majorAscii" || fontTheme == "majorHAnsi" )
+          {
+            fontName = majorFont;
+          }
+          else if( fontTheme == "minorEastAsia" || fontTheme == "minorBidi" || fontTheme == "minorAscii" || fontTheme == "minorHAnsi" )
+          {
+            fontName = minorFont;
+          }
+        }
+      }
+
+      return fontName;
+    }
+
+    private static void SetFormattingFontFamily( Formatting formatting, string defaultFontFamily, string fontName )
+    {
+      formatting.FontFamily = ( fontName != null )
+                              ? new Font( fontName )
+                              : ( formatting.FontFamily == null ) ?
+                               new Font(  ( defaultFontFamily != null ) ? defaultFontFamily : "Calibri" ) : formatting.FontFamily;
+    }
+
+    #endregion // Private Methods
+
+    #region Internal Method
+
+    internal static Formatting Parse( XElement rPr, Formatting formatting = null, string defaultFontFamily = null, Document document = null )
     {
       if( formatting == null )
       {
@@ -655,6 +832,9 @@ namespace Xceed.Document.NET
         return formatting;
 
       // Build up the Formatting object.
+      var fontName = Formatting.GetFont( rPr, document );
+      Formatting.SetFormattingFontFamily( formatting, defaultFontFamily, fontName );
+
       foreach( XElement option in rPr.Elements() )
       {
         switch( option.Name.LocalName )
@@ -684,18 +864,6 @@ namespace Xceed.Document.NET
             break;
           case "sz":
             formatting.Size = Double.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2;
-            break;
-          case "rFonts":
-            var fontName = option.GetAttribute( XName.Get( "ascii", Document.w.NamespaceName ), null )
-                            ?? option.GetAttribute( XName.Get( "hAnsi", Document.w.NamespaceName ), null )
-                            ?? option.GetAttribute( XName.Get( "cs", Document.w.NamespaceName ), null )
-                            ?? option.GetAttribute( XName.Get( "hint", Document.w.NamespaceName ), null )
-                            ?? option.GetAttribute( XName.Get( "eastAsia", Document.w.NamespaceName ), null );
-
-            formatting.FontFamily = ( fontName != null )
-                                    ? new Font( fontName )
-                                    : ( formatting.FontFamily == null ) ?
-                                      new Font(  ( defaultFontFamily != null ) ? defaultFontFamily : "Calibri" ) : formatting.FontFamily;
             break;
           case "color":
             try
@@ -831,76 +999,6 @@ namespace Xceed.Document.NET
       }
 
       return formatting;
-    }
-
-    public int CompareTo( object obj )
-    {
-      Formatting other = ( Formatting )obj;
-
-      if( other._hidden != _hidden )
-        return -1;
-
-      if( other._bold != _bold )
-        return -1;
-
-      if( other._italic != _italic )
-        return -1;
-
-      if( other._strikethrough != _strikethrough )
-        return -1;
-
-      if( other._script != _script )
-        return -1;
-
-      if( other._highlight != _highlight )
-        return -1;
-
-      if( other._shading != _shading )
-        return -1;
-
-      if( other._border != _border )
-        return -1;
-
-      if( other._size != _size )
-        return -1;
-
-      if( other._fontColor != _fontColor )
-        return -1;
-
-      if( other._underlineColor != _underlineColor )
-        return -1;
-
-      if( other._underlineStyle != _underlineStyle )
-        return -1;
-
-      if( other._misc != _misc )
-        return -1;
-
-      if( other._capsStyle != _capsStyle )
-        return -1;
-
-      if( other._fontFamily != _fontFamily )
-        return -1;
-
-      if( other._percentageScale != _percentageScale )
-        return -1;
-
-      if( other._kerning != _kerning )
-        return -1;
-
-      if( other._position != _position )
-        return -1;
-
-      if( other._spacing != _spacing )
-        return -1;
-
-      if( other._styleId != _styleId )
-        return -1;
-
-      if( !other._language.Equals( _language ) )
-        return -1;
-
-      return 0;
     }
 
     #endregion

@@ -109,6 +109,8 @@ namespace Xceed.Document.NET
     {
       lock( s_lockObject )
       {
+        if( m_stream.Length + count >= int.MaxValue )
+          throw new InvalidDataException( "The file is reaching its maximum size capacity. Support for files greater than 2 Gb is currently not supported." );
         m_stream.Write( buffer, offset, count );
       }
     }

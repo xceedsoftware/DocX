@@ -2089,7 +2089,11 @@ namespace Xceed.Document.NET
 
     internal void RemoveInternal()
     {
-      this.Xml.Remove();
+      if( this.Xml.Parent != null )
+      {
+
+        this.Xml.Remove();
+      }
     }
 
     #endregion

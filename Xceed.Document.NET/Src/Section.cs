@@ -390,7 +390,7 @@ namespace Xceed.Document.NET
 
           if (chapSep != null)
           {
-            _pageNumberType.ChapterNumberSeperator = Enum.GetValues(typeof(ChapterSeperator)).Cast<ChapterSeperator>().FirstOrDefault(x => x.ToString().Equals(chapSep.Value)) ;
+            _pageNumberType.ChapterNumberSeparator = Enum.GetValues(typeof(ChapterSeparator)).Cast<ChapterSeparator>().FirstOrDefault(x => x.ToString().Equals(chapSep.Value)) ;
           }
         }
 
@@ -863,7 +863,7 @@ namespace Xceed.Document.NET
       // Get all header(or footer) Relationships in this document.
       var header_relationships = this.Document.PackagePart.GetRelationshipsByType( string.Format( "http://schemas.openxmlformats.org/officeDocument/2006/relationships/{0}", reference ) );
 
-      foreach( var header_relationship in header_relationships )
+      foreach( var header_relationship in header_relationships.ToList() )
       {
         // Get the TargetUri for this Part.
         var header_uri = header_relationship.TargetUri;
@@ -890,7 +890,7 @@ namespace Xceed.Document.NET
             // Delete the Part
             this.Document._package.DeletePart( header_uri );
             // Delete the Relationship.
-            this.Document._package.DeleteRelationship( header_relationship.Id );
+            this.Document.PackagePart.DeleteRelationship( header_relationship.Id );
           }
         }
       }
@@ -1234,7 +1234,7 @@ namespace Xceed.Document.NET
           pgNumType.SetAttributeValue(XName.Get("start", w.NamespaceName), null);
         }
 
-        pgNumType.SetAttributeValue(XName.Get("chapSep", w.NamespaceName), _pageNumberType.ChapterNumberSeperator);
+        pgNumType.SetAttributeValue(XName.Get("chapSep", w.NamespaceName), _pageNumberType.ChapterNumberSeparator);
 
         if (_pageNumberType.PageNumberFormat == NumberingFormat.decimalNormal)
         {

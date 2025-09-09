@@ -181,7 +181,7 @@ namespace Xceed.Words.NET.Examples
         document.InsertParagraph( "" ).SpacingAfter( 150d );
         var barChart = document.AddChart<BarChart>();
         var sales = CompanyData.CreateSales();
-        var salesSeries = new Series( "Sales Per Month" );
+        var salesSeries = new BarSeries( "Sales Per Month" );
         salesSeries.Color = Color.GreenYellow;
         salesSeries.Bind( sales, "Month", "Sales" );
         barChart.AddSeries( salesSeries );
@@ -192,7 +192,7 @@ namespace Xceed.Words.NET.Examples
         document.InsertParagraph( "" ).SpacingAfter( 150d );
         var lineChart = document.AddChart<LineChart>();
         var calls = CompanyData.CreateCallNumber();
-        var callSeries = new Series( "Call Number Per Month" );
+        var callSeries = new LineSeries( "Call Number Per Month" );
         callSeries.Bind( calls, "Month", "Calls" );
         lineChart.AddSeries( callSeries );
         document.InsertChart( lineChart );

@@ -24,15 +24,15 @@ namespace Xceed.Document.NET
 {
   public class CategoryAxis : Axis
   {
-    internal CategoryAxis(XElement xml)
-        : base(xml)
+    internal CategoryAxis( XElement xml )
+        : base( xml )
     {
     }
 
-    public CategoryAxis(String id)
-        : base(id)
+    public CategoryAxis( String id )
+        : base( id )
     {
-      Xml = XElement.Parse(String.Format(
+      Xml = XElement.Parse( String.Format(
         @"<c:catAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart""> 
                 <c:axId val=""{0}""/>
                 <c:scaling>
@@ -49,7 +49,7 @@ namespace Xceed.Document.NET
                 <c:lblAlgn val=""ctr""/>
                 <c:lblOffset val=""100""/>
                 <c:noMultiLvlLbl val=""0""/>
-              </c:catAx>", id));
+              </c:catAx>", id ) );
     }
   }
 }

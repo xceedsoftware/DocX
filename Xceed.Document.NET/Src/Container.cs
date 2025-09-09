@@ -839,6 +839,7 @@ namespace Xceed.Document.NET
 
 
 
+
     public bool RemoveParagraphAt( int index )
     {
       var paragraphs = Xml.Descendants( Document.w + "p" ).ToList();

@@ -322,7 +322,7 @@ namespace Xceed.Words.NET
         var footers = section.Footers;
 
         // Header Even
-        if( headers.Even != null && headers.Even.Xml != null )
+        if( (headers.Even != null) && (headers.Even.Xml != null) && this.PackagePart.RelationshipExists( headers.Even.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -340,7 +340,7 @@ namespace Xceed.Words.NET
         }
 
         // Header Odd
-        if( headers.Odd != null && headers.Odd.Xml != null )
+        if( (headers.Odd != null) && (headers.Odd.Xml != null) && this.PackagePart.RelationshipExists( headers.Odd.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -359,7 +359,7 @@ namespace Xceed.Words.NET
         }
 
         // Header First
-        if( headers.First != null && headers.First.Xml != null )
+        if( (headers.First != null) && (headers.First.Xml != null) && this.PackagePart.RelationshipExists( headers.First.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -378,7 +378,7 @@ namespace Xceed.Words.NET
         }
 
         // Footer Odd
-        if( footers.Odd != null && footers.Odd.Xml != null )
+        if( (footers.Odd != null) && (footers.Odd.Xml != null) && this.PackagePart.RelationshipExists( footers.Odd.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -397,7 +397,7 @@ namespace Xceed.Words.NET
         }
 
         // Footer Even
-        if( footers.Even != null && footers.Even.Xml != null )
+        if( (footers.Even != null) && (footers.Even.Xml != null) && this.PackagePart.RelationshipExists( footers.Even.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -416,7 +416,7 @@ namespace Xceed.Words.NET
         }
 
         // Footer First
-        if( footers.First != null && footers.First.Xml != null )
+        if( (footers.First != null) && (footers.First.Xml != null) && this.PackagePart.RelationshipExists( footers.First.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (

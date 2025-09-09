@@ -60,7 +60,7 @@ namespace Xceed.Document.NET
     roman
   }
 
-  public enum ChapterSeperator
+  public enum ChapterSeparator
   {
     colon,
     emDash,
@@ -775,6 +775,7 @@ namespace Xceed.Document.NET
     chineseCountingThousand,
     chineseLegalSimplified,
     chosung,
+    circle,
     decimalNormal,
     decimalEnclosedCircle,
     decimalEnclosedCircleChinese,
@@ -784,6 +785,7 @@ namespace Xceed.Document.NET
     decimalFullWidth2,
     decimalHalfWidth,
     decimalZero,
+    disc,
     ganada,
     hebrew1,
     hebrew2,
@@ -815,6 +817,7 @@ namespace Xceed.Document.NET
     ordinalText,
     russianLower,
     russianUpper,
+    square,
     taiwaneseCounting,
     taiwaneseCountingThousand,
     taiwaneseDigital,
@@ -862,4 +865,5 @@ namespace Xceed.Document.NET
     Charts = 4,
     All = RemoveParagraphFlags.Tables | RemoveParagraphFlags.Pictures | RemoveParagraphFlags.Charts
   }
+
 }

@@ -15,21 +15,30 @@
 
 
 using System;
+using System.Globalization;
 using System.Xml.Linq;
 
 namespace Xceed.Document.NET
 {
   public class ValueAxis : Axis
   {
-    internal ValueAxis(XElement xml)
-        : base(xml)
+
+
+
+
+
+
+
+
+    internal ValueAxis( XElement xml )
+        : base( xml )
     {
     }
 
-    public ValueAxis(String id)
-        : base(id)
+    public ValueAxis( String id )
+        : base( id )
     {
-      Xml = XElement.Parse(String.Format(
+      Xml = XElement.Parse( String.Format(
         @"<c:valAx xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
                 <c:axId val=""{0}""/>
                 <c:scaling>
@@ -45,8 +54,17 @@ namespace Xceed.Document.NET
                 <c:crossAx val=""148921728""/>
                 <c:crosses val=""autoZero""/>
                 <c:crossBetween val=""between""/>
-              </c:valAx>", id));
+              </c:valAx>", id ) );
     }
+
+
+
+
+
+
+
+
+
 
 
 

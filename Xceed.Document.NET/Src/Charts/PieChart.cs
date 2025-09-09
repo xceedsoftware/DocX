@@ -15,6 +15,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.IO.Packaging;
 using System.Linq;
 using System.Xml.Linq;
@@ -23,7 +24,33 @@ namespace Xceed.Document.NET
 {
   public class PieChart : Chart
   {
-    #region Overrides Properties
+    #region Private Properties
+
+    private List<BaseSeries> _series;
+
+    #endregion // Private Properties
+
+    #region Public Properties
+
+    public override List<BaseSeries> Series
+    {
+      get
+      {
+        if( _series == null )
+        {
+          _series = new List<BaseSeries>();
+          var chart = this.GetChartTypeXElement();
+          var ser = chart.Elements( XName.Get( "ser", Document.c.NamespaceName ) );
+          foreach( var element in ser )
+          {
+            var serie = new PieSeries( element );
+            serie.PackagePart = this.PackagePart;
+            _series.Add( serie );
+          }
+        }
+        return _series;
+      }
+    }
 
     public override Boolean IsAxisExist
     {
@@ -40,10 +67,22 @@ namespace Xceed.Document.NET
       }
     }
 
-    #endregion
+    #endregion // Public Properties
+
+    #region Protected Properties
+
+    protected override Type AllowedSeriesType
+    {
+      get
+      {
+        return typeof( PieSeries );
+      }
+    }
+
+    #endregion // Protected Properties
 
     #region Constructors
-    [Obsolete("PieChart() is obsolete. Use Document.AddChart<PieChart>() instead.")]
+    [Obsolete( "PieChart() is obsolete. Use Document.AddChart<PieChart>() instead." )]
     public PieChart()
     {
     }

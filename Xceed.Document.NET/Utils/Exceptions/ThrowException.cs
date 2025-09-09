@@ -28,7 +28,7 @@ namespace Xceed.Utils.Exceptions
 
     public static void ThrowArgumentException( string message, string paramName, Exception innerExcept )
     {
-#if( XCEEDCF || SILVERLIGHT || PORTABLE )
+#if( XCEEDCF || SILVERLIGHT )
       throw new ArgumentException( message, innerExcept );
 #else
       throw new ArgumentException( message, paramName, innerExcept );
@@ -37,7 +37,7 @@ namespace Xceed.Utils.Exceptions
 
     public static void ThrowArgumentOutOfRangeException( string paramName, object value, string message )
     {
-#if( XCEEDCF || SILVERLIGHT || PORTABLE )
+#if( XCEEDCF || SILVERLIGHT )
       throw new ArgumentOutOfRangeException( message );
 #else
       throw new ArgumentOutOfRangeException( paramName, value, message );
@@ -49,7 +49,7 @@ namespace Xceed.Utils.Exceptions
 #endif // !NO_CODE_ANALYSIS
     public static void ThrowLicenseException( Type type, object instance, string message )
     {
-#if PORTABLE || NETCORE || NET5
+#if NETCOREAPP || NET
       throw new Exception( message );
 #elif ( XCEEDCF || SILVERLIGHT || XAMARIN )
       throw new SystemException( message );
@@ -61,7 +61,7 @@ namespace Xceed.Utils.Exceptions
 #else
       throw new System.ComponentModel.LicenseException( type, instance, message );
 #endif // XBAP_FRIENDLY
-#endif // ( XCEEDCF || NETCORE || NET5)
+#endif // NETCOREAPP || NET
     }
 
     #endregion PUBLIC STATIC METHODS
