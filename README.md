@@ -277,6 +277,12 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td>YES</td>
 </tr>
 <tr>
+<tr>
+<td>Work with more Chart types</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
 <td>Replace text with html</td>
 <td></td>
 <td>YES</td>
