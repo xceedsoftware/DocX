@@ -3804,7 +3804,11 @@ namespace Xceed.Document.NET
         return;
       }
 
-      if( Xml.HasElements )
+      // Ignore Fallback and drawing to be symmetric with HelperFunctions.GetTextRecursive.
+      var fallbackValue = Xml.Name.Equals(XName.Get("Fallback", Document.mc.NamespaceName));
+      var drawingValue = Xml.Name.Equals(XName.Get("drawing", Document.w.NamespaceName));
+
+      if( Xml.HasElements && !fallbackValue && !drawingValue )
       {
         foreach( XElement e in Xml.Elements() )
         {
