@@ -293,6 +293,31 @@ All that you need to install in order to use DocX is the [.NET framework 4.0](ht
 <td>YES</td>
 </tr>
 <tr>
+<td>Add or remve watermarks</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Split Documents</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Add Comments to a document</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Load a txt document or Save to a txt document</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Insert or replace content with HTML</td>
+<td></td>
+<td>YES</td>
+</tr>
+<tr>
 <td>Get release ahead</td>
 <td></td>
 <td>YES</td>
