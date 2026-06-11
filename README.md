@@ -35,6 +35,11 @@ Currently, the differences between DocX and Xceed Words for .NET, is that Xceed 
 * Format Charts Axis' title
 * Replace text with html
 * Use many charts like AreaChart, BubbleChart, ScatterChart, SunbursChart and more.
+* Add or Remove Watermarks
+* Split Documents
+* Add Comments to a document
+* Load a txt document or Save to a txt document
+* Insert or replace content with HTML
 
 ## What else do I need?
 
