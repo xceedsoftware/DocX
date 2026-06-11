@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -15,10 +15,11 @@
 
 
 using System;
-using System.Xml.Linq;
+using System.Diagnostics;
 using System.Globalization;
-using Xceed.Drawing;
 using System.Linq;
+using System.Xml.Linq;
+using Xceed.Drawing;
 
 namespace Xceed.Document.NET
 {
@@ -719,102 +720,152 @@ namespace Xceed.Document.NET
 
     #region Private Methods
 
-    private static string GetFont( XElement rPr, Document document )
+    private static string GetFontFromRunFontsOrDefault( XElement rFonts, Document document )
     {
-      var rFonts = rPr.Element( XName.Get( "rFonts", Document.w.NamespaceName ) );
-      string fontName = null;
+      Debug.Assert( document != null );
 
       if( rFonts != null )
       {
-        fontName = Formatting.GetFontFromRunFonts( rFonts ) ?? Formatting.GetFontFromTheme( rFonts, fontName, document );
+        var fontName = rFonts.GetAttribute( XName.Get( "ascii", Document.w.NamespaceName ), null ) ??
+                       rFonts.GetAttribute( XName.Get( "hAnsi", Document.w.NamespaceName ), null ) ??
+                       rFonts.GetAttribute( XName.Get( "cs", Document.w.NamespaceName ), null ) ??
+                       rFonts.GetAttribute( XName.Get( "hint", Document.w.NamespaceName ), null );
+        if( fontName != null )
+          return fontName;       
       }
-      else
-      {
-        var docDefault = document.GetDocDefaults();
-        if( docDefault != null )
-        {
-          var rPrDefault = docDefault.Element( XName.Get( "rPrDefault", Document.w.NamespaceName ) );
-          if( rPrDefault != null )
-          {
-            var rPrFromDefault = rPrDefault.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
-            if( rPrFromDefault != null )
-            {
-              //rFonts
-              var rFontsFromDefault = rPrFromDefault.Element( XName.Get( "rFonts", Document.w.NamespaceName ) );
 
-              if( rFontsFromDefault != null )
-              {
-                fontName = Formatting.GetFontFromRunFonts( rFontsFromDefault ) ?? Formatting.GetFontFromTheme( rFontsFromDefault, fontName, document );
-              }
+      XElement rFontsFromDefault = null;
+      var docDefault = document.GetDocDefaults();
+      if( docDefault != null )
+      {
+        var rPrDefault = docDefault.Element( XName.Get( "rPrDefault", Document.w.NamespaceName ) );
+        if( rPrDefault != null )
+        {
+          var rPrFromDefault = rPrDefault.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+          if( rPrFromDefault != null )
+          {
+            rFontsFromDefault = rPrFromDefault.Element( XName.Get( "rFonts", Document.w.NamespaceName ) );
+            if( rFontsFromDefault != null )
+            {
+              var defaultFontName = rFontsFromDefault.GetAttribute( XName.Get( "ascii", Document.w.NamespaceName ), null ) ??
+                                    rFontsFromDefault.GetAttribute( XName.Get( "hAnsi", Document.w.NamespaceName ), null ) ??
+                                    rFontsFromDefault.GetAttribute( XName.Get( "cs", Document.w.NamespaceName ), null ) ??
+                                    rFontsFromDefault.GetAttribute( XName.Get( "hint", Document.w.NamespaceName ), null );
+              if( defaultFontName != null )
+                return defaultFontName;
             }
           }
         }
       }
 
-      return fontName;
-    }
-
-    private static string GetFontFromRunFonts( XElement rFonts )
-    {
-      return rFonts.GetAttribute( XName.Get( "ascii", Document.w.NamespaceName ), null ) ??
-             rFonts.GetAttribute( XName.Get( "hAnsi", Document.w.NamespaceName ), null ) ??
-             rFonts.GetAttribute( XName.Get( "cs", Document.w.NamespaceName ), null ) ??
-             rFonts.GetAttribute( XName.Get( "hint", Document.w.NamespaceName ), null ) ??
-             rFonts.GetAttribute( XName.Get( "eastAsia", Document.w.NamespaceName ), null );
-    }
-
-    private static string GetFontFromTheme( XElement rFonts, string fontName, Document document )
-    {
-      var theme = document.GetTheme();
-
-      if( theme != null )
+      if( rFonts != null )
       {
-        var majorFont = "";
-        var minorFont = "";
+        var eastAsia = rFonts.GetAttribute( XName.Get( "eastAsia", Document.w.NamespaceName ), null );
+        if( eastAsia != null )
+          return eastAsia;
+      }
+      if( rFontsFromDefault != null )
+      {
+        var eastAsia = rFontsFromDefault.GetAttribute( XName.Get( "eastAsia", Document.w.NamespaceName ), null );
+        if( eastAsia != null )
+          return eastAsia;
+      }
 
-        majorFont = theme.Descendants()
-                         .Where( e => e.Name.LocalName == "majorFont" )?
-                         .FirstOrDefault()?
-                         .Element( XName.Get( "latin", Document.a.NamespaceName ) )?
-                         .Attribute( XName.Get( "typeface" ) )?.Value ?? "";
+      return null;
+    }
 
-        minorFont = theme.Descendants()
-                         .Where( e => e.Name.LocalName == "minorFont" )?
-                         .FirstOrDefault()?
-                         .Element( XName.Get( "latin", Document.a.NamespaceName ) )?
-                         .Attribute( XName.Get( "typeface" ) )?.Value ?? "";
+    private static string GetFontFromThemeOrDefault( XElement rFonts, Document document )
+    {
+      Debug.Assert( document != null );
 
+      var theme = document.GetTheme();
+      if( theme == null )
+        return null;
 
+      var majorFont = "";
+      var minorFont = "";
+
+      majorFont = theme.Descendants()
+                       .Where( e => e.Name.LocalName == "majorFont" )?
+                       .FirstOrDefault()?
+                       .Element( XName.Get( "latin", Document.a.NamespaceName ) )?
+                       .Attribute( XName.Get( "typeface" ) )?.Value ?? "";
+
+      minorFont = theme.Descendants()
+                       .Where( e => e.Name.LocalName == "minorFont" )?
+                       .FirstOrDefault()?
+                       .Element( XName.Get( "latin", Document.a.NamespaceName ) )?
+                       .Attribute( XName.Get( "typeface" ) )?.Value ?? "";
+
+      if( rFonts != null )
+      {
         var fontTheme = rFonts.GetAttribute( XName.Get( "asciiTheme", Document.w.NamespaceName ), null ) ??
                         rFonts.GetAttribute( XName.Get( "hAnsiTheme", Document.w.NamespaceName ), null ) ??
                         rFonts.GetAttribute( XName.Get( "csTheme", Document.w.NamespaceName ), null ) ??
-                        rFonts.GetAttribute( XName.Get( "hintTheme", Document.w.NamespaceName ), null ) ??
-                        rFonts.GetAttribute( XName.Get( "eastAsiaTheme", Document.w.NamespaceName ), null );
-
-
+                        rFonts.GetAttribute( XName.Get( "hintTheme", Document.w.NamespaceName ), null );
         if( !string.IsNullOrEmpty( fontTheme ) )
         {
-          // Theme font resolution
-          if( fontTheme == "majorEastAsia" || fontTheme == "majorBidi" || fontTheme == "majorAscii" || fontTheme == "majorHAnsi" )
+          if( fontTheme.Contains( "major" ) )
+            return majorFont;
+          if( fontTheme.Contains( "minor" ) )
+            return minorFont;
+        }
+      }
+
+      XElement rFontsFromDefault = null;
+      var docDefault = document.GetDocDefaults();
+      if( docDefault != null )
+      {
+        var rPrDefault = docDefault.Element( XName.Get( "rPrDefault", Document.w.NamespaceName ) );
+        if( rPrDefault != null )
+        {
+          var rPrFromDefault = rPrDefault.Element( XName.Get( "rPr", Document.w.NamespaceName ) );
+          if( rPrFromDefault != null )
           {
-            fontName = majorFont;
-          }
-          else if( fontTheme == "minorEastAsia" || fontTheme == "minorBidi" || fontTheme == "minorAscii" || fontTheme == "minorHAnsi" )
-          {
-            fontName = minorFont;
+            rFontsFromDefault = rPrFromDefault.Element( XName.Get( "rFonts", Document.w.NamespaceName ) );
           }
         }
       }
 
-      return fontName;
-    }
+      if( rFontsFromDefault != null )
+      {
+        var defaultFontTheme = rFontsFromDefault.GetAttribute( XName.Get( "asciiTheme", Document.w.NamespaceName ), null ) ??
+                                rFontsFromDefault.GetAttribute( XName.Get( "hAnsiTheme", Document.w.NamespaceName ), null ) ??
+                                rFontsFromDefault.GetAttribute( XName.Get( "csTheme", Document.w.NamespaceName ), null ) ??
+                                rFontsFromDefault.GetAttribute( XName.Get( "hintTheme", Document.w.NamespaceName ), null );
+        if( !string.IsNullOrEmpty( defaultFontTheme ) )
+        {
+          if( defaultFontTheme.Contains( "major" ) )
+            return majorFont;
+          if( defaultFontTheme.Contains( "minor" ) )
+            return minorFont;
+        }
+      }
 
-    private static void SetFormattingFontFamily( Formatting formatting, string defaultFontFamily, string fontName )
-    {
-      formatting.FontFamily = ( fontName != null )
-                              ? new Font( fontName )
-                              : ( formatting.FontFamily == null ) ?
-                               new Font(  ( defaultFontFamily != null ) ? defaultFontFamily : "Calibri" ) : formatting.FontFamily;
+      if( rFonts != null )
+      {
+        var specificTheme = rFonts.GetAttribute( XName.Get( "eastAsiaTheme", Document.w.NamespaceName ), null );
+        if( !string.IsNullOrEmpty( specificTheme ) )
+        {
+          if( specificTheme.Contains( "major" ) )
+            return majorFont;
+          if( specificTheme.Contains( "minor" ) )
+            return minorFont;
+        }
+      }
+      if( rFontsFromDefault != null )
+      {
+        var specificTheme = rFontsFromDefault.GetAttribute( XName.Get( "eastAsiaTheme", Document.w.NamespaceName ), null );
+        if( !string.IsNullOrEmpty( specificTheme ) )
+        {
+          if( specificTheme.Contains( "major" ) )
+            return majorFont;
+          if( specificTheme.Contains( "minor" ) )
+            return minorFont;
+        }
+      }
+
+      return null;
     }
 
     #endregion // Private Methods
@@ -830,10 +881,6 @@ namespace Xceed.Document.NET
 
       if( rPr == null )
         return formatting;
-
-      // Build up the Formatting object.
-      var fontName = Formatting.GetFont( rPr, document );
-      Formatting.SetFormattingFontFamily( formatting, defaultFontFamily, fontName );
 
       foreach( XElement option in rPr.Elements() )
       {
@@ -865,6 +912,17 @@ namespace Xceed.Document.NET
           case "sz":
             formatting.Size = Double.Parse( option.GetAttribute( XName.Get( "val", Document.w.NamespaceName ) ) ) / 2;
             break;
+          case "rFonts":
+          {
+            var fontName = Formatting.GetFontFromRunFontsOrDefault( option, document ) ?? Formatting.GetFontFromThemeOrDefault( option, document );
+            if( fontName == "default" )
+              continue;
+            formatting.FontFamily = ( fontName != null )
+                                    ? new Font( fontName )
+                                    : ( formatting.FontFamily == null ) ?
+                                      new Font(  ( defaultFontFamily != null ) ? defaultFontFamily : "Calibri" ) : formatting.FontFamily;
+          }
+          break;
           case "color":
             try
             {

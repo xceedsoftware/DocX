@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -42,7 +42,7 @@ namespace Xceed.Document.NET
     private NoteProperties _endnoteProperties;
     private PageNumberType _pageNumberType;
 
-#endregion
+    #endregion
 
     #region Properties
 
@@ -324,7 +324,7 @@ namespace Xceed.Document.NET
           {
             float f;
             if( HelperFunctions.TryParseFloat( w.Value, out f ) )
-              return (int)( f / _pageSizeMultiplier );
+              return ( int ) ( f / _pageSizeMultiplier );
           }
         }
 
@@ -351,46 +351,46 @@ namespace Xceed.Document.NET
     {
       get
       {
-        var pgNumType = this.Xml.Element(XName.Get("pgNumType", w.NamespaceName));
+        var pgNumType = this.Xml.Element( XName.Get( "pgNumType", w.NamespaceName ) );
         _pageNumberType = new PageNumberType();
 
-        if (pgNumType != null)
+        if( pgNumType != null )
         {
-          var start = pgNumType.Attribute(XName.Get("start", Document.w.NamespaceName));
-          var chapStyle = pgNumType.Attribute(XName.Get("chapStyle", Document.w.NamespaceName));
-          var fmt = pgNumType.Attribute(XName.Get("fmt", Document.w.NamespaceName));
-          var chapSep = pgNumType.Attribute(XName.Get("chapSep", Document.w.NamespaceName));
+          var start = pgNumType.Attribute( XName.Get( "start", Document.w.NamespaceName ) );
+          var chapStyle = pgNumType.Attribute( XName.Get( "chapStyle", Document.w.NamespaceName ) );
+          var fmt = pgNumType.Attribute( XName.Get( "fmt", Document.w.NamespaceName ) );
+          var chapSep = pgNumType.Attribute( XName.Get( "chapSep", Document.w.NamespaceName ) );
 
 
-          if (start != null)
+          if( start != null )
           {
             int i;
-            if (HelperFunctions.TryParseInt(start.Value, out i))
+            if( HelperFunctions.TryParseInt( start.Value, out i ) )
               _pageNumberType.PageNumberStart = i;
           }
 
-          if (chapStyle != null)
+          if( chapStyle != null )
           {
             int i;
-            if (HelperFunctions.TryParseInt(chapStyle.Value, out i))
+            if( HelperFunctions.TryParseInt( chapStyle.Value, out i ) )
               _pageNumberType.ChapterStyle = i;
           }
 
-          if (fmt != null)
+          if( fmt != null )
           {
-            if (fmt.Value.Equals("decimal"))
+            if( fmt.Value.Equals( "decimal" ) )
             {
               _pageNumberType.PageNumberFormat = NumberingFormat.decimalNormal;
             }
             else
             {
-              _pageNumberType.PageNumberFormat = Enum.GetValues(typeof(NumberingFormat)).Cast<NumberingFormat>().FirstOrDefault(x => x.ToString().Equals(fmt.Value));
+              _pageNumberType.PageNumberFormat = Enum.GetValues( typeof( NumberingFormat ) ).Cast<NumberingFormat>().FirstOrDefault( x => x.ToString().Equals( fmt.Value ) );
             }
           }
 
-          if (chapSep != null)
+          if( chapSep != null )
           {
-            _pageNumberType.ChapterNumberSeparator = Enum.GetValues(typeof(ChapterSeparator)).Cast<ChapterSeparator>().FirstOrDefault(x => x.ToString().Equals(chapSep.Value)) ;
+            _pageNumberType.ChapterNumberSeparator = Enum.GetValues( typeof( ChapterSeparator ) ).Cast<ChapterSeparator>().FirstOrDefault( x => x.ToString().Equals( chapSep.Value ) );
           }
         }
 
@@ -401,14 +401,14 @@ namespace Xceed.Document.NET
 
       set
       {
-        if (_pageNumberType != null)
+        if( _pageNumberType != null )
         {
           _pageNumberType.PropertyChanged -= this.PageNumberType_PropertyChanged;
         }
 
         _pageNumberType = value;
 
-        if (_pageNumberType != null)
+        if( _pageNumberType != null )
         {
           _pageNumberType.PropertyChanged += this.PageNumberType_PropertyChanged;
         }
@@ -429,7 +429,7 @@ namespace Xceed.Document.NET
           {
             float f;
             if( HelperFunctions.TryParseFloat( w.Value, out f ) )
-              return (int)( f / _pageSizeMultiplier );
+              return ( int ) ( f / _pageSizeMultiplier );
           }
         }
 
@@ -458,7 +458,7 @@ namespace Xceed.Document.NET
             case "evenPage":
               return SectionBreakType.evenPage;
             case "oddPage":
-              return SectionBreakType.oddPage;              
+              return SectionBreakType.oddPage;
           }
         }
         return SectionBreakType.defaultNextPage;
@@ -547,7 +547,7 @@ namespace Xceed.Document.NET
         var lastSectionsXmlList = lastSectionsXml.ToList();
         for( int i = lastSectionsXmlList.Count - 1; i >= 0; i-- )
         {
-          var lastSectionElements = lastSectionsXmlList[i].Elements();
+          var lastSectionElements = lastSectionsXmlList[ i ].Elements();
           foreach( var lastSectionElement in lastSectionElements )
           {
             if( ( xmlCopy.Element( lastSectionElement.Name ) == null )
@@ -1034,7 +1034,7 @@ namespace Xceed.Document.NET
       {
         float f;
         if( HelperFunctions.TryParseFloat( top.Value, out f ) )
-          return (int)( f / _pageSizeMultiplier );
+          return ( int ) ( f / _pageSizeMultiplier );
       }
 
       return 0;
@@ -1126,10 +1126,12 @@ namespace Xceed.Document.NET
         }
 
         this.SectionParagraphs.Last().Xml.AddAfterSelf( newSection );
-      }      
+      }
 
       // Update the _cachedSection by reading the Xml to build new Sections.
       this.Document.UpdateCacheSections();
+
+
 
       return this.Document.Sections.LastOrDefault();
     }
@@ -1213,36 +1215,36 @@ namespace Xceed.Document.NET
     }
     private void UpdatePageNumberTypeXml()
     {
-      var pgNumType = this.Xml.Element(XName.Get("pgNumType", w.NamespaceName));
+      var pgNumType = this.Xml.Element( XName.Get( "pgNumType", w.NamespaceName ) );
 
-      if (pgNumType == null)
+      if( pgNumType == null )
       {
-        this.Xml.Add(new XElement(XName.Get("pgNumType", w.NamespaceName)));
-        pgNumType = this.Xml.Element(XName.Get("pgNumType", w.NamespaceName));
+        this.Xml.Add( new XElement( XName.Get( "pgNumType", w.NamespaceName ) ) );
+        pgNumType = this.Xml.Element( XName.Get( "pgNumType", w.NamespaceName ) );
       }
 
-      if(_pageNumberType != null)
+      if( _pageNumberType != null )
       {
-        pgNumType.SetAttributeValue(XName.Get("chapStyle", w.NamespaceName), _pageNumberType.ChapterStyle);
+        pgNumType.SetAttributeValue( XName.Get( "chapStyle", w.NamespaceName ), _pageNumberType.ChapterStyle );
 
-        if (_pageNumberType.PageNumberStart.HasValue && _pageNumberType.PageNumberStart.Value > 0)
+        if( _pageNumberType.PageNumberStart.HasValue && _pageNumberType.PageNumberStart.Value > 0 )
         {
-          pgNumType.SetAttributeValue(XName.Get("start", w.NamespaceName), _pageNumberType.PageNumberStart);
+          pgNumType.SetAttributeValue( XName.Get( "start", w.NamespaceName ), _pageNumberType.PageNumberStart );
         }
         else
         {
-          pgNumType.SetAttributeValue(XName.Get("start", w.NamespaceName), null);
+          pgNumType.SetAttributeValue( XName.Get( "start", w.NamespaceName ), null );
         }
 
-        pgNumType.SetAttributeValue(XName.Get("chapSep", w.NamespaceName), _pageNumberType.ChapterNumberSeparator);
+        pgNumType.SetAttributeValue( XName.Get( "chapSep", w.NamespaceName ), _pageNumberType.ChapterNumberSeparator );
 
-        if (_pageNumberType.PageNumberFormat == NumberingFormat.decimalNormal)
+        if( _pageNumberType.PageNumberFormat == NumberingFormat.decimalNormal )
         {
-          pgNumType.SetAttributeValue(XName.Get("fmt", w.NamespaceName), "decimal");
+          pgNumType.SetAttributeValue( XName.Get( "fmt", w.NamespaceName ), "decimal" );
         }
         else
         {
-          pgNumType.SetAttributeValue(XName.Get("fmt", w.NamespaceName), _pageNumberType.PageNumberFormat);
+          pgNumType.SetAttributeValue( XName.Get( "fmt", w.NamespaceName ), _pageNumberType.PageNumberFormat );
         }
       }
     }
@@ -1262,7 +1264,7 @@ namespace Xceed.Document.NET
       this.SetNoteProperties( "endnotePr", _endnoteProperties );
     }
 
-    private void PageNumberType_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    private void PageNumberType_PropertyChanged( object sender, PropertyChangedEventArgs e )
     {
       this.UpdatePageNumberTypeXml();
     }

@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -16,7 +16,7 @@
 
 /***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Sample Application
-Copyright (c) 2009-2025 - Xceed Software Inc.
+Copyright (c) 2009-2026 - Xceed Software Inc.
 
 This application demonstrates how to use the different features when using the API 
 from the Xceed Words for .NET.
@@ -28,7 +28,6 @@ is only intended as a supplement to the documentation, and is provided
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
 using Xceed.Words.NET.Example;
 
 namespace Xceed.Words.NET.Examples
@@ -76,6 +75,7 @@ namespace Xceed.Words.NET.Examples
 
       //Images
       ImageSample.AddPicture();
+      ImageSample.AddPictureSvg();
       ImageSample.AddPictureWithTextWrapping();
       ImageSample.CopyPicture();
 
@@ -96,6 +96,11 @@ namespace Xceed.Words.NET.Examples
       TableSample.ColumnsWidth();
       TableSample.MergeCells();
       TableSample.ShadingPattern();
+      TableSample.SplitCell();
+      TableSample.SplitCellInRegularTable();
+      TableSample.SplitMergedCell();
+      TableSample.SplitCellInMergedRows();
+      TableSample.SplitCellInSimpleTable();
 
       //Hyperlink
       HyperlinkSample.Hyperlinks();
@@ -131,6 +136,16 @@ namespace Xceed.Words.NET.Examples
       ChartSample.ScatterChart();
       ChartSample.RadarChart();
       ChartSample.AreaChart();
+      ChartSample.Combo();
+      ChartSample.ModifyCombo();
+      ChartSample.Surface3DCharts();
+      ChartSample.PieOfPieChart();
+      ChartSample.BarOfPieChart();
+      ChartSample.DoughnutChart();
+      ChartSample.BoxWhisker();
+      ChartSample.Waterfall();
+      ChartSample.BoxWhisker_CorporateCSAT();
+      ChartSample.Waterfall_AnnualProfit();
 
       //Tale of Content
       TableOfContentSample.InsertTableOfContent();
@@ -158,15 +173,28 @@ namespace Xceed.Words.NET.Examples
       PdfSample.ConvertToPDFWithUninstalledFont();
       PdfSample.ConvertToPDF();
 
+      //Txt
+      TxtSample.CreateTxt();
+      TxtSample.SaveToTxt();
+      TxtSample.LoadToTxt();
+
       //Shape
       ShapeSample.AddShape();
       ShapeSample.AddShapeWithTextWrapping();
       ShapeSample.AddTextBox();
       ShapeSample.AddTextBoxWithTextWrapping();
 
+      //Split Document
+      SplitDocumentSample.SplitDocumentBySection();
+      SplitDocumentSample.SplitDocumentTwoBySection();
+      SplitDocumentSample.SplitDocumentThreeBySection();
+      SplitDocumentSample.SplitByHeadings();
+
       //CheckBox
       CheckBoxSample.ModifyCheckBox();
       CheckBoxSample.AddCheckBox();
+      CheckBoxSample.InsertCheckbox();
+      CheckBoxSample.ReplaceTextWithCheckbox();
 
       //Hyphenation
       HyphenationSample.CreateHyphenation();
@@ -183,6 +211,30 @@ namespace Xceed.Words.NET.Examples
       DigitalSignatureSample.VerifySignatures();
       DigitalSignatureSample.RemoveSignatures();
       DigitalSignatureSample.RemoveSignatureLines();
+
+      //Comments
+      CommentsSample.AddComments();
+      CommentsSample.AddMultiParagraphComments();
+      CommentsSample.ModifyComments();
+      CommentsSample.DeleteComments();
+      CommentsSample.AddReplies();
+      CommentsSample.AddCollaborativeReviewComments();
+      CommentsSample.AddReactions();
+      CommentsSample.RemoveReactions();
+      CommentsSample.ChangeAuthors();
+      //Watermark
+      WatermarkSample.AddPngPictureWatermark();
+      WatermarkSample.AddJpgPictureWatermark();
+      WatermarkSample.AddJpgPictureWatermarkOptions();
+      WatermarkSample.AddJpgPictureWatermarkOddHeader();
+      WatermarkSample.AddTextWatermark();
+      WatermarkSample.AddTextWatermarkDiagonal();
+      WatermarkSample.AddTextWatermarkFont();
+      WatermarkSample.AddTextWatermarkColor();
+      WatermarkSample.LoadPictureWatermark();
+      WatermarkSample.LoadTextWatermark();
+      WatermarkSample.AddMultipleSections();
+      WatermarkSample.LoadAndRemoveWatermark();
 
       Console.WriteLine( "\nDone running Examples of Xceed Words for .NET version " + versionNumber + ".\n" );
       Console.WriteLine( "\nPress any key to exit." );

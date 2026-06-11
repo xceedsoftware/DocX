@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -364,7 +364,7 @@ namespace Xceed.Document.NET
         var settingsUri = new Uri( "/word/settings.xml", UriKind.Relative );
         settingsPart = package.CreatePart( settingsUri, HelperFunctions.SETTING_DOCUMENTTYPE, CompressionOption.Maximum );
 
-        var mainDocPart = GetMainDocumentPart( package );
+        var mainDocPart = HelperFunctions.GetMainDocumentPart( package );
 
         mainDocPart.CreateRelationship( settingsUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" );
 
@@ -431,7 +431,7 @@ namespace Xceed.Document.NET
         var settingsUri = new Uri( "/word/webSettings.xml", UriKind.Relative );
         webSettingsPart = package.CreatePart( settingsUri, HelperFunctions.WEBSETTING_DOCUMENTTYPE, CompressionOption.Maximum );
 
-        var mainDocPart = GetMainDocumentPart( package );
+        var mainDocPart = HelperFunctions.GetMainDocumentPart( package );
 
         mainDocPart.CreateRelationship( settingsUri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings" );
 
@@ -617,7 +617,7 @@ namespace Xceed.Document.NET
       );
     }
 
-    internal static XElement CreateTable( int rowCount, int columnCount, double tableWidth )
+          internal static XElement CreateTable( int rowCount, int columnCount, double tableWidth )
     {
       if( ( rowCount <= 0 ) || ( columnCount <= 0 ) )
       {
@@ -660,6 +660,14 @@ namespace Xceed.Document.NET
                                                         new XAttribute( XName.Get( "type", Document.w.NamespaceName ), "dxa" ) ) ),
                             new XElement( XName.Get( "p", Document.w.NamespaceName ), new XElement( XName.Get( "pPr", Document.w.NamespaceName ) ) ) );
     }
+
+
+
+
+
+
+
+
 
 
 

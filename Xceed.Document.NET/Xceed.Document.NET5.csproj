@@ -60,6 +60,9 @@
     <Compile Include="Src\Header.cs" />
     <Compile Include="Src\Headers.cs" />
     <Compile Include="Src\HelperFunctions.cs" />
+    <Compile Include="Src\HTMLParser\AttributesParsers.cs" />
+    <Compile Include="Src\HTMLParser\CssDefinitions.cs" />
+    <Compile Include="Src\HTMLParser\ICssValueParser.cs" />
     <Compile Include="Src\Hyperlink.cs" />
     <Compile Include="Src\IParagraphContainer.cs" />
     <Compile Include="Src\List.cs" />
@@ -72,8 +75,11 @@
     <Compile Include="Src\Section.cs" />
     <Compile Include="Src\ShadingPattern.cs" />
     <Compile Include="Src\TableOfContents.cs" />
+    <Compile Include="Src\Table\Cell.cs" />
+    <Compile Include="Src\Table\Row.cs" />
+    <Compile Include="Src\Table\Table.cs" />
+    <Compile Include="Src\Table\TableLook.cs" />
     <Compile Include="Src\_BaseClasses.cs" />
-    <Compile Include="Src\Table.cs" />
     <Compile Include="Src\_Enumerations.cs" />
     <Compile Include="Src\Formatting.cs" />
     <Compile Include="Src\Image.cs" />
@@ -82,7 +88,6 @@
     <Compile Include="Src\Document.cs" />
     <Compile Include="Src\_Extensions.cs" />
     <Compile Include="Utils\Exceptions\ThrowException.cs" />
-    <Compile Include="Utils\Licensing\LicenseOrigin.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\default_styles.xml.gz" />

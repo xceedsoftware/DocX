@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -30,8 +30,10 @@ namespace Xceed.Document.NET
 
     private Paragraph _parentParagraph;
     private PackageRelationship _packageRelationship;
-
+    private XElement _plotAreaXml;
     private XDocument _chartDocument;
+    private bool _isAxisExist = true;
+
     internal string _chartName;
     internal int _chartIndex;
 
@@ -57,12 +59,10 @@ namespace Xceed.Document.NET
       get; internal set;
     }
 
-    public virtual Boolean IsAxisExist
+    public virtual bool IsAxisExist
     {
-      get
-      {
-        return true;
-      }
+      get { return _isAxisExist; }
+      internal set { _isAxisExist = value; }
     }
 
     public DisplayBlanksAs DisplayBlanksAs
@@ -97,6 +97,8 @@ namespace Xceed.Document.NET
       get; private set;
     }
 
+
+
     internal PackagePart PackagePart
     {
       get; set;
@@ -111,7 +113,6 @@ namespace Xceed.Document.NET
     {
       get; set;
     }
-
 
     #endregion
 
@@ -157,7 +158,6 @@ namespace Xceed.Document.NET
 
     #region Constructors
 
-
     public BaseChart()
     {
       _chartName = this.GetType().Name;
@@ -168,15 +168,29 @@ namespace Xceed.Document.NET
       // Create a real chart xml in an inheritor
       XElement chartXml = this.CreateExternalChartXml();
 
-      // Create result plotarea element
-      XElement plotAreaXml = this.CreatePlotAreaXml( chartXml );
+      // Create result plotArea element
+      _plotAreaXml = this.CreatePlotAreaXml( chartXml );
 
-      // if axes exists, create them
-      this.CreateChartAxis( chartXml, plotAreaXml );
+      if( _chartName != "ComboChart" )
+      {
+        // if axes exists, create them
+        this.CreateChartAxis( chartXml, _plotAreaXml );
 
-      this.BuildChart( plotAreaXml );
+        this.BuildChart();
+      }
+      else
+      {
+        var comboChartPlotArea = this.GetPlotAreaXml();
+
+        if( comboChartPlotArea != null )
+        {
+          this.BuildChart();
+        }
+      }
 
       }
+
+
 
     protected virtual void CreateChartXmls()
     {
@@ -219,6 +233,7 @@ namespace Xceed.Document.NET
       // Set labels 
       var dLblsXml = XElement.Parse(
           @"<c:dLbls xmlns:c=""http://schemas.openxmlformats.org/drawingml/2006/chart"">
+                    <c:dLblPos val=""ctr""/>
                     <c:showLegendKey val=""0""/>
                     <c:showVal val=""0""/>
                     <c:showCatName val=""0""/>
@@ -228,6 +243,7 @@ namespace Xceed.Document.NET
                     <c:showLeaderLines val=""1""/>
                 </c:dLbls>" );
       chartXml.Add( dLblsXml );
+
 
       return plotAreaXml;
     }
@@ -259,24 +275,38 @@ namespace Xceed.Document.NET
       }
     }
 
-    protected virtual void BuildChart( XElement plotAreaXml )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    protected virtual void BuildChart()
     {
-      var chartRootXml = ExternalXml.Element( XName.Get( "chart", Document.c.NamespaceName ) );
-      chartRootXml.Element( XName.Get( "autoTitleDeleted", Document.c.NamespaceName ) ).AddAfterSelf( plotAreaXml );
+      if( _plotAreaXml != null )
+      {
+        var chartRootXml = this.ExternalXml.Element( XName.Get( "chart", Document.c.NamespaceName ) );
+        chartRootXml.Element( XName.Get( "autoTitleDeleted", Document.c.NamespaceName ) ).AddAfterSelf( _plotAreaXml );
+      }
+    }
+
+    protected virtual XElement GetPlotAreaXml()
+    {
+      return _plotAreaXml;
     }
 
 
 
 
 
-    internal BaseChart( Paragraph parentParagraph, PackageRelationship packageRelationship, PackagePart packagePart, XDocument chartDocument )
-      : this()
-    {
-      _parentParagraph = parentParagraph;
-      _packageRelationship = packageRelationship;
-      this.PackagePart = packagePart;
-      _chartDocument = chartDocument;
-    }
 
     #endregion
 
@@ -292,7 +322,7 @@ namespace Xceed.Document.NET
       Series.Add( series );
       series.PackagePart = this.PackagePart;
 
-      var chart = GetChartTypeXElement();
+      var chart = this.GetChartTypeXElement();
       if( chart != null )
       {
         var seriesCount = chart.Elements( XName.Get( "ser", Document.c.NamespaceName ) ).Count();
@@ -307,6 +337,43 @@ namespace Xceed.Document.NET
         chart.Add( series.Xml );
       }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void AddLegend()
     {
@@ -390,6 +457,8 @@ namespace Xceed.Document.NET
 
     protected abstract XElement GetChartTypeXElement();
 
+    protected abstract string GetChartTypeXmlName();
+
     #endregion
 
     #region Internal Method
@@ -440,6 +509,9 @@ namespace Xceed.Document.NET
         }
       }
     }
+
+
+
 
 
 

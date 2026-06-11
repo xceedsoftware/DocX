@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -129,6 +129,18 @@ namespace Xceed.Drawing
 
     #endregion
 
+    #region Format
+
+    public string Format
+    {
+      get
+      {
+        return this.DetectFormat();
+      }
+    }
+
+    #endregion
+
     #endregion
 
     #region Static Methods
@@ -165,33 +177,10 @@ namespace Xceed.Drawing
 
     public static string DetectFormat( Stream stream )
     {
-      var image = Image.FromStream( stream ).Value;
-
-#if NET5
-        if( image.Encode( SKEncodedImageFormat.Jpeg, 100 ) != null )
-          return "JPEG";
-        else if( image.Encode( SKEncodedImageFormat.Png, 100 ) != null )
-          return "PNG";
-        else if( image.Encode( SKEncodedImageFormat.Gif, 100 ) != null )
-          return "GIF";
-        else if( image.Encode( SKEncodedImageFormat.Bmp, 100 ) != null )
-          return "BMP";
-        else
-          throw new Exception( "Picture has an invalid format." );
-#else
-        if( System.Drawing.Imaging.ImageFormat.Jpeg.Equals( image.RawFormat ) )
-          return "JPEG";
-        else if( System.Drawing.Imaging.ImageFormat.Png.Equals( image.RawFormat ) )
-          return "PNG";
-        else if( System.Drawing.Imaging.ImageFormat.Gif.Equals( image.RawFormat ) )
-          return "GIF";
-        else if( System.Drawing.Imaging.ImageFormat.Tiff.Equals( image.RawFormat ) )
-          return "TIFF";
-         else if( System.Drawing.Imaging.ImageFormat.Bmp.Equals( image.RawFormat ) )
-          return "BMP";
-        else
-          throw new Exception( "Picture has an invalid format." );
-#endif
+      using( var image = Image.FromStream( stream ) )
+      {
+        return image.DetectFormat();
+      }
     }
 
     public static Image Clone( Image image )
@@ -253,14 +242,14 @@ namespace Xceed.Drawing
       imageCodecInfo = Image.GetEncoderInfo( "image/jpeg" );
       encoder = System.Drawing.Imaging.Encoder.Quality;
       encoderParameters = new System.Drawing.Imaging.EncoderParameters( 1 );
-      encoderParameter = new System.Drawing.Imaging.EncoderParameter( encoder, (long)quality );
+      encoderParameter = new System.Drawing.Imaging.EncoderParameter( encoder, ( long )quality );
       encoderParameters.Param[ 0 ] = encoderParameter;
 
       var memoryStream = new System.IO.MemoryStream();
       image.Value.Save( memoryStream, imageCodecInfo, encoderParameters );
       memoryStream.Flush();
 
-      return memoryStream;   
+      return memoryStream;
 #endif
     }
 
@@ -280,7 +269,7 @@ namespace Xceed.Drawing
     }
 #endif
 
-#endregion
+    #endregion
 
     #region Public Methods
 
@@ -359,6 +348,41 @@ namespace Xceed.Drawing
     public void Dispose()
     {
       m_image.Dispose();
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private string DetectFormat()
+    {
+      var image = this.Value;
+
+#if NET5
+      if( image.Encode( SKEncodedImageFormat.Jpeg, 100 ) != null )
+        return "JPEG";
+      else if( image.Encode( SKEncodedImageFormat.Png, 100 ) != null )
+        return "PNG";
+      else if( image.Encode( SKEncodedImageFormat.Gif, 100 ) != null )
+        return "GIF";
+      else if( image.Encode( SKEncodedImageFormat.Bmp, 100 ) != null )
+        return "BMP";
+      else
+        throw new Exception( "Picture has an invalid format." );
+#else
+      if( System.Drawing.Imaging.ImageFormat.Jpeg.Equals( image.RawFormat ) )
+        return "JPEG";
+      else if( System.Drawing.Imaging.ImageFormat.Png.Equals( image.RawFormat ) )
+        return "PNG";
+      else if( System.Drawing.Imaging.ImageFormat.Gif.Equals( image.RawFormat ) )
+        return "GIF";
+      else if( System.Drawing.Imaging.ImageFormat.Tiff.Equals( image.RawFormat ) )
+        return "TIFF";
+      else if( System.Drawing.Imaging.ImageFormat.Bmp.Equals( image.RawFormat ) )
+        return "BMP";
+      else
+        throw new Exception( "Picture has an invalid format." );
+#endif
     }
 
     #endregion

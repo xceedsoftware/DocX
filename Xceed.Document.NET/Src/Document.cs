@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -29,6 +29,9 @@ using System.Net;
 using System.Diagnostics;
 using System.Reflection;
 using System.ComponentModel;
+using Xceed.Drawing;
+
+
 
 namespace Xceed.Document.NET
 {
@@ -64,28 +67,35 @@ namespace Xceed.Document.NET
     static internal XNamespace wps = "http://schemas.microsoft.com/office/word/2010/wordprocessingShape";
     static internal XNamespace w14 = "http://schemas.microsoft.com/office/word/2010/wordml";
     static internal XNamespace w15 = "http://schemas.microsoft.com/office/word/2012/wordml";
+    static internal XNamespace w16 = "http://schemas.microsoft.com/office/word/2018/wordml";
+    static internal XNamespace w16cid = "http://schemas.microsoft.com/office/word/2016/wordml/cid";
+    static internal XNamespace w16cex = "http://schemas.microsoft.com/office/word/2018/wordml/cex";
     static internal XNamespace o = "urn:schemas-microsoft-com:office:office";
     static internal XNamespace d = "http://www.w3.org/2000/09/xmldsig#";
     static internal XNamespace doffice = "http://schemas.microsoft.com/office/2006/digsig";
     static internal XNamespace w10 = "urn:schemas-microsoft-com:office:word";
+    static internal XNamespace cr = "http://schemas.microsoft.com/office/comments/2020/reactions";
+    static internal XNamespace c15 = "http://schemas.microsoft.com/office/drawing/2012/chart";
+
     #endregion
 
     #region Private Members    
 
-    private readonly object nextFreeDocPrIdLock = new object();
-    private long? nextFreeDocPrId;
-    private string _defaultParagraphStyleId;
-    private static HashAlgorithmName _hashAlgorithmName;
+    private readonly object m_nextFreeDocPrIdLock = new object();
+    private long? m_nextFreeDocPrId;
+    private string m_defaultParagraphStyleId;
+    private static HashAlgorithmName m_hashAlgorithmName;
 
     private static double DefaultFontSize = 11d;
     private static string DefaultFontFamily = "Calibri";
     private static string ModifiedByCoreProperty = "cp:lastModifiedBy";
 
-    private int _lastEditId = -1;
+    private int m_lastEditId = -1;
 
-    private IList<Section> _cachedSections;
+    private IList<Section> m_cachedSections;
 
-    private static List<string> _imageContentTypes = new List<string>
+
+    private static List<string> m_imageContentTypes = new List<string>
                                                     {
                                                         "image/jpeg",
                                                         "image/jpg",
@@ -99,7 +109,6 @@ namespace Xceed.Document.NET
                                                         "image/x-emf",
                                                         "image/wmf"
                                                     };
-
     #endregion
 
     #region Internal Constants
@@ -160,7 +169,7 @@ namespace Xceed.Document.NET
     {
       get
       {
-        return _cachedSections;
+        return m_cachedSections;
       }
     }
 
@@ -444,26 +453,6 @@ namespace Xceed.Document.NET
       }
     }
 
-    //public DocumentElement PageWatermark
-    //{
-    //  get
-    //  {
-    //    if( this.Sections.Count > 1 )
-    //    {
-    //      Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageWatermark." );
-    //    }
-    //    return this.Sections[ 0 ].PageWatermark;
-    //  }
-
-    //  set
-    //  {
-    //    if( this.Sections.Count > 1 )
-    //    {
-    //      Debug.WriteLine( "This document contains more than 1 section. Consider using Sections[wantedSection].PageWatermark." );
-    //    }
-    //    this.Sections[ 0 ].PageWatermark = value;
-    //  }
-    //}
 
     public bool IsProtected
     {
@@ -845,6 +834,7 @@ namespace Xceed.Document.NET
         return formattings;
       }
     }
+
 
 
 
@@ -1258,6 +1248,14 @@ namespace Xceed.Document.NET
 
 
 
+
+
+
+
+
+
+
+
     public override void InsertAtBookmark( string toInsert, string bookmarkName, Formatting formatting = null )
     {
       // Insert in body of document.
@@ -1407,6 +1405,9 @@ namespace Xceed.Document.NET
       // Update the _cachedSection by reading the Xml to build new Sections.
       this.UpdateCacheSections();
     }
+
+
+
 
 
 
@@ -1819,8 +1820,8 @@ namespace Xceed.Document.NET
         case ".jpg":
           contentType = "image/jpg";
           break;
-        case ".jpeg":
-          contentType = "image/jpeg";
+        case ".svg":
+          contentType = "image/svg+xml";
           break;
         default:
           contentType = "image/jpg";
@@ -1919,68 +1920,89 @@ namespace Xceed.Document.NET
 
     public void AddCustomProperty( CustomProperty cp )
     {
-      // If this document does not contain a customFilePropertyPart create one.
-      if( !_package.PartExists( new Uri( "/docProps/custom.xml", UriKind.Relative ) ) )
+      // Wrap the single custom property in a list and call the bulk method.
+      // This maintains the original API (pevious code) but is less performant if used in a loop.
+
+      // The previous implementation of AddCustomProperty is inefficient for bulk updates because it repeatedly performs expensive file I/O operations inside the method.
+      // To fix this without changing the public API, we introduce a new public method that handles the bulk update logic.
+      // This new method accept a list of custom properties and perform the file operations just once.
+      // The existing AddCustomProperty method has then be modified to use this new, more efficient bulk-update logic.
+      this.AddCustomProperties( new List<CustomProperty> { cp } );
+    }
+
+    public void AddCustomProperties( IEnumerable<CustomProperty> customProperties )
+    {
+      if( customProperties != null && customProperties.Any() )
       {
-        HelperFunctions.CreateCustomPropertiesPart( this );
-      }
+        // If this document does not contain a customFilePropertyPart, create one.
+        if( !_package.PartExists( new Uri( "/docProps/custom.xml", UriKind.Relative ) ) )
+        {
+          HelperFunctions.CreateCustomPropertiesPart( this );
+        }
 
-      XDocument customPropDoc;
-      var customPropPart = _package.GetPart( new Uri( "/docProps/custom.xml", UriKind.Relative ) );
-      using( TextReader tr = new StreamReader( customPropPart.GetStream( FileMode.Open, FileAccess.Read ) ) )
-      {
-        customPropDoc = XDocument.Load( tr, LoadOptions.PreserveWhitespace );
-      }
+        XDocument customPropDoc;
+        var customPropPart = _package.GetPart( new Uri( "/docProps/custom.xml", UriKind.Relative ) );
 
-      // Each custom property has a PID, get the highest PID in this document.
-      IEnumerable<int> pids =
-      (
-          from d in customPropDoc.Descendants()
-          where d.Name.LocalName == "property"
-          select int.Parse( d.Attribute( XName.Get( "pid" ) ).Value )
-      );
+        using( TextReader tr = new StreamReader( customPropPart.GetStream( FileMode.Open, FileAccess.Read ) ) )
+        {
+          customPropDoc = XDocument.Load( tr, LoadOptions.PreserveWhitespace );
+        }
 
-      int pid = 1;
-      if( pids.Count() > 0 )
-      {
-        pid = pids.Max();
-      }
+        var propertiesElement = customPropDoc.Element( XName.Get( "Properties", customPropertiesSchema.NamespaceName ) );
 
-      // Check if a custom property already exists with this name
-      var customProperty =
-      (
-          from d in customPropDoc.Descendants()
-          where ( d.Name.LocalName == "property" ) && ( d.Attribute( XName.Get( "name" ) ).Value.Equals( cp.Name, StringComparison.InvariantCultureIgnoreCase ) )
-          select d
-      ).SingleOrDefault();
+        // Each custom property has a PID, get the highest PID in this document.
+        IEnumerable<int> pids =
+        (
+            from d in propertiesElement.Descendants()
+            where d.Name.LocalName == "property"
+            select int.Parse( d.Attribute( XName.Get( "pid" ) ).Value )
+        );
 
-      // If a custom property with this name already exists remove it.
-      if( customProperty != null )
-      {
-        customProperty.Remove();
-      }
+        int pid = pids.Any() ? pids.Max() : 0;
 
-      var propertiesElement = customPropDoc.Element( XName.Get( "Properties", customPropertiesSchema.NamespaceName ) );
-      propertiesElement.Add
-      (
-          new XElement
+        foreach( var cp in customProperties )
+        {
+          // Check if a custom property already exists with this name
+          var existingCustomProperty =
           (
-              XName.Get( "property", customPropertiesSchema.NamespaceName ),
-              new XAttribute( "fmtid", "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" ),
-              new XAttribute( "pid", pid + 1 ),
-              new XAttribute( "name", cp.Name ),
-              new XElement( customVTypesSchema + cp.Type, cp.Value ?? "" )
-          )
-      );
+              from d in propertiesElement.Descendants()
+              where ( d.Name.LocalName == "property" ) && ( d.Attribute( XName.Get( "name" ) ).Value.Equals( cp.Name, StringComparison.InvariantCultureIgnoreCase ) )
+              select d
+          ).SingleOrDefault();
 
-      // Save the custom properties
-      using( TextWriter tw = new StreamWriter( new PackagePartStream( customPropPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
-      {
-        customPropDoc.Save( tw, SaveOptions.None );
+          // If a custom property with this name already exists, remove it.
+          if( existingCustomProperty != null )
+          {
+            existingCustomProperty.Remove();
+          }
+
+          // Add the new or updated custom property to the in-memory XML document.
+          propertiesElement.Add
+          (
+              new XElement
+              (
+                  XName.Get( "property", customPropertiesSchema.NamespaceName ),
+                  new XAttribute( "fmtid", "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" ),
+                  new XAttribute( "pid", ++pid ), // Increment pid for each new property
+                  new XAttribute( "name", cp.Name ),
+                  new XElement( customVTypesSchema + cp.Type, cp.Value ?? "" )
+              )
+          );
+        }
+
+        // Save the custom properties back to the file once.
+        using( TextWriter tw = new StreamWriter( new PackagePartStream( customPropPart.GetStream( FileMode.Create, FileAccess.Write ) ) ) )
+        {
+          customPropDoc.Save( tw, SaveOptions.None );
+        }
+
+        // Refresh all fields in this document which display these custom properties.
+        foreach( var cp in customProperties )
+        {
+          // Add all custom properties in one highly-optimized call.
+          Document.UpdateCustomPropertyValue( this, cp );
+        }
       }
-
-      // Refresh all fields in this document which display this custom property.
-      Document.UpdateCustomPropertyValue( this, cp );
     }
 
     public override Paragraph InsertParagraph()
@@ -2007,7 +2029,6 @@ namespace Xceed.Document.NET
       // copy paragraph's pictures and styles.
       // This will modify the p's Picture Ids before adding it in this Document with the following base.InsertParagraph( updatedParagraph );
       var updatedParagraph = this.InsertParagraphPictures( p );
-
       this.InsertParagraphStyles( updatedParagraph );
 
       var newParagraph = base.InsertParagraph( updatedParagraph );
@@ -2036,6 +2057,7 @@ namespace Xceed.Document.NET
     public override Paragraph InsertParagraph( int index, string text, bool trackChanges, Formatting formatting )
     {
       var p = base.InsertParagraph( index, text, trackChanges, formatting );
+
       p.PackagePart = this.PackagePart;
 
       // Inserting a paragraph at a specific index needs an update of Paragraph cache.
@@ -2047,24 +2069,24 @@ namespace Xceed.Document.NET
     public override Paragraph InsertParagraph( string text )
     {
       var p = base.InsertParagraph( text );
-      p.PackagePart = this.PackagePart;
 
+      p.PackagePart = this.PackagePart;
       return p;
     }
 
     public override Paragraph InsertParagraph( string text, bool trackChanges )
     {
       var p = base.InsertParagraph( text, trackChanges );
-      p.PackagePart = this.PackagePart;
 
+      p.PackagePart = this.PackagePart;
       return p;
     }
 
     public override Paragraph InsertParagraph( string text, bool trackChanges, Formatting formatting )
     {
       var p = base.InsertParagraph( text, trackChanges, formatting );
-      p.PackagePart = this.PackagePart;
 
+      p.PackagePart = this.PackagePart;
       return p;
     }
 
@@ -2075,6 +2097,7 @@ namespace Xceed.Document.NET
       foreach( var textForParagraph in textArray )
       {
         var p = base.InsertParagraph( text );
+
         p.PackagePart = this.PackagePart;
         paragraphs.Add( p );
       }
@@ -2231,7 +2254,7 @@ namespace Xceed.Document.NET
       if( editRestrictions == EditRestrictions.none )
         return;
 
-      if( hashAlgorithm == HashAlgorithm.None || _hashAlgorithmName == HashAlgorithmName.NotSupported )
+      if( hashAlgorithm == HashAlgorithm.None || m_hashAlgorithmName == HashAlgorithmName.NotSupported )
       {
         hashAlgorithm = HashAlgorithm.Sha512;
       }
@@ -2244,32 +2267,32 @@ namespace Xceed.Document.NET
         case HashAlgorithm.Md2:
           cryptProviderType = "rsaFull";
           cryptAlgorithmSid = "1";
-          _hashAlgorithmName = HashAlgorithmName.SHA1;
+          m_hashAlgorithmName = HashAlgorithmName.SHA1;
           break;
         case HashAlgorithm.Md5:
           cryptProviderType = "rsaFull";
           cryptAlgorithmSid = "3";
-          _hashAlgorithmName = HashAlgorithmName.SHA1;
+          m_hashAlgorithmName = HashAlgorithmName.SHA1;
           break;
         case HashAlgorithm.Sha1:
           cryptProviderType = "rsaFull";
           cryptAlgorithmSid = "4";
-          _hashAlgorithmName = HashAlgorithmName.SHA1Managed;
+          m_hashAlgorithmName = HashAlgorithmName.SHA1Managed;
           break;
         case HashAlgorithm.Sha256:
           cryptProviderType = "rsaAES";
           cryptAlgorithmSid = "12";
-          _hashAlgorithmName = HashAlgorithmName.SHA256Managed;
+          m_hashAlgorithmName = HashAlgorithmName.SHA256Managed;
           break;
         case HashAlgorithm.Sha384:
           cryptProviderType = "rsaAES";
           cryptAlgorithmSid = "13";
-          _hashAlgorithmName = HashAlgorithmName.SHA384Managed;
+          m_hashAlgorithmName = HashAlgorithmName.SHA384Managed;
           break;
         case HashAlgorithm.Sha512:
           cryptProviderType = "rsaAES";
           cryptAlgorithmSid = "14";
-          _hashAlgorithmName = HashAlgorithmName.SHA512Managed;
+          m_hashAlgorithmName = HashAlgorithmName.SHA512Managed;
           break;
         default:
           throw new NotSupportedException( string.Format( "Hash algorithm '{0}' is not supported for document write protection.", hashAlgorithm ) );
@@ -2281,7 +2304,7 @@ namespace Xceed.Document.NET
       documentProtection.Add( new XAttribute( XName.Get( "enforcement", w.NamespaceName ), "1" ) );
 
       Encryption encryption = new Encryption();
-      var encryptionObj = encryption.Encrypt( password, _hashAlgorithmName );
+      var encryptionObj = encryption.Encrypt( password, m_hashAlgorithmName );
 
       documentProtection.Add( new XAttribute( XName.Get( "cryptProviderType", w.NamespaceName ), cryptProviderType ) );
       documentProtection.Add( new XAttribute( XName.Get( "cryptAlgorithmClass", w.NamespaceName ), "hash" ) );
@@ -2399,6 +2422,8 @@ namespace Xceed.Document.NET
 
 
 
+
+
     public T AddChart<T>() where T : BaseChart, new()
     {
       var chart = new T();
@@ -2409,6 +2434,7 @@ namespace Xceed.Document.NET
 
       return chart;
     }
+
     #endregion
 
     #region Internal Methods
@@ -2421,6 +2447,24 @@ namespace Xceed.Document.NET
     protected internal virtual void SaveHeadersFooters()
     {
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2459,7 +2503,7 @@ namespace Xceed.Document.NET
         // do nothing
       }
 
-      if( _lastEditId < 0 )
+      if( m_lastEditId < 0 )
       {
         var trackerIDs = ( from d in _mainDoc.Descendants()
                            where d.Name.LocalName == "ins" || d.Name.LocalName == "del"
@@ -2467,7 +2511,7 @@ namespace Xceed.Document.NET
 
         if( trackerIDs.Count() > 0 )
         {
-          _lastEditId = trackerIDs.Select( id => int.Parse( id.Value ) ).Max();
+          m_lastEditId = trackerIDs.Select( id => int.Parse( id.Value ) ).Max();
         }
       }
 
@@ -2476,7 +2520,7 @@ namespace Xceed.Document.NET
         return
         (
             new XElement( Document.w + t.ToString(),
-                new XAttribute( Document.w + "id", ++_lastEditId ),
+                new XAttribute( Document.w + "id", ++m_lastEditId ),
                 new XAttribute( Document.w + "date", edit_time ),
             content )
         );
@@ -2485,7 +2529,7 @@ namespace Xceed.Document.NET
       return
       (
           new XElement( Document.w + t.ToString(),
-              new XAttribute( Document.w + "id", ++_lastEditId ),
+              new XAttribute( Document.w + "id", ++m_lastEditId ),
               new XAttribute( Document.w + "author", author ),
               new XAttribute( Document.w + "date", edit_time ),
           content )
@@ -2732,13 +2776,14 @@ namespace Xceed.Document.NET
         }
       }
 
-      // Open the docx package
-      var package = Package.Open( ms, FileMode.Open, FileAccess.ReadWrite );
+        // Open the docx package
+        var package = Package.Open( ms, FileMode.Open, FileAccess.ReadWrite );
 
-      document = PostLoad( ref package, document, documentType );
-      document._package = package;
+        document = PostLoad( ref package, document, documentType );
+        document._package = package;
+        document._memoryStream = ms;
+
       document.SetFileName( filename );
-      document._memoryStream = ms;
 
       return document;
     }
@@ -2811,7 +2856,17 @@ namespace Xceed.Document.NET
     internal Image AddImage( object o, string contentType = "image/jpeg" )
     {
       // Open a Stream to the new image being added.
-      var newImageStream = ( o is string ) ? new FileStream( o as string, FileMode.Open, FileAccess.Read ) : o as Stream;
+      Stream newImageStream;
+
+      if( contentType == "image/svg+xml" )
+      {
+        throw new NotSupportedException( "SVG images are not supported in the OpenSource version." );
+      }
+      else
+      {
+        newImageStream = ( o is string ) ? new FileStream( o as string, FileMode.Open, FileAccess.Read ) : o as Stream;
+      }
+
       using( newImageStream )
       {
 
@@ -3055,162 +3110,153 @@ namespace Xceed.Document.NET
       var customPropertyName = cp.Name;
       var customPropertyValue = ( cp.Value ?? "" ).ToString();
 
-      // A list of documents, which will contain, The Main Document and if they exist: header1, header2, header3, footer1, footer2, footer3.
+      // Prepare documents list more efficiently
       var documents = new List<XElement> { document._mainDoc.Root };
 
-      // Check if each header exists and add it if so.
-      #region Headers
+      // Process headers and footers
       foreach( var section in document.Sections )
       {
-        var headers = section.Headers;
-        if( headers.First != null )
-        {
-          documents.Add( headers.First.Xml );
-        }
-        if( headers.Odd != null )
-        {
-          documents.Add( headers.Odd.Xml );
-        }
-        if( headers.Even != null )
-        {
-          documents.Add( headers.Even.Xml );
-        }
+        // Headers
+        if( section.Headers.First != null ) documents.Add( section.Headers.First.Xml );
+        if( section.Headers.Odd != null ) documents.Add( section.Headers.Odd.Xml );
+        if( section.Headers.Even != null ) documents.Add( section.Headers.Even.Xml );
+
+        // Footers
+        if( section.Footers.First != null ) documents.Add( section.Footers.First.Xml );
+        if( section.Footers.Odd != null ) documents.Add( section.Footers.Odd.Xml );
+        if( section.Footers.Even != null ) documents.Add( section.Footers.Even.Xml );
       }
-      #endregion
 
-      // Check if each footer exists and add if if so.
-      #region Footers
-      foreach( var section in document.Sections )
-      {
-        var footers = section.Footers;
-        if( footers.First != null )
-        {
-          documents.Add( footers.First.Xml );
-        }
-        if( footers.Odd != null )
-        {
-          documents.Add( footers.Odd.Xml );
-        }
-        if( footers.Even != null )
-        {
-          documents.Add( footers.Even.Xml );
-        }
-      }
-      #endregion
+      // Pre-compute match value
+      var matchValue = string.Format( @"DOCPROPERTY  {0}  \* MERGEFORMAT",
+          customPropertyName.Contains( " " ) ? "\"" + customPropertyName + "\"" : customPropertyName )
+          .Replace( " ", string.Empty );
 
-      var match_value = string.Format( @"DOCPROPERTY  {0}  \* MERGEFORMAT", customPropertyName.Contains( " " ) ? "\"" + customPropertyName + "\"" : customPropertyName )
-                              .Replace( " ", string.Empty );
+      // Namespace for faster access
+      XNamespace wNs = w.NamespaceName;
+      var wT = wNs + "t";
+      var wInstrText = wNs + "instrText";
+      var wFldChar = wNs + "fldChar";
+      var wFldCharType = wNs + "fldCharType";
+      var wFldSimple = wNs + "fldSimple";
+      var wR = wNs + "r";
+      var wRPr = wNs + "rPr";
 
-      // Process each document in the list.
       foreach( XElement doc in documents )
       {
-        #region Word 2010+
-        var instrTexts = doc.Descendants( XName.Get( "instrText", w.NamespaceName ) );
-        for( int i = 0; i < instrTexts.Count(); ++i )
-        {
-          var e = instrTexts.ElementAt( i );
-          var attr_value = e.Value.Replace( " ", string.Empty ).Trim();
+        // Word 2010+ processing
+        // Get all instrText elements once
+        var instrTexts = doc.Descendants( wInstrText ).ToList();
 
-          if( attr_value.StartsWith( "DOCPROPERTY" ) && !attr_value.EndsWith( "MERGEFORMAT" ) && ( i < instrTexts.Count() - 1 ) )
+        for( int i = 0; i < instrTexts.Count; i++ )
+        {
+          var e = instrTexts[ i ];
+          var attrValue = e.Value.Replace( " ", "" ).Trim();
+
+          // Handle split instrText
+          if( attrValue.StartsWith( "DOCPROPERTY" ) && !attrValue.EndsWith( "MERGEFORMAT" ) && ( i < instrTexts.Count - 1 ) )
           {
-            var nextInstrText = instrTexts.ElementAt( i + 1 );
-            var nextAttr_value = nextInstrText.Value.Replace( " ", string.Empty ).Trim();
-            if( !nextAttr_value.StartsWith( "DOCPROP" ) && nextAttr_value.EndsWith( "FORMAT" ) )
+            var nextInstrText = instrTexts[ i + 1 ];
+            var nextAttrValue = nextInstrText.Value.Replace( " ", "" ).Trim();
+            if( !nextAttrValue.StartsWith( "DOCPROP" ) && nextAttrValue.EndsWith( "FORMAT" ) )
             {
-              attr_value += nextAttr_value;
+              attrValue += nextAttrValue;
               i++;
             }
           }
 
-          if( attr_value.Equals( match_value, StringComparison.CurrentCultureIgnoreCase ) )
+          if( attrValue.Equals( matchValue, StringComparison.OrdinalIgnoreCase ) )
           {
-            var node = e.Parent.NextNode;
-            bool found = false;
+            Document.ProcessFieldElement( e, customPropertyValue, cp.Formatting?.Xml, wNs, wT, wFldChar, wFldCharType, wR, wRPr );
+          }
+        }
 
-            while( node != null )
+        // Word <2010 processing
+        foreach( XElement e in doc.Descendants( wFldSimple ) )
+        {
+          var attr = e.Attribute( XName.Get( "instr", wNs.NamespaceName ) );
+          if( attr != null && attr.Value.Replace( " ", "" ).Trim().Equals( matchValue, StringComparison.OrdinalIgnoreCase ) )
+          {
+            var firstRun = e.Element( wR );
+            if( firstRun != null )
             {
-              if( node.NodeType == XmlNodeType.Element )
+              var firstText = firstRun.Element( wT );
+              if( firstText != null )
               {
-                var ele = node as XElement;
+                var rPr = firstText.Element( wRPr );
+                e.RemoveNodes();
 
-                var match = ele.Descendants( XName.Get( "t", w.NamespaceName ) );
-                if( match.Any() )
-                {
-                  if( !found )
-                  {
-                    var newValue = HelperFunctions.FormatInput( customPropertyValue, cp.Formatting?.Xml );
-
-                    if( ele.Name.LocalName == "r" ) // Main run
-                    {
-                      var runElements = ele.Elements().Where( el => el.Name.LocalName != "t" ).ToList();
-                      var nextElement = ele.ElementsAfterSelf().FirstOrDefault();
-
-                      var lastRunTag = newValue.LastOrDefault();
-
-                      if( lastRunTag != null )
-                      {
-                        var targetElement = lastRunTag.Descendants( XName.Get( "t", w.NamespaceName ) ).FirstOrDefault();
-
-                        if( targetElement != null )
-                        {
-                          targetElement.AddBeforeSelf( runElements );
-                        }
-                      }
-
-                      ele.AddBeforeSelf( newValue );
-                      ele.Remove();
-                      node = nextElement; // Move to the next element
-                      continue;
-                    }
-
-                    found = true;
-                  }
-                  else
-                  {
-                    ele.RemoveNodes();
-                  }
-                }
-                else
-                {
-                  match = ele.Descendants( XName.Get( "fldChar", w.NamespaceName ) );
-                  if( match.Any() )
-                  {
-                    var endMatch = match.First().Attribute( XName.Get( "fldCharType", w.NamespaceName ) );
-                    if( endMatch != null && endMatch.Value == "end" )
-                    {
-                      break;
-                    }
-                  }
-                }
+                var t = new XElement( wT, customPropertyValue );
+                if( rPr != null ) t.AddFirst( rPr );
+                Xceed.Document.NET.Text.PreserveSpace( t );
+                e.Add( new XElement( wR, firstRun.Attributes(), firstRun.Element( wRPr ), t ) );
               }
-
-              // Move to the next node
-              node = node.NextNode;
             }
           }
         }
-        #endregion
+      }
+    }
 
-        #region < Word 2010
-        foreach( XElement e in doc.Descendants( XName.Get( "fldSimple", w.NamespaceName ) ) )
+    private static void ProcessFieldElement( XElement e, string customPropertyValue, XElement formattingXml, XNamespace wNs, XName wT, XName wFldChar, XName wFldCharType, XName wR, XName wRPr )
+    {
+      var node = e.Parent.NextNode;
+      bool found = false;
+
+      while( node != null )
+      {
+        if( node.NodeType == XmlNodeType.Element )
         {
-          var attr_value = e.Attribute( XName.Get( "instr", w.NamespaceName ) ).Value.Replace( " ", string.Empty ).Trim();
+          var ele = node as XElement;
+          var textNodes = ele.Descendants( wT );
 
-          if( attr_value.Equals( match_value, StringComparison.CurrentCultureIgnoreCase ) )
+          if( textNodes.Any() )
           {
-            var firstRun = e.Element( w + "r" );
-            var firstText = firstRun.Element( w + "t" );
-            var rPr = firstText.Element( w + "rPr" );
+            if( !found )
+            {
+              var newValue = HelperFunctions.FormatInput( customPropertyValue, formattingXml );
 
-            // Delete everything and insert updated text value
-            e.RemoveNodes();
+              if( ele.Name.LocalName == "r" )
+              {
+                var runElements = ele.Elements().Where( el => el.Name.LocalName != "t" ).ToList();
+                var nextElement = ele.ElementsAfterSelf().FirstOrDefault();
 
-            var t = new XElement( w + "t", rPr, customPropertyValue );
-            Xceed.Document.NET.Text.PreserveSpace( t );
-            e.Add( new XElement( firstRun.Name, firstRun.Attributes(), firstRun.Element( XName.Get( "rPr", w.NamespaceName ) ), t ) );
+                var lastRunTag = newValue.LastOrDefault();
+                if( lastRunTag != null )
+                {
+                  var targetElement = lastRunTag.Descendants( wT ).FirstOrDefault();
+                  if( targetElement != null )
+                  {
+                    targetElement.AddBeforeSelf( runElements );
+                  }
+                }
+
+                ele.AddBeforeSelf( newValue );
+                ele.Remove();
+                node = nextElement;
+                continue;
+              }
+
+              found = true;
+            }
+            else
+            {
+              ele.RemoveNodes();
+            }
+          }
+          else
+          {
+            var fldChars = ele.Descendants( wFldChar );
+            if( fldChars.Any() )
+            {
+              var endMatch = fldChars.First().Attribute( wFldCharType );
+              if( endMatch != null && endMatch.Value == "end" )
+              {
+                break;
+              }
+            }
           }
         }
-        #endregion
+        node = node.NextNode;
       }
     }
 
@@ -3277,12 +3323,12 @@ namespace Xceed.Document.NET
 
     internal long GetNextFreeDocPrId()
     {
-      lock( nextFreeDocPrIdLock )
+      lock( m_nextFreeDocPrIdLock )
       {
-        if( nextFreeDocPrId != null )
+        if( m_nextFreeDocPrId != null )
         {
-          nextFreeDocPrId++;
-          return nextFreeDocPrId.Value;
+          m_nextFreeDocPrId++;
+          return m_nextFreeDocPrId.Value;
         }
 
         long newDocPrId = 1;
@@ -3336,15 +3382,15 @@ namespace Xceed.Document.NET
           newDocPrId = existingIds.Max( id => long.Parse( id ) ) + 1;
         }
 
-        nextFreeDocPrId = newDocPrId;
-        return nextFreeDocPrId.Value;
+        m_nextFreeDocPrId = newDocPrId;
+        return m_nextFreeDocPrId.Value;
       }
     }
 
     internal string GetNormalStyleId()
     {
-      if( _defaultParagraphStyleId != null )
-        return _defaultParagraphStyleId;
+      if( m_defaultParagraphStyleId != null )
+        return m_defaultParagraphStyleId;
 
       var normalStyle =
       (
@@ -3360,16 +3406,16 @@ namespace Xceed.Document.NET
         var styleId = normalStyle.Attribute( XName.Get( "styleId", Document.w.NamespaceName ) );
         if( styleId != null )
         {
-          _defaultParagraphStyleId = styleId.Value;
+          m_defaultParagraphStyleId = styleId.Value;
         }
       }
 
-      if( _defaultParagraphStyleId == null )
+      if( m_defaultParagraphStyleId == null )
       {
-        _defaultParagraphStyleId = "Normal";
+        m_defaultParagraphStyleId = "Normal";
       }
 
-      return _defaultParagraphStyleId;
+      return m_defaultParagraphStyleId;
     }
 
     internal static void PrepareDocument( ref Document document, DocumentTypes documentType )
@@ -3384,18 +3430,39 @@ namespace Xceed.Document.NET
       document = Document.Load( ms, document, documentType );
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     internal void UpdateCacheSections()
     {
       // Save Headers/Footers in case they were modified. GetSectionCaches() will create new Sections based on them.
       this.SaveHeadersFooters();
 
       this.ClearParagraphsCache();
-      _cachedSections = this.GetSections();
+      m_cachedSections = this.GetSections();
     }
 
     internal Paragraph CreateChartElement( BaseChart chart, Paragraph paragraph, float width, float height )
     {
-      if( chart.PackagePart == null )
+      if( chart.PackagePart == null || chart.RelationPackage == null )
       {
         chart.PackagePart = this.CreateChartPackagePart( chart );
         chart.RelationPackage = this.CreateChartRelationShip( chart );
@@ -3484,14 +3551,69 @@ namespace Xceed.Document.NET
                             ?? rFonts.GetAttribute( XName.Get( "cs", Document.w.NamespaceName ) )
                             ?? rFonts.GetAttribute( XName.Get( "hint", Document.w.NamespaceName ) )
                             ?? rFonts.GetAttribute( XName.Get( "eastAsia", Document.w.NamespaceName ) );
+
+              // If fontName is null or empty, try getting the font from theme
+              if( string.IsNullOrEmpty( fontName ) )
+              {
+                fontName = Document.GetFontnameFromTheme( rFonts, this );
+              }
+
               if( !string.IsNullOrEmpty( fontName ) )
+              {
                 return fontName;
+              }
             }
           }
         }
       }
+    return "Calibri";
+    }
 
-      return  "Calibri";
+    internal static string GetFontnameFromTheme( XElement rFonts, Document document )
+    {
+      string fontName = null;
+      var theme = document.GetTheme();
+
+      if( theme != null )
+      {
+        var majorFont = "";
+        var minorFont = "";
+
+        majorFont = theme.Descendants()
+                         .Where( e => e.Name.LocalName == "majorFont" )?
+                         .FirstOrDefault()?
+                         .Element( XName.Get( "latin", Document.a.NamespaceName ) )?
+                         .Attribute( XName.Get( "typeface" ) )?.Value ?? "";
+
+        minorFont = theme.Descendants()
+                         .Where( e => e.Name.LocalName == "minorFont" )?
+                         .FirstOrDefault()?
+                         .Element( XName.Get( "latin", Document.a.NamespaceName ) )?
+                         .Attribute( XName.Get( "typeface" ) )?.Value ?? "";
+
+
+        var fontTheme = rFonts.GetAttribute( XName.Get( "asciiTheme", Document.w.NamespaceName ), null ) ??
+                        rFonts.GetAttribute( XName.Get( "hAnsiTheme", Document.w.NamespaceName ), null ) ??
+                        rFonts.GetAttribute( XName.Get( "csTheme", Document.w.NamespaceName ), null ) ??
+                        rFonts.GetAttribute( XName.Get( "hintTheme", Document.w.NamespaceName ), null ) ??
+                        rFonts.GetAttribute( XName.Get( "eastAsiaTheme", Document.w.NamespaceName ), null );
+
+
+        if( !string.IsNullOrEmpty( fontTheme ) )
+        {
+          // Theme font resolution
+          if( fontTheme == "majorEastAsia" || fontTheme == "majorBidi" || fontTheme == "majorAscii" || fontTheme == "majorHAnsi" )
+          {
+            fontName = majorFont;
+          }
+          else if( fontTheme == "minorEastAsia" || fontTheme == "minorBidi" || fontTheme == "minorAscii" || fontTheme == "minorHAnsi" )
+          {
+            fontName = minorFont;
+          }
+        }
+      }
+
+      return fontName;
     }
 
     internal static string ComputeHashValue( string password, XElement documentProtection )
@@ -3542,7 +3664,7 @@ namespace Xceed.Document.NET
               break;
           }
 
-          _hashAlgorithmName = hashAlgorithm;
+          m_hashAlgorithmName = hashAlgorithm;
           var encryption = new Encryption();
           keyValues = encryption.Decrypt( password, saltValue, hashAlgorithm );
         }
@@ -3554,6 +3676,63 @@ namespace Xceed.Document.NET
     #endregion
 
     #region Private Methods
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3611,7 +3790,7 @@ namespace Xceed.Document.NET
       // Check if each PackagePart pp exists in this document.
       foreach( PackagePart remote_pp in ppc )
       {
-        if( ignoreContentTypes.Contains( remote_pp.ContentType ) || _imageContentTypes.Contains( remote_pp.ContentType ) )
+        if( ignoreContentTypes.Contains( remote_pp.ContentType ) || m_imageContentTypes.Contains( remote_pp.ContentType ) )
           continue;
 
         // If this external PackagePart already exits then we must merge them.
@@ -3775,7 +3954,7 @@ namespace Xceed.Document.NET
 
       foreach( PackagePart remote_pp in ppc )
       {
-        if( _imageContentTypes.Contains( remote_pp.ContentType ) )
+        if( m_imageContentTypes.Contains( remote_pp.ContentType ) )
         {
           this.MergeImages( remote_pp, remote_document, remote_mainDoc, remote_pp.ContentType );
         }
@@ -3865,6 +4044,34 @@ namespace Xceed.Document.NET
       }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     private void RemoveReferences( PackageRelationship header_relationship, string reference, XElement documentBody )
     {
       // Get all references to this Relationship in the document.
@@ -3894,7 +4101,7 @@ namespace Xceed.Document.NET
 
         foreach( var remote_pp in ppc )
         {
-          if( _imageContentTypes.Contains( remote_pp.ContentType ) )
+          if( m_imageContentTypes.Contains( remote_pp.ContentType ) )
           {
             // This will modify the clonedParagraph's Picture Ids before adding it in this Document with the following base.InsertParagraph( updatedParagraph );
             this.MergeImages( remote_pp, clonedParagraph.Document, clonedParagraph.Document._mainDoc, remote_pp.ContentType );
@@ -4955,8 +5162,31 @@ namespace Xceed.Document.NET
         }
       }
 
-      document._cachedSections = document.GetSections();
+      document.m_cachedSections = document.GetSections();
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // This method will parse the Hyperlinks of the document and replace the mal-formed ones with "http://broken-link/" 
     // in order for document.PackagePart.GetRelationships() to not throw exceptions.
@@ -5245,6 +5475,8 @@ namespace Xceed.Document.NET
 
       return result;
     }
+
+
 
 
 

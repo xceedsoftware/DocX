@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -28,7 +28,8 @@ using System.Linq;
 
 namespace Xceed.Drawing
 {
-  public struct Color
+  [Serializable]
+  public readonly struct Color : IEquatable<Color>
   {
     #region Private Members
 
@@ -56,11 +57,11 @@ namespace Xceed.Drawing
     private Color( string value )
     {
 #if NET5
-      var skColor = typeof( SKColors ).GetField( value ); 
+      var skColor = typeof( SKColors ).GetField( value );
       if( skColor == null )
         throw new InvalidDataException( "Unknown color name." );
 
-      m_color = (SKColor)skColor.GetValue( null );      
+      m_color = (SKColor)skColor.GetValue( null );
 #else
       m_color = System.Drawing.Color.FromName( value );
 #endif
@@ -679,10 +680,20 @@ namespace Xceed.Drawing
 
     public static bool IsKnownColor( string value )
     {
+      // Fix for case 3733 : Html Parser : System.ArgumentException: Type provided must be an Enum. (Parameter 'TEnum') under .NET 8
+      // The behavior changed between .NET 5 and.NET 8 in the way Enum.TryParse works with invalid strings.
+      // In.NET Framework / .NET 5 / .NET Core ≤6, Enum.TryParse( "foobar", true, out KnownColor c ) just returns false — no exception.
+      // In.NET 7 / 8, Microsoft added stricter runtime validation in some enum cases, especially with enums tied to BCL types like KnownColor.
+      // If the string doesn’t match and happens to collide with internal parsing logic( e.g.KnownColor interacts with System.Drawing.Color differently now), you can get an exception instead of just false.
+      // So invalid values may throw, so we will simply compare the string names from available color names.
 #if NET5
-      return Enum.TryParse( value, true, out SKColors knownColor );
+      // SKColors: check static fields
+      var fields = typeof( SKColors ).GetFields( System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static );
+      return fields.Any( f => string.Equals( f.Name, value, StringComparison.OrdinalIgnoreCase ) );
 #else
-      return Enum.TryParse( value, true, out KnownColor knownColor );
+      // KnownColor is an enum
+      return Enum.GetNames( typeof( KnownColor ) )
+                 .Any( n => string.Equals( n, value, StringComparison.OrdinalIgnoreCase ) );
 #endif
     }
 
@@ -738,26 +749,26 @@ namespace Xceed.Drawing
       var baseColor = Color.Parse( argbColor ).Value;
 
       // Get all predefined colors from SKColors
-    var knownColors = typeof(SKColors).GetProperties()
-        .Select(p => (SKColor)p.GetValue(null))
-        .ToList();
+      var knownColors = typeof( SKColors ).GetProperties()
+          .Select( p => (SKColor)p.GetValue( null ) )
+          .ToList();
 
-    // Find the color that matches the ARGB value
-    var matchingColor = knownColors.Where(color => color == baseColor )
-                                   .FirstOrDefault();
+      // Find the color that matches the ARGB value
+      var matchingColor = knownColors.Where( color => color == baseColor )
+                                     .FirstOrDefault();
 
-    // If no match is found, return null or a default value
-    if (matchingColor == SKColors.Empty)
+      // If no match is found, return null or a default value
+      if( matchingColor == SKColors.Empty )
         return "Unknown"; // or handle as needed
 
-    // Return the name of the color by finding the property name
-    var colorName = typeof(SKColors).GetProperties()
-        .FirstOrDefault(p => (SKColor)p.GetValue(null) == matchingColor)?
-        .Name;
+      // Return the name of the color by finding the property name
+      var colorName = typeof( SKColors ).GetProperties()
+          .FirstOrDefault( p => (SKColor)p.GetValue( null ) == matchingColor )?
+          .Name;
 
-    return colorName ?? "Unknown";
+      return colorName ?? "Unknown";
 #else
-      var knownColors = (KnownColor[])Enum.GetValues( typeof( KnownColor ) );
+      var knownColors = ( KnownColor[] )Enum.GetValues( typeof( KnownColor ) );
       var knownColor = knownColors.Where( col => System.Drawing.Color.FromKnownColor( col ).ToArgb() == argbColor ).FirstOrDefault();
       return System.Drawing.Color.FromKnownColor( knownColor ).Name;
 #endif
@@ -778,8 +789,8 @@ namespace Xceed.Drawing
 
       return Color.Black;
 #else
-      var knownColors = (KnownColor[])Enum.GetValues( typeof( KnownColor ) );
-      var knownColor = knownColors.Where( col => System.Drawing.Color.FromKnownColor( col ).Name == colorName ).SingleOrDefault();
+      var knownColors = ( KnownColor[] )Enum.GetValues( typeof( KnownColor ) );
+      var knownColor = knownColors.Where( col => System.Drawing.Color.FromKnownColor( col ).Name.ToLowerInvariant() == colorName ).SingleOrDefault();
       return new Color( System.Drawing.Color.FromKnownColor( knownColor ) );
 #endif
     }
@@ -828,19 +839,17 @@ namespace Xceed.Drawing
 
     #region Public Methods
 
-    public override bool Equals( object obj )
+    public bool Equals( Color other )
     {
-      if( !( obj is Color ) )
-        return false;
-
-      var other = (Color)obj;
-
-      return this.Value == other.Value
-           && this.A == other.A
+      return this.A == other.A
            && this.R == other.R
            && this.G == other.G
-           && this.B == other.B
-           && this.Name == other.Name;
+           && this.B == other.B;
+    }
+
+    public override bool Equals( object obj )
+    {
+      return ( obj is Color other ) && this.Equals( other );
     }
 
     public override int GetHashCode()
@@ -864,6 +873,11 @@ namespace Xceed.Drawing
     public static bool operator !=( Color c1, Color c2 )
     {
       return !c1.Equals( c2 );
+    }
+
+    public override string ToString()
+    {
+      return $"R: {this.R}, G: {this.G}, B: {this.B}";
     }
 
     #endregion

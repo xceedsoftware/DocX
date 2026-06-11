@@ -28,6 +28,7 @@
     <Compile Include="Samples\Chart\ChartData.cs" />
     <Compile Include="Samples\Chart\ChartSample.cs" />
     <Compile Include="Samples\CheckBox\CheckBoxSample.cs" />
+    <Compile Include="Samples\Comments\CommentsSample.cs" />
     <Compile Include="Samples\DigitalSignature\DigitalSignatureSample.cs" />
     <Compile Include="Samples\Document\DocumentSample.cs" />
     <Compile Include="Samples\Equation\EquationSample.cs" />
@@ -46,13 +47,19 @@
     <Compile Include="Samples\Protection\ProtectionSample.cs" />
     <Compile Include="Samples\Section\SectionSample.cs" />
     <Compile Include="Samples\Shape\ShapeSample.cs" />
+    <Compile Include="Samples\SplitDocument\SplitDocumentSample.cs" />
     <Compile Include="Samples\TableOfContent\TableOfContentSample.cs" />
     <Compile Include="Samples\Table\TableSample.cs" />
+    <Compile Include="Samples\Txt\TxtSample.cs" />
+    <Compile Include="Samples\Watermark\WatermarkSample.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Samples\Bookmark\Resources\DocumentWithBookmarks.docx" />
     <None Include="Samples\Chart\Resources\Report.docx" />
     <None Include="Samples\CheckBox\Resources\DocumentWithCheckBoxes.docx" />
+    <None Include="Samples\Comments\Resources\AComment.docx" />
+    <None Include="Samples\Comments\Resources\Comments.docx" />
+    <None Include="Samples\Comments\Resources\ManyThreads.docx" />
     <None Include="Samples\DigitalSignature\Resources\CustomCertificate.pfx" />
     <None Include="Samples\DigitalSignature\Resources\SignedDocument.docx" />
     <None Include="Samples\Document\Resources\First.docx" />
@@ -62,6 +69,7 @@
     <None Include="Samples\Document\Resources\Second.docx" />
     <None Include="Samples\Document\Resources\Template-2.docx" />
     <None Include="Samples\Document\Resources\Template.docx" />
+    <None Include="Samples\Image\Resources\xceed.svg" />
     <None Include="Samples\List\Resources\Lists.docx" />
     <None Include="Samples\Protection\Resources\PasswordProtected.docx" />
     <None Include="Samples\Image\Resources\Input.docx" />
@@ -77,9 +85,20 @@
     <None Include="Samples\Pdf\Resources\DocumentToConvert.docx" />
     <None Include="Samples\Pdf\Resources\DocumentToConvertWithUninstalledFont.docx" />
     <None Include="Samples\Pdf\Resources\The Bugatten.ttf" />
+    <None Include="Samples\SplitDocument\Resources\DocToSplit.docx" />
+    <None Include="Samples\SplitDocument\Resources\Document.docx" />
+    <None Include="Samples\SplitDocument\Resources\Headings.docx" />
+    <None Include="Samples\SplitDocument\Resources\SplitDocument.docx" />
     <None Include="Samples\TableOfContent\Resources\TOCDocument.docx" />
     <None Include="Samples\Table\Resources\DocumentWithTemplateTable.docx" />
+    <None Include="Samples\Table\Resources\SimpleTable.docx" />
+    <None Include="Samples\Table\Resources\Table.docx" />
+    <None Include="Samples\Table\Resources\TableWithMergedCells.docx" />
+    <None Include="Samples\Table\Resources\TableWithMergedRows.docx" />
     <None Include="Samples\Table\Resources\TemplateTable.docx" />
+    <None Include="Samples\Watermark\Resources\JpgPictureWatermark.docx" />
+    <None Include="Samples\Txt\Resources\WordDoc.docx" />
+    <None Include="Samples\Watermark\Resources\TextWatermarkDiagonal.docx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Samples\DigitalSignature\Resources\MarkStoneSignature.png" />
@@ -94,9 +113,14 @@
     <Content Include="Samples\Miscellaneous\Resources\Phone.png" />
     <Content Include="Samples\Parallel\Resources\potato.jpg" />
     <Content Include="Samples\Table\Resources\logo_xceed.png" />
+    <Content Include="Samples\Txt\Resources\TxtDoc.txt" />
+    <Content Include="Samples\Watermark\Resources\Xceed.jpg" />
+    <Content Include="Samples\Watermark\Resources\xceed.png" />
+    <Content Include="Samples\Watermark\Resources\XceedDark.jpg" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="2.88.8" />
+    <PackageReference Include="Svg" Version="3.4.3" />
     <PackageReference Include="System.IO.Packaging" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>

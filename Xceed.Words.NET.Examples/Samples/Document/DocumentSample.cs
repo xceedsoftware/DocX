@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -16,7 +16,7 @@
 
 /***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Document Sample Application
-Copyright (c) 2009-2025 - Xceed Software Inc.
+Copyright (c) 2009-2026 - Xceed Software Inc.
 
 This application demonstrates how to modify the content of a document when using the API 
 from the Xceed Words for .NET.
@@ -263,23 +263,34 @@ namespace Xceed.Words.NET.Examples
 
     public static void LoadDocumentWithStringUrl()
     {
-      using( var doc = DocX.Load( "https://calibre-ebook.com/downloads/demos/demo.docx" ) )
-      {
-        // Add a title
-        doc.InsertParagraph( 0, "Load Document with string Url", false ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
+      //using( var doc = DocX.Load( "https://calibre-ebook.com/downloads/demos/demo.docx" ) )
+      //{
+      //  // Add a title
+      //  doc.InsertParagraph( 0, "Load Document with string Url", false ).FontSize( 15d ).SpacingAfter( 50d ).Alignment = Alignment.center;
 
-        // Insert a Paragraph into this document.
-        var p = doc.InsertParagraph();
+      //  // Insert a Paragraph into this document.
+      //  var p = doc.InsertParagraph();
 
-        // Append some text and add formatting.
-        p.Append( "A small paragraph was added." );
+      //  // Append some text and add formatting.
+      //  p.Append( "A small paragraph was added." );
 
-        doc.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"LoadDocumentWithUrl.docx" );
-      }
+      //  doc.SaveAs( DocumentSample.DocumentSampleOutputDirectory + @"LoadDocumentWithUrl.docx" );
+      //}
     }
 
     public static void AddHtml()
     {
+
+
+
+
+
+
+
+
+
+
+
 
 
 

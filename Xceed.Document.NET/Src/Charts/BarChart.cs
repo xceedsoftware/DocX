@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.IO.Packaging;
 using System.Linq;
 using System.Xml.Linq;
@@ -28,6 +29,7 @@ namespace Xceed.Document.NET
     #region Private Properties
 
     private List<BaseSeries> _series;
+
 
     #endregion
 
@@ -103,6 +105,7 @@ namespace Xceed.Document.NET
         {
           _series = new List<BaseSeries>();
           var chart = this.GetChartTypeXElement();
+
           var ser = chart.Elements( XName.Get( "ser", Document.c.NamespaceName ) );
           foreach( var element in ser )
           {
@@ -114,6 +117,8 @@ namespace Xceed.Document.NET
         return _series;
       }
     }
+
+
 
     #endregion
 
@@ -161,7 +166,200 @@ namespace Xceed.Document.NET
 
     }
 
+    protected override string GetChartTypeXmlName()
+    {
+      if( this.ExternalXml == null )
+        return null;
+
+      var chartElement = this.ExternalXml.Descendants()
+                                         .FirstOrDefault( element => ( element.Name.LocalName == "barChart" )
+                                                                  || ( element.Name.LocalName == "bar3DChart" ) );
+
+      return chartElement?.Name.LocalName;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     #endregion
+
+
+
+
+
   }
 
   public enum BarDirection
@@ -183,4 +381,5 @@ namespace Xceed.Document.NET
     [XmlName( "standard" )]
     Standard
   }
+
 }

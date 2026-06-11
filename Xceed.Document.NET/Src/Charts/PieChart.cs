@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -59,6 +59,7 @@ namespace Xceed.Document.NET
         return false;
       }
     }
+
     public override Int16 MaxSeriesCount
     {
       get
@@ -107,6 +108,18 @@ namespace Xceed.Document.NET
       return this.ExternalXml.Descendants().Where( chartElement => ( chartElement.Name.LocalName == "pieChart" )
                                                                      || ( chartElement.Name.LocalName == "pie3DChart" ) ).SingleOrDefault();
 
+    }
+
+    protected override string GetChartTypeXmlName()
+    {
+      if( this.ExternalXml == null )
+        return null;
+
+      var chartElement = this.ExternalXml.Descendants()
+                                         .FirstOrDefault( element => ( element.Name.LocalName == "pieChart" )
+                                                                  || ( element.Name.LocalName == "pie3DChart" ) );
+
+      return chartElement?.Name.LocalName;
     }
 
     #endregion

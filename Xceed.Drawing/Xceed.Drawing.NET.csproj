@@ -36,10 +36,12 @@
     </DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Svg" Version="2.4.3" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -49,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyVersionInfo.cs" />
+    <Compile Include="SvgToPngConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Bitmap.cs" />
     <Compile Include="Font.cs" />

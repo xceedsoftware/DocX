@@ -46,6 +46,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <NoWarn>CS1591</NoWarn>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -82,6 +83,9 @@
     <Reference Include="System.Data" />
     <Reference Include="WindowsBase">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="Xceed.Words.NET">
+      <HintPath>..\..\Bin\Debug\Xceed.Words.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -122,6 +126,9 @@
     <Compile Include="Src\Header.cs" />
     <Compile Include="Src\Headers.cs" />
     <Compile Include="Src\HelperFunctions.cs" />
+    <Compile Include="Src\HTMLParser\AttributesParsers.cs" />
+    <Compile Include="Src\HTMLParser\CssDefinitions.cs" />
+    <Compile Include="Src\HTMLParser\ICssValueParser.cs" />
     <Compile Include="Src\Hyperlink.cs" />
     <Compile Include="Src\IParagraphContainer.cs" />
     <Compile Include="Src\List.cs" />
@@ -134,8 +141,11 @@
     <Compile Include="Src\Section.cs" />
     <Compile Include="Src\ShadingPattern.cs" />
     <Compile Include="Src\TableOfContents.cs" />
+    <Compile Include="Src\Table\Cell.cs" />
+    <Compile Include="Src\Table\Row.cs" />
+    <Compile Include="Src\Table\TableLook.cs" />
     <Compile Include="Src\_BaseClasses.cs" />
-    <Compile Include="Src\Table.cs" />
+    <Compile Include="Src\Table\Table.cs" />
     <Compile Include="Src\_Enumerations.cs" />
     <Compile Include="Src\Formatting.cs" />
     <Compile Include="Src\Image.cs" />
@@ -144,7 +154,6 @@
     <Compile Include="Src\Document.cs" />
     <Compile Include="Src\_Extensions.cs" />
     <Compile Include="Utils\Exceptions\ThrowException.cs" />
-    <Compile Include="Utils\Licensing\LicenseOrigin.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\default_styles.xml.gz" />

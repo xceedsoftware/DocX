@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -134,6 +134,8 @@ namespace Xceed.Words.NET
 
 
 
+
+
     #endregion
 
     #region Overrides
@@ -151,22 +153,11 @@ namespace Xceed.Words.NET
       base.SaveAs( stream, password );
     }
 
-    public override void SaveAs( string filename, string password = "" )
-    {
-      if( this.IsPackageClosed( _package ) )
-      {
-        // When package is closed (already saved), reload the package and restart SaveAs();
-        var initialDoc = DocX.ReloadDocumentFromFileName( this );
-        initialDoc.SaveAs( filename, password );
-        return;
-      }
-
-      base.SaveAs( filename, password );
-    }
-
     public override void Save( string password = "" )
     {
       Message.ShowMessage();
+
+
 
 
 
@@ -251,11 +242,15 @@ namespace Xceed.Words.NET
         }
       }
 
+
+
       if( _canClosePackage )
       {
         // Close the document so that all it's sub-part can be saved and it can be saved in .NETStandard/NET5.
         _package.Close();
       }
+
+
 
       #region Save this document back to a file or stream, that was specified by the user at save time.
       this.WriteToFileOrStream();
@@ -266,6 +261,9 @@ namespace Xceed.Words.NET
     {
       return this.InternalCopy();
     }
+
+
+
 
 
 
@@ -322,7 +320,7 @@ namespace Xceed.Words.NET
         var footers = section.Footers;
 
         // Header Even
-        if( (headers.Even != null) && (headers.Even.Xml != null) && this.PackagePart.RelationshipExists( headers.Even.Id ) )
+        if( ( headers.Even != null ) && ( headers.Even.Xml != null ) && this.PackagePart.RelationshipExists( headers.Even.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -340,7 +338,7 @@ namespace Xceed.Words.NET
         }
 
         // Header Odd
-        if( (headers.Odd != null) && (headers.Odd.Xml != null) && this.PackagePart.RelationshipExists( headers.Odd.Id ) )
+        if( ( headers.Odd != null ) && ( headers.Odd.Xml != null ) && this.PackagePart.RelationshipExists( headers.Odd.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -359,7 +357,7 @@ namespace Xceed.Words.NET
         }
 
         // Header First
-        if( (headers.First != null) && (headers.First.Xml != null) && this.PackagePart.RelationshipExists( headers.First.Id ) )
+        if( ( headers.First != null ) && ( headers.First.Xml != null ) && this.PackagePart.RelationshipExists( headers.First.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -378,7 +376,7 @@ namespace Xceed.Words.NET
         }
 
         // Footer Odd
-        if( (footers.Odd != null) && (footers.Odd.Xml != null) && this.PackagePart.RelationshipExists( footers.Odd.Id ) )
+        if( ( footers.Odd != null ) && ( footers.Odd.Xml != null ) && this.PackagePart.RelationshipExists( footers.Odd.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -397,7 +395,7 @@ namespace Xceed.Words.NET
         }
 
         // Footer Even
-        if( (footers.Even != null) && (footers.Even.Xml != null) && this.PackagePart.RelationshipExists( footers.Even.Id ) )
+        if( ( footers.Even != null ) && ( footers.Even.Xml != null ) && this.PackagePart.RelationshipExists( footers.Even.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -416,7 +414,7 @@ namespace Xceed.Words.NET
         }
 
         // Footer First
-        if( (footers.First != null) && (footers.First.Xml != null) && this.PackagePart.RelationshipExists( footers.First.Id ) )
+        if( ( footers.First != null ) && ( footers.First.Xml != null ) && this.PackagePart.RelationshipExists( footers.First.Id ) )
         {
           var target = PackUriHelper.ResolvePartUri
           (
@@ -544,7 +542,7 @@ namespace Xceed.Words.NET
             HelperFunctions.CopyStream( _memoryStream, fs );
           }
           else
-            fs.Write( _memoryStream.ToArray(), 0, ( int )_memoryStream.Length );
+            fs.Write( _memoryStream.ToArray(), 0, (int)_memoryStream.Length );
         }
       }
       else if( _stream.CanSeek )  //Check if stream can be seeked to support System.Web.HttpResponseStream.

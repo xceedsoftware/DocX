@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -16,7 +16,7 @@
 
 /***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Chart Sample Application
-Copyright (c) 2009-2025 - Xceed Software Inc.
+Copyright (c) 2009-2026 - Xceed Software Inc.
 
 This application demonstrates how to create a chart when using the API 
 from the Xceed Words for .NET.
@@ -344,6 +344,141 @@ namespace Xceed.Words.NET.Examples
             new ScatterData { Temperature = -17.5, Humidity = 39.0 },
             new ScatterData { Temperature = -23.1, Humidity = 32.5 },
             new ScatterData { Temperature = -14.8, Humidity = 41.3 }
+        };
+    }
+  }
+
+  internal class FinancialReportData
+  {
+    public string Category
+    {
+      get;
+      set;
+    }
+    public double Revenue
+    {
+      get;
+      set;
+    }
+    public double Expenses
+    {
+      get;
+      set;
+    }
+    public double NetProfit
+    {
+      get;
+      set;
+    }
+    public double ProfitMargin
+    {
+      get;
+      set;
+    }
+
+    public static List<FinancialReportData> GetFinancialData()
+    {
+      var data = new List<FinancialReportData>
+        {
+            new FinancialReportData() { Category = "Q1 2023", Revenue = 500000, Expenses = 350000 },
+            new FinancialReportData() { Category = "Q2 2023", Revenue = 550000, Expenses = 400000 },
+            new FinancialReportData() { Category = "Q3 2023", Revenue = 600000, Expenses = 420000 },
+            new FinancialReportData() { Category = "Q4 2023", Revenue = 620000, Expenses = 450000 }
+        };
+
+      // Calculate Net Profit and Profit Margin
+      foreach( var item in data )
+      {
+        item.NetProfit = item.Revenue - item.Expenses;
+        item.ProfitMargin = ( item.Revenue != 0 ) ? ( item.NetProfit / item.Revenue ) * 100 : 0;
+      }
+
+      return data;
+    }
+  }
+
+  internal class Data
+  {
+    public string Location { get; set; }
+    public double Value { get; set; }
+
+    public Data() { }
+
+    public Data( string location, double value )
+    {
+      Location = location;
+      Value = value;
+    }
+  }
+
+  internal class PieData
+  {
+    public string Category { get; set; }
+    public double Expenses { get; set; }
+    public double Budget { get; set; }
+    public string Department { get; set; }
+    public double Amount { get; set; }
+    public string Company { get; set; }
+    public double Percentage { get; set; }
+    public string Quarter { get; set; }
+    public double Sales { get; set; }
+
+    public static List<PieData> CreateCanadaExpenses()
+    {
+      return new List<PieData>
+        {
+            new PieData() { Category = "Food", Expenses = 100, Budget = 115 },
+            new PieData() { Category = "Housing", Expenses = 120, Budget = 135 },
+            new PieData() { Category = "Transportation", Expenses = 140, Budget = 140 },
+            new PieData() { Category = "Health Care", Expenses = 150, Budget = 165 }
+        };
+    }
+
+    public static List<PieData> CreateUSAExpenses()
+    {
+      return new List<PieData>
+        {
+            new PieData() { Category = "Food", Expenses = 200, Budget = 210 },
+            new PieData() { Category = "Housing", Expenses = 150, Budget = 160 },
+            new PieData() { Category = "Transportation", Expenses = 110, Budget = 125 },
+            new PieData() { Category = "Health Care", Expenses = 100, Budget = 120 }
+        };
+    }
+
+    public static List<PieData> CreateDepartmentExpenses()
+    {
+      return new List<PieData>
+        {
+            new PieData() { Department = "Engineering", Amount = 450000 },
+            new PieData() { Department = "Marketing", Amount = 320000 },
+            new PieData() { Department = "Sales", Amount = 600000 },
+            new PieData() { Department = "HR", Amount = 180000 },
+            new PieData() { Department = "Finance", Amount = 220000 },
+            new PieData() { Department = "Operations", Amount = 280000 }
+        };
+    }
+
+    public static List<PieData> CreateMarketShare()
+    {
+      return new List<PieData>
+        {
+            new PieData() { Company = "Apple", Percentage = 45.2 },
+            new PieData() { Company = "Samsung", Percentage = 22.7 },
+            new PieData() { Company = "Huawei", Percentage = 12.3 },
+            new PieData() { Company = "Xiaomi", Percentage = 9.8 },
+            new PieData() { Company = "Others", Percentage = 10.0 }
+        };
+    }
+
+    public static List<PieData> CreateQuarterlySales()
+    {
+      return new List<PieData>
+        {
+            new PieData() { Quarter = "Q1", Sales = 8.2 },
+            new PieData() { Quarter = "Q2", Sales = 3.2 },
+            new PieData() { Quarter = "Q3", Sales = 1.4 },
+            new PieData() { Quarter = "Q4", Sales = 1.2 },
+            new PieData() { Quarter = "Special", Sales = 0.8 } // This would appear in secondary chart
         };
     }
   }

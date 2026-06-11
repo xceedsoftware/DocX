@@ -2,6 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <BaseIntermediateOutputPath>obj\net5.0\</BaseIntermediateOutputPath>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
@@ -35,9 +36,11 @@
     <Compile Include="Pen.cs" />
     <Compile Include="RectangleF.cs" />
     <Compile Include="SolidBrush.cs" />
+    <Compile Include="SvgToPngConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="2.88.8" />
+    <PackageReference Include="Svg" Version="3.4.3" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

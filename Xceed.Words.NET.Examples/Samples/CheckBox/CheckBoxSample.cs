@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -16,7 +16,7 @@
 
 /***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Section Sample Application
-Copyright (c) 2009-2025 - Xceed Software Inc.
+Copyright (c) 2009-2026 - Xceed Software Inc.
 
 This application demonstrates how to insert sections when using the API 
 from the Xceed Words for .NET.
@@ -29,6 +29,7 @@ is only intended as a supplement to the documentation, and is provided
 using System;
 using System.IO;
 using System.Linq;
+using Xceed.Document.NET;
 
 namespace Xceed.Words.NET.Examples
 {
@@ -59,11 +60,37 @@ namespace Xceed.Words.NET.Examples
     {
 
 
+
+
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
     }
 
     public static void AddCheckBox()
     {
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    public static void InsertCheckbox()
+    {
+
+
+
+
+
+      // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    public static void ReplaceTextWithCheckbox()
+    {
+
+
+
+
+
 
 
       // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.

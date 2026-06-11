@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -29,6 +29,7 @@ using System.Runtime.InteropServices;
 
 namespace Xceed.Drawing
 {
+
   [Flags]
   public enum FontStyle
   {
@@ -56,6 +57,8 @@ namespace Xceed.Drawing
 
     [DllImport("user32.dll")]
 		private static extern IntPtr ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+    private PrivateFontCollection m_fontCollection;
 #endif
     #region Private Members
 
@@ -138,14 +141,14 @@ namespace Xceed.Drawing
         systemFontStyle |= System.Drawing.FontStyle.Strikeout;
       }
 
-      var fontCollection = new PrivateFontCollection();
-      fontCollection.AddFontFile( fontPath );
-      if( fontCollection.Families.Length < 0 )
+      m_fontCollection = new PrivateFontCollection();
+      m_fontCollection.AddFontFile( fontPath );
+      if( m_fontCollection.Families.Length < 0 )
       {
         throw new InvalidOperationException( "No font family found when loading font." );
       }
 
-      m_font = new System.Drawing.Font( fontCollection.Families[ 0 ], System.Convert.ToSingle( fontSize ), systemFontStyle, GraphicsUnit.Pixel );
+      m_font = new System.Drawing.Font( m_fontCollection.Families[ 0 ], System.Convert.ToSingle( fontSize ), systemFontStyle, GraphicsUnit.Pixel );
 #endif
     }
 

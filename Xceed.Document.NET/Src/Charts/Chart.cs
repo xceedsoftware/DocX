@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -18,6 +18,7 @@ using System;
 using System.Linq;
 using System.Xml.Linq;
 using System.IO.Packaging;
+using System.Net;
 
 namespace Xceed.Document.NET
 {
@@ -77,6 +78,9 @@ namespace Xceed.Document.NET
       }
     }
 
+
+
+
     #endregion
 
     #region Constructors
@@ -86,10 +90,6 @@ namespace Xceed.Document.NET
     {
     }
 
-    internal Chart( Paragraph parentParagraph, PackageRelationship packageRelationship, PackagePart packagePart, XDocument chartDocument )
-        : base( parentParagraph, packageRelationship, packagePart, chartDocument )
-    {
-    }
 
     #endregion
   }

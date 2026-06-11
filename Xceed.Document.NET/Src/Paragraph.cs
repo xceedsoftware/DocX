@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -12,6 +12,7 @@
    pick up Xceed Words for .NET at https://xceed.com/xceed-words-for-net/
  
   *************************************************************************************/
+
 
 
 using System;
@@ -855,6 +856,13 @@ namespace Xceed.Document.NET
       }
     }
 
+
+
+
+
+
+
+
     #endregion
 
     #region Constructors
@@ -923,6 +931,50 @@ namespace Xceed.Document.NET
 
     #region Public Methods
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public override Table InsertTableBeforeSelf( Table t )
     {
       t = base.InsertTableBeforeSelf( t );
@@ -961,7 +1013,7 @@ namespace Xceed.Document.NET
       return t;
     }
 
-    public Picture ReplacePicture( Picture toBeReplaced, Picture replaceWith )
+    public Picture ReplacePicture( Picture toBeReplaced, Picture replaceWith, bool eraseReplace = true )
     {
       var document = this.Document;
       Picture replacePicture = null;
@@ -988,7 +1040,11 @@ namespace Xceed.Document.NET
         replacePicture = new Picture( this.Document, xml, new Image( document, this.PackagePart.GetRelationship( replaceWith.Id ) ) );
         this.AppendPicture( replacePicture );
       }
-      toBeReplaced.Remove();
+
+      if( eraseReplace )
+      {
+        toBeReplaced.Remove();
+      }
 
       return replacePicture;
     }
@@ -1690,6 +1746,10 @@ namespace Xceed.Document.NET
 
       return this;
     }
+
+
+
+
 
 
 
@@ -3469,6 +3529,7 @@ namespace Xceed.Document.NET
       Paragraph.DefaultLineSpacing = Paragraph.DefaultSingleLineSpacing;
       Paragraph.DefaultLineSpacingAfter = 0f;
       Paragraph.DefaultLineSpacingBefore = 0f;
+      Paragraph.DefaultLineRuleAuto = false;
 
       Paragraph.DefaultIndentationFirstLine = 0f;
       Paragraph.DefaultIndentationHanging = 0f;
@@ -3478,7 +3539,6 @@ namespace Xceed.Document.NET
 
     internal static void SetDefaultValues( XElement pPr )
     {
-
       if( pPr == null )
         return;
 
@@ -3584,6 +3644,9 @@ namespace Xceed.Document.NET
           previousParagraph.Xml.Add( picture.Xml );
         }
       }
+
+
+
 
     }
 
@@ -3759,7 +3822,7 @@ namespace Xceed.Document.NET
       int count = 0;
       Run theOne = null;
 
-      GetFirstRunEffectedByEditRecursive( Xml, index, ref count, ref theOne, type );
+      this.GetFirstRunEffectedByEditRecursive( Xml, index, ref count, ref theOne, type );
 
       return theOne;
     }
@@ -3771,7 +3834,7 @@ namespace Xceed.Document.NET
 
     internal void GetFirstRunEffectedByEditRecursive( XElement Xml, int index, ref int count, ref Run theOne, EditType type )
     {
-      if( CanReadXml( Xml ) )
+      if( Paragraph.CanReadXml( Xml ) )
       {
         count += HelperFunctions.GetSize( Xml );
       }
@@ -4514,6 +4577,10 @@ namespace Xceed.Document.NET
 
 
 
+
+
+
+
     private void ReplaceAtBookmark_Core( string text, XElement bookmark, Formatting formatting = null )
     {
       var xElementList = HelperFunctions.FormatInput( text, ( formatting != null ) ? formatting.Xml : null );
@@ -4848,6 +4915,11 @@ namespace Xceed.Document.NET
             this.InsertTableAfterSelf( (Table)replaceTextOptions.NewObject );
             replacedSuccess = true;
           }
+          else if( replaceTextOptions.NewObject is List )
+          {
+            this.InsertListAfterSelf( (List)replaceTextOptions.NewObject );
+            replacedSuccess = true;
+          }
           else
           {
             throw new ArgumentException( "Unknown object received. Valid objects are Picture, Hyperlink or Table." );
@@ -4864,6 +4936,61 @@ namespace Xceed.Document.NET
 
       return false;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4977,6 +5104,8 @@ namespace Xceed.Document.NET
       return this.Document;
     }
 
+
+
     private Container GetHeaderContainer()
     {
       foreach( var section in this.Document.Sections )
@@ -4984,6 +5113,9 @@ namespace Xceed.Document.NET
         var header = section.Headers.First;
         if( header != null )
         {
+          if( this.PackagePart == null )
+            return header;
+
           if( header.PackagePart.Uri == this.PackagePart.Uri )
             return header;
         }
@@ -5011,6 +5143,8 @@ namespace Xceed.Document.NET
         var footer = section.Footers.First;
         if( footer != null )
         {
+          if( this.PackagePart == null )
+            return footer;
           if( footer.PackagePart.Uri == this.PackagePart.Uri )
             return footer;
         }

@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -108,6 +108,9 @@ namespace Xceed.Document.NET
         return pictures;
       }
     }
+
+
+
 
 
 
@@ -646,6 +649,7 @@ namespace Xceed.Document.NET
             split[ 1 ]
         );
       }
+
       this.SetParentContainer( p );
       // Clear Paragraph cache because the split modified the paragraphs.
       this.ClearParagraphsCache();
@@ -725,6 +729,7 @@ namespace Xceed.Document.NET
       }
 
       var newParagraph = new Paragraph( Document, newXElement, index );
+
       this.Document._paragraphLookup.Add( index, newParagraph );
       this.SetParentContainer( newParagraph );
       this.AddParagraphInCache( newParagraph );
@@ -827,6 +832,37 @@ namespace Xceed.Document.NET
 
       return newParagraphAdded;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1062,30 +1098,53 @@ namespace Xceed.Document.NET
       int index = 0;
       var paragraphs = new List<Paragraph>();
 
-      var p = this.Xml.Descendants( XName.Get( "p", Document.w.NamespaceName ) );
-      if( p != null )
+      var el = this.Xml.Descendants();
+      int secIndex = 1;
+
+      foreach( XElement element in el )
       {
-        foreach( XElement xElement in p )
+        string name = element.Name.ToString();
+
+
+        if( element.Name == Document.w + "p" )
         {
           // Do not include inner paragraphs contained in a Fallback.
-          if( xElement.Ancestors().FirstOrDefault( x => x.Name.Equals( XName.Get( "Fallback", Document.mc.NamespaceName ) ) ) != null )
+          if( element.Ancestors().FirstOrDefault( x => x.Name.Equals( XName.Get( "Fallback", Document.mc.NamespaceName ) ) ) != null )
           {
             continue;
           }
 
-          var paragraph = new Paragraph( this.Document, xElement, index );
+          var paragraph = new Paragraph( this.Document, element, index );
           paragraph._startIndex = index;
-          var length = HelperFunctions.GetText( xElement ).Length;
+          var length = HelperFunctions.GetText( element ).Length;
           index += Math.Max( 1, length );
           paragraph._endIndex = Math.Max( 1, index - 1 );
           paragraph.ParentContainer = this.GetParentFromXmlName( paragraph.Xml.Ancestors().First().Name.LocalName );
           paragraph.PackagePart = this.PackagePart;
           paragraphs.Add( paragraph );
+
+          if( this is Document )
+          {
+            XElement parSec = element.Descendants().FirstOrDefault( x => x.Name == Document.w + "pPr" )?.Descendants().FirstOrDefault( x => x.Name == Document.w + "sectPr" );
+
+
+            if( parSec != null && !string.IsNullOrEmpty( paragraph.Text ) )
+            {
+              secIndex++;
+            }
+          }
         }
+        else if( element.Name == Document.w + "sectPr" )
+        {
+          secIndex++;
+        }
+
       }
+
 
       return paragraphs;
     }
+
 
     internal void GetParagraphsRecursive( XElement xml, ref int index, ref List<Paragraph> paragraphs, bool isDeepSearch = false )
     {
@@ -1401,7 +1460,7 @@ namespace Xceed.Document.NET
           }
           else
           {
-            throw new InvalidDataException( "Unknown ReplaceTextOptions. ");
+            throw new InvalidDataException( "Unknown ReplaceTextOptions. " );
           }
 
           if( !replaceSuccess )

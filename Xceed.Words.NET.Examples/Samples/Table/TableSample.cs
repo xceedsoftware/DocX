@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -16,7 +16,7 @@
 
 /***************************************************************************************
 Xceed Words for .NET – Xceed.Words.NET.Examples – Table Sample Application
-Copyright (c) 2009-2025 - Xceed Software Inc.
+Copyright (c) 2009-2026 - Xceed Software Inc.
 
 This application demonstrates how to create and format a table when using the API 
 from the Xceed Words for .NET.
@@ -330,6 +330,49 @@ namespace Xceed.Words.NET.Examples
       }
     }
 
+    public static void SplitCell()
+    {
+      Console.WriteLine( "\tSplitCell()" );
+
+
+
+    // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    public static void SplitCellInRegularTable()
+    {
+      Console.WriteLine( "\tSplitCellInRegularTable()" );
+
+
+
+    // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    public static void SplitMergedCell()
+    {
+      Console.WriteLine( "\tSplitMergedCell()" );
+
+
+
+    // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    public static void SplitCellInMergedRows()
+    {
+      Console.WriteLine( "\tSplitCellInMergedRows()" );
+
+
+    // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
+    public static void SplitCellInSimpleTable()
+    {
+      Console.WriteLine( "\tSplitCellInSimpleTable()" );
+
+
+    // This option is available when you buy Xceed Words for .NET from https://xceed.com/xceed-words-for-net/.
+    }
+
     public static void ShadingPattern()
     {
       Console.WriteLine( "\tShadingPattern()" );
@@ -397,7 +440,7 @@ namespace Xceed.Words.NET.Examples
           StyleColor = Color.White
         };
 
-        t1.Rows[ 1 ].Cells[ 3 ].Paragraphs[ 0 ].ShadingPattern(shadingPattern_paragraph_1, ShadingType.Paragraph);
+        t1.Rows[ 1 ].Cells[ 3 ].Paragraphs[ 0 ].ShadingPattern( shadingPattern_paragraph_1, ShadingType.Paragraph );
         t1.Rows[ 1 ].Cells[ 3 ].Paragraphs[ 2 ].ShadingPattern( shadingPattern_paragraph_2, ShadingType.Paragraph );
 
         document.InsertParagraph( "Set shading pattern for a table: " ).FontSize( 13d ).SpacingBefore( 40d );

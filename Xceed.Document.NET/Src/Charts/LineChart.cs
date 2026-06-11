@@ -2,7 +2,7 @@
  
    DocX – DocX is the community edition of Xceed Words for .NET
  
-   Copyright (C) 2009-2025 Xceed Software Inc.
+   Copyright (C) 2009-2026 Xceed Software Inc.
  
    This program is provided to you under the terms of the XCEED SOFTWARE, INC.
    COMMUNITY LICENSE AGREEMENT (for non-commercial use) as published at 
@@ -17,9 +17,9 @@
 using System.IO.Packaging;
 using System.Xml.Linq;
 using System.Linq;
-using System.Globalization;
 using System.Collections.Generic;
 using System;
+using System.IO;
 
 namespace Xceed.Document.NET
 {
@@ -28,6 +28,7 @@ namespace Xceed.Document.NET
     #region Private Properties
 
     private List<BaseSeries> _series;
+
 
     #endregion // Private Properties
 
@@ -70,6 +71,8 @@ namespace Xceed.Document.NET
             chartXml.Element( XName.Get( "grouping", Document.c.NamespaceName ) ), value );
       }
     }
+
+
 
     #endregion
 
@@ -133,7 +136,199 @@ namespace Xceed.Document.NET
                                                                     || ( chartElement.Name.LocalName == "line3DChart" ) ).SingleOrDefault();
 
     }
+
+    protected override string GetChartTypeXmlName()
+    {
+      if( this.ExternalXml == null )
+        return null;
+
+      var chartElement = this.ExternalXml.Descendants()
+                                         .FirstOrDefault( element => ( element.Name.LocalName == "lineChart" )
+                                                                  || ( element.Name.LocalName == "line3DChart" ) );
+
+      return chartElement?.Name.LocalName;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     #endregion
+
+
+
 
 
   }
@@ -146,4 +341,6 @@ namespace Xceed.Document.NET
     [XmlName( "standard" )]
     Standard
   }
+
+
 }
